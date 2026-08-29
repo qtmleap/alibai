@@ -29,6 +29,13 @@
       "when": 1787978402208,
       "tag": "0003_calm_kang",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1788020036365,
+      "tag": "0004_stale_sprite",
+      "breakpoints": true
     }
   ]
 }

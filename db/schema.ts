@@ -1,5 +1,6 @@
 import {
   boolean,
+  index,
   integer,
   jsonb,
   pgTable,
@@ -76,62 +77,88 @@ export const scenarioTruths = pgTable('scenario_truths', {
  * 登場人物。ここに入る情報が、そのNPCのプロンプトになる上限。
  * 他人物の秘密や真相は絶対に入れない。
  */
-export const characters = pgTable('characters', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  scenarioId: uuid('scenario_id')
-    .notNull()
-    .references(() => scenarios.id, { onDelete: 'cascade' }),
-  name: text('name').notNull(),
-  personality: text('personality').notNull(),
-  knowledge: text('knowledge').notNull(),
-  secrets: text('secrets').notNull(),
-  goals: text('goals').notNull(),
-  lies: text('lies').notNull(),
-  memories: text('memories').notNull(),
-})
+export const characters = pgTable(
+  'characters',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    scenarioId: uuid('scenario_id')
+      .notNull()
+      .references(() => scenarios.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    personality: text('personality').notNull(),
+    knowledge: text('knowledge').notNull(),
+    secrets: text('secrets').notNull(),
+    goals: text('goals').notNull(),
+    lies: text('lies').notNull(),
+    memories: text('memories').notNull(),
+  },
+  (table) => [index('characters_scenario_id_idx').on(table.scenarioId)],
+)
 
-export const evidences = pgTable('evidences', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  scenarioId: uuid('scenario_id')
-    .notNull()
-    .references(() => scenarios.id, { onDelete: 'cascade' }),
-  label: text('label').notNull(),
-  /** Judgeがこの証拠の開示を判定するための条件文 */
-  revealCondition: text('reveal_condition').notNull(),
-})
+export const evidences = pgTable(
+  'evidences',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    scenarioId: uuid('scenario_id')
+      .notNull()
+      .references(() => scenarios.id, { onDelete: 'cascade' }),
+    label: text('label').notNull(),
+    /** Judgeがこの証拠の開示を判定するための条件文 */
+    revealCondition: text('reveal_condition').notNull(),
+  },
+  (table) => [index('evidences_scenario_id_idx').on(table.scenarioId)],
+)
 
-export const playSessions = pgTable('play_sessions', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  scenarioId: uuid('scenario_id')
-    .notNull()
-    .references(() => scenarios.id, { onDelete: 'cascade' }),
-  /** 匿名プレイを一級市民として扱うため nullable */
-  userId: uuid('user_id'),
-  /**
-   * プレイヤーが演じる探偵。NPCのプロンプトに渡るので、
-   * セッション開始時に決まったら以降は変えない。名乗らずに始めた場合は null。
-   */
-  detective: jsonb('detective').$type<Detective>(),
-  startedAt: timestamp('started_at', { withTimezone: true }).notNull().defaultNow(),
-  finishedAt: timestamp('finished_at', { withTimezone: true }),
-})
+export const playSessions = pgTable(
+  'play_sessions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    scenarioId: uuid('scenario_id')
+      .notNull()
+      .references(() => scenarios.id, { onDelete: 'cascade' }),
+    /** 匿名プレイを一級市民として扱うため nullable */
+    userId: uuid('user_id'),
+    /**
+     * プレイヤーが演じる探偵。NPCのプロンプトに渡るので、
+     * セッション開始時に決まったら以降は変えない。名乗らずに始めた場合は null。
+     */
+    detective: jsonb('detective').$type<Detective>(),
+    startedAt: timestamp('started_at', { withTimezone: true }).notNull().defaultNow(),
+    finishedAt: timestamp('finished_at', { withTimezone: true }),
+  },
+  (table) => [
+    index('play_sessions_scenario_id_idx').on(table.scenarioId),
+    /** 古いセッションの一括削除は startedAt の範囲で引く。 */
+    index('play_sessions_started_at_idx').on(table.startedAt),
+  ],
+)
 
-export const messages = pgTable('messages', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  sessionId: uuid('session_id')
-    .notNull()
-    .references(() => playSessions.id, { onDelete: 'cascade' }),
-  characterId: uuid('character_id')
-    .notNull()
-    .references(() => characters.id, { onDelete: 'cascade' }),
-  role: text('role').notNull(),
-  content: text('content').notNull(),
-  /** コスト集計用。キャッシュ書き込み量と読み込み量も必ず記録する。 */
-  usage: jsonb('usage'),
-  provider: text('provider'),
-  model: text('model'),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-})
+/**
+ * 会話ログ。
+ *
+ * コストは持たない。ここは保持期間を過ぎたら消す前提のテーブルで、
+ * 消した瞬間に集計元まで消えては困るため llm_usages を正典にしている。
+ */
+export const messages = pgTable(
+  'messages',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    sessionId: uuid('session_id')
+      .notNull()
+      .references(() => playSessions.id, { onDelete: 'cascade' }),
+    characterId: uuid('character_id')
+      .notNull()
+      .references(() => characters.id, { onDelete: 'cascade' }),
+    role: text('role').notNull(),
+    content: text('content').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  // 外部キーは子側に索引を作らない。張らないまま親を消すと、1行ごとにこの表を全走査する。
+  (table) => [
+    index('messages_session_id_idx').on(table.sessionId),
+    index('messages_character_id_idx').on(table.characterId),
+  ],
+)
 
 export const discoveries = pgTable(
   'discoveries',
@@ -144,7 +171,11 @@ export const discoveries = pgTable(
       .references(() => evidences.id, { onDelete: 'cascade' }),
     discoveredAt: timestamp('discovered_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [primaryKey({ columns: [table.sessionId, table.evidenceId] })],
+  (table) => [
+    primaryKey({ columns: [table.sessionId, table.evidenceId] }),
+    // sessionId は主キーの先頭なので索引は要らない。evidenceId は自前で張る。
+    index('discoveries_evidence_id_idx').on(table.evidenceId),
+  ],
 )
 
 export const results = pgTable('results', {
@@ -158,11 +189,55 @@ export const results = pgTable('results', {
   accuracyPercent: smallint('accuracy_percent').notNull(),
 })
 
-export const reports = pgTable('reports', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  scenarioId: uuid('scenario_id')
-    .notNull()
-    .references(() => scenarios.id, { onDelete: 'cascade' }),
-  reason: text('reason').notNull(),
-  reportedAt: timestamp('reported_at', { withTimezone: true }).notNull().defaultNow(),
-})
+export const reports = pgTable(
+  'reports',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    scenarioId: uuid('scenario_id')
+      .notNull()
+      .references(() => scenarios.id, { onDelete: 'cascade' }),
+    reason: text('reason').notNull(),
+    reportedAt: timestamp('reported_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index('reports_scenario_id_idx').on(table.scenarioId)],
+)
+
+/**
+ * LLM呼び出し1回ぶんのトークン消費。
+ *
+ * このテーブルだけは play_sessions への外部キーを張らない。意図的な設計で、
+ * 「会話ログは保持期間で消すが、いくら使ったかの記録は残す」ことがこの表の存在理由。
+ * FKを張ると cascade で一緒に消え、目的がそのまま失われる。
+ * したがって session_id / scenario_id は参照の切れた履歴上の値であり、
+ * JOIN できることを前提にしてはいけない。
+ *
+ * トークン数を jsonb ではなく列に開いてあるのは、この表の用途が集計だから。
+ * とくに cache_creation_input_tokens は AI SDK の usage には含まれず
+ * providerMetadata 側にあるので、取りに行かないと黙って 0 になる
+ * （Anthropicではキャッシュ書き込みが通常入力より高い。落とすと請求額が読めない）。
+ */
+export const llmUsages = pgTable(
+  'llm_usages',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    sessionId: uuid('session_id'),
+    scenarioId: uuid('scenario_id'),
+    /** provider.ts の LlmRole。actor / judge / author。 */
+    role: text('role').notNull(),
+    provider: text('provider').notNull(),
+    model: text('model').notNull(),
+    inputTokens: integer('input_tokens').notNull().default(0),
+    outputTokens: integer('output_tokens').notNull().default(0),
+    /** キャッシュ読み込み。usage.cachedInputTokens。 */
+    cachedInputTokens: integer('cached_input_tokens').notNull().default(0),
+    /** キャッシュ書き込み。providerMetadata.anthropic 由来。 */
+    cacheCreationInputTokens: integer('cache_creation_input_tokens').notNull().default(0),
+    reasoningTokens: integer('reasoning_tokens').notNull().default(0),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    /** 日次ロールアップはこの索引で引く。 */
+    index('llm_usages_created_at_idx').on(table.createdAt),
+    index('llm_usages_session_id_idx').on(table.sessionId),
+  ],
+)

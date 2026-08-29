@@ -12,13 +12,14 @@ import { scoreSession } from '@/server/game/scoring'
 import { streamNpcReply } from '@/server/llm/actor'
 import { createFilterState, FALLBACK_REPLY, feedChunk, finalizeFilter } from '@/server/llm/filter'
 import { judgeTurn } from '@/server/llm/judge'
-import { providerOf } from '@/server/llm/provider'
+import { toUsageRow } from '@/server/llm/usage'
 import { withEnv } from '@/server/middleware/env'
 import { turnStateOf } from '@/shared/turns'
 import {
   characters,
   discoveries,
   evidences,
+  llmUsages,
   messages,
   playSessions,
   results,
@@ -377,24 +378,40 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
         reply,
       )
 
-      const [usage, response] = await Promise.all([result.usage, result.response])
+      const [usage, response, providerMetadata] = await Promise.all([
+        result.usage,
+        result.response,
+        result.providerMetadata,
+      ])
 
-      await db.insert(messages).values([
-        {
-          sessionId,
-          characterId: askInput.characterId,
-          role: 'user',
-          content: askInput.utterance,
-        },
-        {
-          sessionId,
-          characterId: askInput.characterId,
-          role: 'assistant',
-          content: reply,
-          usage,
-          provider: providerOf(env, 'actor'),
-          model: response.modelId,
-        },
+      // 会話ログとコストは別のテーブルへ、同時に書く。ここは Judge の手前なので、
+      // 直列にすると往復ぶんだけ判定の開始が遅れる。
+      await Promise.all([
+        db.insert(messages).values([
+          {
+            sessionId,
+            characterId: askInput.characterId,
+            role: 'user',
+            content: askInput.utterance,
+          },
+          {
+            sessionId,
+            characterId: askInput.characterId,
+            role: 'assistant',
+            content: reply,
+          },
+        ]),
+        db.insert(llmUsages).values(
+          toUsageRow({
+            env,
+            role: 'actor',
+            model: response.modelId,
+            usage,
+            providerMetadata,
+            sessionId,
+            scenarioId,
+          }),
+        ),
       ])
     } catch (error) {
       console.error('[ask] failed to persist turn', error)
@@ -405,7 +422,8 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
     try {
       const rubric = await loadJudgeRubric(c.env.SCENARIO_CACHE, db, scenarioId)
       const exchange = `プレイヤー: ${askInput.utterance}\nNPC: ${reply}`
-      const judgement = await judgeTurn({ env, rubric, exchange })
+      const judged = await judgeTurn({ env, rubric, exchange })
+      const judgement = judged.judgement
 
       const snapshot = await session.recordJudgement({
         revealedEvidenceIds: judgement.revealedEvidenceIds,
@@ -441,6 +459,27 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
           turn: turnStateOf(questionCount, env.MAX_TURNS, env.QUESTIONS_PER_TURN),
         }),
       })
+
+      // 判定を届けた後に書く。プレイヤーはもう次を考えているので、
+      // 集計のための1往復をその手前に挟む理由がない。
+      //
+      // catch を分けているのは、ここで外側に落とすと集計の書き損じが
+      // 「judge failed」として記録されるため。判定は成功してもう届いている。
+      try {
+        await db.insert(llmUsages).values(
+          toUsageRow({
+            env,
+            role: 'judge',
+            model: judged.model,
+            usage: judged.usage,
+            providerMetadata: judged.providerMetadata,
+            sessionId,
+            scenarioId,
+          }),
+        )
+      } catch (error) {
+        console.error('[ask] failed to persist judge usage', error)
+      }
     } catch (error) {
       console.error('[ask] judge failed', error)
     }

@@ -1,4 +1,4 @@
-import { generateObject } from 'ai'
+import { generateObject, type LanguageModelUsage, type ProviderMetadata } from 'ai'
 import { z } from 'zod'
 import type { Env } from '@/server/env'
 import { resolveModel } from '@/server/llm/provider'
@@ -29,12 +29,26 @@ export type JudgeInput = {
 }
 
 /**
+ * 判定結果と、その呼び出しにかかったトークン。
+ *
+ * 判定だけを返していると、Judge のコストが誰にも見えないまま積み上がる。
+ * Actor と Judge は1ターンに1回ずつ呼ばれるので、見えていない額は半分にもなる。
+ */
+export type JudgeResult = {
+  judgement: Judgement
+  usage: LanguageModelUsage
+  providerMetadata: ProviderMetadata | undefined
+  /** 実際に応答したモデルID。設定値ではなくレスポンス由来。 */
+  model: string
+}
+
+/**
  * Actorの返答を受けて、ゲーム状態の更新内容を判定する。
  *
  * Actorと分けているのは、1つのモデルに「演じつつ進行も管理して」と頼むと
  * 演技が崩れるか判定が曖昧になるため。役者は役者に徹してもらう。
  */
-export const judgeTurn = async ({ env, rubric, exchange }: JudgeInput): Promise<Judgement> => {
+export const judgeTurn = async ({ env, rubric, exchange }: JudgeInput): Promise<JudgeResult> => {
   // 判定ルールは messages ではなく system オプションに置く。
   // AI SDK は messages 側の system ロールを警告する（プレイヤー由来の文字列が
   // system に紛れ込む経路を作りがちなため）。Judge はブロック単位のキャッシュ指定が
@@ -46,5 +60,10 @@ export const judgeTurn = async ({ env, rubric, exchange }: JudgeInput): Promise<
     messages: [{ role: 'user', content: exchange }],
   })
 
-  return result.object
+  return {
+    judgement: result.object,
+    usage: result.usage,
+    providerMetadata: result.providerMetadata,
+    model: result.response.modelId,
+  }
 }
