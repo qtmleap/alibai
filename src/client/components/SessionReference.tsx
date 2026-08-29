@@ -1,8 +1,8 @@
 import { useState } from 'react'
+import { CaseNoteModal } from '@/client/components/CaseNote'
 import { Modal } from '@/client/components/Modal'
 import type { UseInterrogation } from '@/client/hooks/useInterrogation'
 import { buildHistory } from '@/client/lib/history'
-import { splitParagraphs } from '@/client/lib/paragraphs'
 import type { ScenarioDetail } from '@/client/lib/schemas'
 
 type Props = {
@@ -15,11 +15,9 @@ type ReferenceView = 'prologue' | 'history'
 /**
  * 聞き込み中に必要な「思い出す」ための入口。
  *
- * プロローグは聞き込み画面に常駐させない。常に見えていると今起きている会話より
- * 導入の文字が目に入り、画面を切り替えた意味がなくなる。
- *
- * 代わりに小さなボタンでモーダルを開く。ゲームの進行を止めず、読み終えたら
- * 同じ質問入力の場所へそのまま戻れる。
+ * 使うのは推理画面。あちらには会話ログが無いので、誰が何を言ったかを
+ * ここから開いて確かめる。聞き込み画面では会話がそのまま見えているため、
+ * 記録は事件の記録だけを会話ログの隅（CaseNoteButton）に置いてある。
  */
 export const SessionReference = ({ scenario, interrogation }: Props) => {
   const [view, setView] = useState<ReferenceView | undefined>(undefined)
@@ -46,17 +44,7 @@ export const SessionReference = ({ scenario, interrogation }: Props) => {
         </button>
       </div>
 
-      {view === 'prologue' && (
-        <Modal title="事件の記録" onClose={close}>
-          <div className="flex flex-col gap-4">
-            {splitParagraphs(scenario.briefing).map((paragraph) => (
-              <p key={paragraph} className="text-sm leading-relaxed text-slate-300">
-                {paragraph}
-              </p>
-            ))}
-          </div>
-        </Modal>
-      )}
+      {view === 'prologue' && <CaseNoteModal briefing={scenario.briefing} onClose={close} />}
 
       {view === 'history' && (
         <Modal title="聞き込み記録" onClose={close}>

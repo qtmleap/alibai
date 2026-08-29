@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
+import { CaseNoteButton } from '@/client/components/CaseNote'
 import { CharacterAvatar } from '@/client/components/CharacterAvatar'
 import { ChatLog } from '@/client/components/ChatLog'
 import { FloorPlanMap } from '@/client/components/FloorPlan'
-import { SessionReference } from '@/client/components/SessionReference'
 import { TurnAnnounce } from '@/client/components/TurnAnnounce'
 import type { UseInterrogation } from '@/client/hooks/useInterrogation'
 import { fetchSessionState } from '@/client/lib/api'
@@ -166,8 +166,6 @@ export const InterrogationScreen = ({ scenario, session, interrogation, onAccuse
           <TurnAnnounce key={turn.turn} turn={turn.turn} maxTurns={turn.maxTurns} />
         )}
 
-        <SessionReference scenario={scenario} interrogation={interrogation} />
-
         {discoveries.length > 0 && (
           <div className="flex flex-wrap gap-1 border-b border-slate-800 bg-slate-900 p-2">
             {discoveries.map((discovery) => (
@@ -181,7 +179,7 @@ export const InterrogationScreen = ({ scenario, session, interrogation, onAccuse
           </div>
         )}
 
-        <main className="flex-1 space-y-3 overflow-y-auto p-3">
+        <main className="flex flex-1 flex-col gap-3 overflow-y-auto p-3">
           {turnsToShow.length === 0 && (
             <p className="text-center text-sm text-slate-500">気になることを聞いてみよう。</p>
           )}
@@ -194,6 +192,9 @@ export const InterrogationScreen = ({ scenario, session, interrogation, onAccuse
               awaiting={isAsking}
             />
           )}
+
+          {/* 事件の記録はここ。会話ログの隅に留めておき、見出しの場所は取らない */}
+          <CaseNoteButton briefing={scenario.briefing} />
         </main>
 
         {error !== undefined && <p className="px-3 text-sm text-red-400">{error}</p>}
