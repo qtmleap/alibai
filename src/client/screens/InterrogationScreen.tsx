@@ -114,10 +114,16 @@ export const InterrogationScreen = ({ scenario, session, interrogation, onAccuse
       */}
       <nav
         aria-label="話す相手"
-        className="flex w-14 shrink-0 flex-col items-center border-r border-slate-800 py-3"
+        className="flex w-16 shrink-0 flex-col items-center border-r border-slate-800 py-3"
       >
-        {/* 相手が増えたらここだけが伸びてスクロールする */}
-        <div className="flex min-h-0 flex-1 flex-col items-center gap-3 overflow-y-auto">
+        {/*
+          相手が増えたらここだけが伸びてスクロールする。
+
+          左右に余白を取るのは、overflow-y を指定すると横方向も切り詰められるため。
+          選択中のリングと未質問の点はアイコンの外側に描かれるので、余白が無いと
+          列の縁で削れて見切れる。
+        */}
+        <div className="flex min-h-0 w-full flex-1 flex-col items-center gap-3 overflow-y-auto px-2 py-1">
           {scenario.characters.map((character, index) => {
             const turns = conversations[character.id]
             const asked = turns === undefined ? 0 : turns.filter((t) => t.role === 'user').length
@@ -144,11 +150,24 @@ export const InterrogationScreen = ({ scenario, session, interrogation, onAccuse
         </div>
 
         {/*
-          事件の記録は相手の列の一番下に置く。相手が何人いても位置が変わらず、
-          会話の領域も削らない。
+          事件の記録と推理の入口は相手の列の一番下に置く。相手が何人いても位置が
+          変わらず、会話の領域も削らない。
+
+          推理をここへ逃がしたのは誤爆を避けるため。入力欄のすぐ下に置くと、
+          質問を送るつもりで押してしまう。推理は出したら取り消せない操作なので、
+          指がよく通る場所には置かない。ターンを使い切ったときだけ、
+          入力欄のあった場所に大きく出す。
         */}
-        <div className="mt-3 border-t border-slate-800 pt-3">
+        <div className="mt-3 flex flex-col items-center gap-3 border-t border-slate-800 pt-3">
           <CaseNoteButton briefing={scenario.briefing} />
+          <button
+            type="button"
+            onClick={onAccuse}
+            aria-label="犯人を推理する"
+            className="size-9 shrink-0 rounded-full border border-amber-700 text-xs text-amber-500"
+          >
+            推
+          </button>
         </div>
       </nav>
 
@@ -228,9 +247,19 @@ export const InterrogationScreen = ({ scenario, session, interrogation, onAccuse
           {exhausted ? (
             // 聞ける回数を使い切ったら入力欄ごと畳む。押せないボタンを残すより、
             // 次にやることが1つだけ見えているほうが迷わない。
-            <p className="py-2 text-center text-sm text-amber-400">
-              聞き込みの時間は終わりました。犯人を指し示してください。
-            </p>
+            <div className="flex flex-col gap-2 py-1">
+              <p className="text-center text-sm text-amber-400">
+                聞き込みの時間は終わりました。犯人を指し示してください。
+              </p>
+              {/* 使い切ったここでだけ大きく出す。通常時に置くと送信と間違えて押される */}
+              <button
+                type="button"
+                onClick={onAccuse}
+                className="w-full rounded-lg border border-amber-600 py-2 text-sm font-semibold text-amber-400"
+              >
+                犯人を推理する
+              </button>
+            </div>
           ) : (
             <div className="flex gap-2">
               <input
@@ -264,14 +293,6 @@ export const InterrogationScreen = ({ scenario, session, interrogation, onAccuse
               </button>
             </div>
           )}
-
-          <button
-            type="button"
-            onClick={onAccuse}
-            className="mt-2 w-full rounded-lg border border-amber-600 py-2 text-sm font-semibold text-amber-400"
-          >
-            犯人を推理する
-          </button>
         </footer>
       </div>
     </div>
