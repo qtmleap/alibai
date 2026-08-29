@@ -64,6 +64,12 @@ const schema = z.object({
   RATE_LIMIT_MAX_CALLS: z.coerce.number().int().positive().default(60),
   /** レート制限のウィンドウ幅（秒）。 */
   RATE_LIMIT_WINDOW_SECONDS: z.coerce.number().int().positive().default(3600),
+
+  /**
+   * プレイセッションと会話ログの保持日数。Cronがこれを過ぎた分を消す。
+   * llm_usages はこの対象外（コストの履歴は保持期間に引きずらせない）。
+   */
+  RETENTION_DAYS: z.coerce.number().int().positive().default(90),
 })
 
 export type Env = z.infer<typeof schema>

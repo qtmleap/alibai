@@ -53,6 +53,13 @@
     }
   ],
 
+  // 保持期間を過ぎたプレイセッションの掃除。worker.ts の scheduled が受ける。
+  // Cloudflare の cron は必ず UTC 解釈で、ローカル時刻にはならない。
+  // 4:17 にしてあるのは、毎時0分は世の中のCronが最も混む時刻だから。
+  "triggers": {
+    "crons": ["17 4 * * *"]
+  },
+
   // APIキーは vars ではなく secret に入れる。
   //   wrangler secret put ANTHROPIC_API_KEY
   "vars": {
@@ -62,6 +69,8 @@
     "MAX_TURNS": "5",
     "QUESTIONS_PER_TURN": "1",
     "RATE_LIMIT_MAX_CALLS": "60",
-    "RATE_LIMIT_WINDOW_SECONDS": "3600"
+    "RATE_LIMIT_WINDOW_SECONDS": "3600",
+    // 会話ログの保持日数。llm_usages はこの対象外で残り続ける。
+    "RETENTION_DAYS": "90"
   }
 }
