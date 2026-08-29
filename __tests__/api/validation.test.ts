@@ -79,7 +79,16 @@ describe('POST /api/sessions', () => {
   test('探偵の名前が空なら 400（名乗るなら中身が要る）', async () => {
     const res = await postJson('/api/sessions', {
       scenarioId: '11111111-1111-4111-8111-111111111111',
-      detective: { name: '', age: '28', gender: '女性', appearance: '長身' },
+      detective: { name: '', ageGroup: 'young', gender: 'female', appearance: '長身' },
+    })
+
+    expect(res.status).toBe(400)
+  })
+
+  test('年ごろが列挙の外なら 400（NPCが呼びかけを引けない値は受けない）', async () => {
+    const res = await postJson('/api/sessions', {
+      scenarioId: '11111111-1111-4111-8111-111111111111',
+      detective: { name: '灯', ageGroup: '28', gender: 'female', appearance: '長身' },
     })
 
     expect(res.status).toBe(400)
@@ -88,7 +97,12 @@ describe('POST /api/sessions', () => {
   test('探偵の容姿が長すぎれば 400（そのままトークン数になるので上限を切る）', async () => {
     const res = await postJson('/api/sessions', {
       scenarioId: '11111111-1111-4111-8111-111111111111',
-      detective: { name: '灯', age: '28', gender: '女性', appearance: 'あ'.repeat(201) },
+      detective: {
+        name: '灯',
+        ageGroup: 'young',
+        gender: 'female',
+        appearance: 'あ'.repeat(201),
+      },
     })
 
     expect(res.status).toBe(400)

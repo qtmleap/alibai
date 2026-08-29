@@ -1,7 +1,8 @@
 import { type ModelMessage, streamText } from 'ai'
 import type { Env } from '@/server/env'
+import { buildDetectiveBlock } from '@/server/llm/detective'
 import { cacheHint, resolveModel } from '@/server/llm/provider'
-import type { Detective } from '~/db/schema'
+import type { Detective } from '~/db/detective'
 
 export type ActorContext = {
   /** リクエストスコープで検証済みの設定。プロバイダとAPIキーの出どころ。 */
@@ -22,21 +23,12 @@ export type ActorContext = {
  * 目の前にいる探偵の紹介。
  *
  * プレイヤーが自分で決めた人物像に NPC が反応することで聞き込みの手触りが変わるので、
- * 人格の一部としてプロンプトに入れる。ただし「探偵が何を知っているか」は書かない。
+ * 人格の一部としてプロンプトに入れる。呼びかけ方まで含めた文面の組み立ては
+ * `@/server/llm/detective` が持つ。ただし「探偵が何を知っているか」は書かない。
  * NPCが勝手にプレイヤーの推理状況を前提にして喋り出すと、ゲームが先回りしてしまう。
  */
 const buildDetectiveMessages = (detective: Detective | undefined): ModelMessage[] =>
   detective === undefined ? [] : [{ role: 'system', content: buildDetectiveBlock(detective) }]
-
-const buildDetectiveBlock = (detective: Detective) =>
-  `あなたの前にいるのは、この事件を調べに来た人物である。
-
-名前: ${detective.name}
-年齢: ${detective.age}
-性別: ${detective.gender}
-外見: ${detective.appearance}
-
-この人物像にふさわしい態度で応対すること。相手が何をどこまで掴んでいるかは分からない前提で答える。`
 
 /**
  * NPCの返答をストリーミングで返す。

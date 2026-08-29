@@ -77,7 +77,7 @@ export const clearActiveDetective = (store: DetectiveStore): DetectiveStore => (
 /** 保存用に id を落として、APIへ送る形にする。 */
 export const toDetective = (stored: StoredDetective): Detective => ({
   name: stored.name,
-  age: stored.age,
+  ageGroup: stored.ageGroup,
   gender: stored.gender,
   appearance: stored.appearance,
 })
@@ -88,6 +88,10 @@ export const newDetectiveId = (): string => crypto.randomUUID()
  * localStorage は使えない環境がある前提で触る。
  * 読めなければ空の保管庫から始めればよく、演出や設定の都合でプレイが
  * 始まらないほうが困る。
+ *
+ * 年ごろ・性別が自由記述だった頃に保存された探偵は、この検証を通らないので
+ * 空として扱われる。作り直しは数タップで済む一方、古い文字列を推測で列挙へ
+ * 読み替えると、プレイヤーが決めていない人物像でNPCが応対することになる。
  */
 export const loadDetectiveStore = (): DetectiveStore => {
   try {

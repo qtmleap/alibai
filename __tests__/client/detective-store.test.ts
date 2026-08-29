@@ -14,8 +14,8 @@ import {
 const profile = (id: string, name: string): StoredDetective => ({
   id,
   name,
-  age: '28',
-  gender: '女性',
+  ageGroup: 'young',
+  gender: 'female',
   appearance: 'くたびれたコート',
 })
 
@@ -40,7 +40,7 @@ describe('upsertDetective', () => {
 
   test('編集しても並び順が変わらない', () => {
     const store = upsertDetective(upsertDetective(EMPTY_STORE, akari), tsubaki)
-    const edited = upsertDetective(store, { ...akari, age: '30代' })
+    const edited = upsertDetective(store, { ...akari, ageGroup: 'adult' })
 
     expect(edited.profiles.map((p) => p.id)).toEqual(['a', 'b'])
   })
@@ -122,8 +122,8 @@ describe('toDetective', () => {
   test('APIへ送る形から id が落ちる', () => {
     expect(toDetective(akari)).toEqual({
       name: '日下部 灯',
-      age: '28',
-      gender: '女性',
+      ageGroup: 'young',
+      gender: 'female',
       appearance: 'くたびれたコート',
     })
   })

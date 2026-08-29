@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { detectiveSchema } from '~/db/detective'
 import { floorPlanSchema } from '~/db/floor-plan'
 
 /**
@@ -44,13 +45,12 @@ export const scenarioDetailSchema = scenarioSummarySchema.omit({ characterCount:
   characters: z.array(characterSchema),
 })
 
-/** プレイヤーが演じる探偵。名乗らずに始めることもできる。 */
-export const detectiveSchema = z.object({
-  name: z.string().nonempty().max(40),
-  age: z.string().max(20),
-  gender: z.string().max(20),
-  appearance: z.string().max(200),
-})
+/**
+ * プレイヤーが演じる探偵。名乗らずに始めることもできる。
+ * 形と検証の正典は db/detective.ts にあり、ここでは読み込むだけ（見取り図と同じ扱い）。
+ * 年ごろと性別は列挙なので、画面の選択肢とAPIが受ける値が食い違わない。
+ */
+export { detectiveSchema }
 
 export const createSessionResponseSchema = z.object({
   sessionId: z.uuid(),
@@ -143,8 +143,8 @@ export const apiErrorSchema = z.object({
 
 export type ScenarioSummary = z.infer<typeof scenarioSummarySchema>
 export type CharacterSheet = z.infer<typeof characterSchema>
+export type { AgeGroup, Detective, Gender } from '~/db/detective'
 export type { FloorPlan, Room } from '~/db/floor-plan'
-export type Detective = z.infer<typeof detectiveSchema>
 export type ScenarioDetail = z.infer<typeof scenarioDetailSchema>
 export type CreateSessionResponse = z.infer<typeof createSessionResponseSchema>
 export type Discovery = z.infer<typeof discoverySchema>

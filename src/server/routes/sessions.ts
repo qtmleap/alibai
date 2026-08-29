@@ -15,6 +15,9 @@ import { judgeTurn } from '@/server/llm/judge'
 import { toUsageRow } from '@/server/llm/usage'
 import { withEnv } from '@/server/middleware/env'
 import { turnStateOf } from '@/shared/turns'
+// 探偵の形と検証は db/detective.ts が正典。ここで定義し直すと、
+// クライアントの選択肢とAPIが受ける値が静かにずれる。
+import { detectiveSchema } from '~/db/detective'
 import {
   characters,
   discoveries,
@@ -101,19 +104,6 @@ const loadTruth = async (db: Db, scenarioId: string): Promise<Truth | undefined>
     timeline: truthRow.timeline,
   }
 }
-
-/**
- * 探偵の設定。全項目とも自由記述で、名乗らずに始めることもできる。
- *
- * 年齢を文字列にしているのは「30代」「年齢不詳」と書けるようにするため。
- * NPCのプロンプトに入る値なので、長すぎる入力はそのままトークン数になる。上限を切る。
- */
-const detectiveSchema = z.object({
-  name: z.string().nonempty().max(40),
-  age: z.string().max(20),
-  gender: z.string().max(20),
-  appearance: z.string().max(200),
-})
 
 const createSessionSchema = z.object({
   scenarioId: z.uuid(),

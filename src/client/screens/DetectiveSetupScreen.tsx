@@ -12,6 +12,14 @@ import {
   upsertDetective,
 } from '@/client/lib/detective-store'
 import type { Detective, ScenarioDetail } from '@/client/lib/schemas'
+import {
+  AGE_GROUP_LABELS,
+  AGE_GROUP_NOTES,
+  AGE_GROUPS,
+  describeDetective,
+  GENDER_LABELS,
+  GENDERS,
+} from '~/db/detective'
 
 type Props = {
   scenario: ScenarioDetail
@@ -30,10 +38,39 @@ type Draft = { id: string | undefined } & Detective
 const emptyDraft = (): Draft => ({
   id: undefined,
   name: '',
-  age: '',
-  gender: '',
+  // 「不詳」から始める。年ごろも性別も、決めていないなら決めないまま遊べる
+  // （NPCは年齢を決めつけない呼びかけに寄る）。
+  ageGroup: 'unknown',
+  gender: 'unknown',
   appearance: '',
 })
+
+/**
+ * 選択肢の一粒。年ごろも性別も候補が少ないので、開いて選ぶ仕掛けは要らない。
+ * 全部見えているほうが速いし、押せる範囲がそのまま選択肢になる。
+ */
+type ChoiceProps = {
+  label: string
+  note?: string
+  selected: boolean
+  onSelect: () => void
+}
+
+const Choice = ({ label, note, selected, onSelect }: ChoiceProps) => (
+  <button
+    type="button"
+    onClick={onSelect}
+    aria-pressed={selected}
+    className={
+      selected
+        ? 'border border-slate-500 px-3 py-2 text-xs text-slate-100'
+        : 'border border-slate-800 px-3 py-2 text-xs text-slate-500'
+    }
+  >
+    {label}
+    {note !== undefined && <span className="ml-1 text-[10px] text-slate-600">{note}</span>}
+  </button>
+)
 
 /**
  * 探偵役の設定。
@@ -64,7 +101,7 @@ export const DetectiveSetupScreen = ({ scenario, onDecided, onBack }: Props) => 
     const saved: StoredDetective = {
       id: draft.id === undefined ? newDetectiveId() : draft.id,
       name: draft.name,
-      age: draft.age,
+      ageGroup: draft.ageGroup,
       gender: draft.gender,
       appearance: draft.appearance,
     }
@@ -100,31 +137,39 @@ export const DetectiveSetupScreen = ({ scenario, onDecided, onBack }: Props) => 
             />
           </label>
 
-          <div className="flex gap-5">
-            <label className="flex flex-1 flex-col gap-1">
-              <span className="text-[10px] tracking-[0.3em] text-slate-600">年齢</span>
-              <input
-                type="text"
-                value={draft.age}
-                onChange={(event) => updateDraft({ age: event.target.value })}
-                maxLength={20}
-                placeholder="28／30代／不詳"
-                className="w-full border-b border-slate-800 bg-transparent py-2 text-sm focus:border-slate-600 focus:outline-none"
-              />
-            </label>
+          {/*
+            年ごろと性別は選択肢に閉じている。自由記述だと「28」「三十路」と書き方が割れ、
+            聞き込みの相手（NPC）が呼びかけを決められない。選ばせておけば、
+            老人が十代の少女に「お嬢さん」と話しかけるところまで確実に効く。
+          */}
+          <fieldset className="flex flex-col gap-2">
+            <legend className="text-[10px] tracking-[0.3em] text-slate-600">年ごろ</legend>
+            <div className="flex flex-wrap gap-2">
+              {AGE_GROUPS.map((ageGroup) => (
+                <Choice
+                  key={ageGroup}
+                  label={AGE_GROUP_LABELS[ageGroup]}
+                  note={AGE_GROUP_NOTES[ageGroup]}
+                  selected={draft.ageGroup === ageGroup}
+                  onSelect={() => updateDraft({ ageGroup })}
+                />
+              ))}
+            </div>
+          </fieldset>
 
-            <label className="flex flex-1 flex-col gap-1">
-              <span className="text-[10px] tracking-[0.3em] text-slate-600">性別</span>
-              <input
-                type="text"
-                value={draft.gender}
-                onChange={(event) => updateDraft({ gender: event.target.value })}
-                maxLength={20}
-                placeholder="自由に書けます"
-                className="w-full border-b border-slate-800 bg-transparent py-2 text-sm focus:border-slate-600 focus:outline-none"
-              />
-            </label>
-          </div>
+          <fieldset className="flex flex-col gap-2">
+            <legend className="text-[10px] tracking-[0.3em] text-slate-600">性別</legend>
+            <div className="flex flex-wrap gap-2">
+              {GENDERS.map((gender) => (
+                <Choice
+                  key={gender}
+                  label={GENDER_LABELS[gender]}
+                  selected={draft.gender === gender}
+                  onSelect={() => updateDraft({ gender })}
+                />
+              ))}
+            </div>
+          </fieldset>
 
           <label className="flex flex-col gap-1">
             <span className="text-[10px] tracking-[0.3em] text-slate-600">容姿</span>
@@ -167,7 +212,7 @@ export const DetectiveSetupScreen = ({ scenario, onDecided, onBack }: Props) => 
         <p className="mt-3 text-sm text-slate-300">
           誰として、この事件を調べますか。
           <br />
-          選んだ人物像は、聞き込みの相手にも伝わります。
+          選んだ人物像は聞き込みの相手にも伝わり、呼びかけ方や態度が変わります。
         </p>
       </header>
 
@@ -207,7 +252,7 @@ export const DetectiveSetupScreen = ({ scenario, onDecided, onBack }: Props) => 
                   {profile.name}
                 </span>
                 <span className="mt-1 block text-xs text-slate-500">
-                  {[profile.age, profile.gender].filter((part) => part.length > 0).join(' ・ ')}
+                  {describeDetective(profile)}
                 </span>
                 {profile.appearance.length > 0 && (
                   <span className="mt-1 block text-xs text-slate-600">{profile.appearance}</span>

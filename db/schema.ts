@@ -10,26 +10,19 @@ import {
   timestamp,
   uuid,
 } from 'drizzle-orm/pg-core'
+import type { Detective } from './detective'
 import type { FloorPlan } from './floor-plan'
 
+/**
+ * プレイヤーが演じる探偵の形と検証は db/detective.ts が正典。
+ * 年ごろと性別は列挙で、NPCの呼びかけ方はそこから引く。
+ */
+export type { Detective } from './detective'
 /**
  * 見取り図の形と検証は db/floor-plan.ts が正典。
  * ここでは列に型を付けるためだけに読み込み、定義は持たない。
  */
 export type { FloorPlan, Room } from './floor-plan'
-
-/**
- * プレイヤーが演じる探偵。
- *
- * 年齢を文字列にしているのは「30代」「年齢不詳」と書けるようにするため。
- * NPCのプロンプトに入る値なので、数値であることより自由に名乗れることを優先した。
- */
-export type Detective = {
-  name: string
-  age: string
-  gender: string
-  appearance: string
-}
 
 /**
  * 公開されるシナリオのメタ情報。クライアントに返してよい範囲。
