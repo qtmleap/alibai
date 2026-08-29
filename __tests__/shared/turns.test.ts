@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { turnStateOf } from '@/server/game/turns'
+import { turnStateOf } from '@/shared/turns'
 
 /** 既定の構成（1ターンに1問、全5ターン）。 */
 const standard = (questionCount: number) => turnStateOf(questionCount, 5, 1)

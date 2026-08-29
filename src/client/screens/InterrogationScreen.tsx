@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { CharacterAvatar } from '@/client/components/CharacterAvatar'
 import { FloorPlanMap } from '@/client/components/FloorPlan'
 import { SessionReference } from '@/client/components/SessionReference'
 import { TurnAnnounce } from '@/client/components/TurnAnnounce'
@@ -77,9 +78,10 @@ export const InterrogationScreen = ({ scenario, session, interrogation, onAccuse
   const turnsToShow = activeTurns === undefined ? [] : activeTurns
   const activeSuggestions = suggestedQuestions[activeCharacterId]
   const suggestionsToShow = activeSuggestions === undefined ? [] : activeSuggestions
-  const activeCharacter = scenario.characters.find(
+  const activeCharacterIndex = scenario.characters.findIndex(
     (character) => character.id === activeCharacterId,
   )
+  const activeCharacter = scenario.characters[activeCharacterIndex]
   const isAsking = askingCharacterId === activeCharacterId
   // ターンがまだ届いていないうちは聞ける前提で扱う（=== true で boolean に落とす）
   const exhausted = turn?.exhausted === true
@@ -100,21 +102,41 @@ export const InterrogationScreen = ({ scenario, session, interrogation, onAccuse
           </span>
         </div>
 
-        <div className="mt-2 flex gap-2 overflow-x-auto">
-          {scenario.characters.map((character) => (
-            <button
-              key={character.id}
-              type="button"
-              onClick={() => setActiveCharacterId(character.id)}
-              className={
-                character.id === activeCharacterId
-                  ? 'shrink-0 rounded-full bg-indigo-600 px-3 py-1 text-sm font-semibold text-white'
-                  : 'shrink-0 rounded-full bg-slate-800 px-3 py-1 text-sm text-slate-300'
-              }
-            >
-              {character.name}
-            </button>
-          ))}
+        {/*
+          会話相手の並び。チャットアプリのトーク一覧に寄せて、顔（頭文字）と名前、
+          そしてその相手に何回聞いたかを出す。ターンが限られている以上、
+          「まだ聞いていない相手が誰か」が選ぶときの一番の手がかりになる。
+        */}
+        <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
+          {scenario.characters.map((character, index) => {
+            const asked = conversations[character.id]
+            const askedCount =
+              asked === undefined ? 0 : asked.filter((t) => t.role === 'user').length
+            const isActive = character.id === activeCharacterId
+
+            return (
+              <button
+                key={character.id}
+                type="button"
+                onClick={() => setActiveCharacterId(character.id)}
+                className={
+                  isActive
+                    ? 'flex shrink-0 items-center gap-2 rounded-xl bg-slate-800 px-2 py-1.5'
+                    : 'flex shrink-0 items-center gap-2 rounded-xl px-2 py-1.5'
+                }
+              >
+                <CharacterAvatar name={character.name} index={index} active={isActive} size="sm" />
+                <span className="flex flex-col items-start">
+                  <span className={isActive ? 'text-sm font-semibold' : 'text-sm text-slate-300'}>
+                    {character.name}
+                  </span>
+                  <span className="text-[10px] text-slate-500 tabular-nums">
+                    {askedCount === 0 ? 'まだ聞いていない' : `${askedCount}回`}
+                  </span>
+                </span>
+              </button>
+            )
+          })}
         </div>
 
         {activeCharacter !== undefined && (
@@ -163,14 +185,30 @@ export const InterrogationScreen = ({ scenario, session, interrogation, onAccuse
           <p className="text-center text-sm text-slate-500">気になることを聞いてみよう。</p>
         )}
 
-        {turnsToShow.map((turn, index) => (
-          // biome-ignore lint/suspicious/noArrayIndexKey: 会話ログは末尾に追記されるだけで並び替え・削除が無いので安全
-          <div key={index} className={turn.role === 'user' ? 'text-right' : 'text-left'}>
+        {/*
+          吹き出しを左右に寄せるのは flex の役目にして、text-align は使わない。
+          text-right を親に置くと吹き出しの中の文章まで右寄せになり、折り返した
+          2行目だけが右へ張り付く。チャットの吹き出しは、置き場所が右でも
+          中身は左から読むもの。
+
+          key は往復の時刻と役割から作る。同じ時刻に user と assistant が
+          1つずつしか積まれないので、これで一意になる。
+        */}
+        {turnsToShow.map((turn) => (
+          <div
+            key={`${turn.askedAt}-${turn.role}`}
+            className={
+              turn.role === 'user' ? 'flex justify-end' : 'flex items-end justify-start gap-2'
+            }
+          >
+            {turn.role === 'assistant' && activeCharacter !== undefined && (
+              <CharacterAvatar name={activeCharacter.name} index={activeCharacterIndex} size="sm" />
+            )}
             <span
               className={
                 turn.role === 'user'
-                  ? 'inline-block max-w-[85%] rounded-2xl bg-indigo-600 px-3 py-2 text-sm text-white'
-                  : 'inline-block max-w-[85%] rounded-2xl bg-slate-800 px-3 py-2 text-sm text-slate-100'
+                  ? 'max-w-[85%] rounded-2xl bg-indigo-600 px-3 py-2 text-left text-sm break-words whitespace-pre-wrap text-white'
+                  : 'max-w-[78%] rounded-2xl bg-slate-800 px-3 py-2 text-left text-sm break-words whitespace-pre-wrap text-slate-100'
               }
             >
               {turn.text}
@@ -189,7 +227,9 @@ export const InterrogationScreen = ({ scenario, session, interrogation, onAccuse
                 key={suggestion}
                 type="button"
                 onClick={() => setInputText(suggestion)}
-                className="rounded-full border border-slate-700 px-2 py-1 text-xs text-slate-300"
+                // 候補は2行になることがある。rounded-full だと折り返した途端に
+                // 左右の丸みが縦へ伸びて、テキストとの間隔が不揃いに見える。
+                className="rounded-lg border border-slate-700 px-2.5 py-1.5 text-left text-xs leading-relaxed text-slate-300"
               >
                 {suggestion}
               </button>

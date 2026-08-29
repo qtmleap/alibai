@@ -9,12 +9,12 @@ import { createDb } from '@/server/db/client'
 import type { Bindings } from '@/server/env'
 import { GAME_RULES } from '@/server/game/rules'
 import { scoreSession } from '@/server/game/scoring'
-import { turnStateOf } from '@/server/game/turns'
 import { streamNpcReply } from '@/server/llm/actor'
 import { createFilterState, FALLBACK_REPLY, feedChunk, finalizeFilter } from '@/server/llm/filter'
 import { judgeTurn } from '@/server/llm/judge'
 import { providerOf } from '@/server/llm/provider'
 import { withEnv } from '@/server/middleware/env'
+import { turnStateOf } from '@/shared/turns'
 import {
   characters,
   discoveries,
