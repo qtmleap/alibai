@@ -11,6 +11,7 @@
 | [runtime.md](./runtime.md) | 実行基盤・APIレイヤ・ビルドパイプライン |
 | [data.md](./data.md) | 永続化・キャッシュ・状態管理の役割分担 |
 | [llm.md](./llm.md) | LLMの役割分割、プロバイダ抽象、プロンプトキャッシュ |
+| [scenario-format.md](./scenario-format.md) | シナリオ定義形式、YAML/Structured Output、検証・コンパイル仕様 |
 | [cost.md](./cost.md) | 1プレイあたりのトークン消費、各社の無料枠、推奨構成 |
 | [development.md](./development.md) | 開発環境・コード品質・CI/CD・テスト |
 
