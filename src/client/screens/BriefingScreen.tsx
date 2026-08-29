@@ -1,41 +1,32 @@
 import { useCallback, useMemo, useState } from 'react'
 import { CrawlBriefing } from '@/client/components/CrawlBriefing'
-import { FloorPlanMap } from '@/client/components/FloorPlan'
 import { TypewriterBriefing } from '@/client/components/TypewriterBriefing'
-import { createSession, describeError } from '@/client/lib/api'
 import { type BriefingMode, loadBriefingMode, saveBriefingMode } from '@/client/lib/briefing-mode'
 import { splitParagraphs } from '@/client/lib/paragraphs'
-import type { CreateSessionResponse, Detective, ScenarioDetail } from '@/client/lib/schemas'
+import type { ScenarioDetail } from '@/client/lib/schemas'
 import { loadSoundSetting, type SoundSetting, saveSoundSetting } from '@/client/lib/typing-sound'
 
 type Props = {
   scenario: ScenarioDetail
-  /** 直前の画面で決めた探偵。名乗らずに始めた場合は undefined。 */
-  detective: Detective | undefined
-  onStart: (session: CreateSessionResponse) => void
+  /** 読み終えて次へ進むとき。支度の画面は呼び出し側が出す。 */
+  onRead: () => void
 }
 
 /**
- * 事件の記録（ブリーフィング）画面。
+ * 事件の記録（プロローグ）。
  *
- * 画面そのものがゲームの一部に見えるよう、本文を枠に入れない。
- * カードに載せた瞬間「説明の書かれたページ」になってしまい、没入が切れる。
- * 出すのは、暗い画面・浮かぶ文字・進行の合図だけ。
+ * この画面は語ることだけをする。読み終えたあとの支度（登場人物の確認、見取り図、
+ * 聞き込みの開始）は別の画面に分けてある。同じ画面に続けて足すと、締めの一文の
+ * 余韻の上に情報が積み上がって、語りが report に変わってしまう。
  *
- * 見せ方は2種類あり、プレイヤーが切り替えられる（好みが分かれるため片方に決め打たない）。
- * 選択は localStorage に残るので、次のプレイでも同じ見せ方で始まる。
- *
- * セッション開始（POST /api/sessions）はこの画面の「聞き込みを始める」ボタンで行う。
- * ここより前で作ってしまうと、この画面を読んでいる時間まで solvedSeconds に乗ってしまう。
+ * 画面そのものがゲームの一部に見えるよう、本文は枠に入れない。
+ * 見せ方は2種類あり、選択は localStorage に残る。
  */
-export const BriefingScreen = ({ scenario, detective, onStart }: Props) => {
+export const BriefingScreen = ({ scenario, onRead }: Props) => {
   const paragraphs = useMemo(() => splitParagraphs(scenario.briefing), [scenario.briefing])
   const [mode, setMode] = useState<BriefingMode>(loadBriefingMode)
   const [sound, setSound] = useState<SoundSetting>(loadSoundSetting)
   const [readThrough, setReadThrough] = useState(false)
-  const [mapOpen, setMapOpen] = useState(false)
-  const [starting, setStarting] = useState(false)
-  const [error, setError] = useState<string | undefined>(undefined)
 
   // 子コンポーネントの useEffect の依存に入るので、毎回作り直すと通知のたびに再実行される。
   const handleFinished = useCallback(() => setReadThrough(true), [])
@@ -53,18 +44,6 @@ export const BriefingScreen = ({ scenario, detective, onStart }: Props) => {
 
     saveSoundSetting(next)
     setSound(next)
-  }
-
-  const handleStart = () => {
-    setStarting(true)
-    setError(undefined)
-
-    createSession(scenario.id, detective)
-      .then(onStart)
-      .catch((err: unknown) => {
-        setError(describeError(err))
-        setStarting(false)
-      })
   }
 
   return (
@@ -120,40 +99,13 @@ export const BriefingScreen = ({ scenario, detective, onStart }: Props) => {
         />
       )}
 
-      {/*
-        読み終えた直後に人物紹介と地図を全部広げると、余韻が情報に押し流される。
-        ここでは「誰に会うのか」だけ名前で示し、細かい話は聞き込み画面に任せる
-        （人物像はタブを選べば出るし、見取り図もあちらで開ける）。
-      */}
-      {readThrough && scenario.characters.length > 0 && (
-        <p className="text-sm text-slate-400">
-          {scenario.characters.map((character) => character.name).join('　')}
-        </p>
-      )}
-
-      {readThrough && scenario.floorPlan !== null && (
-        <div className="flex flex-col gap-2">
-          <button
-            type="button"
-            onClick={() => setMapOpen((open) => !open)}
-            className="self-start text-xs text-slate-500 underline"
-          >
-            {mapOpen ? '見取り図を閉じる' : '見取り図を見る'}
-          </button>
-          {mapOpen && <FloorPlanMap plan={scenario.floorPlan} />}
-        </div>
-      )}
-
-      {error !== undefined && <p className="text-sm text-red-400">{error}</p>}
-
       {readThrough && (
         <button
           type="button"
-          onClick={handleStart}
-          disabled={starting}
-          className="mt-2 border border-slate-600 py-3 text-sm font-semibold tracking-widest text-slate-100 disabled:opacity-50"
+          onClick={onRead}
+          className="mt-auto border border-slate-600 py-3 text-sm font-semibold tracking-widest text-slate-100"
         >
-          {starting ? '準備中…' : '聞き込みを始める'}
+          事件を調べに行く
         </button>
       )}
     </div>

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { CreateSessionResponse, Detective, ScenarioDetail } from '@/client/lib/schemas'
 import { PlaySession } from '@/client/PlaySession'
 import { BriefingScreen } from '@/client/screens/BriefingScreen'
+import { CaseOverviewScreen } from '@/client/screens/CaseOverviewScreen'
 import { DetectiveSetupScreen } from '@/client/screens/DetectiveSetupScreen'
 import { ScenarioSelectScreen } from '@/client/screens/ScenarioSelectScreen'
 
@@ -17,6 +18,7 @@ type Stage =
   | { name: 'select' }
   | { name: 'detective'; scenario: ScenarioDetail }
   | { name: 'briefing'; scenario: ScenarioDetail; detective: Detective | undefined }
+  | { name: 'overview'; scenario: ScenarioDetail; detective: Detective | undefined }
   | {
       name: 'playing'
       scenario: ScenarioDetail
@@ -48,8 +50,22 @@ export const App = () => {
     return (
       <BriefingScreen
         scenario={stage.scenario}
+        onRead={() =>
+          setStage({ name: 'overview', scenario: stage.scenario, detective: stage.detective })
+        }
+      />
+    )
+  }
+
+  if (stage.name === 'overview') {
+    return (
+      <CaseOverviewScreen
+        scenario={stage.scenario}
         detective={stage.detective}
         onStart={(session) => setStage({ name: 'playing', scenario: stage.scenario, session })}
+        onBack={() =>
+          setStage({ name: 'briefing', scenario: stage.scenario, detective: stage.detective })
+        }
       />
     )
   }
