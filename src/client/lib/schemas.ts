@@ -58,6 +58,16 @@ export const createSessionResponseSchema = z.object({
   startedAt: z.string().nonempty(),
 })
 
+/** ターン制の進行。サーバの turnStateOf が返す形。 */
+export const turnStateSchema = z.object({
+  turn: z.number().int(),
+  maxTurns: z.number().int(),
+  askedInTurn: z.number().int(),
+  questionsPerTurn: z.number().int(),
+  remainingInTurn: z.number().int(),
+  exhausted: z.boolean(),
+})
+
 export const discoverySchema = z.object({
   id: z.string().nonempty(),
   label: z.string().nonempty(),
@@ -70,6 +80,7 @@ export const sessionStateSchema = z.object({
   elapsedSeconds: z.number().int(),
   finished: z.boolean(),
   discoveries: z.array(discoverySchema),
+  turn: turnStateSchema,
 })
 
 /** SSE の `judgement` イベントの data(JSON文字列) をパースした形。 */
@@ -78,6 +89,7 @@ export const judgementSchema = z.object({
   contradictionPointedOut: z.boolean(),
   suggestedQuestions: z.array(z.string().nonempty()),
   questionCount: z.number().int(),
+  turn: turnStateSchema,
 })
 
 export const accuseResultSchema = z.object({
@@ -111,6 +123,7 @@ export type Detective = z.infer<typeof detectiveSchema>
 export type ScenarioDetail = z.infer<typeof scenarioDetailSchema>
 export type CreateSessionResponse = z.infer<typeof createSessionResponseSchema>
 export type Discovery = z.infer<typeof discoverySchema>
+export type TurnState = z.infer<typeof turnStateSchema>
 export type SessionState = z.infer<typeof sessionStateSchema>
 export type Judgement = z.infer<typeof judgementSchema>
 export type AccuseResult = z.infer<typeof accuseResultSchema>

@@ -9,6 +9,7 @@ import { createDb } from '@/server/db/client'
 import type { Bindings } from '@/server/env'
 import { GAME_RULES } from '@/server/game/rules'
 import { scoreSession } from '@/server/game/scoring'
+import { turnStateOf } from '@/server/game/turns'
 import { streamNpcReply } from '@/server/llm/actor'
 import { createFilterState, FALLBACK_REPLY, feedChunk, finalizeFilter } from '@/server/llm/filter'
 import { judgeTurn } from '@/server/llm/judge'
@@ -134,14 +135,29 @@ sessionRoutes.post('/api/sessions', async (c) => {
  * セッションの現在状態。発見済みの証拠だけをラベル付きで返す
  * （未発見の証拠IDを見せるとネタバレになるため、discoveries以外は一切出さない）。
  */
-sessionRoutes.get('/api/sessions/:id', async (c) => {
-  const parsedId = z.uuid().safeParse(c.req.param('id'))
+/**
+ * セッションIDの形だけを先に確かめるミドルウェア。
+ *
+ * withEnv より前に置く。順序を逆にすると、不正なIDが 400 で弾かれるより先に
+ * env の検証が走り、設定不備でもないのに 500 が返る。そうなると
+ * 「リクエストが悪いのか、サーバの設定が悪いのか」を切り分ける手がかりが消える。
+ */
+const validateSessionId = createMiddleware<{
+  Bindings: Bindings
+  Variables: { sessionId: string }
+}>(async (c, next) => {
+  const parsed = z.uuid().safeParse(c.req.param('id'))
 
-  if (!parsedId.success) {
+  if (!parsed.success) {
     return c.json({ error: 'invalid session id' }, 400)
   }
 
-  const sessionId = parsedId.data
+  c.set('sessionId', parsed.data)
+  await next()
+})
+
+sessionRoutes.get('/api/sessions/:id', validateSessionId, withEnv, async (c) => {
+  const sessionId = c.get('sessionId')
   const db = createDb(c.env.HYPERDRIVE)
   const scenarioId = await loadSessionScenarioId(db, sessionId)
 
@@ -165,6 +181,8 @@ sessionRoutes.get('/api/sessions/:id', async (c) => {
             ),
           )
 
+  const env = c.get('env')
+
   return c.json({
     sessionId,
     scenarioId,
@@ -172,6 +190,7 @@ sessionRoutes.get('/api/sessions/:id', async (c) => {
     elapsedSeconds: snapshot.elapsedSeconds,
     finished: snapshot.finished,
     discoveries: discoveryRows,
+    turn: turnStateOf(snapshot.questionCount, env.MAX_TURNS, env.QUESTIONS_PER_TURN),
   })
 })
 
@@ -258,15 +277,25 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
     return c.json({ error: 'session not found' }, 404)
   }
 
+  // 進行中のセッションはDOが正典。ターンを使い切っていたらここで断る。
+  // クライアント側の残り回数表示だけに任せると、リクエストを直接投げれば
+  // 何回でも聞けてしまい、制限が演出にしかならない。
+  const session = c.env.PLAY_SESSION.get(c.env.PLAY_SESSION.idFromName(sessionId))
+  const before = await session.snapshot()
+  const turnsBefore = turnStateOf(before.questionCount, env.MAX_TURNS, env.QUESTIONS_PER_TURN)
+
+  if (turnsBefore.exhausted) {
+    return c.json({ error: 'no turns left', turn: turnsBefore }, 409)
+  }
+
   const characterSheet = await loadCharacterSheet(c.env.SCENARIO_CACHE, db, askInput.characterId)
 
   if (characterSheet === undefined) {
     return c.json({ error: 'character not found' }, 404)
   }
 
-  // 進行中の状態はDOが持つ。ここで読むのはこのNPCとの履歴だけで、他NPCの会話は混ざらない。
-  const session = c.env.PLAY_SESSION.get(c.env.PLAY_SESSION.idFromName(sessionId))
   // 履歴・探偵・秘匿キーワードは互いに独立なので直列に待つ理由がない。
+  // 履歴はこのNPCとの分だけで、他NPCの会話は混ざらない。
   const [history, detective, secretKeywords] = await Promise.all([
     session.getHistory(askInput.characterId),
     session.getDetective(),
@@ -409,6 +438,7 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
           contradictionPointedOut: judgement.contradictionPointedOut,
           suggestedQuestions: judgement.suggestedQuestions,
           questionCount,
+          turn: turnStateOf(questionCount, env.MAX_TURNS, env.QUESTIONS_PER_TURN),
         }),
       })
     } catch (error) {

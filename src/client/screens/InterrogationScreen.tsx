@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { FloorPlanMap } from '@/client/components/FloorPlan'
 import { SessionReference } from '@/client/components/SessionReference'
+import { TurnAnnounce } from '@/client/components/TurnAnnounce'
 import type { UseInterrogation } from '@/client/hooks/useInterrogation'
 import { fetchSessionState } from '@/client/lib/api'
 import { formatSeconds } from '@/client/lib/format'
@@ -38,6 +39,8 @@ export const InterrogationScreen = ({ scenario, session, interrogation, onAccuse
   const [mapOpen, setMapOpen] = useState(false)
 
   const {
+    turn,
+    setTurn,
     conversations,
     suggestedQuestions,
     discoveries,
@@ -52,7 +55,10 @@ export const InterrogationScreen = ({ scenario, session, interrogation, onAccuse
   useEffect(() => {
     const poll = () => {
       fetchSessionState(session.sessionId)
-        .then(setServerState)
+        .then((state) => {
+          setServerState(state)
+          setTurn(state.turn)
+        })
         .catch(() => undefined)
     }
 
@@ -60,7 +66,7 @@ export const InterrogationScreen = ({ scenario, session, interrogation, onAccuse
     const timer = setInterval(poll, SESSION_POLL_INTERVAL_MS)
 
     return () => clearInterval(timer)
-  }, [session.sessionId])
+  }, [session.sessionId, setTurn])
 
   const handleAsk = () => {
     ask({ sessionId: session.sessionId, characterId: activeCharacterId, utterance: inputText })
@@ -75,6 +81,7 @@ export const InterrogationScreen = ({ scenario, session, interrogation, onAccuse
     (character) => character.id === activeCharacterId,
   )
   const isAsking = askingCharacterId === activeCharacterId
+  const exhausted = turn !== undefined && turn.exhausted
   const displayedQuestionCount =
     serverState === undefined ? questionCount : serverState.questionCount
   const displayedElapsed =
@@ -86,6 +93,7 @@ export const InterrogationScreen = ({ scenario, session, interrogation, onAccuse
         <div className="flex items-center justify-between text-xs text-slate-400">
           <span>{scenario.title}</span>
           <span>
+            {turn === undefined ? '' : `ターン ${turn.turn} / ${turn.maxTurns}　`}
             質問 {displayedQuestionCount}回
             {displayedElapsed === undefined ? '' : ` ・ 経過 ${displayedElapsed}`}
           </span>
@@ -129,6 +137,11 @@ export const InterrogationScreen = ({ scenario, session, interrogation, onAccuse
         )}
       </header>
 
+      {/* key にターン番号を入れて、ターンが進むたびに作り直す */}
+      {turn !== undefined && (
+        <TurnAnnounce key={turn.turn} turn={turn.turn} maxTurns={turn.maxTurns} />
+      )}
+
       <SessionReference scenario={scenario} interrogation={interrogation} />
 
       {discoveries.length > 0 && (
@@ -168,7 +181,7 @@ export const InterrogationScreen = ({ scenario, session, interrogation, onAccuse
       {error !== undefined && <p className="px-3 text-sm text-red-400">{error}</p>}
 
       <footer className="sticky bottom-0 border-t border-slate-800 bg-slate-950 p-3">
-        {suggestionsToShow.length > 0 && (
+        {!exhausted && suggestionsToShow.length > 0 && (
           <div className="mb-2 flex flex-wrap gap-1">
             {suggestionsToShow.map((suggestion) => (
               <button
@@ -183,30 +196,38 @@ export const InterrogationScreen = ({ scenario, session, interrogation, onAccuse
           </div>
         )}
 
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={inputText}
-            onChange={(event) => setInputText(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') {
-                handleAsk()
-              }
-            }}
-            maxLength={500}
-            placeholder="質問を入力…"
-            disabled={isAsking}
-            className="min-w-0 flex-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm disabled:opacity-50"
-          />
-          <button
-            type="button"
-            onClick={handleAsk}
-            disabled={isAsking || inputText.trim().length === 0}
-            className="shrink-0 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
-          >
-            {isAsking ? '…' : '聞く'}
-          </button>
-        </div>
+        {exhausted ? (
+          // 聞ける回数を使い切ったら入力欄ごと畳む。押せないボタンを残すより、
+          // 次にやることが1つだけ見えているほうが迷わない。
+          <p className="py-2 text-center text-sm text-amber-400">
+            聞き込みの時間は終わりました。犯人を指し示してください。
+          </p>
+        ) : (
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={inputText}
+              onChange={(event) => setInputText(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  handleAsk()
+                }
+              }}
+              maxLength={500}
+              placeholder="質問を入力…"
+              disabled={isAsking}
+              className="min-w-0 flex-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm disabled:opacity-50"
+            />
+            <button
+              type="button"
+              onClick={handleAsk}
+              disabled={isAsking || inputText.trim().length === 0}
+              className="shrink-0 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+            >
+              {isAsking ? '…' : '聞く'}
+            </button>
+          </div>
+        )}
 
         <button
           type="button"

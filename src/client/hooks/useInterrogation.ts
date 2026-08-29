@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { askQuestion, describeError } from '@/client/lib/api'
-import type { Discovery } from '@/client/lib/schemas'
+import type { Discovery, TurnState } from '@/client/lib/schemas'
 
 export type ChatTurn = {
   role: 'user' | 'assistant'
@@ -33,6 +33,11 @@ export const useInterrogation = () => {
   const [suggestedQuestions, setSuggestedQuestions] = useState<Record<string, string[]>>({})
   const [discoveries, setDiscoveries] = useState<Discovery[]>([])
   const [questionCount, setQuestionCount] = useState(0)
+  /**
+   * ターンの進行。正典はサーバ側（DOの質問回数から導かれる）で、
+   * ここが持つのは表示用の写し。判定に使うと、リクエストを直接投げる相手には効かない。
+   */
+  const [turn, setTurn] = useState<TurnState | undefined>(undefined)
   const [askingCharacterId, setAskingCharacterId] = useState<string | undefined>(undefined)
   const [error, setError] = useState<string | undefined>(undefined)
 
@@ -94,6 +99,7 @@ export const useInterrogation = () => {
             [params.characterId]: judgement.suggestedQuestions,
           }))
           setQuestionCount(judgement.questionCount)
+          setTurn(judgement.turn)
         },
         onDone: () => setAskingCharacterId(undefined),
       },
@@ -104,6 +110,8 @@ export const useInterrogation = () => {
   }
 
   return {
+    turn,
+    setTurn,
     conversations,
     suggestedQuestions,
     discoveries,

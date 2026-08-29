@@ -55,6 +55,11 @@ const schema = z.object({
   OPENAI_API_KEY: optionalString,
   GOOGLE_GENERATIVE_AI_API_KEY: optionalString,
 
+  /** 1プレイで使えるターン数。使い切ると質問できなくなり、推理に進む。 */
+  MAX_TURNS: z.coerce.number().int().positive().default(5),
+  /** 1ターンに投げられる質問数。 */
+  QUESTIONS_PER_TURN: z.coerce.number().int().positive().default(1),
+
   /** 1ウィンドウあたりに許すLLM呼び出し回数。 */
   RATE_LIMIT_MAX_CALLS: z.coerce.number().int().positive().default(60),
   /** レート制限のウィンドウ幅（秒）。 */

@@ -59,6 +59,8 @@
     "LLM_ACTOR_PROVIDER": "anthropic",
     "LLM_JUDGE_PROVIDER": "anthropic",
     "LLM_AUTHOR_PROVIDER": "anthropic",
+    "MAX_TURNS": "5",
+    "QUESTIONS_PER_TURN": "1",
     "RATE_LIMIT_MAX_CALLS": "60",
     "RATE_LIMIT_WINDOW_SECONDS": "3600"
   }
