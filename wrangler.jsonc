@@ -1,0 +1,65 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "alibai",
+  // dev もビルドも @cloudflare/vite-plugin がこのファイルを読む。
+  // `vite build` が dist/<name>/ に成果物と deploy 用の設定を出し、
+  // `wrangler deploy` はそちらへリダイレクトされる。
+  "main": "src/server/worker.ts",
+  "compatibility_date": "2026-08-29",
+  // postgres.js が TCP を張るために必要。これが無いと Postgres に到達できない。
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true
+  },
+
+  // Neon への接続をプールする。IDは `wrangler hyperdrive create` で発行される。
+  //   wrangler hyperdrive create alibai --connection-string="postgres://..."
+  "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      "id": "REPLACE_WITH_HYPERDRIVE_ID",
+      // ローカル（vite dev の workerd）から見る Postgres。compose のサービス名で引く。
+      "localConnectionString": "postgres://alibai:alibai@db:5432/alibai"
+    }
+  ],
+
+  // 公開シナリオとキャラクターシートの読みキャッシュ。真相は絶対に入れない。
+  //   wrangler kv namespace create SCENARIO_CACHE
+  "kv_namespaces": [
+    {
+      "binding": "SCENARIO_CACHE",
+      "id": "REPLACE_WITH_KV_NAMESPACE_ID"
+    }
+  ],
+
+  // クライアント（React）の配信。directory を書かないのは、vite プラグインが
+  // client ビルドの出力先（dist/client）を自分で入れてくれるため。
+  // ここで固定パスを書くと、プラグインの出力先が変わった日に静かに壊れる。
+  "assets": {
+    "binding": "ASSETS"
+  },
+
+  "durable_objects": {
+    "bindings": [
+      { "name": "PLAY_SESSION", "class_name": "PlaySession" },
+      { "name": "RATE_LIMITER", "class_name": "RateLimiter" }
+    ]
+  },
+
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["PlaySession", "RateLimiter"]
+    }
+  ],
+
+  // APIキーは vars ではなく secret に入れる。
+  //   wrangler secret put ANTHROPIC_API_KEY
+  "vars": {
+    "LLM_ACTOR_PROVIDER": "anthropic",
+    "LLM_JUDGE_PROVIDER": "anthropic",
+    "LLM_AUTHOR_PROVIDER": "anthropic",
+    "RATE_LIMIT_MAX_CALLS": "60",
+    "RATE_LIMIT_WINDOW_SECONDS": "3600"
+  }
+}
