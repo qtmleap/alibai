@@ -33,6 +33,7 @@ export const BriefingScreen = ({ scenario, detective, onStart }: Props) => {
   const [mode, setMode] = useState<BriefingMode>(loadBriefingMode)
   const [sound, setSound] = useState<SoundSetting>(loadSoundSetting)
   const [readThrough, setReadThrough] = useState(false)
+  const [mapOpen, setMapOpen] = useState(false)
   const [starting, setStarting] = useState(false)
   const [error, setError] = useState<string | undefined>(undefined)
 
@@ -119,23 +120,28 @@ export const BriefingScreen = ({ scenario, detective, onStart }: Props) => {
         />
       )}
 
-      {readThrough && scenario.floorPlan !== null && (
-        <section className="flex flex-col gap-2">
-          <h2 className="text-xs tracking-widest text-slate-500">事件現場</h2>
-          <FloorPlanMap plan={scenario.floorPlan} />
-        </section>
+      {/*
+        読み終えた直後に人物紹介と地図を全部広げると、余韻が情報に押し流される。
+        ここでは「誰に会うのか」だけ名前で示し、細かい話は聞き込み画面に任せる
+        （人物像はタブを選べば出るし、見取り図もあちらで開ける）。
+      */}
+      {readThrough && scenario.characters.length > 0 && (
+        <p className="text-sm text-slate-400">
+          {scenario.characters.map((character) => character.name).join('　')}
+        </p>
       )}
 
-      {readThrough && scenario.characters.length > 0 && (
-        <section className="flex flex-col gap-4">
-          <h2 className="text-xs tracking-widest text-slate-500">この夜、居合わせた者</h2>
-          {scenario.characters.map((character) => (
-            <div key={character.id} className="border-l-2 border-slate-700 pl-3">
-              <p className="text-sm font-semibold">{character.name}</p>
-              <p className="mt-1 text-xs leading-relaxed text-slate-500">{character.personality}</p>
-            </div>
-          ))}
-        </section>
+      {readThrough && scenario.floorPlan !== null && (
+        <div className="flex flex-col gap-2">
+          <button
+            type="button"
+            onClick={() => setMapOpen((open) => !open)}
+            className="self-start text-xs text-slate-500 underline"
+          >
+            {mapOpen ? '見取り図を閉じる' : '見取り図を見る'}
+          </button>
+          {mapOpen && <FloorPlanMap plan={scenario.floorPlan} />}
+        </div>
       )}
 
       {error !== undefined && <p className="text-sm text-red-400">{error}</p>}
