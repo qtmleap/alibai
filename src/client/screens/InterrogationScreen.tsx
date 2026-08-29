@@ -114,31 +114,42 @@ export const InterrogationScreen = ({ scenario, session, interrogation, onAccuse
       */}
       <nav
         aria-label="話す相手"
-        className="flex w-14 shrink-0 flex-col items-center gap-3 overflow-y-auto border-r border-slate-800 py-3"
+        className="flex w-14 shrink-0 flex-col items-center border-r border-slate-800 py-3"
       >
-        {scenario.characters.map((character, index) => {
-          const turns = conversations[character.id]
-          const asked = turns === undefined ? 0 : turns.filter((t) => t.role === 'user').length
-          const isActive = character.id === activeCharacterId
+        {/* 相手が増えたらここだけが伸びてスクロールする */}
+        <div className="flex min-h-0 flex-1 flex-col items-center gap-3 overflow-y-auto">
+          {scenario.characters.map((character, index) => {
+            const turns = conversations[character.id]
+            const asked = turns === undefined ? 0 : turns.filter((t) => t.role === 'user').length
+            const isActive = character.id === activeCharacterId
 
-          return (
-            <button
-              key={character.id}
-              type="button"
-              ref={isActive ? activeAvatarRef : undefined}
-              onClick={() => setActiveCharacterId(character.id)}
-              aria-label={`${character.name}に聞く`}
-              aria-pressed={isActive}
-              className="relative shrink-0"
-            >
-              <CharacterAvatar name={character.name} index={index} active={isActive} />
-              {/* まだ一度も聞いていない相手の目印。ターンが限られているので選ぶ手がかりになる */}
-              {asked === 0 && (
-                <span className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-amber-400 ring-2 ring-slate-950" />
-              )}
-            </button>
-          )
-        })}
+            return (
+              <button
+                key={character.id}
+                type="button"
+                ref={isActive ? activeAvatarRef : undefined}
+                onClick={() => setActiveCharacterId(character.id)}
+                aria-label={`${character.name}に聞く`}
+                aria-pressed={isActive}
+                className="relative shrink-0"
+              >
+                <CharacterAvatar name={character.name} index={index} active={isActive} />
+                {/* まだ一度も聞いていない相手の目印。ターンが限られているので選ぶ手がかりになる */}
+                {asked === 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-amber-400 ring-2 ring-slate-950" />
+                )}
+              </button>
+            )
+          })}
+        </div>
+
+        {/*
+          事件の記録は相手の列の一番下に置く。相手が何人いても位置が変わらず、
+          会話の領域も削らない。
+        */}
+        <div className="mt-3 border-t border-slate-800 pt-3">
+          <CaseNoteButton briefing={scenario.briefing} />
+        </div>
       </nav>
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -192,9 +203,6 @@ export const InterrogationScreen = ({ scenario, session, interrogation, onAccuse
               awaiting={isAsking}
             />
           )}
-
-          {/* 事件の記録はここ。会話ログの隅に留めておき、見出しの場所は取らない */}
-          <CaseNoteButton briefing={scenario.briefing} />
         </main>
 
         {error !== undefined && <p className="px-3 text-sm text-red-400">{error}</p>}

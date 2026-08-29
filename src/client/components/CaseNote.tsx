@@ -20,31 +20,25 @@ export const CaseNoteModal = ({ briefing, onClose }: Props & { onClose: () => vo
 )
 
 /**
- * 会話ログの隅に浮かべる、事件の記録の入口。
+ * 事件の記録の入口。
  *
- * 画面の上に見出し付きのバーを置くほど頻繁には開かない。かといって
- * 完全に隠すと、細部を確かめたくなったときに戻る道が無い。
- * 会話の邪魔をしない大きさで、いつも同じ場所に置いておく。
+ * 画面の上に見出し付きのバーを置くほど頻繁には開かないが、完全に隠すと
+ * 細部を確かめたくなったときに戻る道が無い。相手のアイコンが並ぶ列の
+ * 一番下に、同じ大きさで置いておく。置き場所は呼び出し側が決める。
  */
 export const CaseNoteButton = ({ briefing }: Props) => {
   const [open, setOpen] = useState(false)
 
   return (
     <>
-      {/*
-        mt-auto で会話が短いときも下端へ落とし、sticky で会話が伸びたあとも
-        下端に留める。会話の量で置き場所が動くと、探すたびに目で追うことになる。
-      */}
-      <div className="sticky bottom-0 mt-auto flex justify-end pt-1">
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          aria-label="事件の記録を読む"
-          className="size-9 rounded-full border border-slate-700 bg-slate-900/90 text-xs text-slate-400 backdrop-blur"
-        >
-          記
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-label="事件の記録を読む"
+        className="size-9 shrink-0 rounded-full border border-slate-700 text-xs text-slate-400"
+      >
+        記
+      </button>
 
       {open && <CaseNoteModal briefing={briefing} onClose={() => setOpen(false)} />}
     </>
