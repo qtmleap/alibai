@@ -10,9 +10,11 @@ import {
   judgementSchema,
   type ScenarioDetail,
   type ScenarioSummary,
+  type SessionHistory,
   type SessionState,
   scenarioDetailSchema,
   scenarioListSchema,
+  sessionHistorySchema,
   sessionStateSchema,
 } from '@/client/lib/schemas'
 import { parseSseStream } from '@/client/lib/sse'
@@ -106,6 +108,20 @@ export const createSession = (
 
 export const fetchSessionState = (sessionId: string): Promise<SessionState> =>
   requestJson(`/api/sessions/${sessionId}`, sessionStateSchema, undefined)
+
+/**
+ * 聞き込みの記録。会話ログはクライアントのメモリにしか無いので、
+ * ページを開き直したときはここから取り戻す。
+ */
+export const fetchSessionHistory = (sessionId: string): Promise<SessionHistory> =>
+  requestJson(`/api/sessions/${sessionId}/history`, sessionHistorySchema, undefined)
+
+/**
+ * 確定したリザルト。accuse はPOSTなので、リザルト画面のリロードはこちらで受ける。
+ * 未終了のセッションでは404になる。
+ */
+export const fetchSessionResult = (sessionId: string): Promise<AccuseResult> =>
+  requestJson(`/api/sessions/${sessionId}/result`, accuseResultSchema, undefined)
 
 export const submitAccusation = (params: {
   sessionId: string

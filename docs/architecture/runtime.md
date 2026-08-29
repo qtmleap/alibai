@@ -8,7 +8,7 @@
 
 ```jsonc
 {
-  "main": "src/server/worker.ts",
+  "main": "src/server.ts",
   "compatibility_date": "2026-08-29",
   "compatibility_flags": ["nodejs_compat"]
 }
@@ -19,13 +19,27 @@
 ### エントリの二層構造
 
 ```text
-src/server/worker.ts   Workers のエントリ。DOクラスを re-export し、app を default export
+src/server.ts          Workers のエントリ。DOクラスを re-export し、
+                       /api/* を Hono に、それ以外を TanStack Start に振り分ける
 src/server/index.ts    Hono アプリ本体。cloudflare:workers を import しない
 ```
 
 Durable Object のクラスは `cloudflare:workers` を import します。これを Hono アプリ本体に持ち込むと、Workers ランタイム外（`bun test` など）からアプリを読めなくなります。エントリを分離することで、テストが `app.request()` でルーティングを検証できる状態を保っています。
 
-同時に、DO クラスはエントリから export されていないとバインディングが解決できないため、`worker.ts` が両方の責務を担います。
+同時に、DO クラスはエントリから export されていないとバインディングが解決できないため、`src/server.ts` が両方の責務を担います。
+
+画面（SSR）とAPIが1つの Worker に同居しているのは、DO バインディングを共有するためです。別 Worker に割るとサービスバインディング越しになり、聞き込みのSSEを中継する段が1つ増えます。
+
+```typescript
+export default {
+  fetch: (request, env, ctx) =>
+    new URL(request.url).pathname.startsWith('/api/')
+      ? app.fetch(request, env, ctx)
+      : handler.fetch(request),
+}
+```
+
+SSR のルート loader は Hono を経由せず、`src/server/read/` の読み取り関数を直接呼びます。相対パスで自分の `/api` を叩くと、サーバ側では URL を解決できないためです。バインディングを `cloudflare:workers` の `env` から取るのは `src/server/fn/` のサーバ関数だけで、Hono 側は引き続き引数で受け取ります。
 
 ## Hono
 
@@ -98,7 +112,9 @@ return streamSSE(c, async (stream) => {
 
 このプラグインは Vite の Environment API を使い、Worker のコードを Node ではなく **workerd の上で** 実行します。そのため dev サーバでも Durable Object・Hyperdrive・KV が本番と同じ形で解決され、`wrangler dev` を別に立てる必要がありません。エントリ（`main`）もバインディングも `wrangler.jsonc` をそのまま読むので、設定を二重に持つ場所はありません。
 
-`vite build` は `dist/alibai/` に Worker バンドルと deploy 用の `wrangler.json` を出力します。`wrangler deploy` は `.wrangler/deploy/config.json` のリダイレクトを辿ってそちらを使うため、`worker.ts` が re-export している DO クラスもそのまま載ります。
+`vite build` は `dist/alibai/` に Worker バンドルと deploy 用の `wrangler.json` を出力します。`wrangler deploy` は `.wrangler/deploy/config.json` のリダイレクトを辿ってそちらを使うため、`src/server.ts` が re-export している DO クラスもそのまま載ります。
+
+画面のルーティングは TanStack Start（`@tanstack/react-start`）が担い、`src/routes/` のディレクトリ構造から `src/routeTree.gen.ts` を生成します。生成物は手で触らず、`biome.json` の `!**/*.gen.ts` で検査からも外してあります。アセットに一致しないパスは Worker に落ちて SSR で応答するので、`not_found_handling`（SPAフォールバック）は使いません。
 
 dev サーバは `.env` を読んでシークレットとして Worker に渡します。未使用のプロバイダのキーを `KEY=` と空文字で残しても落ちないよう、`env.ts` 側で空文字は未設定として扱っています。
 

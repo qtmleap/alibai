@@ -1,12 +1,11 @@
 import { useState } from 'react'
 import { FloorPlanMap } from '@/client/components/FloorPlan'
 import { createSession, describeError } from '@/client/lib/api'
-import type { CreateSessionResponse, Detective, ScenarioDetail } from '@/client/lib/schemas'
+import { activeDetective, loadDetectiveStore, toDetective } from '@/client/lib/detective-store'
+import type { CreateSessionResponse, ScenarioDetail } from '@/client/lib/schemas'
 
 type Props = {
   scenario: ScenarioDetail
-  /** 探偵の設定で決めた人物。名乗らずに始めた場合は undefined。 */
-  detective: Detective | undefined
   onStart: (session: CreateSessionResponse) => void
   onBack: () => void
 }
@@ -23,9 +22,12 @@ type Props = {
  * セッション開始（POST /api/sessions）はこの画面の「聞き込みを始める」で行う。
  * ここより前で作ってしまうと、記録を読んでいる時間まで solvedSeconds に乗る。
  */
-export const CaseOverviewScreen = ({ scenario, detective, onStart, onBack }: Props) => {
+export const CaseOverviewScreen = ({ scenario, onStart, onBack }: Props) => {
   const [starting, setStarting] = useState(false)
   const [error, setError] = useState<string | undefined>(undefined)
+  // 探偵の設定画面が localStorage に書いた選択を読む。名乗らずに始めた場合は undefined。
+  const [stored] = useState(() => activeDetective(loadDetectiveStore()))
+  const detective = stored === undefined ? undefined : toDetective(stored)
 
   const handleStart = () => {
     setStarting(true)

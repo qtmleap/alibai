@@ -65,6 +65,40 @@ const DETECTIVE_KEY = 'detective'
 /** NPCごとに履歴を分ける。他NPCとの会話を混ぜない設計をキーの形で強制する。 */
 const historyKey = (characterId: string) => `history:${characterId}`
 
+/**
+ * 往復ごとの質問時刻（epochミリ秒）。history と同じ順・同じ長さで積む。
+ *
+ * history に混ぜないのは、あちらが actor.ts へそのまま渡す ModelMessage[] だから。
+ * 時刻を差し込むとモデルへの入力が変わってしまう。並走する配列にしておけば、
+ * 画面を復元するときだけ読めばよい。
+ */
+const askedAtKey = (characterId: string) => `asked-at:${characterId}`
+
+/**
+ * ModelMessage の content は文字列とは限らない（パーツの配列にもなる）。
+ * このDOが積むのは自分で組み立てた文字列だけだが、型の上では両方あり得るので
+ * 復元して返すときにここで均しておく。
+ */
+const textOf = (content: ModelMessage['content']): string => {
+  if (typeof content === 'string') {
+    return content
+  }
+
+  return content.map((part) => (part.type === 'text' ? part.text : '')).join('')
+}
+
+/** 復元用に返す1往復。ModelMessage をそのまま外へ出さない（下の getHistories 参照）。 */
+export type HistoryExchange = {
+  question: string
+  answer: string
+  askedAt: number
+}
+
+export type CharacterHistory = {
+  characterId: string
+  exchanges: HistoryExchange[]
+}
+
 export class PlaySession extends DurableObject<SessionBindings> {
   /**
    * 最初に触られた時刻を開始時刻として確定させる。
@@ -161,13 +195,62 @@ export class PlaySession extends DurableObject<SessionBindings> {
 
     const meta = await this.meta()
     const updated: Meta = { ...meta, questionCount: meta.questionCount + 1 }
+    const askedAt = await this.askedAtList(characterId)
 
     await this.ctx.storage.put({
       [historyKey(characterId)]: next,
+      [askedAtKey(characterId)]: [...askedAt, Date.now()],
       [META_KEY]: updated,
     })
 
     return updated.questionCount
+  }
+
+  /** 往復ごとの質問時刻。この機能より前に始まったセッションでは空になる。 */
+  private async askedAtList(characterId: string): Promise<number[]> {
+    const stored = await this.ctx.storage.get<number[]>(askedAtKey(characterId))
+
+    return stored === undefined ? [] : stored
+  }
+
+  /**
+   * 画面を復元するための、NPCごとの会話。
+   *
+   * 戻り値に ModelMessage を出さないのは型の都合。あれを含む戻り値は
+   * Workers の RPC 型ユーティリティが解決できず never に潰れる
+   * （getDetective のコメントと同じ理由）。ここでは往復を平たい形に均して返す。
+   *
+   * 時刻を持たない古いセッションは、開始時刻から1秒ずつずらした値で代用する。
+   * 正確な時刻より、NPCをまたいだ並び順が壊れないことのほうが画面には効く。
+   */
+  async getHistories(characterIds: string[]): Promise<CharacterHistory[]> {
+    const meta = await this.meta()
+
+    return await Promise.all(
+      characterIds.map(async (characterId) => {
+        const messages = await this.getHistory(characterId)
+        const times = await this.askedAtList(characterId)
+        const exchanges = messages.flatMap((message, index) => {
+          if (message.role !== 'user') {
+            return []
+          }
+
+          const answer = messages[index + 1]
+          const round = index / 2
+          const recorded = times[round]
+
+          return [
+            {
+              question: textOf(message.content),
+              answer: answer === undefined ? '' : textOf(answer.content),
+              askedAt: recorded === undefined ? meta.startedAt + round * 1000 : recorded,
+            },
+          ]
+        })
+
+        return { characterId, exchanges }
+      }),
+    )
   }
 
   /**

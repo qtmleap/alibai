@@ -110,6 +110,31 @@ export const accuseResultSchema = z.object({
   }),
 })
 
+/**
+ * 聞き込みの記録。ページを開き直したときに会話ログを取り戻すために読む。
+ *
+ * answer が空文字なのは「聞いたが返答が届いていない」状態（配信中に閉じた等）。
+ * 空を弾くと、その往復ごと記録から消えてしまうので、上限だけを切って受ける。
+ */
+const MAX_ANSWER_CHARS = 10_000
+
+export const historyExchangeSchema = z.object({
+  question: z.string().nonempty(),
+  answer: z.string().max(MAX_ANSWER_CHARS),
+  /** その質問を投げた時刻（epoch ミリ秒）。NPCをまたいで時系列に並べ直すのに使う。 */
+  askedAt: z.number().int(),
+})
+
+export const sessionHistorySchema = z.object({
+  sessionId: z.uuid(),
+  histories: z.array(
+    z.object({
+      characterId: z.uuid(),
+      exchanges: z.array(historyExchangeSchema),
+    }),
+  ),
+})
+
 /** 400/404/429/500 共通のエラーボディ。429 だけ resetAt (epoch ms) を持つ。 */
 export const apiErrorSchema = z.object({
   error: z.string().nonempty(),
@@ -127,3 +152,4 @@ export type TurnState = z.infer<typeof turnStateSchema>
 export type SessionState = z.infer<typeof sessionStateSchema>
 export type Judgement = z.infer<typeof judgementSchema>
 export type AccuseResult = z.infer<typeof accuseResultSchema>
+export type SessionHistory = z.infer<typeof sessionHistorySchema>

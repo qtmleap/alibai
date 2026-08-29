@@ -1,12 +1,13 @@
-import { useEffect, useState } from 'react'
-import { describeError, fetchScenarioDetail, fetchScenarios } from '@/client/lib/api'
-import type { ScenarioDetail, ScenarioSummary } from '@/client/lib/schemas'
+import { useState } from 'react'
+import type { ScenarioSummary } from '@/client/lib/schemas'
 
 type Props = {
-  // セッション作成はまだしない。ここでは GET /api/scenarios/:id を呼ぶだけ。
+  /** 一覧はルートの loader が渡す。SSR でも同じものが手に入る。 */
+  scenarios: ScenarioSummary[]
+  // セッション作成はまだしない。ここでは次の画面へ進むだけ。
   // (POST /api/sessions は支度の画面で「聞き込みを始める」を押した瞬間に投げる。
   //  そうしないと事件の記録を読んでいる時間が solvedSeconds に乗ってしまう)
-  onSelect: (scenario: ScenarioDetail) => void
+  onSelect: (scenarioId: string) => void
 }
 
 const difficultyLabel = (difficulty: number): string => '★'.repeat(difficulty)
@@ -21,27 +22,14 @@ const difficultyLabel = (difficulty: number): string => '★'.repeat(difficulty)
  * 上を大きく空けているのは、いきなり一覧から始めないため。暗い画面に題字だけが
  * 置かれている時間があると、これから何かが始まるという構えができる。
  */
-export const ScenarioSelectScreen = ({ onSelect }: Props) => {
-  const [scenarios, setScenarios] = useState<ScenarioSummary[] | undefined>(undefined)
-  const [error, setError] = useState<string | undefined>(undefined)
+export const ScenarioSelectScreen = ({ scenarios, onSelect }: Props) => {
+  // 押してから次の画面のデータが届くまでの間、押した行だけが応える。
+  // 遷移そのものはルータが引き受けるので、ここは見た目のためだけの状態。
   const [loadingId, setLoadingId] = useState<string | undefined>(undefined)
 
-  useEffect(() => {
-    fetchScenarios()
-      .then(setScenarios)
-      .catch((err: unknown) => setError(describeError(err)))
-  }, [])
-
   const handleSelect = (scenarioId: string) => {
-    setError(undefined)
     setLoadingId(scenarioId)
-
-    fetchScenarioDetail(scenarioId)
-      .then(onSelect)
-      .catch((err: unknown) => {
-        setError(describeError(err))
-        setLoadingId(undefined)
-      })
+    onSelect(scenarioId)
   }
 
   return (
@@ -51,24 +39,18 @@ export const ScenarioSelectScreen = ({ onSelect }: Props) => {
         <p className="text-[11px] tracking-[0.3em] text-slate-500">聞き込みで、犯人を指し示す</p>
       </header>
 
-      {error !== undefined && <p className="pb-4 text-sm text-red-400">{error}</p>}
-
-      {scenarios === undefined && error === undefined && (
-        <p className="text-center text-xs tracking-widest text-slate-600">読み込み中…</p>
-      )}
-
-      {scenarios !== undefined && scenarios.length === 0 && (
+      {scenarios.length === 0 && (
         <p className="text-center text-xs tracking-widest text-slate-600">
           遊べる事件がまだありません
         </p>
       )}
 
-      {scenarios !== undefined && scenarios.length > 0 && (
+      {scenarios.length > 0 && (
         <p className="pb-2 text-[10px] tracking-[0.3em] text-slate-600">事件を選ぶ</p>
       )}
 
       <ul className="flex flex-col border-t border-slate-800">
-        {scenarios?.map((scenario) => (
+        {scenarios.map((scenario) => (
           <li key={scenario.id} className="border-b border-slate-800">
             <button
               type="button"

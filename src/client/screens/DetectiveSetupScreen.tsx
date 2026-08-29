@@ -9,14 +9,18 @@ import {
   type StoredDetective,
   saveDetectiveStore,
   setActiveDetective,
-  toDetective,
   upsertDetective,
 } from '@/client/lib/detective-store'
 import type { Detective, ScenarioDetail } from '@/client/lib/schemas'
 
 type Props = {
   scenario: ScenarioDetail
-  onDecided: (detective: Detective | undefined) => void
+  /**
+   * 次へ進む合図だけを送る。選んだ探偵そのものは渡さない。
+   * 選択は localStorage に書かれていて、支度の画面はそちらを読む。
+   * 画面から画面へ手渡しにすると、URL を直接開かれた瞬間に行方不明になる。
+   */
+  onDecided: () => void
   onBack: () => void
 }
 
@@ -237,7 +241,7 @@ export const DetectiveSetupScreen = ({ scenario, onDecided, onBack }: Props) => 
 
       <button
         type="button"
-        onClick={() => onDecided(selected === undefined ? undefined : toDetective(selected))}
+        onClick={onDecided}
         disabled={selected === undefined}
         className="rounded-lg bg-indigo-600 py-3 font-semibold text-white disabled:opacity-50"
       >
@@ -248,7 +252,7 @@ export const DetectiveSetupScreen = ({ scenario, onDecided, onBack }: Props) => 
         type="button"
         onClick={() => {
           update(clearActiveDetective(store))
-          onDecided(undefined)
+          onDecided()
         }}
         className="text-sm text-slate-400 underline"
       >

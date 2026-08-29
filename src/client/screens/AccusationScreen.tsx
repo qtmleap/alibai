@@ -2,18 +2,25 @@ import { useState } from 'react'
 import { SessionReference } from '@/client/components/SessionReference'
 import type { UseInterrogation } from '@/client/hooks/useInterrogation'
 import { describeError, submitAccusation } from '@/client/lib/api'
-import type { AccuseResult, CreateSessionResponse, ScenarioDetail } from '@/client/lib/schemas'
+import type { AccuseResult, ScenarioDetail } from '@/client/lib/schemas'
 
 type Props = {
   scenario: ScenarioDetail
-  session: CreateSessionResponse
+  /** 進行中のセッション。画面が使うのはIDだけ。 */
+  sessionId: string
   /** 推理を書きながら誰が何を言ったか確かめられるように、聞き込みの記録を持ち込む。 */
   interrogation: UseInterrogation
   onResult: (result: AccuseResult) => void
   onBack: () => void
 }
 
-export const AccusationScreen = ({ scenario, session, interrogation, onResult, onBack }: Props) => {
+export const AccusationScreen = ({
+  scenario,
+  sessionId,
+  interrogation,
+  onResult,
+  onBack,
+}: Props) => {
   const [culpritCharacterId, setCulpritCharacterId] = useState<string | undefined>(undefined)
   const [reasoning, setReasoning] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -30,7 +37,7 @@ export const AccusationScreen = ({ scenario, session, interrogation, onResult, o
     setError(undefined)
 
     submitAccusation({
-      sessionId: session.sessionId,
+      sessionId,
       culpritCharacterId,
       reasoning: reasoning.trim(),
     })

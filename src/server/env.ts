@@ -20,11 +20,24 @@ export type Bindings = {
   SCENARIO_CACHE: KVNamespace
   /**
    * クライアント（React）の静的ファイル。
-   * 出力先は wrangler.jsonc に書かない。index.html があれば vite プラグインが
-   * client ビルドの成果物を assets として繋いでくれる。
+   * 出力先は wrangler.jsonc に書かない。vite プラグインが client ビルドの
+   * 成果物を assets として繋いでくれる。
    */
   ASSETS: Fetcher
 } & Record<string, unknown>
+
+/**
+ * `cloudflare:workers` の env にも同じ形を与える。
+ *
+ * サーバ関数（SSR）は Hono のコンテキストを経由しないので、そちらからは
+ * グローバルの env を読むことになる。ここで宣言をまとめておかないと、
+ * 型のために `as` を書く羽目になる。
+ */
+declare global {
+  namespace Cloudflare {
+    interface Env extends Bindings {}
+  }
+}
 
 /**
  * 使わない項目は `KEY=` と空文字で置かれることが多い（.env / vars とも）。

@@ -53,6 +53,56 @@ const loadSessionScenarioId = async (db: Db, sessionId: string): Promise<string 
 }
 
 /**
+ * 真相と犯人の名前。返してよいのはセッションが終わった後だけ。
+ *
+ * accuse（提出した瞬間）と GET /result（リザルトを開き直したとき）の両方から呼ぶ。
+ * 同じ形を2箇所で組み立てると、片方だけ直したときに「提出直後とリロード後で
+ * 表示が違う」という一番気づきにくいずれ方をする。
+ *
+ * 犯人が登録されていないシナリオはデータ不備。プレイヤーの入力とは無関係なので
+ * 呼び出し側は500として扱う。
+ */
+type Truth = {
+  culpritCharacterId: string
+  culpritName: string
+  truth: string
+  timeline: unknown
+}
+
+const loadTruth = async (db: Db, scenarioId: string): Promise<Truth | undefined> => {
+  const truthRows = await db
+    .select()
+    .from(scenarioTruths)
+    .where(eq(scenarioTruths.scenarioId, scenarioId))
+    .limit(1)
+
+  const truthRow = truthRows[0]
+
+  if (truthRow === undefined || truthRow.culpritCharacterId === null) {
+    return undefined
+  }
+
+  const culpritRows = await db
+    .select({ id: characters.id, name: characters.name })
+    .from(characters)
+    .where(eq(characters.id, truthRow.culpritCharacterId))
+    .limit(1)
+
+  const culpritRow = culpritRows[0]
+
+  if (culpritRow === undefined) {
+    return undefined
+  }
+
+  return {
+    culpritCharacterId: truthRow.culpritCharacterId,
+    culpritName: culpritRow.name,
+    truth: truthRow.truth,
+    timeline: truthRow.timeline,
+  }
+}
+
+/**
  * 探偵の設定。全項目とも自由記述で、名乗らずに始めることもできる。
  *
  * 年齢を文字列にしているのは「30代」「年齢不詳」と書けるようにするため。
@@ -523,34 +573,15 @@ sessionRoutes.post('/api/sessions/:id/accuse', async (c) => {
     return c.json({ error: 'session not found' }, 404)
   }
 
-  const truthRows = await db
-    .select()
-    .from(scenarioTruths)
-    .where(eq(scenarioTruths.scenarioId, scenarioId))
-    .limit(1)
+  const truth = await loadTruth(db, scenarioId)
 
-  const truthRow = truthRows[0]
-
-  if (truthRow === undefined || truthRow.culpritCharacterId === null) {
+  if (truth === undefined) {
     // シナリオ登録時のデータ不備。プレイヤーの入力とは無関係なのでコンテンツ側の問題として扱う。
     console.error('[accuse] scenario truth missing or has no culprit', { scenarioId })
     return c.json({ error: 'scenario is not playable' }, 500)
   }
 
-  const culpritRows = await db
-    .select({ id: characters.id, name: characters.name })
-    .from(characters)
-    .where(eq(characters.id, truthRow.culpritCharacterId))
-    .limit(1)
-
-  const culpritRow = culpritRows[0]
-
-  if (culpritRow === undefined) {
-    console.error('[accuse] culprit character not found', { scenarioId })
-    return c.json({ error: 'scenario is not playable' }, 500)
-  }
-
-  const localCorrect = parsed.data.culpritCharacterId === truthRow.culpritCharacterId
+  const localCorrect = parsed.data.culpritCharacterId === truth.culpritCharacterId
 
   const session = c.env.PLAY_SESSION.get(c.env.PLAY_SESSION.idFromName(sessionId))
   const afterAccusation = await session.recordAccusation(
@@ -593,14 +624,91 @@ sessionRoutes.post('/api/sessions/:id/accuse', async (c) => {
     console.error('[accuse] failed to persist result', error)
   }
 
+  return c.json({ correct, result: score, truth })
+})
+
+/**
+ * 聞き込みの記録。ページを開き直したときに会話ログを取り戻すための口。
+ *
+ * 会話はDOがNPCごとに持っているが、正典はあくまでそちら。クライアントの
+ * メモリだけに置いていた頃は、リロードした瞬間に全部消えていた。
+ *
+ * 返すのはプレイヤー自身の質問とNPCの返答だけ。真相もキャラクターシートも
+ * 通らないので、聞き込み中に見せてよい範囲を出ない。
+ */
+sessionRoutes.get('/api/sessions/:id/history', validateSessionId, async (c) => {
+  const sessionId = c.get('sessionId')
+  const db = createDb(c.env.HYPERDRIVE)
+  const scenarioId = await loadSessionScenarioId(db, sessionId)
+
+  if (scenarioId === undefined) {
+    return c.json({ error: 'session not found' }, 404)
+  }
+
+  // DOは自分がどのNPCを抱えているかを知らない（キーで分けているだけ）ので、
+  // 登場人物の一覧はDB側から渡す。
+  const characterRows = await db
+    .select({ id: characters.id })
+    .from(characters)
+    .where(eq(characters.scenarioId, scenarioId))
+
+  const session = c.env.PLAY_SESSION.get(c.env.PLAY_SESSION.idFromName(sessionId))
+  const histories = await session.getHistories(characterRows.map((row) => row.id))
+
+  return c.json({ sessionId, histories })
+})
+
+/**
+ * 確定したリザルト。
+ *
+ * accuse はPOSTなので、リザルト画面をリロードすると同じ応答を作り直せない。
+ * results と scenario_truths には書き終わっているので、そこから読み直す。
+ *
+ * 真相を返してよいのはセッションが終わった後だけ、という決まりは accuse と同じ。
+ * 未終了なら404を返す（「まだ終わっていない」と「存在しない」の区別を、
+ * 真相が欲しいだけの相手に与える必要はない）。
+ */
+sessionRoutes.get('/api/sessions/:id/result', validateSessionId, async (c) => {
+  const sessionId = c.get('sessionId')
+  const db = createDb(c.env.HYPERDRIVE)
+  const scenarioId = await loadSessionScenarioId(db, sessionId)
+
+  if (scenarioId === undefined) {
+    return c.json({ error: 'session not found' }, 404)
+  }
+
+  const session = c.env.PLAY_SESSION.get(c.env.PLAY_SESSION.idFromName(sessionId))
+  const snapshot = await session.snapshot()
+
+  if (!snapshot.finished) {
+    return c.json({ error: 'session is not finished' }, 404)
+  }
+
+  const resultRows = await db
+    .select()
+    .from(results)
+    .where(eq(results.sessionId, sessionId))
+    .limit(1)
+
+  const resultRow = resultRows[0]
+  const truth = await loadTruth(db, scenarioId)
+
+  if (resultRow === undefined || truth === undefined) {
+    // 終了済みなのに results が無いのは、accuse の書き出しが落ちたとき。
+    // プレイヤーの操作では直せないので、コンテンツ側の問題として扱う。
+    console.error('[result] finished session has no result row', { sessionId, scenarioId })
+    return c.json({ error: 'result is not available' }, 500)
+  }
+
   return c.json({
-    correct,
-    result: score,
-    truth: {
-      culpritCharacterId: truthRow.culpritCharacterId,
-      culpritName: culpritRow.name,
-      truth: truthRow.truth,
-      timeline: truthRow.timeline,
+    correct: snapshot.accusationCorrect === true,
+    result: {
+      solvedSeconds: resultRow.solvedSeconds,
+      questionCount: resultRow.questionCount,
+      evidenceFound: resultRow.evidenceFound,
+      contradictionCount: resultRow.contradictionCount,
+      accuracyPercent: resultRow.accuracyPercent,
     },
+    truth,
   })
 })

@@ -4,7 +4,7 @@
   // dev もビルドも @cloudflare/vite-plugin がこのファイルを読む。
   // `vite build` が dist/<name>/ に成果物と deploy 用の設定を出し、
   // `wrangler deploy` はそちらへリダイレクトされる。
-  "main": "src/server/worker.ts",
+  "main": "src/server.ts",
   "compatibility_date": "2026-08-29",
   // postgres.js が TCP を張るために必要。これが無いと Postgres に到達できない。
   "compatibility_flags": ["nodejs_compat"],
@@ -33,8 +33,11 @@
   ],
 
   // クライアント（React）の配信。directory を書かないのは、vite プラグインが
-  // client ビルドの出力先（dist/client）を自分で入れてくれるため。
+  // client ビルドの出力先を自分で入れてくれるため。
   // ここで固定パスを書くと、プラグインの出力先が変わった日に静かに壊れる。
+  //
+  // not_found_handling は要らない。アセットに無いパスは Worker に落ち、
+  // TanStack Start が SSR で応答する（SPA フォールバックではない）。
   "assets": {
     "binding": "ASSETS"
   },

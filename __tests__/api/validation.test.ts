@@ -53,6 +53,22 @@ describe('GET /api/sessions/:id', () => {
   })
 })
 
+describe('GET /api/sessions/:id/history', () => {
+  test('UUIDでないIDは、DOに触る前に 400', async () => {
+    const res = await app.request('/api/sessions/not-a-uuid/history')
+
+    expect(res.status).toBe(400)
+  })
+})
+
+describe('GET /api/sessions/:id/result', () => {
+  test('UUIDでないIDは、DOに触る前に 400', async () => {
+    const res = await app.request('/api/sessions/not-a-uuid/result')
+
+    expect(res.status).toBe(400)
+  })
+})
+
 describe('POST /api/sessions', () => {
   test('scenarioId が UUID でなければ 400', async () => {
     const res = await postJson('/api/sessions', { scenarioId: 'not-a-uuid' })

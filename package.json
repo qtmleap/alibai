@@ -23,6 +23,8 @@
     "@ai-sdk/openai": "^2",
     "@ai-sdk/provider-utils": "^3",
     "@commitlint/config-conventional": "^21.2.0",
+    "@tanstack/react-router": "^1.170.32",
+    "@tanstack/react-start": "^1.168.49",
     "@vitejs/plugin-react": "^6.1.1",
     "ai": "^5",
     "commitlint": "^21.2.1",

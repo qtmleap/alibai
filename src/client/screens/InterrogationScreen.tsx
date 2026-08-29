@@ -7,11 +7,12 @@ import { TurnAnnounce } from '@/client/components/TurnAnnounce'
 import type { UseInterrogation } from '@/client/hooks/useInterrogation'
 import { fetchSessionState } from '@/client/lib/api'
 import { formatSeconds } from '@/client/lib/format'
-import type { CreateSessionResponse, ScenarioDetail, SessionState } from '@/client/lib/schemas'
+import type { ScenarioDetail, SessionState } from '@/client/lib/schemas'
 
 type Props = {
   scenario: ScenarioDetail
-  session: CreateSessionResponse
+  /** 進行中のセッション。画面が使うのはIDだけ。 */
+  sessionId: string
   interrogation: UseInterrogation
   onAccuse: () => void
 }
@@ -24,7 +25,7 @@ const SESSION_POLL_INTERVAL_MS = 5000
  * 会話ログ・発見済み証拠などの状態は App 側の useInterrogation が持つ（props経由）。
  * この画面自身が持つのは「今どのタブを見ているか」のような画面ローカルな見た目の状態だけ。
  */
-export const InterrogationScreen = ({ scenario, session, interrogation, onAccuse }: Props) => {
+export const InterrogationScreen = ({ scenario, sessionId, interrogation, onAccuse }: Props) => {
   const firstCharacterId = scenario.characters[0]
 
   // シナリオに登場人物が1人もいないのはデータの前提が壊れている状態で、
@@ -57,7 +58,7 @@ export const InterrogationScreen = ({ scenario, session, interrogation, onAccuse
   // /api/sessions/:id の実装がちゃんと動いているかもこの画面で確認できる。
   useEffect(() => {
     const poll = () => {
-      fetchSessionState(session.sessionId)
+      fetchSessionState(sessionId)
         .then((state) => {
           setServerState(state)
 
@@ -74,7 +75,7 @@ export const InterrogationScreen = ({ scenario, session, interrogation, onAccuse
     const timer = setInterval(poll, SESSION_POLL_INTERVAL_MS)
 
     return () => clearInterval(timer)
-  }, [session.sessionId, setTurn, askingCharacterId])
+  }, [sessionId, setTurn, askingCharacterId])
 
   /*
    * 選んだ相手が列の外にいるときは、見える位置まで寄せる。
@@ -90,7 +91,7 @@ export const InterrogationScreen = ({ scenario, session, interrogation, onAccuse
   }, [])
 
   const handleAsk = () => {
-    ask({ sessionId: session.sessionId, characterId: activeCharacterId, utterance: inputText })
+    ask({ sessionId, characterId: activeCharacterId, utterance: inputText })
     setInputText('')
   }
 

@@ -23,22 +23,34 @@ const mergeDiscoveries = (current: Discovery[], additions: Discovery[]): Discove
 }
 
 /**
- * 聞き込み中の状態を App に持たせるためのフック。
- *
- * InterrogationScreen 自身に状態を持たせると、推理画面へ行って「戻る」で
- * コンポーネントが作り直され会話ログが消えてしまう。App がアンマウントされない限り
- * この状態は生き続けるので、画面を行き来しても聞き込みの続きから再開できる。
+ * 開いた時点でサーバに残っていたぶん。リロードや直リンクで入ったときの続き。
+ * suggestedQuestions は次の質問で作り直されるので復元しない。
  */
-export const useInterrogation = () => {
-  const [conversations, setConversations] = useState<Record<string, ChatTurn[]>>({})
+export type InterrogationSeed = {
+  conversations: Record<string, ChatTurn[]>
+  discoveries: Discovery[]
+  questionCount: number
+  turn: TurnState | undefined
+}
+
+/**
+ * 聞き込み中の状態を持つフック。
+ *
+ * 呼ぶのはセッションのレイアウトルート。聞き込みの画面自身に持たせると、
+ * 推理画面へ行って戻ったときにコンポーネントが作り直され会話ログが消える。
+ * レイアウトはセッションが変わるまでアンマウントされないので、
+ * 画面を行き来しても聞き込みの続きから再開できる。
+ */
+export const useInterrogation = (seed: InterrogationSeed) => {
+  const [conversations, setConversations] = useState<Record<string, ChatTurn[]>>(seed.conversations)
   const [suggestedQuestions, setSuggestedQuestions] = useState<Record<string, string[]>>({})
-  const [discoveries, setDiscoveries] = useState<Discovery[]>([])
-  const [questionCount, setQuestionCount] = useState(0)
+  const [discoveries, setDiscoveries] = useState<Discovery[]>(seed.discoveries)
+  const [questionCount, setQuestionCount] = useState(seed.questionCount)
   /**
    * ターンの進行。正典はサーバ側（DOの質問回数から導かれる）で、
    * ここが持つのは表示用の写し。判定に使うと、リクエストを直接投げる相手には効かない。
    */
-  const [turn, setTurn] = useState<TurnState | undefined>(undefined)
+  const [turn, setTurn] = useState<TurnState | undefined>(seed.turn)
   const [askingCharacterId, setAskingCharacterId] = useState<string | undefined>(undefined)
   const [error, setError] = useState<string | undefined>(undefined)
 
