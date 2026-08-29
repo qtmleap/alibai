@@ -24,7 +24,6 @@ type Props = {
  * ここより前で作ってしまうと、記録を読んでいる時間まで solvedSeconds に乗る。
  */
 export const CaseOverviewScreen = ({ scenario, detective, onStart, onBack }: Props) => {
-  const [mapOpen, setMapOpen] = useState(false)
   const [starting, setStarting] = useState(false)
   const [error, setError] = useState<string | undefined>(undefined)
 
@@ -59,16 +58,15 @@ export const CaseOverviewScreen = ({ scenario, detective, onStart, onBack }: Pro
         </section>
       )}
 
+      {/*
+        ここでは畳まない。支度の画面に置くものは少なく、縦に余裕がある。
+        現場の形は聞き込みに入る前に頭へ入れておきたいものなので、開く操作を挟まない。
+        （聞き込み画面のほうは会話ログを削ることになるので、あちらは折りたたみのまま）
+      */}
       {scenario.floorPlan !== null && (
         <section className="flex flex-col gap-2">
-          <button
-            type="button"
-            onClick={() => setMapOpen((open) => !open)}
-            className="self-start text-xs text-slate-500 underline"
-          >
-            {mapOpen ? '見取り図を閉じる' : '見取り図を見る'}
-          </button>
-          {mapOpen && <FloorPlanMap plan={scenario.floorPlan} />}
+          <h2 className="text-xs tracking-widest text-slate-500">事件現場</h2>
+          <FloorPlanMap plan={scenario.floorPlan} />
         </section>
       )}
 
