@@ -1,5 +1,6 @@
 import { z } from 'zod'
-import { type Detective, detectiveSchema } from '@/client/lib/schemas'
+import type { AgeGroup, Detective, Gender } from '@/client/lib/schemas'
+import { detectiveSchema } from '@/client/lib/schemas'
 
 /**
  * プレイヤーが作った探偵の保管庫。
@@ -26,6 +27,146 @@ export type DetectiveStore = z.infer<typeof detectiveStoreSchema>
 export const EMPTY_STORE: DetectiveStore = { profiles: [], activeId: undefined }
 
 const STORAGE_KEY = 'alibai:detectives'
+
+/**
+ * 年ごろと性別が自由記述だった頃の形。
+ *
+ * 読み替えるためだけに残す。新しく書く側はもうこの形を作らないので、
+ * 保管庫をサーバへ移すときに一緒に消せる。
+ *
+ * ここを持たずに「読めない保管庫は空」で済ませると、保存済みの探偵が
+ * 名前ごと消える。しかも消えるのは読んだ瞬間ではなく、この画面で何か
+ * 一度でも操作した瞬間（保存が走って上書きされる）なので、気づいたときには
+ * 元の記述が残っていない。
+ */
+const legacyStoredDetectiveSchema = z.object({
+  id: z.string().nonempty(),
+  name: z.string().nonempty().max(40),
+  age: z.string().max(20),
+  gender: z.string().max(20),
+  appearance: z.string().max(200),
+})
+
+/** 中身の検証は1人ずつやるので、ここでは器の形だけ見る。 */
+const looseStoreSchema = z.object({
+  profiles: z.array(z.unknown()),
+  activeId: z.string().nonempty().optional(),
+})
+
+/** 「28」「30代」「アラサー」から、最初に出てくる数字を拾う。 */
+const firstNumberOf = (text: string): number | undefined => {
+  const matched = text.match(/\d+/)
+
+  return matched === null ? undefined : Number(matched[0])
+}
+
+/** 上限の若い順に見て、最初に収まったところがその人の年ごろ。 */
+const AGE_BOUNDARIES: { upTo: number; ageGroup: AgeGroup }[] = [
+  { upTo: 12, ageGroup: 'child' },
+  { upTo: 19, ageGroup: 'teen' },
+  { upTo: 29, ageGroup: 'young' },
+  { upTo: 49, ageGroup: 'adult' },
+  { upTo: 69, ageGroup: 'senior' },
+]
+
+/** 数字が書かれていないとき用。拾えなければ推測しない（'unknown' に落とす）。 */
+const AGE_KEYWORDS: { pattern: RegExp; ageGroup: AgeGroup }[] = [
+  { pattern: /子供|こども|幼/, ageGroup: 'child' },
+  { pattern: /十代|少年|少女|高校|中学/, ageGroup: 'teen' },
+  { pattern: /老人|老齢|翁/, ageGroup: 'elder' },
+]
+
+const toAgeGroup = (age: string): AgeGroup => {
+  const years = firstNumberOf(age)
+
+  if (years !== undefined) {
+    const boundary = AGE_BOUNDARIES.find((candidate) => years <= candidate.upTo)
+
+    return boundary === undefined ? 'elder' : boundary.ageGroup
+  }
+
+  const keyword = AGE_KEYWORDS.find((candidate) => candidate.pattern.test(age))
+
+  return keyword === undefined ? 'unknown' : keyword.ageGroup
+}
+
+const GENDER_KEYWORDS: { pattern: RegExp; gender: Gender }[] = [
+  { pattern: /不詳|不明|秘密|内緒/, gender: 'unknown' },
+  { pattern: /男/, gender: 'male' },
+  { pattern: /女/, gender: 'female' },
+]
+
+const toGender = (gender: string): Gender => {
+  if (gender.length === 0) {
+    return 'unknown'
+  }
+
+  const keyword = GENDER_KEYWORDS.find((candidate) => candidate.pattern.test(gender))
+
+  // 何か書いてあるのに男女のどちらでもないなら、'unknown'（明かさない）ではなく
+  // 'other'。本人は名乗っているのだから、名乗っていないことにはしない。
+  return keyword === undefined ? 'other' : keyword.gender
+}
+
+/**
+ * 探偵1人ぶんの復元。今の形ならそのまま、旧い形なら読み替える。
+ * どちらでもないものは捨てる（1人壊れただけで保管庫ごと失わないため）。
+ */
+const recoverProfile = (raw: unknown): StoredDetective[] => {
+  const current = storedDetectiveSchema.safeParse(raw)
+
+  if (current.success) {
+    return [current.data]
+  }
+
+  const legacy = legacyStoredDetectiveSchema.safeParse(raw)
+
+  if (!legacy.success) {
+    return []
+  }
+
+  return [
+    {
+      id: legacy.data.id,
+      name: legacy.data.name,
+      ageGroup: toAgeGroup(legacy.data.age),
+      gender: toGender(legacy.data.gender),
+      appearance: legacy.data.appearance,
+    },
+  ]
+}
+
+export type ParsedStore = {
+  store: DetectiveStore
+  /** 読み替えが起きたか。起きたなら、その場で書き戻して形を揃える。 */
+  migrated: boolean
+}
+
+/**
+ * 保管庫の解釈。localStorage には触らないので、そのまま試験できる。
+ */
+export const parseDetectiveStore = (raw: unknown): ParsedStore => {
+  const current = detectiveStoreSchema.safeParse(raw)
+
+  if (current.success) {
+    return { store: current.data, migrated: false }
+  }
+
+  const loose = looseStoreSchema.safeParse(raw)
+
+  if (!loose.success) {
+    return { store: EMPTY_STORE, migrated: false }
+  }
+
+  const profiles = loose.data.profiles.flatMap(recoverProfile)
+  // 選択中だった探偵が復元できなかったなら、選択は外す。
+  // 居ない相手を選んだままにすると、そのまま事件に向かえてしまう。
+  const activeId = profiles.some((profile) => profile.id === loose.data.activeId)
+    ? loose.data.activeId
+    : undefined
+
+  return { store: { profiles, activeId }, migrated: true }
+}
 
 /**
  * 選択中の探偵を取り出す。
@@ -89,9 +230,9 @@ export const newDetectiveId = (): string => crypto.randomUUID()
  * 読めなければ空の保管庫から始めればよく、演出や設定の都合でプレイが
  * 始まらないほうが困る。
  *
- * 年ごろ・性別が自由記述だった頃に保存された探偵は、この検証を通らないので
- * 空として扱われる。作り直しは数タップで済む一方、古い文字列を推測で列挙へ
- * 読み替えると、プレイヤーが決めていない人物像でNPCが応対することになる。
+ * 旧い形（年ごろ・性別が自由記述）は読み替えて拾う。読み替えたらその場で
+ * 書き戻すのは、古い形を残しておくと次に開くたび同じ推測を繰り返すうえ、
+ * この画面での操作が一度走った時点で上書きされて元の記述ごと消えるため。
  */
 export const loadDetectiveStore = (): DetectiveStore => {
   try {
@@ -101,9 +242,13 @@ export const loadDetectiveStore = (): DetectiveStore => {
       return EMPTY_STORE
     }
 
-    const parsed = detectiveStoreSchema.safeParse(JSON.parse(raw))
+    const parsed = parseDetectiveStore(JSON.parse(raw))
 
-    return parsed.success ? parsed.data : EMPTY_STORE
+    if (parsed.migrated) {
+      saveDetectiveStore(parsed.store)
+    }
+
+    return parsed.store
   } catch {
     return EMPTY_STORE
   }
