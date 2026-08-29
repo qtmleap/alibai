@@ -49,47 +49,54 @@ export const AccusationScreen = ({
   }
 
   return (
-    <div className="screen-enter mx-auto flex min-h-dvh max-w-md flex-col gap-4 bg-slate-950 p-4 text-slate-100">
+    <div className="screen-enter mx-auto flex min-h-dvh max-w-md flex-col gap-6 bg-slate-950 px-5 py-6 text-slate-100">
       <SessionReference scenario={scenario} interrogation={interrogation} />
 
-      <header className="pt-4">
-        <button type="button" onClick={onBack} className="text-sm text-slate-400">
+      <header className="pt-2">
+        <button type="button" onClick={onBack} className="text-xs text-slate-500">
           ← 聞き込みに戻る
         </button>
-        <h1 className="mt-2 text-xl font-bold">犯人を推理する</h1>
+        <h1 className="mt-3 text-xl font-bold">犯人を推理する</h1>
         <p className="mt-1 text-sm text-slate-400">誰が犯人か選んで、理由を書いてね。</p>
       </header>
 
-      <fieldset className="flex flex-col gap-2">
-        <legend className="mb-1 text-sm font-semibold">犯人</legend>
-        {scenario.characters.map((character) => (
-          <label
-            key={character.id}
-            className={
-              character.id === culpritCharacterId
-                ? 'flex items-center gap-2 rounded-lg border border-indigo-500 bg-indigo-950 px-3 py-2'
-                : 'flex items-center gap-2 rounded-lg border border-slate-800 bg-slate-900 px-3 py-2'
-            }
-          >
-            <input
-              type="radio"
-              name="culprit"
-              checked={character.id === culpritCharacterId}
-              onChange={() => setCulpritCharacterId(character.id)}
-            />
-            <span className="text-sm">{character.name}</span>
-          </label>
-        ))}
+      {/*
+        人物は枠に入れず、行として並べる。選んだ相手は文字の色で示す。
+        名前そのものを押せる範囲にしたほうが、箱を1つずつ狙うより早い。
+      */}
+      <fieldset className="flex flex-col">
+        <legend className="pb-2 text-[10px] tracking-[0.3em] text-slate-600">犯人</legend>
+        <div className="flex flex-col border-t border-slate-800">
+          {scenario.characters.map((character) => (
+            <label
+              key={character.id}
+              className={
+                character.id === culpritCharacterId
+                  ? 'flex items-center gap-3 border-b border-slate-800 py-3 text-amber-400'
+                  : 'flex items-center gap-3 border-b border-slate-800 py-3 text-slate-300'
+              }
+            >
+              <input
+                type="radio"
+                name="culprit"
+                checked={character.id === culpritCharacterId}
+                onChange={() => setCulpritCharacterId(character.id)}
+                className="accent-amber-500"
+              />
+              <span className="text-sm">{character.name}</span>
+            </label>
+          ))}
+        </div>
       </fieldset>
 
-      <label className="flex flex-col gap-1">
-        <span className="text-sm font-semibold">理由</span>
+      <label className="flex flex-col gap-2">
+        <span className="text-[10px] tracking-[0.3em] text-slate-600">理由</span>
         <textarea
           value={reasoning}
           onChange={(event) => setReasoning(event.target.value)}
           rows={5}
           placeholder="聞き込みで分かったことを根拠に書いてみよう"
-          className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm"
+          className="border border-slate-800 bg-transparent px-3 py-2 text-sm leading-relaxed"
         />
       </label>
 
@@ -99,7 +106,7 @@ export const AccusationScreen = ({
         type="button"
         onClick={handleSubmit}
         disabled={!canSubmit}
-        className="rounded-lg bg-amber-600 py-3 font-semibold text-white disabled:opacity-50"
+        className="mt-auto border border-amber-700 py-3 text-sm font-semibold tracking-widest text-amber-400 disabled:opacity-40"
       >
         {submitting ? '送信中…' : 'この推理を提出する'}
       </button>

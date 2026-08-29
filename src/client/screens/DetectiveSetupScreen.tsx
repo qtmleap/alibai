@@ -79,61 +79,62 @@ export const DetectiveSetupScreen = ({ scenario, onDecided, onBack }: Props) => 
     const canSave = draft.name.trim().length > 0
 
     return (
-      <div className="screen-enter mx-auto flex min-h-dvh max-w-md flex-col gap-4 bg-slate-950 p-4 text-slate-100">
-        <header className="pt-4">
+      <div className="screen-enter mx-auto flex min-h-dvh max-w-md flex-col gap-6 bg-slate-950 px-5 py-6 text-slate-100">
+        <header className="pt-2">
           <h1 className="text-xl font-bold">
             {draft.id === undefined ? '探偵をつくる' : '探偵を編集する'}
           </h1>
         </header>
 
-        <section className="flex flex-col gap-3 rounded-xl border border-slate-800 bg-slate-900 p-4">
+        {/* 入力欄は枠で囲わず、下線だけで受ける。書く場所が分かれば充分。 */}
+        <section className="flex flex-col gap-5">
           <label className="flex flex-col gap-1">
-            <span className="text-xs text-slate-400">名前</span>
+            <span className="text-[10px] tracking-[0.3em] text-slate-600">名前</span>
             <input
               type="text"
               value={draft.name}
               onChange={(event) => updateDraft({ name: event.target.value })}
               maxLength={40}
               placeholder="例：日下部 灯"
-              className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+              className="border-b border-slate-800 bg-transparent py-2 text-sm focus:border-slate-600 focus:outline-none"
             />
           </label>
 
-          <div className="flex gap-3">
+          <div className="flex gap-5">
             <label className="flex flex-1 flex-col gap-1">
-              <span className="text-xs text-slate-400">年齢</span>
+              <span className="text-[10px] tracking-[0.3em] text-slate-600">年齢</span>
               <input
                 type="text"
                 value={draft.age}
                 onChange={(event) => updateDraft({ age: event.target.value })}
                 maxLength={20}
                 placeholder="28／30代／不詳"
-                className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+                className="w-full border-b border-slate-800 bg-transparent py-2 text-sm focus:border-slate-600 focus:outline-none"
               />
             </label>
 
             <label className="flex flex-1 flex-col gap-1">
-              <span className="text-xs text-slate-400">性別</span>
+              <span className="text-[10px] tracking-[0.3em] text-slate-600">性別</span>
               <input
                 type="text"
                 value={draft.gender}
                 onChange={(event) => updateDraft({ gender: event.target.value })}
                 maxLength={20}
                 placeholder="自由に書けます"
-                className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+                className="w-full border-b border-slate-800 bg-transparent py-2 text-sm focus:border-slate-600 focus:outline-none"
               />
             </label>
           </div>
 
           <label className="flex flex-col gap-1">
-            <span className="text-xs text-slate-400">容姿</span>
+            <span className="text-[10px] tracking-[0.3em] text-slate-600">容姿</span>
             <textarea
               value={draft.appearance}
               onChange={(event) => updateDraft({ appearance: event.target.value })}
               maxLength={200}
               rows={3}
               placeholder="例：くたびれたコートを着た長身。目つきが鋭く、口数は少ない。"
-              className="resize-none rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+              className="resize-none border border-slate-800 bg-transparent px-3 py-2 text-sm leading-relaxed focus:border-slate-600 focus:outline-none"
             />
           </label>
         </section>
@@ -142,7 +143,7 @@ export const DetectiveSetupScreen = ({ scenario, onDecided, onBack }: Props) => 
           type="button"
           onClick={handleSaveDraft}
           disabled={!canSave}
-          className="rounded-lg bg-indigo-600 py-3 font-semibold text-white disabled:opacity-50"
+          className="mt-auto border border-slate-600 py-3 text-sm font-semibold tracking-widest text-slate-100 disabled:opacity-40"
         >
           保存する
         </button>
@@ -150,7 +151,7 @@ export const DetectiveSetupScreen = ({ scenario, onDecided, onBack }: Props) => 
         <button
           type="button"
           onClick={() => setDraft(undefined)}
-          className="text-sm text-slate-400 underline"
+          className="text-xs text-slate-600 underline"
         >
           やめる
         </button>
@@ -159,10 +160,10 @@ export const DetectiveSetupScreen = ({ scenario, onDecided, onBack }: Props) => 
   }
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-md flex-col gap-4 bg-slate-950 p-4 text-slate-100">
-      <header className="pt-4">
-        <p className="text-xs text-slate-500">これから調べる事件</p>
-        <h1 className="text-xl font-bold">{scenario.title}</h1>
+    <div className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 bg-slate-950 px-5 py-6 text-slate-100">
+      <header className="pt-2">
+        <p className="text-xs tracking-widest text-slate-500">これから調べる事件</p>
+        <h1 className="mt-1 text-xl font-bold">{scenario.title}</h1>
         <p className="mt-3 text-sm text-slate-300">
           誰として、この事件を調べますか。
           <br />
@@ -176,7 +177,11 @@ export const DetectiveSetupScreen = ({ scenario, onDecided, onBack }: Props) => 
         </p>
       )}
 
-      <ul className="flex flex-col gap-2">
+      {/*
+        探偵は箱に入れず行として並べる。選ばれている一人は左の罫と文字の明るさで示す。
+        「選択中」の札を貼るより、並びの中で一人だけ明るいほうが早く見つかる。
+      */}
+      <ul className="flex flex-col border-t border-slate-800">
         {store.profiles.map((profile) => {
           const isActive = profile.id === store.activeId
 
@@ -185,8 +190,8 @@ export const DetectiveSetupScreen = ({ scenario, onDecided, onBack }: Props) => 
               key={profile.id}
               className={
                 isActive
-                  ? 'rounded-xl border border-indigo-500 bg-slate-900 p-3'
-                  : 'rounded-xl border border-slate-800 bg-slate-900 p-3'
+                  ? 'border-b border-slate-800 border-l-2 border-l-indigo-500 py-3 pl-3'
+                  : 'border-b border-slate-800 py-3 pl-3'
               }
             >
               <button
@@ -194,19 +199,18 @@ export const DetectiveSetupScreen = ({ scenario, onDecided, onBack }: Props) => 
                 onClick={() => update(setActiveDetective(store, profile.id))}
                 className="w-full text-left"
               >
-                <div className="flex items-center gap-2">
-                  {isActive && (
-                    <span className="shrink-0 rounded-full bg-indigo-600 px-2 py-0.5 text-xs font-semibold">
-                      選択中
-                    </span>
-                  )}
-                  <span className="font-semibold">{profile.name}</span>
-                </div>
-                <p className="mt-1 text-xs text-slate-400">
+                <span
+                  className={
+                    isActive ? 'font-semibold text-slate-100' : 'font-semibold text-slate-400'
+                  }
+                >
+                  {profile.name}
+                </span>
+                <span className="mt-1 block text-xs text-slate-500">
                   {[profile.age, profile.gender].filter((part) => part.length > 0).join(' ・ ')}
-                </p>
+                </span>
                 {profile.appearance.length > 0 && (
-                  <p className="mt-1 text-xs text-slate-500">{profile.appearance}</p>
+                  <span className="mt-1 block text-xs text-slate-600">{profile.appearance}</span>
                 )}
               </button>
 
@@ -214,7 +218,7 @@ export const DetectiveSetupScreen = ({ scenario, onDecided, onBack }: Props) => 
                 <button
                   type="button"
                   onClick={() => setDraft({ ...profile })}
-                  className="text-xs text-slate-400 underline"
+                  className="text-xs text-slate-500 underline"
                 >
                   編集
                 </button>
@@ -234,7 +238,7 @@ export const DetectiveSetupScreen = ({ scenario, onDecided, onBack }: Props) => 
       <button
         type="button"
         onClick={() => setDraft(emptyDraft())}
-        className="rounded-lg border border-slate-700 py-2 text-sm text-slate-300"
+        className="self-start text-xs tracking-widest text-slate-500 underline"
       >
         ＋ 新しい探偵をつくる
       </button>
@@ -243,7 +247,7 @@ export const DetectiveSetupScreen = ({ scenario, onDecided, onBack }: Props) => 
         type="button"
         onClick={onDecided}
         disabled={selected === undefined}
-        className="rounded-lg bg-indigo-600 py-3 font-semibold text-white disabled:opacity-50"
+        className="mt-auto border border-slate-600 py-3 text-sm font-semibold tracking-widest text-slate-100 disabled:opacity-40"
       >
         {selected === undefined ? '探偵を選んでください' : `${selected.name} で事件に向かう`}
       </button>
@@ -254,7 +258,7 @@ export const DetectiveSetupScreen = ({ scenario, onDecided, onBack }: Props) => 
           update(clearActiveDetective(store))
           onDecided()
         }}
-        className="text-sm text-slate-400 underline"
+        className="text-xs text-slate-500 underline"
       >
         名乗らずに始める
       </button>
