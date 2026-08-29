@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { CharacterAvatar } from '@/client/components/CharacterAvatar'
+import { ChatLog } from '@/client/components/ChatLog'
+import { ContactSheet } from '@/client/components/ContactSheet'
 import { FloorPlanMap } from '@/client/components/FloorPlan'
 import { SessionReference } from '@/client/components/SessionReference'
 import { TurnAnnounce } from '@/client/components/TurnAnnounce'
@@ -38,6 +40,7 @@ export const InterrogationScreen = ({ scenario, session, interrogation, onAccuse
   // 見取り図は常時出さない。縦画面では会話ログの領域を削るほうが痛いので、
   // 見たいときだけ開く。
   const [mapOpen, setMapOpen] = useState(false)
+  const [contactsOpen, setContactsOpen] = useState(false)
 
   const {
     turn,
@@ -95,7 +98,7 @@ export const InterrogationScreen = ({ scenario, session, interrogation, onAccuse
       <header className="sticky top-0 z-10 border-b border-slate-800 bg-slate-950 p-3">
         <div className="flex items-center justify-between text-xs text-slate-400">
           <span>{scenario.title}</span>
-          <span>
+          <span className="tabular-nums">
             {turn === undefined ? '' : `ターン ${turn.turn} / ${turn.maxTurns}　`}
             質問 {displayedQuestionCount}回
             {displayedElapsed === undefined ? '' : ` ・ 経過 ${displayedElapsed}`}
@@ -103,66 +106,45 @@ export const InterrogationScreen = ({ scenario, session, interrogation, onAccuse
         </div>
 
         {/*
-          会話相手の並び。チャットアプリのトーク一覧に寄せて、顔（頭文字）と名前、
-          そしてその相手に何回聞いたかを出す。ターンが限られている以上、
-          「まだ聞いていない相手が誰か」が選ぶときの一番の手がかりになる。
+          トークルームのヘッダー。相手はひとりに絞り、切り替えは一覧を開いて選ぶ。
+          相手のタブを並べ続けると、会話そのものより切り替えが場所を取る。
         */}
-        <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
-          {scenario.characters.map((character, index) => {
-            const asked = conversations[character.id]
-            const askedCount =
-              asked === undefined ? 0 : asked.filter((t) => t.role === 'user').length
-            const isActive = character.id === activeCharacterId
-
-            return (
-              <button
-                key={character.id}
-                type="button"
-                onClick={() => setActiveCharacterId(character.id)}
-                className={
-                  isActive
-                    ? 'flex shrink-0 items-center gap-2 rounded-xl bg-slate-800 px-2 py-1.5'
-                    : 'flex shrink-0 items-center gap-2 rounded-xl px-2 py-1.5'
-                }
-              >
-                <CharacterAvatar name={character.name} index={index} active={isActive} size="sm" />
-                <span className="flex flex-col items-start">
-                  <span className={isActive ? 'text-sm font-semibold' : 'text-sm text-slate-300'}>
-                    {character.name}
-                  </span>
-                  <span className="text-[10px] text-slate-500 tabular-nums">
-                    {askedCount === 0 ? 'まだ聞いていない' : `${askedCount}回`}
-                  </span>
-                </span>
-              </button>
-            )
-          })}
-        </div>
-
-        {activeCharacter !== undefined && (
-          <p className="mt-2 text-xs text-slate-500">{activeCharacter.personality}</p>
-        )}
-
-        {scenario.floorPlan !== null && (
-          <button
-            type="button"
-            onClick={() => setMapOpen((open) => !open)}
-            className="mt-2 text-xs text-slate-400 underline"
-          >
-            {mapOpen ? '見取り図を閉じる' : '見取り図を見る'}
-          </button>
-        )}
-
-        {mapOpen && scenario.floorPlan !== null && (
-          <div className="mt-2">
-            <FloorPlanMap plan={scenario.floorPlan} />
-          </div>
-        )}
+        <button
+          type="button"
+          onClick={() => setContactsOpen(true)}
+          className="mt-2 flex w-full items-center gap-2 text-left"
+        >
+          {activeCharacter !== undefined && (
+            <CharacterAvatar name={activeCharacter.name} index={activeCharacterIndex} />
+          )}
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-semibold">
+              {activeCharacter === undefined ? '' : activeCharacter.name}
+            </span>
+            <span className="block truncate text-[11px] text-slate-500">
+              {activeCharacter === undefined ? '' : activeCharacter.personality}
+            </span>
+          </span>
+          <span className="shrink-0 text-xs text-slate-500">切り替え</span>
+        </button>
       </header>
 
       {/* key にターン番号を入れて、ターンが進むたびに作り直す */}
       {turn !== undefined && (
         <TurnAnnounce key={turn.turn} turn={turn.turn} maxTurns={turn.maxTurns} />
+      )}
+
+      {contactsOpen && (
+        <ContactSheet
+          characters={scenario.characters}
+          conversations={conversations}
+          activeCharacterId={activeCharacterId}
+          onSelect={(characterId) => {
+            setActiveCharacterId(characterId)
+            setContactsOpen(false)
+          }}
+          onClose={() => setContactsOpen(false)}
+        />
       )}
 
       <SessionReference scenario={scenario} interrogation={interrogation} />
@@ -185,36 +167,14 @@ export const InterrogationScreen = ({ scenario, session, interrogation, onAccuse
           <p className="text-center text-sm text-slate-500">気になることを聞いてみよう。</p>
         )}
 
-        {/*
-          吹き出しを左右に寄せるのは flex の役目にして、text-align は使わない。
-          text-right を親に置くと吹き出しの中の文章まで右寄せになり、折り返した
-          2行目だけが右へ張り付く。チャットの吹き出しは、置き場所が右でも
-          中身は左から読むもの。
-
-          key は往復の時刻と役割から作る。同じ時刻に user と assistant が
-          1つずつしか積まれないので、これで一意になる。
-        */}
-        {turnsToShow.map((turn) => (
-          <div
-            key={`${turn.askedAt}-${turn.role}`}
-            className={
-              turn.role === 'user' ? 'flex justify-end' : 'flex items-end justify-start gap-2'
-            }
-          >
-            {turn.role === 'assistant' && activeCharacter !== undefined && (
-              <CharacterAvatar name={activeCharacter.name} index={activeCharacterIndex} size="sm" />
-            )}
-            <span
-              className={
-                turn.role === 'user'
-                  ? 'max-w-[85%] rounded-2xl bg-indigo-600 px-3 py-2 text-left text-sm break-words whitespace-pre-wrap text-white'
-                  : 'max-w-[78%] rounded-2xl bg-slate-800 px-3 py-2 text-left text-sm break-words whitespace-pre-wrap text-slate-100'
-              }
-            >
-              {turn.text}
-            </span>
-          </div>
-        ))}
+        {activeCharacter !== undefined && (
+          <ChatLog
+            turns={turnsToShow}
+            speakerName={activeCharacter.name}
+            speakerIndex={activeCharacterIndex}
+            awaiting={isAsking}
+          />
+        )}
       </main>
 
       {error !== undefined && <p className="px-3 text-sm text-red-400">{error}</p>}
