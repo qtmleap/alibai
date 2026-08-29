@@ -71,8 +71,14 @@ export const crawlDurationSeconds = (text: string, paragraphCount: number): numb
   return Math.min(90, Math.max(12, Math.round(reading + pauses)))
 }
 
-/** 段落の切れ目で置く「間」。CSS 側の余白の広さと釣り合う値にしてある。 */
-const PARAGRAPH_PAUSE_SECONDS = 1.6
+/**
+ * 段落の切れ目で置く「間」。CSS 側の余白（CrawlBriefing の gap）と釣り合う値にしてある。
+ *
+ * 長い段落は文の切れ目で割られる（splitParagraphs）ので、切れ目の多くは
+ * 書き手が空行を置いた場所ではなく、ただの文の境目になる。そこに深い息継ぎを
+ * 置くと流れが途切れるので、間は浅くしてある。片方だけ変えると尺が合わなくなる。
+ */
+const PARAGRAPH_PAUSE_SECONDS = 0.9
 
 /** 段落つきの位置。key に使うので、配列を切り詰めても値が変わらない絶対位置を持たせる。 */
 export type IndexedParagraph = { index: number; text: string }

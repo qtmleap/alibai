@@ -43,9 +43,10 @@ export const CrawlBriefing = ({ briefing, paragraphs, onFinished }: Props) => {
   if (stopped) {
     return (
       <div className="flex flex-col gap-4 py-2">
-        {paragraphs.map((paragraph) => (
+        {paragraphs.map((paragraph, index) => (
           <p
-            key={paragraph}
+            // biome-ignore lint/suspicious/noArrayIndexKey: 本文から作る静的な配列で、並び替え・削除が無い
+            key={index}
             className="text-center text-sm leading-relaxed whitespace-pre-wrap text-slate-300"
           >
             {paragraph}
@@ -59,17 +60,18 @@ export const CrawlBriefing = ({ briefing, paragraphs, onFinished }: Props) => {
     <div className="flex flex-col gap-2">
       <div className="relative h-[70dvh] overflow-hidden">
         {/*
-          段落間を広く取る（gap-14）。この空白が流れていく時間が、そのまま段落と
-          段落のあいだの「間」になる。crawlDurationSeconds はこの余白ぶんを
-          見込んで秒数を出しているので、片方だけ変えると間合いが崩れる。
+          段落間の空白が流れていく時間が、そのまま段落と段落のあいだの「間」になる。
+          crawlDurationSeconds はこの余白ぶんを見込んで秒数を出しているので、
+          片方だけ変えると間合いが崩れる（PARAGRAPH_PAUSE_SECONDS と対）。
         */}
         <div
-          className="absolute inset-x-0 flex flex-col gap-14 px-2 [animation:briefing-crawl_linear_forwards]"
+          className="absolute inset-x-0 flex flex-col gap-8 px-2 [animation:briefing-crawl_linear_forwards]"
           style={{ animationDuration: `${duration}s` }}
         >
-          {paragraphs.map((paragraph) => (
+          {paragraphs.map((paragraph, index) => (
             <p
-              key={paragraph}
+              // biome-ignore lint/suspicious/noArrayIndexKey: 本文から作る静的な配列で、並び替え・削除が無い
+              key={index}
               className="text-center leading-loose whitespace-pre-wrap text-slate-200"
             >
               {paragraph}

@@ -61,8 +61,10 @@ const stickToTail = (
  * 押すとその段落の頭まで戻る。移動の手段を「過去の段落を選ぶ」ことに限れば、
  * 戻り先が必ず段落の先頭になり、文の途中で止まらない。
  *
- * 操作はADVと同じで、本文以外のどこを触っても進む。送り途中なら即座に全文、
- * 出そろっていれば次の段落へ。
+ * 操作はADVと同じで、画面のどこを触っても進む。送り途中なら即座に全文、
+ * 出そろっていれば次の段落へ。当たり判定は本文の箱ではなく画面いっぱいに敷く
+ * （読んでいる最中に「押せる場所」を探させない）。触られては困るもの——
+ * 見せ方の切り替え、スキップ、読み返し、続きへ戻る——だけが上に立つ。
  */
 export const TypewriterBriefing = ({ paragraphs, soundOn, onFinished }: Props) => {
   const [progress, setProgress] = useState({ paragraphIndex: 0, charCount: 0 })
@@ -202,8 +204,11 @@ export const TypewriterBriefing = ({ paragraphs, soundOn, onFinished }: Props) =
   return (
     <div className="relative flex w-full flex-col gap-3">
       {/*
-        本文の下に敷く進行用のボタン。本文そのものをボタンにすると、
+        画面いっぱいに敷く進行用のボタン。本文そのものをボタンにすると、
         過去の段落を押したときに「戻る」と「進む」が同時に起きてしまう。
+
+        fixed だが、親（.screen-enter）に transform が残るため基準は画面ではなく
+        この画面の箱になる。狙いどおり、語りの領域だけを覆う。
       */}
       <button
         type="button"
@@ -217,12 +222,12 @@ export const TypewriterBriefing = ({ paragraphs, soundOn, onFinished }: Props) =
                 ? '事件の記録を読む'
                 : '次の文章へ'
         }
-        className="absolute inset-0 cursor-default"
+        className="fixed inset-0 z-0 cursor-default"
       />
 
       <div
         ref={windowRef}
-        className="pointer-events-none relative flex h-[46dvh] w-full flex-col gap-6 overflow-hidden px-1"
+        className="pointer-events-none relative z-10 flex h-[46dvh] w-full flex-col gap-6 overflow-hidden px-1"
       >
         {done.map((paragraph, index) => (
           <button

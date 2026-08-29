@@ -48,8 +48,12 @@ export const BriefingScreen = ({ scenario, onRead }: Props) => {
 
   return (
     <div className="screen-enter mx-auto flex min-h-dvh max-w-md flex-col gap-5 bg-slate-950 px-5 py-6 text-slate-100">
-      {/* 演出の邪魔をしないよう、見出しと切り替えは隅に小さく置く */}
-      <header className="flex items-baseline justify-between">
+      {/*
+        演出の邪魔をしないよう、見出しと切り替えは隅に小さく置く。
+        z を上げるのは、読み上げの当たり判定が画面いっぱいに敷かれているため。
+        ここが下に潜ると、見せ方の切り替えも打鍵音の入切も押せなくなる。
+      */}
+      <header className="relative z-10 flex items-baseline justify-between">
         <h1 className="text-sm tracking-widest text-slate-500">{scenario.title}</h1>
 
         <div className="flex items-center gap-3 text-xs">
@@ -103,7 +107,7 @@ export const BriefingScreen = ({ scenario, onRead }: Props) => {
         <button
           type="button"
           onClick={onRead}
-          className="mt-auto border border-slate-600 py-3 text-sm font-semibold tracking-widest text-slate-100"
+          className="relative z-10 mt-auto border border-slate-600 py-3 text-sm font-semibold tracking-widest text-slate-100"
         >
           事件を調べに行く
         </button>

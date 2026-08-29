@@ -38,3 +38,44 @@ describe('splitParagraphs', () => {
     expect(splitParagraphs('   \n\n  ')).toEqual([])
   })
 })
+
+describe('splitParagraphs（長い段落の分割）', () => {
+  const sentence = (chars: number) => `${'あ'.repeat(chars - 1)}。`
+
+  test('目安を超える段落は、文の切れ目で分ける', () => {
+    const paragraph = `${sentence(40)}${sentence(40)}`
+
+    expect(splitParagraphs(paragraph)).toEqual([sentence(40), sentence(40)])
+  })
+
+  test('目安に収まるうちは、文をまとめたまま1段落にする', () => {
+    const paragraph = `${sentence(20)}${sentence(20)}`
+
+    expect(splitParagraphs(paragraph)).toEqual([paragraph])
+  })
+
+  test('一文が目安を超えていても、文の途中では割らない', () => {
+    const paragraph = sentence(120)
+
+    expect(splitParagraphs(paragraph)).toEqual([paragraph])
+  })
+
+  test('閉じ括弧は文末に付いてくるので、その手前では切らない', () => {
+    const paragraph = `「${sentence(40)}」${sentence(40)}`
+
+    expect(splitParagraphs(paragraph)[0]).toBe(`「${sentence(40)}」`)
+  })
+
+  test('！ ？ でも文の切れ目とみなす', () => {
+    const paragraph = `${'い'.repeat(39)}！${'ろ'.repeat(39)}？`
+
+    expect(splitParagraphs(paragraph)).toHaveLength(2)
+  })
+
+  test('書き手が置いた空行は、分割のあとも切れ目として残る', () => {
+    expect(splitParagraphs(`${sentence(10)}\n\n${sentence(10)}`)).toEqual([
+      sentence(10),
+      sentence(10),
+    ])
+  })
+})
