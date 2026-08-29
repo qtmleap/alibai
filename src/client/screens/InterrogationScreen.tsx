@@ -81,7 +81,8 @@ export const InterrogationScreen = ({ scenario, session, interrogation, onAccuse
     (character) => character.id === activeCharacterId,
   )
   const isAsking = askingCharacterId === activeCharacterId
-  const exhausted = turn !== undefined && turn.exhausted
+  // ターンがまだ届いていないうちは聞ける前提で扱う（=== true で boolean に落とす）
+  const exhausted = turn?.exhausted === true
   const displayedQuestionCount =
     serverState === undefined ? questionCount : serverState.questionCount
   const displayedElapsed =
@@ -209,7 +210,14 @@ export const InterrogationScreen = ({ scenario, session, interrogation, onAccuse
               value={inputText}
               onChange={(event) => setInputText(event.target.value)}
               onKeyDown={(event) => {
-                if (event.key === 'Enter') {
+                /*
+                 * 変換確定の Enter で送信しない。
+                 *
+                 * 日本語入力では、変換を確定するときにも Enter が押される。
+                 * key だけを見ていると書きかけの文がそのまま飛んでいく。
+                 * 変換中かどうかは isComposing に出るので、そこで分ける。
+                 */
+                if (event.key === 'Enter' && !event.nativeEvent.isComposing) {
                   handleAsk()
                 }
               }}
