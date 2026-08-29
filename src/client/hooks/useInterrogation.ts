@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { askQuestion, describeError } from '@/client/lib/api'
 import type { Discovery, TurnState } from '@/client/lib/schemas'
+import { advanceTurn } from '@/shared/turns'
 
 export type ChatTurn = {
   role: 'user' | 'assistant'
@@ -87,6 +88,11 @@ export const useInterrogation = () => {
     setError(undefined)
     appendUserTurn(params.characterId, utterance, Date.now())
     setAskingCharacterId(params.characterId)
+
+    // ターンは投げた瞬間に進める。サーバが質問回数を増やすのは返答を届け終えたあとで、
+    // それを待つと数秒おいて急に切り替わる。確定値が届いたらそれで上書きされる。
+    setQuestionCount((prev) => prev + 1)
+    setTurn((prev) => (prev === undefined ? prev : advanceTurn(prev)))
 
     askQuestion(
       { sessionId: params.sessionId, characterId: params.characterId, utterance },

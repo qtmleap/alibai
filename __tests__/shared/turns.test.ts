@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { turnStateOf } from '@/shared/turns'
+import { advanceTurn, turnStateOf } from '@/shared/turns'
 
 /** 既定の構成（1ターンに1問、全5ターン）。 */
 const standard = (questionCount: number) => turnStateOf(questionCount, 5, 1)
@@ -70,5 +70,43 @@ describe('turnStateOf の境界', () => {
     expect(single.turn).toBe(1)
     expect(single.exhausted).toBe(false)
     expect(turnStateOf(1, 1, 1).exhausted).toBe(true)
+  })
+})
+
+describe('advanceTurn（投げた瞬間の先回り）', () => {
+  test('1ターン1問なら次のターンへ進む', () => {
+    const before = turnStateOf(0, 5, 1)
+    const after = advanceTurn(before)
+
+    expect(after.turn).toBe(2)
+    expect(after.exhausted).toBe(false)
+  })
+
+  test('サーバが同じ回数を返したときと一致する', () => {
+    // 先回りした値が、あとから届く確定値とずれないこと
+    expect(advanceTurn(turnStateOf(2, 5, 1))).toEqual(turnStateOf(3, 5, 1))
+    expect(advanceTurn(turnStateOf(0, 4, 3))).toEqual(turnStateOf(1, 4, 3))
+    expect(advanceTurn(turnStateOf(5, 4, 3))).toEqual(turnStateOf(6, 4, 3))
+  })
+
+  test('1ターンに複数問なら、同じターンのまま残りが減る', () => {
+    const after = advanceTurn(turnStateOf(0, 4, 3))
+
+    expect(after.turn).toBe(1)
+    expect(after.remainingInTurn).toBe(2)
+  })
+
+  test('最後の1問を投げると使い切りになる', () => {
+    const after = advanceTurn(turnStateOf(4, 5, 1))
+
+    expect(after.exhausted).toBe(true)
+    expect(after.turn).toBe(5)
+  })
+
+  test('使い切ったあとに呼んでも最終ターンから動かない', () => {
+    const after = advanceTurn(turnStateOf(5, 5, 1))
+
+    expect(after.turn).toBe(5)
+    expect(after.exhausted).toBe(true)
   })
 })

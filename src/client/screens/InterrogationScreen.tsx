@@ -60,7 +60,12 @@ export const InterrogationScreen = ({ scenario, session, interrogation, onAccuse
       fetchSessionState(session.sessionId)
         .then((state) => {
           setServerState(state)
-          setTurn(state.turn)
+
+          // 返答待ちのあいだは触らない。サーバが質問回数を増やすのは返答後なので、
+          // ここで上書きすると、先に進めたターンが一度巻き戻ってから進み直す。
+          if (askingCharacterId === undefined) {
+            setTurn(state.turn)
+          }
         })
         .catch(() => undefined)
     }
@@ -69,7 +74,7 @@ export const InterrogationScreen = ({ scenario, session, interrogation, onAccuse
     const timer = setInterval(poll, SESSION_POLL_INTERVAL_MS)
 
     return () => clearInterval(timer)
-  }, [session.sessionId, setTurn])
+  }, [session.sessionId, setTurn, askingCharacterId])
 
   /*
    * 選んだ相手が列の外にいるときは、見える位置まで寄せる。

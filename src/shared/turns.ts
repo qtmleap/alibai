@@ -54,3 +54,19 @@ export const turnStateOf = (
     exhausted,
   }
 }
+
+/**
+ * いま投げた1問を織り込んだ次の状態。
+ *
+ * サーバが質問回数を増やすのは返答を届け終えたあとなので、そこを待つと
+ * 数秒おいて急にターンが切り替わる。投げた瞬間にこちらで先へ進めておき、
+ * サーバの確定値が届いたらそれで上書きする。
+ *
+ * 質問回数を持ち回らずに済ませるため、いまのターンと消化数から逆算する。
+ * 表示のための先回りなので、実際に質問を通すかどうかはサーバが決める。
+ */
+export const advanceTurn = (state: TurnState): TurnState => {
+  const asked = (state.turn - 1) * state.questionsPerTurn + state.askedInTurn
+
+  return turnStateOf(asked + 1, state.maxTurns, state.questionsPerTurn)
+}
