@@ -11,7 +11,8 @@ type Props = {
  * 事件の記録を下からせり上げる。映画の冒頭のような導入。
  *
  * 速度をこちらが決めてしまう演出なので、逃げ道を必ず用意する。
- * 「スキップ」で流れを止め、全文を静止した状態で読めるようにする。
+ * 「全文を表示」で流れを止め、静止した状態で読めるようにする。
+ * （画面右下の「スキップ」は読み飛ばして先へ進むもので、こちらとは役割が違う）
  * 読むのが速い人を待たせず、遅い人が取り残されないための最低条件。
  */
 export const CrawlBriefing = ({ briefing, paragraphs, onFinished }: Props) => {
@@ -86,7 +87,7 @@ export const CrawlBriefing = ({ briefing, paragraphs, onFinished }: Props) => {
         onClick={handleSkip}
         className="self-center text-xs tracking-widest text-slate-600"
       >
-        ＞＞ SKIP
+        全文を表示
       </button>
     </div>
   )

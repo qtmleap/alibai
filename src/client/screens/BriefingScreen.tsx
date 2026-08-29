@@ -108,6 +108,21 @@ export const BriefingScreen = ({ scenario, onRead }: Props) => {
           事件を調べに行く
         </button>
       )}
+
+      {/*
+        読み飛ばして先へ。支度の画面から「もう一度読む」を誤って押したときに、
+        最初から語り直されるのを黙って待つしかない状態を作らないための逃げ道。
+        読み終えたあとは「事件を調べに行く」が出るので、そちらに任せて引っ込める。
+      */}
+      {!readThrough && (
+        <button
+          type="button"
+          onClick={onRead}
+          className="fixed right-5 bottom-5 z-20 text-xs tracking-widest text-slate-500"
+        >
+          スキップ ▸
+        </button>
+      )}
     </div>
   )
 }
