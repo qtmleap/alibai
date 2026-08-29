@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { CharacterAvatar } from '@/client/components/CharacterAvatar'
 import { ChatLog } from '@/client/components/ChatLog'
-import { ContactSheet } from '@/client/components/ContactSheet'
 import { FloorPlanMap } from '@/client/components/FloorPlan'
 import { SessionReference } from '@/client/components/SessionReference'
 import { TurnAnnounce } from '@/client/components/TurnAnnounce'
@@ -40,7 +39,6 @@ export const InterrogationScreen = ({ scenario, session, interrogation, onAccuse
   // 見取り図は常時出さない。縦画面では会話ログの領域を削るほうが痛いので、
   // 見たいときだけ開く。
   const [mapOpen, setMapOpen] = useState(false)
-  const [contactsOpen, setContactsOpen] = useState(false)
 
   const {
     turn,
@@ -106,17 +104,34 @@ export const InterrogationScreen = ({ scenario, session, interrogation, onAccuse
         </div>
 
         {/*
-          トークルームのヘッダー。相手はひとりに絞り、切り替えは一覧を開いて選ぶ。
-          相手のタブを並べ続けると、会話そのものより切り替えが場所を取る。
+          会話相手の切り替え。アイコンを並べて1タップで移れるようにする。
+          一覧を開いて選ぶ形にすると、聞き込みのように相手を何度も行き来する
+          遊び方では開閉の手数だけが積み上がる。名前は選んでいる相手のぶんだけ出す。
         */}
-        <button
-          type="button"
-          onClick={() => setContactsOpen(true)}
-          className="mt-2 flex w-full items-center gap-2 text-left"
-        >
-          {activeCharacter !== undefined && (
-            <CharacterAvatar name={activeCharacter.name} index={activeCharacterIndex} />
-          )}
+        <div className="mt-2 flex items-center gap-3">
+          {scenario.characters.map((character, index) => {
+            const turns = conversations[character.id]
+            const asked = turns === undefined ? 0 : turns.filter((t) => t.role === 'user').length
+            const isActive = character.id === activeCharacterId
+
+            return (
+              <button
+                key={character.id}
+                type="button"
+                onClick={() => setActiveCharacterId(character.id)}
+                aria-label={`${character.name}に聞く`}
+                aria-pressed={isActive}
+                className="relative shrink-0"
+              >
+                <CharacterAvatar name={character.name} index={index} active={isActive} />
+                {/* まだ一度も聞いていない相手の目印。ターンが限られているので選ぶ手がかりになる */}
+                {asked === 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-amber-400 ring-2 ring-slate-950" />
+                )}
+              </button>
+            )
+          })}
+
           <span className="min-w-0 flex-1">
             <span className="block text-sm font-semibold">
               {activeCharacter === undefined ? '' : activeCharacter.name}
@@ -125,26 +140,12 @@ export const InterrogationScreen = ({ scenario, session, interrogation, onAccuse
               {activeCharacter === undefined ? '' : activeCharacter.personality}
             </span>
           </span>
-          <span className="shrink-0 text-xs text-slate-500">切り替え</span>
-        </button>
+        </div>
       </header>
 
       {/* key にターン番号を入れて、ターンが進むたびに作り直す */}
       {turn !== undefined && (
         <TurnAnnounce key={turn.turn} turn={turn.turn} maxTurns={turn.maxTurns} />
-      )}
-
-      {contactsOpen && (
-        <ContactSheet
-          characters={scenario.characters}
-          conversations={conversations}
-          activeCharacterId={activeCharacterId}
-          onSelect={(characterId) => {
-            setActiveCharacterId(characterId)
-            setContactsOpen(false)
-          }}
-          onClose={() => setContactsOpen(false)}
-        />
       )}
 
       <SessionReference scenario={scenario} interrogation={interrogation} />
