@@ -30,6 +30,15 @@ function Interrogation() {
       onAccuse={() =>
         navigate({ to: '/sessions/$sessionId/accuse', params: { sessionId: state.sessionId } })
       }
+      // 戻り先は事件の概要。あちらから「聞き込みに戻る」で帰ってこられるよう、
+      // セッションIDを持たせる（持たせないと新しいセッションが立ってしまう）。
+      onLeave={() =>
+        navigate({
+          to: '/scenarios/$scenarioId/overview',
+          params: { scenarioId: state.scenarioId },
+          search: { session: state.sessionId },
+        })
+      }
     />
   )
 }

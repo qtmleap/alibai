@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { Button } from '@/client/components/ui/button'
 import { formatSeconds } from '@/client/lib/format'
 import type { AccuseResult } from '@/client/lib/schemas'
 
@@ -85,13 +86,9 @@ export const ResultScreen = ({ accuseResult, onRestart }: Props) => {
         </section>
       )}
 
-      <button
-        type="button"
-        onClick={onRestart}
-        className="mt-auto border border-slate-600 py-3 text-sm font-semibold tracking-widest text-slate-100"
-      >
+      <Button size="block" className="mt-auto" onClick={onRestart}>
         もう一度あそぶ
-      </button>
+      </Button>
     </div>
   )
 }

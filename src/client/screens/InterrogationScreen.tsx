@@ -4,6 +4,10 @@ import { CharacterAvatar } from '@/client/components/CharacterAvatar'
 import { ChatLog } from '@/client/components/ChatLog'
 import { FloorPlanMap } from '@/client/components/FloorPlan'
 import { TurnAnnounce } from '@/client/components/TurnAnnounce'
+import { Badge } from '@/client/components/ui/badge'
+import { Button } from '@/client/components/ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/client/components/ui/dialog'
+import { Input } from '@/client/components/ui/input'
 import type { UseInterrogation } from '@/client/hooks/useInterrogation'
 import { fetchSessionState } from '@/client/lib/api'
 import { formatSeconds } from '@/client/lib/format'
@@ -15,6 +19,8 @@ type Props = {
   sessionId: string
   interrogation: UseInterrogation
   onAccuse: () => void
+  /** 聞き込みを切り上げて事件の一覧へ戻る。セッションはサーバに残るが、ここからは辿れなくなる。 */
+  onLeave: () => void
 }
 
 const SESSION_POLL_INTERVAL_MS = 5000
@@ -25,7 +31,13 @@ const SESSION_POLL_INTERVAL_MS = 5000
  * 会話ログ・発見済み証拠などの状態は App 側の useInterrogation が持つ（props経由）。
  * この画面自身が持つのは「今どのタブを見ているか」のような画面ローカルな見た目の状態だけ。
  */
-export const InterrogationScreen = ({ scenario, sessionId, interrogation, onAccuse }: Props) => {
+export const InterrogationScreen = ({
+  scenario,
+  sessionId,
+  interrogation,
+  onAccuse,
+  onLeave,
+}: Props) => {
   const firstCharacterId = scenario.characters[0]
 
   // シナリオに登場人物が1人もいないのはデータの前提が壊れている状態で、
@@ -48,7 +60,9 @@ export const InterrogationScreen = ({ scenario, sessionId, interrogation, onAccu
     conversations,
     suggestedQuestions,
     discoveries,
-    questionCount,
+    revelations,
+    hint,
+    setHint,
     askingCharacterId,
     error,
     ask,
@@ -61,6 +75,8 @@ export const InterrogationScreen = ({ scenario, sessionId, interrogation, onAccu
       fetchSessionState(sessionId)
         .then((state) => {
           setServerState(state)
+          // 残り件数はサーバが数える。こちらで足し引きすると、DO 側の正典とずれる。
+          setHint(state.hint)
 
           // 返答待ちのあいだは触らない。サーバが質問回数を増やすのは返答後なので、
           // ここで上書きすると、先に進めたターンが一度巻き戻ってから進み直す。
@@ -75,7 +91,7 @@ export const InterrogationScreen = ({ scenario, sessionId, interrogation, onAccu
     const timer = setInterval(poll, SESSION_POLL_INTERVAL_MS)
 
     return () => clearInterval(timer)
-  }, [sessionId, setTurn, askingCharacterId])
+  }, [sessionId, setTurn, setHint, askingCharacterId])
 
   /*
    * 選んだ相手が列の外にいるときは、見える位置まで寄せる。
@@ -106,10 +122,23 @@ export const InterrogationScreen = ({ scenario, sessionId, interrogation, onAccu
   const isAsking = askingCharacterId === activeCharacterId
   // ターンがまだ届いていないうちは聞ける前提で扱う（=== true で boolean に落とす）
   const exhausted = turn?.exhausted === true
-  const displayedQuestionCount =
-    serverState === undefined ? questionCount : serverState.questionCount
   const displayedElapsed =
     serverState === undefined ? undefined : formatSeconds(serverState.elapsedSeconds)
+  /*
+    まとめの残り件数。easy は場所と人物それぞれに出すのでここには出さない。
+    nohope は何も出さない。
+  */
+  const hintSummary =
+    hint.mode === 'normal'
+      ? `まだ 場所に ${hint.places}、人物に ${hint.people}`
+      : hint.mode === 'hard'
+        ? `まだ ${hint.total} 件`
+        : undefined
+  /** easy のときだけ、その人からあと何件引き出せるかが引ける。 */
+  const remainingFrom = (characterId: string) =>
+    hint.mode === 'easy'
+      ? hint.characters.find((entry) => entry.id === characterId)?.remaining
+      : undefined
 
   return (
     <div className="screen-enter mx-auto flex h-dvh max-w-md bg-slate-950 text-slate-100">
@@ -136,6 +165,8 @@ export const InterrogationScreen = ({ scenario, sessionId, interrogation, onAccu
             const isActive = character.id === activeCharacterId
 
             return (
+              // 顔そのものが押す場所なので、ここは素のボタンのまま。Button の枠や
+              // 高さが入ると、アイコンとリングの寸法が合わなくなる。
               <button
                 key={character.id}
                 type="button"
@@ -149,6 +180,15 @@ export const InterrogationScreen = ({ scenario, sessionId, interrogation, onAccu
                 {/* まだ一度も聞いていない相手の目印。ターンが限られているので選ぶ手がかりになる */}
                 {asked === 0 && (
                   <span className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-amber-400 ring-2 ring-slate-950" />
+                )}
+                {/*
+                  easy でだけ出す「この人からあと何件」。0の相手にも出す——
+                  出さないと「もう聞くことがない」と「最初から何も無い」の区別が付かない。
+                */}
+                {remainingFrom(character.id) !== undefined && (
+                  <span className="absolute -right-1 -bottom-1 flex min-w-4 items-center justify-center rounded-full bg-slate-800 px-1 text-[10px] text-amber-300 ring-2 ring-slate-950 tabular-nums">
+                    {remainingFrom(character.id)}
+                  </span>
                 )}
               </button>
             )
@@ -165,15 +205,36 @@ export const InterrogationScreen = ({ scenario, sessionId, interrogation, onAccu
           入力欄のあった場所に大きく出す。
         */}
         <div className="mt-3 flex flex-col items-center gap-3 border-t border-slate-800 pt-3">
+          {/* 戻る口はここ。片手で持ったとき親指が自然に届くのは画面の下側。 */}
+          <Button
+            variant="icon"
+            size="icon"
+            onClick={onLeave}
+            aria-label="事件の一覧へ戻る"
+            className="border-slate-800 text-slate-500"
+          >
+            ←
+          </Button>
           <CaseNoteButton briefing={scenario.briefing} />
-          <button
-            type="button"
+          {scenario.floorPlan !== null && (
+            <Button
+              variant="icon"
+              size="icon"
+              onClick={() => setMapOpen(true)}
+              aria-label="見取り図を見る"
+            >
+              図
+            </Button>
+          )}
+          <Button
+            variant="icon"
+            size="icon"
             onClick={onAccuse}
             aria-label="犯人を推理する"
-            className="size-9 shrink-0 rounded-full border border-amber-700 text-xs text-amber-500"
+            className="border-amber-700 text-amber-500 hover:border-amber-500 hover:text-amber-300"
           >
             推
-          </button>
+          </Button>
         </div>
       </nav>
 
@@ -202,17 +263,41 @@ export const InterrogationScreen = ({ scenario, sessionId, interrogation, onAccu
           <TurnAnnounce key={turn.turn} turn={turn.turn} maxTurns={turn.maxTurns} />
         )}
 
-        {discoveries.length > 0 && (
-          <div className="flex flex-wrap gap-1 border-b border-slate-800 bg-slate-900 p-2">
+        {(discoveries.length > 0 || hintSummary !== undefined) && (
+          <div className="flex flex-wrap items-center gap-1 border-b border-slate-800 bg-slate-900 p-2">
+            {hintSummary !== undefined && (
+              <Badge variant="muted" className="mr-1">
+                {hintSummary}
+              </Badge>
+            )}
             {discoveries.map((discovery) => (
-              <span
-                key={discovery.id}
-                className="rounded-full bg-emerald-900 px-2 py-0.5 text-xs text-emerald-200"
-              >
-                {discovery.label}
-              </span>
+              <Badge key={discovery.id}>{discovery.label}</Badge>
             ))}
           </div>
+        )}
+
+        {revelations.length > 0 && (
+          <section aria-label="捜査メモ" className="border-b border-slate-800 bg-slate-900/70 p-2">
+            <div className="mb-1 text-[10px] font-semibold tracking-[0.16em] text-amber-500">
+              捜査メモ
+            </div>
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {revelations.map((revelation) => (
+                <article
+                  key={revelation.id}
+                  className="w-56 shrink-0 rounded-lg border border-amber-900/70 bg-slate-950 px-3 py-2"
+                >
+                  <div className="mb-1 flex items-start justify-between gap-2">
+                    <h3 className="text-xs font-semibold text-amber-200">{revelation.title}</h3>
+                    <span className="shrink-0 text-[9px] uppercase tracking-wide text-slate-500">
+                      {revelation.category}
+                    </span>
+                  </div>
+                  <p className="text-[11px] leading-relaxed text-slate-300">{revelation.text}</p>
+                </article>
+              ))}
+            </div>
+          </section>
         )}
 
         <main className="flex flex-1 flex-col gap-3 overflow-y-auto p-3">
@@ -236,16 +321,15 @@ export const InterrogationScreen = ({ scenario, sessionId, interrogation, onAccu
           {!exhausted && suggestionsToShow.length > 0 && (
             <div className="mb-2 flex flex-wrap gap-1">
               {suggestionsToShow.map((suggestion) => (
-                <button
+                <Button
                   key={suggestion}
-                  type="button"
+                  variant="outline"
                   onClick={() => setInputText(suggestion)}
-                  // 候補は2行になることがある。rounded-full だと折り返した途端に
-                  // 左右の丸みが縦へ伸びて、テキストとの間隔が不揃いに見える。
-                  className="rounded-lg border border-slate-700 px-2.5 py-1.5 text-left text-xs leading-relaxed text-slate-300"
+                  // 候補は2行になることがある。高さを固定すると折り返しで文字が切れる。
+                  className="h-auto whitespace-normal border-slate-700 px-2.5 py-1.5 text-left text-xs leading-relaxed text-slate-300"
                 >
                   {suggestion}
-                </button>
+                </Button>
               ))}
             </div>
           )}
@@ -258,17 +342,17 @@ export const InterrogationScreen = ({ scenario, sessionId, interrogation, onAccu
                 聞き込みの時間は終わりました。犯人を指し示してください。
               </p>
               {/* 使い切ったここでだけ大きく出す。通常時に置くと送信と間違えて押される */}
-              <button
-                type="button"
+              <Button
+                size="block"
                 onClick={onAccuse}
-                className="w-full rounded-lg border border-amber-600 py-2 text-sm font-semibold text-amber-400"
+                className="border-amber-600 text-amber-400 hover:border-amber-400"
               >
                 犯人を推理する
-              </button>
+              </Button>
             </div>
           ) : (
             <div className="flex gap-2">
-              <input
+              <Input
                 type="text"
                 value={inputText}
                 onChange={(event) => setInputText(event.target.value)}
@@ -287,20 +371,40 @@ export const InterrogationScreen = ({ scenario, sessionId, interrogation, onAccu
                 maxLength={500}
                 placeholder="質問を入力…"
                 disabled={isAsking}
-                className="min-w-0 flex-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm disabled:opacity-50"
+                className="min-w-0 flex-1"
               />
-              <button
-                type="button"
+              <Button
                 onClick={handleAsk}
                 disabled={isAsking || inputText.trim().length === 0}
-                className="shrink-0 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                className="shrink-0"
               >
                 {isAsking ? '…' : '聞く'}
-              </button>
+              </Button>
             </div>
           )}
         </footer>
       </div>
+
+      {/*
+        見取り図。聞き込みの最中に「その部屋はどこか」を確かめたくなるので、
+        画面遷移せず開けるモーダルにする。常時出さないのは、縦画面では
+        会話ログの領域を削るほうが痛いため。
+      */}
+      {scenario.floorPlan !== null && (
+        <Dialog open={mapOpen} onOpenChange={setMapOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>事件現場の見取り図</DialogTitle>
+            </DialogHeader>
+            <FloorPlanMap
+              plan={scenario.floorPlan}
+              interactive
+              revelations={revelations}
+              hint={hint}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   )
 }

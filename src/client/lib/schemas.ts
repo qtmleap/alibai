@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { detectiveSchema } from '~/db/detective'
 import { floorPlanSchema } from '~/db/floor-plan'
+import { gameModeSchema, hintSchema } from '~/db/game-mode'
 
 /**
  * サーバのレスポンスは fetch の時点では unknown。
@@ -35,7 +36,8 @@ export const characterSchema = z.object({
  * エディタが書き込む側と、この画面が描く側で別々のスキーマを持つと、
  * 「保存はできたが描けない図」が生まれる。
  */
-export { floorPlanSchema }
+/** 難易度モードとヒントの形も db/game-mode.ts が正典。ここでは読み込むだけ。 */
+export { floorPlanSchema, gameModeSchema, hintSchema }
 
 export const scenarioDetailSchema = scenarioSummarySchema.omit({ characterCount: true }).extend({
   synopsis: z.string().nonempty(),
@@ -73,19 +75,37 @@ export const discoverySchema = z.object({
   label: z.string().nonempty(),
 })
 
+export const revelationCardSchema = z.object({
+  id: z.uuid(),
+  title: z.string().nonempty(),
+  text: z.string().nonempty(),
+  category: z.string().nonempty(),
+  subject: z.object({
+    type: z.enum(['character', 'location', 'event']),
+    id: z.string().nonempty(),
+  }),
+})
+
 export const sessionStateSchema = z.object({
   sessionId: z.uuid(),
   scenarioId: z.uuid(),
+  /**
+   * 未発見のものについて、このセッションの難易度で出してよい数だけ。
+   * モードごとに形が違う（hard の応答には部屋ごとの数を入れる場所が無い）。
+   */
+  hint: hintSchema,
   questionCount: z.number().int(),
   elapsedSeconds: z.number().int(),
   finished: z.boolean(),
   discoveries: z.array(discoverySchema),
+  revelations: z.array(revelationCardSchema),
   turn: turnStateSchema,
 })
 
 /** SSE の `judgement` イベントの data(JSON文字列) をパースした形。 */
 export const judgementSchema = z.object({
   revealedEvidences: z.array(discoverySchema),
+  revealedRevelations: z.array(revelationCardSchema),
   contradictionPointedOut: z.boolean(),
   suggestedQuestions: z.array(z.string().nonempty()),
   questionCount: z.number().int(),
@@ -148,8 +168,10 @@ export type { FloorPlan, Room } from '~/db/floor-plan'
 export type ScenarioDetail = z.infer<typeof scenarioDetailSchema>
 export type CreateSessionResponse = z.infer<typeof createSessionResponseSchema>
 export type Discovery = z.infer<typeof discoverySchema>
+export type RevelationCard = z.infer<typeof revelationCardSchema>
 export type TurnState = z.infer<typeof turnStateSchema>
 export type SessionState = z.infer<typeof sessionStateSchema>
 export type Judgement = z.infer<typeof judgementSchema>
 export type AccuseResult = z.infer<typeof accuseResultSchema>
 export type SessionHistory = z.infer<typeof sessionHistorySchema>
+export type { GameMode, Hint, SubjectCount } from '~/db/game-mode'

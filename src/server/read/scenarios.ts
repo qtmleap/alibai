@@ -1,6 +1,7 @@
 import { and, eq } from 'drizzle-orm'
 import { loadPublishedScenarios, type PublishedScenario } from '@/server/cache/scenario'
 import type { Db } from '@/server/db/client'
+import { type FloorPlan, parseFloorPlan } from '~/db/floor-plan'
 import { characters, scenarios } from '~/db/schema'
 
 /**
@@ -20,7 +21,8 @@ export type ScenarioDetail = {
   synopsis: string
   category: string
   briefing: string
-  floorPlan: typeof scenarios.$inferSelect.floorPlan
+  /** 既定値を埋めたあとの形。列そのものの型（入力側）ではない。 */
+  floorPlan: FloorPlan | null
   difficulty: number
   estimatedMinutes: number
   characters: { id: string; name: string; personality: string }[]
@@ -76,5 +78,20 @@ export const findScenarioDetail = async (
     .from(characters)
     .where(eq(characters.scenarioId, scenarioId))
 
-  return { ...scenario, characters: characterRows }
+  /*
+    図面はここで読み替えてから返す。
+    扉や部屋の種別は後から足した項目なので、先に保存された行には入っていない。
+    HTTP 経由なら client の safeParse が既定値を埋めてくれるが、SSR の loader
+    （src/server/fn/scenarios.ts）は zod を通らずこの戻り値をそのまま描画へ渡す。
+    ここで埋めておかないと、古い行だけ「型にはあるのに実体が無い」状態で
+    描画に届いて落ちる。
+  */
+  const floorPlan = parseFloorPlan(scenario.floorPlan)
+
+  return {
+    ...scenario,
+    // 読み替えられない図面は、図なしとして返す。ここで投げると事件そのものが開けなくなる。
+    floorPlan: floorPlan === undefined ? null : floorPlan,
+    characters: characterRows,
+  }
 }

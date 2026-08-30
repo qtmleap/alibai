@@ -9,6 +9,8 @@ import { resolveModel } from '@/server/llm/provider'
 export const judgementSchema = z.object({
   /** このターンで開示された証拠のID */
   revealedEvidenceIds: z.array(z.string().nonempty()),
+  /** このターンで新たに判明したRevelationカードのID */
+  revealedRevelationIds: z.array(z.string().nonempty()),
   /** プレイヤーが矛盾を指摘できたか */
   contradictionPointedOut: z.boolean(),
   /** NPCが嘘をついたか（プレイヤーには見せず、リザルトの解析に使う） */

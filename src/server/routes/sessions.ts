@@ -3,10 +3,17 @@ import { Hono } from 'hono'
 import { createMiddleware } from 'hono/factory'
 import { streamSSE } from 'hono/streaming'
 import { z } from 'zod'
-import { loadCharacterSheet, loadJudgeRubric } from '@/server/cache/scenario'
+import {
+  loadCharacterSheet,
+  loadEligibleRevelationCandidates,
+  loadHintSubjects,
+  loadJudgeRubric,
+} from '@/server/cache/scenario'
 import type { Db } from '@/server/db/client'
 import { createDb } from '@/server/db/client'
 import type { Bindings } from '@/server/env'
+import { remainingHints } from '@/server/game/hints'
+import { acceptRevealedRevelationIds } from '@/server/game/revelations'
 import { GAME_RULES } from '@/server/game/rules'
 import { scoreSession } from '@/server/game/scoring'
 import { streamNpcReply } from '@/server/llm/actor'
@@ -18,6 +25,7 @@ import { turnStateOf } from '@/shared/turns'
 // 探偵の形と検証は db/detective.ts が正典。ここで定義し直すと、
 // クライアントの選択肢とAPIが受ける値が静かにずれる。
 import { detectiveSchema } from '~/db/detective'
+import { type GameMode, gameModeOf, gameModeSchema } from '~/db/game-mode'
 import {
   characters,
   discoveries,
@@ -26,6 +34,8 @@ import {
   messages,
   playSessions,
   results,
+  revelationDiscoveries,
+  revelations,
   scenarios,
   scenarioTruths,
 } from '~/db/schema'
@@ -39,17 +49,25 @@ import {
 export const sessionRoutes = new Hono<{ Bindings: Bindings }>()
 
 /**
- * セッションが指しているシナリオIDだけを引く小さなヘルパー。
+ * セッションが指しているシナリオIDと難易度モードを引く小さなヘルパー。
  * ask / accuse / GET の3ルートすべてで「そのセッションは実在するか」の判定に使う。
+ *
+ * mode は NULL のことがある。この列より前に作られたセッションで、
+ * それらは実際にヒント無しで進行していたので gameModeOf が nohope に写す。
  */
-const loadSessionScenarioId = async (db: Db, sessionId: string): Promise<string | undefined> => {
+const loadSessionMeta = async (
+  db: Db,
+  sessionId: string,
+): Promise<{ scenarioId: string; mode: GameMode } | undefined> => {
   const rows = await db
-    .select({ scenarioId: playSessions.scenarioId })
+    .select({ scenarioId: playSessions.scenarioId, mode: playSessions.mode })
     .from(playSessions)
     .where(eq(playSessions.id, sessionId))
     .limit(1)
 
-  return rows[0] === undefined ? undefined : rows[0].scenarioId
+  const row = rows[0]
+
+  return row === undefined ? undefined : { scenarioId: row.scenarioId, mode: gameModeOf(row.mode) }
 
   // eslint的な早期returnではなくoptional chainingで済ませたいところだが、
   // noUncheckedIndexedAccess下でrows[0]を2回評価するより1回にした方が明快なのでこの形にした。
@@ -108,6 +126,11 @@ const loadTruth = async (db: Db, scenarioId: string): Promise<Truth | undefined>
 const createSessionSchema = z.object({
   scenarioId: z.uuid(),
   detective: detectiveSchema.optional(),
+  /**
+   * 難易度モード。始めるときに決めて、以降は変えない。
+   * 送られてこなければ normal（この機能を知らない古いクライアント向け）。
+   */
+  mode: gameModeSchema.default('normal'),
 })
 
 /**
@@ -138,7 +161,7 @@ sessionRoutes.post('/api/sessions', async (c) => {
 
   const inserted = await db
     .insert(playSessions)
-    .values({ scenarioId: parsed.data.scenarioId, detective })
+    .values({ scenarioId: parsed.data.scenarioId, detective, mode: parsed.data.mode })
     .returning({ id: playSessions.id, startedAt: playSessions.startedAt })
 
   const row = inserted[0]
@@ -173,8 +196,14 @@ sessionRoutes.post('/api/sessions', async (c) => {
 })
 
 /**
- * セッションの現在状態。発見済みの証拠だけをラベル付きで返す
- * （未発見の証拠IDを見せるとネタバレになるため、discoveries以外は一切出さない）。
+ * セッションの現在状態。
+ *
+ * 中身を返してよいのは発見済みのものだけ。未発見のものについては**数しか出さない**。
+ * その数さえ、難易度モードが許した粒度までに限る（`db/game-mode.ts` の `hintSchema`）。
+ * モードごとに応答の形そのものが違うので、たとえば hard のセッションの応答には
+ * 部屋ごとの数を入れる場所が構造的に存在しない。
+ *
+ * 未発見のもののIDやラベルは、どのモードでも決して出さない。
  */
 /**
  * セッションIDの形だけを先に確かめるミドルウェア。
@@ -200,19 +229,21 @@ const validateSessionId = createMiddleware<{
 sessionRoutes.get('/api/sessions/:id', validateSessionId, withEnv, async (c) => {
   const sessionId = c.get('sessionId')
   const db = createDb(c.env.HYPERDRIVE)
-  const scenarioId = await loadSessionScenarioId(db, sessionId)
+  const meta = await loadSessionMeta(db, sessionId)
 
-  if (scenarioId === undefined) {
+  if (meta === undefined) {
     return c.json({ error: 'session not found' }, 404)
   }
+
+  const scenarioId = meta.scenarioId
 
   const session = c.env.PLAY_SESSION.get(c.env.PLAY_SESSION.idFromName(sessionId))
   const snapshot = await session.snapshot()
 
-  const discoveryRows =
+  const [discoveryRows, revelationRows] = await Promise.all([
     snapshot.discoveredEvidenceIds.length === 0
-      ? []
-      : await db
+      ? Promise.resolve([])
+      : db
           .select({ id: evidences.id, label: evidences.label })
           .from(evidences)
           .where(
@@ -220,17 +251,58 @@ sessionRoutes.get('/api/sessions/:id', validateSessionId, withEnv, async (c) => 
               eq(evidences.scenarioId, scenarioId),
               inArray(evidences.id, snapshot.discoveredEvidenceIds),
             ),
-          )
+          ),
+    snapshot.discoveredRevelationIds.length === 0
+      ? Promise.resolve([])
+      : db
+          .select({
+            id: revelations.id,
+            title: revelations.title,
+            text: revelations.text,
+            category: revelations.category,
+            subjectType: revelations.subjectType,
+            subjectId: revelations.subjectId,
+          })
+          .from(revelations)
+          .where(
+            and(
+              eq(revelations.scenarioId, scenarioId),
+              inArray(revelations.id, snapshot.discoveredRevelationIds),
+            ),
+          ),
+  ])
 
   const env = c.get('env')
+
+  /*
+    未発見のものについて、そのモードで出してよい数だけを組み立てる。
+    発見済みは必ず DO の snapshot から取る。discoveries / revelation_discoveries の
+    行から数えると、DO への記録は成功して DB の insert が落ちた回でずれる。
+  */
+  const subjects = await loadHintSubjects(c.env.SCENARIO_CACHE, db, scenarioId)
+  const hint = remainingHints({
+    mode: meta.mode,
+    items: subjects.items,
+    discoveredIds: [...snapshot.discoveredEvidenceIds, ...snapshot.discoveredRevelationIds],
+    roomIds: subjects.roomIds,
+    characterIds: subjects.characterIds,
+  })
 
   return c.json({
     sessionId,
     scenarioId,
+    hint,
     questionCount: snapshot.questionCount,
     elapsedSeconds: snapshot.elapsedSeconds,
     finished: snapshot.finished,
     discoveries: discoveryRows,
+    revelations: revelationRows.map((row) => ({
+      id: row.id,
+      title: row.title,
+      text: row.text,
+      category: row.category,
+      subject: { type: row.subjectType, id: row.subjectId },
+    })),
     turn: turnStateOf(snapshot.questionCount, env.MAX_TURNS, env.QUESTIONS_PER_TURN),
   })
 })
@@ -312,11 +384,13 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
   }
 
   const db = createDb(c.env.HYPERDRIVE)
-  const scenarioId = await loadSessionScenarioId(db, sessionId)
+  const meta = await loadSessionMeta(db, sessionId)
 
-  if (scenarioId === undefined) {
+  if (meta === undefined) {
     return c.json({ error: 'session not found' }, 404)
   }
+
+  const scenarioId = meta.scenarioId
 
   // 進行中のセッションはDOが正典。ターンを使い切っていたらここで断る。
   // クライアント側の残り回数表示だけに任せると、リクエストを直接投げれば
@@ -460,31 +534,77 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
     // Judgeの判定。ここが失敗してもActorの返答はもう流し終えているので、
     // judgementイベントを送らずにdoneへ進むだけにする(500にしない)。
     try {
-      const rubric = await loadJudgeRubric(c.env.SCENARIO_CACHE, db, scenarioId)
-      const exchange = `プレイヤー: ${askInput.utterance}\nNPC: ${reply}`
+      const current = await session.snapshot()
+      const [rubric, revelationCandidates] = await Promise.all([
+        loadJudgeRubric(c.env.SCENARIO_CACHE, db, scenarioId),
+        loadEligibleRevelationCandidates(c.env.SCENARIO_CACHE, db, scenarioId, {
+          source: { type: 'character', id: askInput.characterId },
+          discoveredEvidenceIds: current.discoveredEvidenceIds,
+          discoveredRevelationIds: current.discoveredRevelationIds,
+        }),
+      ])
+      const candidateBlock =
+        revelationCandidates.length === 0
+          ? '- なし'
+          : revelationCandidates
+              .map(
+                (candidate) =>
+                  `- ${candidate.id}: ${candidate.revealConditions.map((condition) => `「${condition}」`).join(' または ')}`,
+              )
+              .join('\n')
+      const exchange = `プレイヤー: ${askInput.utterance}\nNPC: ${reply}\n\n今回判定可能なRevelation:\n${candidateBlock}`
       const judged = await judgeTurn({ env, rubric, exchange })
       const judgement = judged.judgement
+      const revealedRevelationIds = acceptRevealedRevelationIds(
+        revelationCandidates,
+        judgement.revealedRevelationIds,
+      )
 
       const snapshot = await session.recordJudgement({
         revealedEvidenceIds: judgement.revealedEvidenceIds,
+        revealedRevelationIds,
         contradictionPointedOut: judgement.contradictionPointedOut,
         npcLied: judgement.npcLied,
       })
 
-      if (judgement.revealedEvidenceIds.length > 0) {
-        await db
-          .insert(discoveries)
-          .values(judgement.revealedEvidenceIds.map((evidenceId) => ({ sessionId, evidenceId })))
-          .onConflictDoNothing()
-      }
-
-      const revealedRows =
+      await Promise.all([
         judgement.revealedEvidenceIds.length === 0
-          ? []
-          : await db
+          ? Promise.resolve()
+          : db
+              .insert(discoveries)
+              .values(
+                judgement.revealedEvidenceIds.map((evidenceId) => ({ sessionId, evidenceId })),
+              )
+              .onConflictDoNothing(),
+        revealedRevelationIds.length === 0
+          ? Promise.resolve()
+          : db
+              .insert(revelationDiscoveries)
+              .values(revealedRevelationIds.map((revelationId) => ({ sessionId, revelationId })))
+              .onConflictDoNothing(),
+      ])
+
+      const [revealedRows, revealedRevelationRows] = await Promise.all([
+        judgement.revealedEvidenceIds.length === 0
+          ? Promise.resolve([])
+          : db
               .select({ id: evidences.id, label: evidences.label })
               .from(evidences)
-              .where(inArray(evidences.id, judgement.revealedEvidenceIds))
+              .where(inArray(evidences.id, judgement.revealedEvidenceIds)),
+        revealedRevelationIds.length === 0
+          ? Promise.resolve([])
+          : db
+              .select({
+                id: revelations.id,
+                title: revelations.title,
+                text: revelations.text,
+                category: revelations.category,
+                subjectType: revelations.subjectType,
+                subjectId: revelations.subjectId,
+              })
+              .from(revelations)
+              .where(inArray(revelations.id, revealedRevelationIds)),
+      ])
 
       const questionCount =
         persisted.questionCount === undefined ? snapshot.questionCount : persisted.questionCount
@@ -493,6 +613,13 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
         event: 'judgement',
         data: JSON.stringify({
           revealedEvidences: revealedRows,
+          revealedRevelations: revealedRevelationRows.map((row) => ({
+            id: row.id,
+            title: row.title,
+            text: row.text,
+            category: row.category,
+            subject: { type: row.subjectType, id: row.subjectId },
+          })),
           contradictionPointedOut: judgement.contradictionPointedOut,
           suggestedQuestions: judgement.suggestedQuestions,
           questionCount,
@@ -557,11 +684,13 @@ sessionRoutes.post('/api/sessions/:id/accuse', async (c) => {
   }
 
   const db = createDb(c.env.HYPERDRIVE)
-  const scenarioId = await loadSessionScenarioId(db, sessionId)
+  const meta = await loadSessionMeta(db, sessionId)
 
-  if (scenarioId === undefined) {
+  if (meta === undefined) {
     return c.json({ error: 'session not found' }, 404)
   }
+
+  const scenarioId = meta.scenarioId
 
   const truth = await loadTruth(db, scenarioId)
 
@@ -629,11 +758,13 @@ sessionRoutes.post('/api/sessions/:id/accuse', async (c) => {
 sessionRoutes.get('/api/sessions/:id/history', validateSessionId, async (c) => {
   const sessionId = c.get('sessionId')
   const db = createDb(c.env.HYPERDRIVE)
-  const scenarioId = await loadSessionScenarioId(db, sessionId)
+  const meta = await loadSessionMeta(db, sessionId)
 
-  if (scenarioId === undefined) {
+  if (meta === undefined) {
     return c.json({ error: 'session not found' }, 404)
   }
+
+  const scenarioId = meta.scenarioId
 
   // DOは自分がどのNPCを抱えているかを知らない（キーで分けているだけ）ので、
   // 登場人物の一覧はDB側から渡す。
@@ -661,11 +792,13 @@ sessionRoutes.get('/api/sessions/:id/history', validateSessionId, async (c) => {
 sessionRoutes.get('/api/sessions/:id/result', validateSessionId, async (c) => {
   const sessionId = c.get('sessionId')
   const db = createDb(c.env.HYPERDRIVE)
-  const scenarioId = await loadSessionScenarioId(db, sessionId)
+  const meta = await loadSessionMeta(db, sessionId)
 
-  if (scenarioId === undefined) {
+  if (meta === undefined) {
     return c.json({ error: 'session not found' }, 404)
   }
+
+  const scenarioId = meta.scenarioId
 
   const session = c.env.PLAY_SESSION.get(c.env.PLAY_SESSION.idFromName(sessionId))
   const snapshot = await session.snapshot()

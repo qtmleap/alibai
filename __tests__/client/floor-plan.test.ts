@@ -1,93 +1,94 @@
 import { describe, expect, test } from 'bun:test'
-import { noteFontSize, roomFontSize } from '@/client/components/FloorPlan'
+import { planLabelSize, wrapText } from '@/client/components/FloorPlan'
+import { parseFloorPlan } from '~/db/floor-plan'
+import { TSUKIMISOU_PLAN } from '~/db/floor-plans/tsukimisou'
 
 /**
- * 見取り図のラベルは、狭い部屋に長い部屋名が入ると簡単に矩形からはみ出す。
- * 実際のシードデータ（月見荘）に出てくる比率を境界値として押さえておく。
+ * 部屋名の大きさは間取りの情報ではない。
+ * 部屋ごとに変えると、大きく書かれた部屋のほうが事件に関係ありそうに見えてしまう。
  */
-describe('roomFontSize', () => {
-  test('文字数が増えるほど小さくなる', () => {
-    const short = roomFontSize({ label: '書斎', w: 30, h: 22 })
-    const long = roomFontSize({ label: '裏庭の薬草園', w: 30, h: 22 })
-
-    expect(long).toBeLessThan(short)
+describe('planLabelSize', () => {
+  test('いちばん天井の低い部屋に合わせる', () => {
+    // 高さ8の部屋があれば 8 × 0.3 = 2.4 まで落ちる。
+    expect(planLabelSize({ rooms: [{ h: 40 }, { h: 8 }] })).toBeCloseTo(2.4)
   })
 
-  test('狭い部屋に長い名前を入れても、文字は矩形の幅に収まる', () => {
-    const room = { label: '電話ボックス', w: 20, h: 15 }
-    const size = roomFontSize(room)
-
-    // 全角1文字あたり約1文字分の幅を食う前提なので、文字数 × サイズが幅を超えないこと。
-    expect(size * room.label.length).toBeLessThanOrEqual(room.w)
+  test('どれだけ広い部屋ばかりでも、既定より大きくはしない', () => {
+    expect(planLabelSize({ rooms: [{ h: 60 }, { h: 40 }] })).toBe(3)
   })
 
-  test('平たい部屋では高さ側が上限になる', () => {
-    // 幅は十分あるが高さが無い廊下。幅基準で決めると縦にはみ出す。
-    const size = roomFontSize({ label: '廊下', w: 100, h: 10 })
-
-    expect(size).toBeLessThanOrEqual(10 * 0.3)
+  test('極端に低い部屋があっても、読める下限は割らない', () => {
+    expect(planLabelSize({ rooms: [{ h: 2 }] })).toBe(2.2)
   })
 
-  test('ラベルが空でもゼロ除算にならない', () => {
-    const size = roomFontSize({ label: '', w: 20, h: 15 })
-
-    expect(Number.isFinite(size)).toBe(true)
-    expect(size).toBeGreaterThan(0)
-  })
-
-  test('シードの全部屋で正の有限値になる', () => {
-    const rooms = [
-      { label: '客室（東）', w: 25, h: 22 },
-      { label: '書斎', w: 30, h: 22 },
-      { label: '厨房', w: 20, h: 22 },
-      { label: '廊下', w: 100, h: 10 },
-      { label: '玄関', w: 22, h: 23 },
-      { label: '食堂', w: 38, h: 23 },
-      { label: '広間', w: 40, h: 23 },
-      { label: '電話ボックス', w: 20, h: 15 },
-      { label: '裏庭の薬草園', w: 80, h: 15 },
-    ]
-
-    for (const room of rooms) {
-      const size = roomFontSize(room)
-
-      expect(size).toBeGreaterThan(0)
-      expect(Number.isFinite(size)).toBe(true)
-      expect(size * room.label.length).toBeLessThanOrEqual(room.w)
-    }
+  test('部屋が1つも無くても壊れない', () => {
+    expect(planLabelSize({ rooms: [] })).toBe(3)
   })
 })
 
-describe('noteFontSize', () => {
-  test('部屋名より小さい', () => {
-    expect(noteFontSize('短い注記', 100, 4)).toBeLessThan(4)
+describe('wrapText', () => {
+  test('収まる名前は折り返さない', () => {
+    expect(wrapText('書斎', 26, 3)).toEqual(['書斎'])
   })
 
-  test('長い注記は部屋の幅に収まるまで縮む', () => {
-    // 実データ: 幅30の書斎に15文字の注記。部屋名の比率だけで決めるとはみ出す。
-    const note = '涼子が倒れているのが見つかった'
-    const size = noteFontSize(note, 30, 6.6)
-
-    expect(size * note.length).toBeLessThanOrEqual(30)
+  test('収まらない名前は行に割る', () => {
+    expect(wrapText('電話ボックス', 12, 3)).toEqual(['電話ボ', 'ックス'])
   })
 
-  test('部屋名が極端に小さくても、注記は読める下限を割らない', () => {
-    expect(noteFontSize('注記', 100, 0.5)).toBe(1.2)
-  })
+  test('割った行はどれも幅に収まる', () => {
+    const width = 12
+    const size = 3
 
-  test('シードの注記がすべて部屋の幅に収まる', () => {
-    const noted = [
-      { note: '涼子が倒れているのが見つかった', w: 30, label: '書斎', h: 22 },
-      { note: '書斎の前を通る', w: 100, label: '廊下', h: 10 },
-      { note: '夕食会が開かれた', w: 38, label: '食堂', h: 23 },
-      { note: '建物の外', w: 20, label: '電話ボックス', h: 15 },
-      { note: '旅館の裏手', w: 80, label: '裏庭の薬草園', h: 15 },
-    ]
-
-    for (const room of noted) {
-      const size = noteFontSize(room.note, room.w, roomFontSize(room))
-
-      expect(size * room.note.length).toBeLessThanOrEqual(room.w)
+    for (const line of wrapText('電話ボックス', width, size)) {
+      expect(line.length * size).toBeLessThanOrEqual(width)
     }
+  })
+
+  test('行数はできるだけ均す（1文字だけの行を作らない）', () => {
+    const lines = wrapText('客室（東）', 12, 3)
+    const lengths = lines.map((line) => line.length)
+
+    expect(lines).toEqual(['客室（', '東）'])
+    expect(Math.max(...lengths) - Math.min(...lengths)).toBeLessThanOrEqual(1)
+  })
+
+  test('極端に狭くても1行1文字までしか詰めない（空行を作らない）', () => {
+    expect(wrapText('書斎', 1, 10)).toEqual(['書', '斎'])
+  })
+
+  test('空文字でも壊れない', () => {
+    expect(wrapText('', 20, 3)).toEqual([])
+  })
+})
+
+describe('配られる図面の文字', () => {
+  const plan = parseFloorPlan(TSUKIMISOU_PLAN)
+  const rooms = plan === undefined ? [] : plan.rooms
+  const size = plan === undefined ? 0 : planLabelSize(plan)
+
+  test('部屋名は、折り返したうえで必ず部屋の幅に収まる', () => {
+    expect(rooms.length).toBeGreaterThan(0)
+
+    for (const room of rooms) {
+      for (const line of wrapText(room.label, room.w, size)) {
+        expect(line.length * size).toBeLessThanOrEqual(room.w)
+      }
+    }
+  })
+
+  test('折り返しても部屋の高さに収まる', () => {
+    for (const room of rooms) {
+      const lines = wrapText(room.label, room.w, size)
+
+      expect(lines.length * size * 1.18).toBeLessThanOrEqual(room.h)
+    }
+  })
+
+  test('2行になるのは、名前の長い狭い部屋だけ', () => {
+    const wrapped = rooms
+      .filter((room) => wrapText(room.label, room.w, size).length > 1)
+      .map((room) => room.label)
+
+    expect(wrapped).toEqual(['電話ボックス'])
   })
 })

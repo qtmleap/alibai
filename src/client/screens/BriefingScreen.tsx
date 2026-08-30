@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react'
 import { CrawlBriefing } from '@/client/components/CrawlBriefing'
 import { TypewriterBriefing } from '@/client/components/TypewriterBriefing'
+import { Button } from '@/client/components/ui/button'
 import { type BriefingMode, loadBriefingMode, saveBriefingMode } from '@/client/lib/briefing-mode'
 import { splitParagraphs } from '@/client/lib/paragraphs'
 import type { ScenarioDetail } from '@/client/lib/schemas'
@@ -56,32 +57,49 @@ export const BriefingScreen = ({ scenario, onRead }: Props) => {
       <header className="relative z-10 flex items-baseline justify-between">
         <h1 className="text-sm tracking-widest text-slate-500">{scenario.title}</h1>
 
+        {/*
+          h-auto を足すのは、見出しと同じ行に収めるため。ボタンの既定の高さが入ると
+          この帯だけ厚くなり、題字とのベースラインがずれる。
+        */}
         <div className="flex items-center gap-3 text-xs">
-          <button
-            type="button"
+          <Button
+            variant="link"
+            size="sm"
             onClick={() => switchMode('typewriter')}
-            className={mode === 'typewriter' ? 'text-slate-300 underline' : 'text-slate-600'}
+            className={
+              mode === 'typewriter'
+                ? 'h-auto px-0 text-slate-300'
+                : 'h-auto px-0 text-slate-600 no-underline'
+            }
           >
             読み上げ
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="link"
+            size="sm"
             onClick={() => switchMode('crawl')}
-            className={mode === 'crawl' ? 'text-slate-300 underline' : 'text-slate-600'}
+            className={
+              mode === 'crawl'
+                ? 'h-auto px-0 text-slate-300'
+                : 'h-auto px-0 text-slate-600 no-underline'
+            }
           >
             流し読み
-          </button>
+          </Button>
 
           {/* 音は勝手に鳴って驚かせる類のものなので、切る手段を常に見える位置に置く */}
           {mode === 'typewriter' && (
-            <button
-              type="button"
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={toggleSound}
               aria-label={sound === 'on' ? '打鍵音を消す' : '打鍵音を鳴らす'}
-              className={sound === 'on' ? 'text-slate-300' : 'text-slate-600'}
+              className={
+                sound === 'on' ? 'h-auto px-0 text-slate-300' : 'h-auto px-0 text-slate-600'
+              }
             >
               {sound === 'on' ? '♪' : '♪̸'}
-            </button>
+            </Button>
           )}
         </div>
       </header>
@@ -104,13 +122,10 @@ export const BriefingScreen = ({ scenario, onRead }: Props) => {
       )}
 
       {readThrough && (
-        <button
-          type="button"
-          onClick={onRead}
-          className="relative z-10 mt-auto border border-slate-600 py-3 text-sm font-semibold tracking-widest text-slate-100"
-        >
+        // z を上げるのは、読み上げの当たり判定が画面いっぱいに敷かれているため。
+        <Button size="block" onClick={onRead} className="relative z-10 mt-auto">
           事件を調べに行く
-        </button>
+        </Button>
       )}
 
       {/*
@@ -119,13 +134,14 @@ export const BriefingScreen = ({ scenario, onRead }: Props) => {
         読み終えたあとは「事件を調べに行く」が出るので、そちらに任せて引っ込める。
       */}
       {!readThrough && (
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={onRead}
-          className="fixed right-5 bottom-5 z-20 text-xs tracking-widest text-slate-500"
+          className="fixed right-5 bottom-5 z-20 h-auto px-0 tracking-widest text-slate-500"
         >
           スキップ ▸
-        </button>
+        </Button>
       )}
     </div>
   )

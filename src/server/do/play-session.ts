@@ -1,5 +1,6 @@
 import { DurableObject } from 'cloudflare:workers'
 import type { ModelMessage } from 'ai'
+import { type DiscoveryState, mergeJudgementDiscoveryState } from '@/server/game/discovery-state'
 import type { Detective } from '~/db/schema'
 
 /**
@@ -24,6 +25,8 @@ export type SessionSnapshot = {
   questionCount: number
   /** 発見済み証拠のID。重複しない。 */
   discoveredEvidenceIds: string[]
+  /** 解禁済みRevelationカードのID。重複しない。 */
+  discoveredRevelationIds: string[]
   /** プレイヤーが矛盾を指摘できた回数 */
   contradictionCount: number
   /** NPCが嘘をついた回数。プレイヤーには見せず、リザルトの解析に使う */
@@ -54,7 +57,9 @@ type Meta = {
 }
 
 const META_KEY = 'meta'
+/** 既存セッション互換のためEvidence側のキー名は変えない。 */
 const DISCOVERED_KEY = 'discovered'
+const DISCOVERED_REVELATIONS_KEY = 'discovered-revelations'
 /**
  * プレイヤーが演じる探偵。meta に混ぜないのは、meta が「ターンごとに更新される集計」で
  * あるのに対し、こちらはセッション開始時に一度書いたら二度と変わらないため。
@@ -133,17 +138,34 @@ export class PlaySession extends DurableObject<SessionBindings> {
     return stored === undefined ? [] : stored
   }
 
+  /** 解禁済みRevelation IDの現在値。導入前のセッションでは空配列。 */
+  private async discoveredRevelations(): Promise<string[]> {
+    const stored = await this.ctx.storage.get<string[]>(DISCOVERED_REVELATIONS_KEY)
+
+    return stored === undefined ? [] : stored
+  }
+
+  private async discoveryState(): Promise<DiscoveryState> {
+    const [evidenceIds, revelationIds] = await Promise.all([
+      this.discoveredEvidence(),
+      this.discoveredRevelations(),
+    ])
+
+    return { evidenceIds, revelationIds }
+  }
+
   /**
-   * Meta + 発見済み証拠を、呼び出し側が使う形に組み立てる。
+   * Meta + 発見済み情報を、呼び出し側が使う形に組み立てる。
    * finished 済みなら経過秒は finishedAt で止め、進行中なら Date.now() で伸ばし続ける。
    */
-  private toSnapshot(meta: Meta, discoveredEvidenceIds: string[]): SessionSnapshot {
+  private toSnapshot(meta: Meta, discoveries: DiscoveryState): SessionSnapshot {
     const elapsedUntil = meta.finishedAt === undefined ? Date.now() : meta.finishedAt
 
     return {
       startedAt: meta.startedAt,
       questionCount: meta.questionCount,
-      discoveredEvidenceIds,
+      discoveredEvidenceIds: discoveries.evidenceIds,
+      discoveredRevelationIds: discoveries.revelationIds,
       contradictionCount: meta.contradictionCount,
       npcLiedCount: meta.npcLiedCount,
       accusedCharacterId: meta.accusedCharacterId,
@@ -260,12 +282,12 @@ export class PlaySession extends DurableObject<SessionBindings> {
    */
   async recordJudgement(judgement: {
     revealedEvidenceIds: string[]
+    revealedRevelationIds: string[]
     contradictionPointedOut: boolean
     npcLied: boolean
   }): Promise<SessionSnapshot> {
     const meta = await this.meta()
-    const currentEvidence = await this.discoveredEvidence()
-    const mergedEvidence = [...new Set([...currentEvidence, ...judgement.revealedEvidenceIds])]
+    const discoveries = mergeJudgementDiscoveryState(await this.discoveryState(), judgement)
 
     const updatedMeta: Meta = {
       ...meta,
@@ -275,10 +297,11 @@ export class PlaySession extends DurableObject<SessionBindings> {
 
     await this.ctx.storage.put({
       [META_KEY]: updatedMeta,
-      [DISCOVERED_KEY]: mergedEvidence,
+      [DISCOVERED_KEY]: discoveries.evidenceIds,
+      [DISCOVERED_REVELATIONS_KEY]: discoveries.revelationIds,
     })
 
-    return this.toSnapshot(updatedMeta, mergedEvidence)
+    return this.toSnapshot(updatedMeta, discoveries)
   }
 
   /**
@@ -289,7 +312,7 @@ export class PlaySession extends DurableObject<SessionBindings> {
     const meta = await this.meta()
 
     if (meta.accusedCharacterId !== undefined) {
-      return this.toSnapshot(meta, await this.discoveredEvidence())
+      return this.toSnapshot(meta, await this.discoveryState())
     }
 
     const updatedMeta: Meta = {
@@ -300,14 +323,14 @@ export class PlaySession extends DurableObject<SessionBindings> {
 
     await this.ctx.storage.put(META_KEY, updatedMeta)
 
-    return this.toSnapshot(updatedMeta, await this.discoveredEvidence())
+    return this.toSnapshot(updatedMeta, await this.discoveryState())
   }
 
   async snapshot(): Promise<SessionSnapshot> {
     const meta = await this.meta()
-    const discovered = await this.discoveredEvidence()
+    const discoveries = await this.discoveryState()
 
-    return this.toSnapshot(meta, discovered)
+    return this.toSnapshot(meta, discoveries)
   }
 
   /**
@@ -319,13 +342,13 @@ export class PlaySession extends DurableObject<SessionBindings> {
     const meta = await this.meta()
 
     if (meta.finished) {
-      return this.toSnapshot(meta, await this.discoveredEvidence())
+      return this.toSnapshot(meta, await this.discoveryState())
     }
 
     const updatedMeta: Meta = { ...meta, finished: true, finishedAt: Date.now() }
     await this.ctx.storage.put(META_KEY, updatedMeta)
 
-    return this.toSnapshot(updatedMeta, await this.discoveredEvidence())
+    return this.toSnapshot(updatedMeta, await this.discoveryState())
   }
 
   /**

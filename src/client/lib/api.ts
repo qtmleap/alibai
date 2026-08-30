@@ -6,6 +6,7 @@ import {
   type CreateSessionResponse,
   createSessionResponseSchema,
   type Detective,
+  type GameMode,
   type Judgement,
   judgementSchema,
   type ScenarioDetail,
@@ -99,11 +100,12 @@ export const fetchScenarioDetail = (scenarioId: string): Promise<ScenarioDetail>
 export const createSession = (
   scenarioId: string,
   detective: Detective | undefined,
+  mode: GameMode,
 ): Promise<CreateSessionResponse> =>
   requestJson(
     '/api/sessions',
     createSessionResponseSchema,
-    jsonInit('POST', { scenarioId, detective }),
+    jsonInit('POST', { scenarioId, detective, mode }),
   )
 
 export const fetchSessionState = (sessionId: string): Promise<SessionState> =>

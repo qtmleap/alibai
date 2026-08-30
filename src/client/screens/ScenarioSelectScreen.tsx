@@ -1,5 +1,15 @@
 import { useState } from 'react'
-import type { ScenarioSummary } from '@/client/lib/schemas'
+import { Button } from '@/client/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/client/components/ui/dialog'
+import { loadGameMode, saveGameMode } from '@/client/lib/game-mode-store'
+import type { GameMode, ScenarioSummary } from '@/client/lib/schemas'
+import { GAME_MODE_LABELS, GAME_MODE_NOTES, GAME_MODES } from '~/db/game-mode'
 
 type Props = {
   /** 一覧はルートの loader が渡す。SSR でも同じものが手に入る。 */
@@ -26,10 +36,24 @@ export const ScenarioSelectScreen = ({ scenarios, onSelect }: Props) => {
   // 押してから次の画面のデータが届くまでの間、押した行だけが応える。
   // 遷移そのものはルータが引き受けるので、ここは見た目のためだけの状態。
   const [loadingId, setLoadingId] = useState<string | undefined>(undefined)
+  /**
+   * 難易度を聞いている最中の事件。
+   *
+   * 事件を選んだ直後にここで決める。支度の画面まで進んでから聞くと、
+   * 事件の記録を読み終えて気持ちが出来上がったところで設定を挟むことになる。
+   */
+  const [pending, setPending] = useState<ScenarioSummary | undefined>(undefined)
+  const [mode, setMode] = useState<GameMode>(() => loadGameMode())
 
-  const handleSelect = (scenarioId: string) => {
-    setLoadingId(scenarioId)
-    onSelect(scenarioId)
+  const start = () => {
+    if (pending === undefined) {
+      return
+    }
+
+    saveGameMode(mode)
+    setLoadingId(pending.id)
+    setPending(undefined)
+    onSelect(pending.id)
   }
 
   return (
@@ -54,7 +78,7 @@ export const ScenarioSelectScreen = ({ scenarios, onSelect }: Props) => {
           <li key={scenario.id} className="border-b border-slate-800">
             <button
               type="button"
-              onClick={() => handleSelect(scenario.id)}
+              onClick={() => setPending(scenario)}
               disabled={loadingId !== undefined}
               className="w-full py-4 text-left disabled:opacity-40"
             >
@@ -75,6 +99,62 @@ export const ScenarioSelectScreen = ({ scenarios, onSelect }: Props) => {
           </li>
         ))}
       </ul>
+
+      {/*
+        難易度は事件の難しさではなく「どこまで教えてもらうか」の選択。
+        始めたら変えられないので、挑む直前のここで決めてもらう。
+      */}
+      <Dialog
+        open={pending !== undefined}
+        onOpenChange={(open) => setPending(open ? pending : undefined)}
+      >
+        <DialogContent className="border-slate-700 bg-slate-900 text-slate-100">
+          <DialogHeader className="text-left">
+            <DialogTitle className="text-sm font-semibold tracking-widest text-slate-200">
+              どの難易度で挑みますか
+            </DialogTitle>
+            <DialogDescription className="text-sm text-slate-300">
+              {pending === undefined ? '' : pending.title}
+            </DialogDescription>
+          </DialogHeader>
+
+          <ul className="flex flex-col border-t border-slate-800">
+            {GAME_MODES.map((option) => (
+              <li key={option} className="border-b border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setMode(option)}
+                  aria-pressed={option === mode}
+                  className="w-full py-3 text-left"
+                >
+                  <span
+                    className={
+                      option === mode
+                        ? 'text-sm font-semibold text-slate-100'
+                        : 'text-sm text-slate-500'
+                    }
+                  >
+                    {GAME_MODE_LABELS[option]}
+                  </span>
+                  <span
+                    className={
+                      option === mode
+                        ? 'mt-0.5 block text-xs text-slate-400'
+                        : 'mt-0.5 block text-xs text-slate-600'
+                    }
+                  >
+                    {GAME_MODE_NOTES[option]}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+
+          <Button size="block" onClick={start}>
+            この難易度で挑む
+          </Button>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

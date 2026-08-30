@@ -1,5 +1,7 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { SessionReference } from '@/client/components/SessionReference'
+import { Button } from '@/client/components/ui/button'
+import { Textarea } from '@/client/components/ui/textarea'
 import type { UseInterrogation } from '@/client/hooks/useInterrogation'
 import { describeError, submitAccusation } from '@/client/lib/api'
 import type { AccuseResult, ScenarioDetail } from '@/client/lib/schemas'
@@ -21,6 +23,7 @@ export const AccusationScreen = ({
   onResult,
   onBack,
 }: Props) => {
+  const reasoningId = useId()
   const [culpritCharacterId, setCulpritCharacterId] = useState<string | undefined>(undefined)
   const [reasoning, setReasoning] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -53,9 +56,9 @@ export const AccusationScreen = ({
       <SessionReference scenario={scenario} interrogation={interrogation} />
 
       <header className="pt-2">
-        <button type="button" onClick={onBack} className="text-xs text-slate-500">
+        <Button variant="ghost" size="sm" onClick={onBack} className="h-auto px-0 text-slate-500">
           ← 聞き込みに戻る
-        </button>
+        </Button>
         <h1 className="mt-3 text-xl font-bold">犯人を推理する</h1>
         <p className="mt-1 text-sm text-slate-400">誰が犯人か選んで、理由を書いてね。</p>
       </header>
@@ -76,6 +79,7 @@ export const AccusationScreen = ({
                   : 'flex items-center gap-3 border-b border-slate-800 py-3 text-slate-300'
               }
             >
+              {/* ラジオは shadcn の Input（一行入力の見た目）とは別物なので素のまま置く。 */}
               <input
                 type="radio"
                 name="culprit"
@@ -89,27 +93,30 @@ export const AccusationScreen = ({
         </div>
       </fieldset>
 
-      <label className="flex flex-col gap-2">
+      <label className="flex flex-col gap-2" htmlFor={reasoningId}>
         <span className="text-[10px] tracking-[0.3em] text-slate-600">理由</span>
-        <textarea
+        {/* rows で決めた高さのまま置く。書くほどに欄が伸びると、提出ボタンが下へ逃げていく。 */}
+        <Textarea
+          id={reasoningId}
           value={reasoning}
           onChange={(event) => setReasoning(event.target.value)}
           rows={5}
           placeholder="聞き込みで分かったことを根拠に書いてみよう"
-          className="border border-slate-800 bg-transparent px-3 py-2 text-sm leading-relaxed"
+          className="field-sizing-fixed leading-relaxed"
         />
       </label>
 
       {error !== undefined && <p className="text-sm text-red-400">{error}</p>}
 
-      <button
-        type="button"
+      {/* 取り消せない一手なので、この画面でだけ琥珀を使って他のボタンと見分けさせる。 */}
+      <Button
+        size="block"
         onClick={handleSubmit}
         disabled={!canSubmit}
-        className="mt-auto border border-amber-700 py-3 text-sm font-semibold tracking-widest text-amber-400 disabled:opacity-40"
+        className="mt-auto border-amber-700 text-amber-400 hover:border-amber-500"
       >
         {submitting ? '送信中…' : 'この推理を提出する'}
-      </button>
+      </Button>
     </div>
   )
 }
