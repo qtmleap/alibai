@@ -9,12 +9,11 @@
 ```jsonc
 {
   "main": "src/server.ts",
-  "compatibility_date": "2026-08-29",
-  "compatibility_flags": ["nodejs_compat"]
+  "compatibility_date": "2026-08-29"
 }
 ```
 
-`nodejs_compat` は元々 postgres.js が TCP 接続を張るために付けたものです。D1 へ移った時点でその理由は消えましたが、TanStack Start の SSR 側が要求する可能性が残るため、外す前に実際に動かして確かめること。
+`compatibility_flags` は空です。以前は `nodejs_compat` を付けていましたが、あれは postgres.js が TCP 接続を張るために必要だったもので、D1 へ移った時点で理由が消えました。SSR・SSE ストリーミング・AI SDK・Durable Objects のいずれもフラグ無しで動くことを確認しています。
 
 ### エントリの二層構造
 

@@ -256,3 +256,6 @@ vite.config.*.timestamp-*
 ### Cloudflare Workers ###
 # wrangler のローカル状態（DO/KVのエミュレーションデータなど）
 .wrangler/
+
+# Playwright MCP が吐くスナップショット
+/screenshots/

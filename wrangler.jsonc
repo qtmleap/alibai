@@ -6,7 +6,9 @@
   // `wrangler deploy` はそちらへリダイレクトされる。
   "main": "src/server.ts",
   "compatibility_date": "2026-08-29",
-  "compatibility_flags": ["nodejs_compat"],
+  // compatibility_flags は空。nodejs_compat は postgres.js が TCP を張るためだけに
+  // 付いていたもので、D1 へ移った時点で不要になった。SSR・SSEストリーミング・
+  // AI SDK・DO のいずれも、これ無しで動くことを確認済み。
   "observability": {
     "enabled": true
   },
