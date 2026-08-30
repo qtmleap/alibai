@@ -1,0 +1,358 @@
+schemaVersion: 1
+id: snowbound-gallery-wrong-crime-scene
+meta:
+  title: 雪の画廊、密室ではない現場
+  synopsis: 大雪で孤立した私設画廊で、館長・荻原直哉が保存庫の中で死亡していた。保存庫は夜間の環境管理に入ると外から開けられず、発見時には完全な密室に見えた。だが「遺体が見つかった場所」と「事件が起きた場所」が同じだという保証はない。
+  category: 不可能犯罪
+  difficulty: 5
+  estimatedMinutes: 18
+  tags: [画廊, 雪, 密室, 現場誤認]
+briefing: |-
+  ——事件の記録を読み上げます。
+
+  午後十時五分、大雪で道路を断たれた私設画廊「白環館」で、館長・荻原直哉が作品保存庫内で死亡しているのが発見されました。
+
+  館内にいたのは修復士の香坂澪、学芸員の朝倉凪、警備担当の多田圭の三人です。
+
+  保存庫は午後九時半から夜間環境管理に入り、扉は外から通常操作できない状態でした。発見時にも扉は閉じたままで、誰かが中で事件を起こして外へ出た方法が見当たりません。
+
+  ただし、保存庫で見つかったからといって、そこで事件が起きたとは限りません。館内の物の移動と、保存庫が閉じる前の時間を調べてください。
+floorPlan: null
+facts:
+  - id: kosaka-restorer
+    statement: 香坂澪は白環館で絵画の修復と額装作業を担当する修復士である
+    kind: other
+  - id: asakura-curator
+    statement: 朝倉凪は作品管理と展示記録を担当する学芸員である
+    kind: other
+  - id: tada-security
+    statement: 多田圭は館内警備と夜間施錠を担当している
+    kind: other
+  - id: vault-night-mode
+    statement: 作品保存庫は21時30分から夜間環境管理に入り、通常の外部操作では扉を開けられない状態になる
+    kind: physical
+  - id: framing-room-open-before-2130
+    statement: 額装作業室は21時30分まで保存庫と同じ搬送廊下から自由に行き来できた
+    kind: physical
+  - id: forged-restoration-report
+    statement: 香坂澪は高額作品の修復工程を実際より多く申告し、材料費の一部を水増ししていた
+    kind: motive
+    secret: true
+  - id: ogiwara-found-forgery
+    statement: 荻原直哉は事件当日の夜、香坂澪の修復報告と材料在庫が合わないことに気づいた
+    kind: motive
+    secret: true
+  - id: ogiwara-called-kosaka
+    statement: 21時02分ごろ、荻原直哉は香坂澪を額装作業室へ呼び、修復報告について説明を求めた
+    kind: motive
+    secret: true
+  - id: kosaka-killed-ogiwara-framing
+    statement: 21時10分ごろ、香坂澪は額装作業室で荻原直哉を襲い死亡させた
+    kind: truth
+    secret: true
+  - id: kosaka-moved-ogiwara
+    statement: 21時18分ごろ、香坂澪は作品搬送用の台車を使って荻原直哉を保存庫へ移した
+    kind: truth
+    secret: true
+  - id: kosaka-left-vault-before-lock
+    statement: 21時23分ごろ、香坂澪は保存庫から出て搬送廊下へ戻った
+    kind: truth
+    secret: true
+  - id: vault-closed-2130
+    statement: 21時30分、保存庫が夜間環境管理へ移行し、扉が閉鎖状態になった
+    kind: physical
+  - id: framing-paper-fibers
+    statement: 額装作業室の床には、その夜に荻原直哉が確認していた作品台紙と同じ紙片が散っていた
+    kind: physical
+  - id: cart-used-after-cleaning
+    statement: 清掃後に所定位置へ戻された作品搬送台車が、21時台に再び使われた形跡があった
+    kind: physical
+  - id: kosaka-apron-dust
+    statement: 香坂澪の作業着には額装作業室で使う古い台紙の粉塵が多く付いていた
+    kind: physical
+  - id: asakura-secret-private-loan
+    statement: 朝倉凪は館の所蔵作品を無断で知人の撮影に貸し出していた
+    kind: other
+    secret: true
+  - id: tada-secret-unlogged-break
+    statement: 多田圭は警備記録に残さず休憩時間を延ばしていた
+    kind: other
+    secret: true
+  - id: body-found-2205
+    statement: 22時05分、朝倉凪と多田圭が保存庫内で荻原直哉の死を発見した
+    kind: observation
+timeline:
+  - id: report-confrontation
+    at: "21:02"
+    participants: [kosaka]
+    facts: [forged-restoration-report, ogiwara-found-forgery, ogiwara-called-kosaka]
+    description: 荻原が香坂を額装作業室へ呼び、修復報告と材料在庫の不一致を問いただす。
+  - id: ogiwara-death
+    at: "21:10"
+    participants: [kosaka]
+    facts: [kosaka-killed-ogiwara-framing, framing-paper-fibers]
+    description: 香坂が額装作業室で荻原を襲う。
+  - id: transfer-to-vault
+    at: "21:18"
+    participants: [kosaka]
+    facts: [kosaka-moved-ogiwara, cart-used-after-cleaning]
+    description: 香坂が作品搬送台車を使い、荻原を保存庫へ移す。
+  - id: kosaka-exits-vault
+    at: "21:23"
+    participants: [kosaka]
+    facts: [kosaka-left-vault-before-lock, kosaka-apron-dust]
+    description: 香坂が保存庫を離れ、夜間環境管理が始まる前に搬送廊下へ戻る。
+  - id: vault-seals
+    at: "21:30"
+    participants: [tada]
+    facts: [vault-night-mode, framing-room-open-before-2130, vault-closed-2130]
+    description: 保存庫が夜間環境管理へ移行し、発見時の密室状態が成立する。
+  - id: discovery
+    at: "22:05"
+    participants: [asakura, tada, kosaka]
+    facts: [body-found-2205]
+    description: 朝倉と多田が保存庫内で荻原の死を発見する。
+characters:
+  - id: kosaka
+    name: 香坂澪
+    role: suspect
+    personality: 手先が器用で作品を丁寧に扱う修復士。保存庫が発見時に閉鎖されていたことを強調し、「中で事件が起きたなら自分には不可能」と話す。修復費の細部を追及されると苛立つ。
+    goals:
+      - 修復費の水増しを隠したい
+      - 事件現場が保存庫だったと思わせたい
+    knowledge: [kosaka-restorer, vault-night-mode, framing-room-open-before-2130, vault-closed-2130, body-found-2205]
+    secrets:
+      - fact: forged-restoration-report
+        disclosure: pressured
+      - fact: ogiwara-found-forgery
+        disclosure: pressured
+      - fact: ogiwara-called-kosaka
+        disclosure: pressured
+      - fact: kosaka-killed-ogiwara-framing
+        disclosure: never
+      - fact: kosaka-moved-ogiwara
+        disclosure: never
+      - fact: kosaka-left-vault-before-lock
+        disclosure: never
+    lies:
+      - id: kosaka-vault-crime
+        about: kosaka-killed-ogiwara-framing
+        claim: 荻原さんが保存庫で見つかった以上、事件は保存庫で起きたはずです。私は夜間閉鎖後に入れません
+        strategy: maintain-until-contradicted
+      - id: kosaka-report-clean
+        about: forged-restoration-report
+        claim: 修復報告と材料費に水増しはありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: cart-route
+        about: kosaka-moved-ogiwara
+        detail: 額装作業室と保存庫は同じ搬送廊下にあり、夜間閉鎖前なら作品台車で行き来できることを日常業務で知っている。
+    relationships:
+      - character: asakura
+        relation: 学芸員
+        attitude: 作品記録には細かいので、額装作業室の紙片に気づかれたくない
+      - character: tada
+        relation: 警備担当
+        attitude: 保存庫が閉じた時刻を正確に知る相手
+  - id: asakura
+    name: 朝倉凪
+    role: witness
+    personality: 作品の所在を細かく管理する学芸員。保存庫で発見したため当初はそこが事件現場だと思い込んだ。所蔵作品の無断貸し出しを隠している。
+    goals:
+      - 所蔵作品を無断で貸したことを隠したい
+      - 額装作業室に残った不自然な紙片を説明したい
+    knowledge: [asakura-curator, framing-paper-fibers, cart-used-after-cleaning, body-found-2205]
+    secrets:
+      - fact: asakura-secret-private-loan
+        disclosure: pressured
+    lies:
+      - id: asakura-no-private-loan
+        about: asakura-secret-private-loan
+        claim: 所蔵作品を許可なく館外の撮影に貸したことはありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: paper-on-floor
+        about: framing-paper-fibers
+        detail: 閉館前に掃除したはずの額装作業室へ戻ると、荻原が確認していた古い台紙の細かな紙片がまた床に落ちていた。
+    relationships:
+      - character: kosaka
+        relation: 修復担当
+        attitude: 額装作業室を最も自由に使える人物
+      - character: tada
+        relation: 警備担当
+        attitude: 夜間閉鎖時刻については信用している
+  - id: tada
+    name: 多田圭
+    role: suspect
+    personality: 規則を重んじる警備担当だが、自分の休憩延長だけは記録から外している。保存庫の閉鎖時刻は機械記録と照合して話せる。
+    goals:
+      - 無断で休憩を延ばしたことを隠したい
+      - 保存庫がいつ閉じたのかを正確に伝えたい
+    knowledge: [tada-security, vault-night-mode, framing-room-open-before-2130, vault-closed-2130, body-found-2205]
+    secrets:
+      - fact: tada-secret-unlogged-break
+        disclosure: pressured
+    lies:
+      - id: tada-no-extra-break
+        about: tada-secret-unlogged-break
+        claim: 警備記録にない休憩を取ったことはありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: night-mode-time
+        about: vault-closed-2130
+        detail: 九時半の環境管理移行は毎晩確認している。逆に言えば、それ以前は搬送作業のため扉を使える。
+    relationships:
+      - character: kosaka
+        relation: 修復士
+        attitude: 夜間閉鎖直前まで保存庫へ出入りすることがある
+      - character: asakura
+        relation: 学芸員
+        attitude: 作品の所在確認ではよく協力する
+revelations:
+  - id: discovery-place-not-crime-scene
+    title: 発見場所と事件現場は別かもしれない
+    text: 保存庫が閉鎖状態になったのは21時30分で、それ以前は額装作業室から搬送廊下経由で行き来できた。荻原が別の場所で襲われ、閉鎖前に保存庫へ移された可能性がある。
+    category: location
+    subject:
+      type: event
+      id: vault-seals
+    sources:
+      - type: character
+        id: asakura
+        revealCondition: 朝倉に額装作業室の紙片と搬送台車の使用跡をまとめて確認し、保存庫以外の現場を検討したら開示する。
+        requires:
+          revelations: []
+          evidences: [framing-room-traces, cart-trace]
+      - type: character
+        id: tada
+        revealCondition: 多田に保存庫が閉鎖された正確な時刻と、それ以前の搬送経路について尋ねたら開示する。
+        requires:
+          revelations: []
+          evidences: [night-mode-log]
+    relatedFacts: [framing-room-open-before-2130, kosaka-killed-ogiwara-framing, kosaka-moved-ogiwara, vault-closed-2130]
+  - id: restoration-motive
+    title: 修復報告の水増し
+    text: 荻原は香坂の修復報告と材料在庫が合わないことを発見し、事件直前に説明を求めていた。
+    category: motive
+    subject:
+      type: character
+      id: kosaka
+    sources:
+      - type: character
+        id: kosaka
+        revealCondition: 香坂に材料費と修復工程の不一致を具体的に示し、荻原から追及されたことを認めさせたら開示する。
+        requires:
+          revelations: [discovery-place-not-crime-scene]
+          evidences: [restoration-report]
+      - type: character
+        id: asakura
+        revealCondition: 朝倉に荻原が事件直前まで確認していた修復書類について尋ねたら開示する。
+        requires:
+          revelations: [discovery-place-not-crime-scene]
+          evidences: [restoration-report]
+    relatedFacts: [forged-restoration-report, ogiwara-found-forgery, ogiwara-called-kosaka]
+evidences:
+  - id: night-mode-log
+    label: 保存庫の夜間環境管理記録
+    description: 保存庫が外から通常操作できなくなったのは21時30分で、それ以前には搬送作業が可能だった。
+    reveal:
+      mode: conversation
+      condition: 多田に保存庫の閉鎖時刻と閉鎖前の運用を尋ねたら開示する。
+    sources:
+      - type: character
+        id: tada
+    supports: [vault-night-mode, framing-room-open-before-2130, vault-closed-2130]
+    contradicts: ["lie:kosaka-vault-crime"]
+  - id: framing-room-traces
+    label: 額装作業室の台紙片
+    description: 清掃後の額装作業室に、荻原が確認していた作品台紙と同じ紙片が散っている。
+    reveal:
+      mode: conversation
+      condition: 朝倉に事件後の額装作業室で気づいた変化を尋ねたら開示する。
+    sources:
+      - type: character
+        id: asakura
+      - type: character
+        id: kosaka
+    supports: [framing-paper-fibers, kosaka-killed-ogiwara-framing]
+    contradicts: ["lie:kosaka-vault-crime"]
+  - id: cart-trace
+    label: 作品搬送台車の再使用跡
+    description: 清掃後に所定位置へ戻した台車が21時台に再使用され、額装作業室と保存庫の間を動いた形跡がある。
+    reveal:
+      mode: conversation
+      condition: 朝倉か香坂に作品搬送台車を事件当夜に使った者がいないか尋ねたら開示する。
+    sources:
+      - type: character
+        id: asakura
+      - type: character
+        id: kosaka
+    supports: [cart-used-after-cleaning, kosaka-moved-ogiwara]
+    contradicts: ["lie:kosaka-vault-crime"]
+  - id: apron-dust
+    label: 香坂の作業着の台紙粉
+    description: 香坂の作業着には額装作業室で扱う古い台紙の粉が多く付いている。
+    reveal:
+      mode: conversation
+      condition: 香坂に21時台の作業場所を尋ねるか、朝倉に額装作業室特有の粉について確認したら開示する。
+    sources:
+      - type: character
+        id: kosaka
+      - type: character
+        id: asakura
+    supports: [kosaka-apron-dust]
+    contradicts: ["lie:kosaka-vault-crime"]
+  - id: restoration-report
+    label: 修復工程と材料在庫の不一致
+    description: 香坂の報告上は使用したことになっている材料が在庫から減っておらず、荻原が確認印を付けている。
+    reveal:
+      mode: conversation
+      condition: 香坂に事件前に荻原から指摘された修復報告を尋ねるか、朝倉に材料在庫の不一致を確認したら開示する。
+    sources:
+      - type: character
+        id: kosaka
+      - type: character
+        id: asakura
+    supports: [forged-restoration-report, ogiwara-found-forgery, ogiwara-called-kosaka]
+    contradicts: ["lie:kosaka-report-clean"]
+  - id: private-loan
+    label: 無断貸し出し記録
+    description: 朝倉が所蔵作品を知人の撮影へ無断で貸していた記録。主事件とは独立している。
+    reveal:
+      mode: conversation
+      condition: 朝倉に最近の館外貸し出しについて尋ね、無断貸し出しを否定したら開示する。
+    sources:
+      - type: character
+        id: asakura
+    supports: [asakura-secret-private-loan]
+    contradicts: ["lie:asakura-no-private-loan"]
+  - id: extended-break
+    label: 警備記録にない休憩
+    description: 多田が警備記録に残さず休憩を延ばしていたことが分かるが、保存庫閉鎖の記録とは別問題である。
+    reveal:
+      mode: conversation
+      condition: 多田に21時台の巡回と休憩を細かく尋ね、記録外の休憩を否定したら開示する。
+    sources:
+      - type: character
+        id: tada
+    supports: [tada-secret-unlogged-break]
+    contradicts: ["lie:tada-no-extra-break"]
+solution:
+  culprit: kosaka
+  summary: 犯人は香坂澪。修復報告の水増しを荻原に見抜かれ、額装作業室へ呼び出された香坂はそこで荻原を襲った。その後、夜間環境管理が始まる前に作品搬送台車で荻原を保存庫へ移し、自分は21時23分ごろに保存庫を出た。21時30分になると保存庫が自動的に閉鎖状態となり、発見時には「中で事件が起きたのに誰も出られない」ように見えた。しかし台紙片、台車の再使用跡、香坂の作業着の粉は額装作業室を実際の事件現場として示している。密室を解く鍵は扉の開け方ではなく、事件現場の前提を疑うことだった。
+  method: 額装作業室で荻原を襲い、閉鎖前に保存庫へ移したうえで、夜間環境管理によって後から成立した密室を事件現場だと思わせた
+  motive: 修復工程と材料費の水増しが発覚し、館長から責任追及されることを恐れたため
+  requiredFacts: [forged-restoration-report, ogiwara-called-kosaka, kosaka-killed-ogiwara-framing, kosaka-moved-ogiwara, kosaka-left-vault-before-lock, vault-closed-2130, framing-paper-fibers, cart-used-after-cleaning]
+  secretKeywords:
+    - 犯人は香坂
+    - 香坂が荻原を襲
+    - 香坂が保存庫へ移
+    - 保存庫は事件現場ではない
+quality:
+  expectedQuestionCount:
+    min: 11
+    max: 24
+  requiredEvidence:
+    min: 3
+  redHerrings: [asakura-secret-private-loan, tada-secret-unlogged-break]
+  notes: 密室の開閉方法を探すのではなく、発見場所が事件現場だという前提を外すタイプ。既存の自動施錠ものとの差別化として、主眼を物の搬送痕と現場誤認に置く。

@@ -1,0 +1,353 @@
+schemaVersion: 1
+id: storm-mountain-inn-echoed-cane
+meta:
+  title: 嵐の山宿、二階を歩く杖
+  synopsis: 暴風雨で孤立した古い山宿で、主人・桐谷宗介が帳場奥で死亡した。二十一時二十五分には宿泊客が二階廊下から桐谷愛用の杖の音を聞いており、そこまで生きていたと思われた。だが証人が聞いたのは足音ではなく、古い建物を伝ってきた金属音だった。
+  category: クローズドサークル
+  difficulty: 5
+  estimatedMinutes: 15
+  tags: [山宿, 暴風雨, 音, 目撃錯誤]
+briefing: |-
+  ——事件の記録を読み上げます。
+
+  午後九時五十分、暴風雨で孤立した山宿「梢庵」で、主人・桐谷宗介が帳場奥の事務室で死亡しているのが見つかりました。
+
+  宿にいたのは料理長の秋庭澄、常連客の森崎透、修繕を請け負う大工の榊原蓮です。
+
+  森崎は午後九時二十五分ごろ、二階客室で桐谷の杖らしい「コツ、コツ」という音を聞きました。桐谷は金属の石突きが付いた古い杖を使っており、廊下を歩くと独特の音がすることで知られています。
+
+  ただし森崎は桐谷の姿を見ていません。古い木造の山宿では、音がした場所と、音が生まれた場所が同じとは限りません。
+floorPlan: null
+facts:
+  - id: akiwa-chef
+    statement: 秋庭澄は梢庵の料理長で、仕入れと厨房の管理を任されている
+    kind: other
+  - id: morisaki-guest
+    statement: 森崎透は長年梢庵を利用している常連客である
+    kind: other
+  - id: sakakibara-carpenter
+    statement: 榊原蓮は山宿の床や階段の修繕を請け負っている大工である
+    kind: other
+  - id: cane-distinctive-sound
+    statement: 桐谷宗介の杖には金属の石突きがあり、木の床を突くと甲高い特徴的な音がする
+    kind: physical
+  - id: old-partition-transmits
+    statement: 厨房脇の旧階段と二階北廊下は同じ中空の木製隔壁に接しており、硬い物を打ち付けた音が別の階から聞こえることがある
+    kind: physical
+  - id: morisaki-heard-taps
+    statement: 21時25分ごろ、森崎透は二階北廊下側から桐谷の杖に似た連続音を聞いた
+    kind: observation
+  - id: morisaki-heard-no-steps
+    statement: 森崎透は21時25分ごろ、杖に似た音は聞いたが、それに伴う足音や桐谷宗介の声は聞いていない
+    kind: testimony
+  - id: supplier-kickback
+    statement: 秋庭澄は食材業者から不正な謝礼を受け取り、割高な仕入れを続けていた
+    kind: motive
+    secret: true
+  - id: kiritani-found-kickback
+    statement: 桐谷宗介は事件当日の夜、仕入れ伝票から秋庭澄と業者の不自然な取引に気づいた
+    kind: motive
+    secret: true
+  - id: kiritani-confronted-akiwa
+    statement: 20時58分ごろ、桐谷宗介は秋庭澄に翌朝仕入れ業者との契約を見直すと告げた
+    kind: motive
+    secret: true
+  - id: akiwa-killed-kiritani
+    statement: 21時08分ごろ、秋庭澄は帳場奥の事務室で桐谷宗介を襲い死亡させた
+    kind: truth
+    secret: true
+  - id: akiwa-took-cane
+    statement: 秋庭澄は犯行後、桐谷宗介の杖を事務室から厨房脇へ持ち出した
+    kind: truth
+    secret: true
+  - id: akiwa-made-tapping
+    statement: 21時25分ごろ、秋庭澄は厨房脇の旧階段で桐谷宗介の杖を木製隔壁に当て、二階から聞こえるような連続音を生じさせた
+    kind: truth
+    secret: true
+  - id: cane-found-kitchen
+    statement: 事件発見直前、桐谷宗介の杖は厨房脇の物入れで見つかった
+    kind: physical
+  - id: rail-fresh-marks
+    statement: 厨房脇の旧階段の木製隔壁には、杖の金属部分と高さの合う新しい打痕が残っていた
+    kind: physical
+  - id: morisaki-secret-unpaid
+    statement: 森崎透は長期滞在分の宿泊代を一部未払いのままにしていた
+    kind: other
+    secret: true
+  - id: sakakibara-secret-materials
+    statement: 榊原蓮は修繕用の余剰木材を無断で持ち帰るつもりだった
+    kind: other
+    secret: true
+  - id: body-found-2150
+    statement: 21時50分、榊原蓮が帳場奥で桐谷宗介の死を発見した
+    kind: observation
+timeline:
+  - id: supply-confrontation
+    at: "20:58"
+    participants: [akiwa]
+    facts: [supplier-kickback, kiritani-found-kickback, kiritani-confronted-akiwa]
+    description: 桐谷が秋庭に不自然な仕入れを問い、翌朝に契約を見直すと告げる。
+  - id: kiritani-death
+    at: "21:08"
+    participants: [akiwa]
+    facts: [akiwa-killed-kiritani, akiwa-took-cane]
+    description: 秋庭が帳場奥で桐谷を襲い、愛用の杖を持ち出す。
+  - id: tapping-staged
+    at: "21:25"
+    participants: [akiwa, morisaki]
+    facts: [akiwa-made-tapping, morisaki-heard-taps, morisaki-heard-no-steps]
+    description: 秋庭が旧階段で杖の音を作り、森崎は二階廊下を桐谷が歩いていると思い込む。
+  - id: cane-hidden
+    at: "21:31"
+    participants: [akiwa]
+    facts: [cane-found-kitchen, rail-fresh-marks]
+    description: 秋庭が杖を厨房脇の物入れへ戻し、旧階段には新しい打痕が残る。
+  - id: discovery
+    at: "21:50"
+    participants: [sakakibara, akiwa, morisaki]
+    facts: [body-found-2150]
+    description: 榊原が帳場奥で桐谷の死を発見する。
+characters:
+  - id: akiwa
+    name: 秋庭澄
+    role: suspect
+    personality: 穏やかな料理長で、客の好みをよく覚えている。厨房と旧階段を自由に使える。九時二十五分の杖音を桐谷本人の行動と断定し、仕入れの話を避けようとする。
+    goals:
+      - 業者から謝礼を受け取っていたことを隠したい
+      - 九時二十五分の音を桐谷本人の生存証明にしたい
+    knowledge: [akiwa-chef, cane-distinctive-sound, old-partition-transmits, morisaki-heard-taps, cane-found-kitchen, body-found-2150]
+    secrets:
+      - fact: supplier-kickback
+        disclosure: pressured
+      - fact: kiritani-found-kickback
+        disclosure: pressured
+      - fact: kiritani-confronted-akiwa
+        disclosure: pressured
+      - fact: akiwa-took-cane
+        disclosure: never
+      - fact: akiwa-made-tapping
+        disclosure: never
+      - fact: akiwa-killed-kiritani
+        disclosure: never
+    lies:
+      - id: akiwa-cane-proves-alive
+        about: akiwa-made-tapping
+        claim: 九時二十五分には森崎さんが二階で桐谷さんの杖を聞いています。本人が歩いていたとしか考えられません
+        strategy: maintain-until-contradicted
+      - id: akiwa-clean-supplies
+        about: supplier-kickback
+        claim: 仕入れ業者から個人的な謝礼を受け取ったことはありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: sound-carries
+        about: old-partition-transmits
+        detail: 厨房の鍋を旧階段の壁へぶつけたとき、二階から客が降りてきたことがあり、音が上へ抜けるのを知っていた。
+    relationships:
+      - character: morisaki
+        relation: 常連客
+        attitude: 杖の音をよく知っているからこそ、音だけで本人だと信じると思っている
+      - character: sakakibara
+        relation: 修繕業者
+        attitude: 壁の音の伝わり方に気づかれる可能性があり警戒している
+  - id: morisaki
+    name: 森崎透
+    role: witness
+    personality: 桐谷と長い付き合いがあり、杖の音を何度も聞いてきた常連客。その親しさゆえに、特徴的な音を聞いた瞬間に桐谷本人だと決めつけた。宿泊代の未払いを隠している。
+    goals:
+      - 宿泊代の未払いを隠したい
+      - 九時二十五分に実際に聞いたものを正確に話したい
+    knowledge: [morisaki-guest, cane-distinctive-sound, morisaki-heard-taps, morisaki-heard-no-steps, body-found-2150]
+    secrets:
+      - fact: morisaki-secret-unpaid
+        disclosure: pressured
+    lies:
+      - id: morisaki-paid-all
+        about: morisaki-secret-unpaid
+        claim: 宿泊代の未払いは一切ありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: taps-only
+        about: morisaki-heard-no-steps
+        detail: 聞こえたのは規則的な金属音だけだった。あとから考えると、歩くなら一緒にするはずの床鳴りや足音は記憶にない。
+    relationships:
+      - character: akiwa
+        relation: 宿の料理長
+        attitude: 昔から世話になっていて疑いにくい
+      - character: sakakibara
+        relation: 修繕業者
+        attitude: 建物の音については自分より詳しい
+  - id: sakakibara
+    name: 榊原蓮
+    role: suspect
+    personality: 古い木造建築の癖を体で覚えている大工。余剰材料を持ち帰ろうとした後ろめたさはあるが、音の伝わり方については具体的に説明できる。
+    goals:
+      - 余剰木材の持ち出し計画を隠したい
+      - 旧階段から二階へ音が伝わることを説明したい
+    knowledge: [sakakibara-carpenter, old-partition-transmits, cane-found-kitchen, rail-fresh-marks, body-found-2150]
+    secrets:
+      - fact: sakakibara-secret-materials
+        disclosure: pressured
+    lies:
+      - id: sakakibara-no-materials
+        about: sakakibara-secret-materials
+        claim: 修繕材料を無断で持ち帰るつもりはありませんでした
+        strategy: maintain-until-contradicted
+    memories:
+      - id: hollow-wall
+        about: old-partition-transmits
+        detail: 旧階段と二階北廊下の間は昔の中空壁が連続していて、硬い音だけが意外なほど遠くへ抜ける。
+    relationships:
+      - character: akiwa
+        relation: 宿スタッフ
+        attitude: 厨房脇の旧階段を日常的に使う人物
+      - character: morisaki
+        relation: 常連客
+        attitude: 音を知りすぎている分、思い込みも強そうだと思う
+revelations:
+  - id: taps-not-location-proof
+    title: 杖音は二階の歩行証明ではない
+    text: 森崎が聞いたのは杖に似た金属音だけで足音も声もない。旧階段と二階廊下の構造上、厨房側で生じた硬い音が二階から聞こえることがある。
+    category: location
+    subject:
+      type: event
+      id: tapping-staged
+    sources:
+      - type: character
+        id: morisaki
+        revealCondition: 森崎に聞いた音を杖音、足音、声に分けて尋ね、金属音しか確認していないと整理したら開示する。
+        requires:
+          revelations: []
+          evidences: [tapping-test]
+      - type: character
+        id: sakakibara
+        revealCondition: 榊原に旧階段と二階廊下の音の伝わり方を尋ね、硬い音が別の階に聞こえると確認したら開示する。
+        requires:
+          revelations: []
+          evidences: [wall-structure]
+    relatedFacts: [old-partition-transmits, morisaki-heard-taps, morisaki-heard-no-steps, akiwa-made-tapping]
+  - id: supply-motive
+    title: 仕入れ契約の見直し
+    text: 桐谷は秋庭と業者の不自然な取引を見つけ、翌朝に契約を見直すと本人へ告げていた。
+    category: motive
+    subject:
+      type: character
+      id: akiwa
+    sources:
+      - type: character
+        id: akiwa
+        revealCondition: 秋庭に不自然な仕入れ伝票と桐谷からの指摘を具体的に示したら開示する。
+        requires:
+          revelations: [taps-not-location-proof]
+          evidences: [supply-ledger]
+      - type: character
+        id: morisaki
+        revealCondition: 森崎に事件前に桐谷が話していた翌朝の予定を尋ね、仕入れ契約の見直しへ話が及んだら開示する。
+        requires:
+          revelations: [taps-not-location-proof]
+          evidences: [supply-ledger]
+    relatedFacts: [supplier-kickback, kiritani-found-kickback, kiritani-confronted-akiwa]
+evidences:
+  - id: tapping-test
+    label: 森崎の音の聞き分け
+    description: 森崎は特徴的な金属音だけを聞き、桐谷の足音や声は確認していない。
+    reveal:
+      mode: conversation
+      condition: 森崎に九時二十五分の音を細かく再現してもらい、足音や声の有無を問い直したら開示する。
+    sources:
+      - type: character
+        id: morisaki
+    supports: [morisaki-heard-taps, morisaki-heard-no-steps]
+    contradicts: ["lie:akiwa-cane-proves-alive"]
+  - id: wall-structure
+    label: 旧階段と二階廊下の中空壁
+    description: 二つの区画は同じ古い中空隔壁に接し、旧階段側の硬い音が二階から聞こえることがある。
+    reveal:
+      mode: conversation
+      condition: 榊原に古い建物の音の伝わり方を尋ねるか、秋庭に旧階段で音が響くことを知っていたか確認したら開示する。
+    sources:
+      - type: character
+        id: sakakibara
+      - type: character
+        id: akiwa
+    supports: [old-partition-transmits]
+    contradicts: ["lie:akiwa-cane-proves-alive"]
+  - id: cane-kitchen
+    label: 厨房脇で見つかった杖
+    description: 桐谷の杖は発見直前、本人のいる帳場奥ではなく厨房脇の物入れで見つかった。
+    reveal:
+      mode: conversation
+      condition: 秋庭か榊原に桐谷の杖がどこで見つかったか尋ねたら開示する。
+    sources:
+      - type: character
+        id: akiwa
+      - type: character
+        id: sakakibara
+    supports: [cane-found-kitchen, akiwa-took-cane]
+    contradicts: ["lie:akiwa-cane-proves-alive"]
+  - id: fresh-marks
+    label: 旧階段の新しい打痕
+    description: 木製隔壁には杖の金属部分と高さの合う新しい打痕が複数残っている。
+    reveal:
+      mode: conversation
+      condition: 榊原に旧階段の新しい傷を尋ねるか、秋庭に杖を厨房側へ持ち込んだ可能性を追及したら開示する。
+    sources:
+      - type: character
+        id: sakakibara
+      - type: character
+        id: akiwa
+    supports: [rail-fresh-marks, akiwa-made-tapping]
+    contradicts: ["lie:akiwa-cane-proves-alive"]
+  - id: supply-ledger
+    label: 不自然な仕入れ伝票
+    description: 同じ業者から相場より高い価格で仕入れた記録と、秋庭が処理した伝票がまとまっている。
+    reveal:
+      mode: conversation
+      condition: 秋庭に仕入れ業者との関係を尋ねるか、桐谷が事件前に確認していた伝票について追及したら開示する。
+    sources:
+      - type: character
+        id: akiwa
+      - type: character
+        id: morisaki
+    supports: [supplier-kickback, kiritani-found-kickback, kiritani-confronted-akiwa]
+    contradicts: ["lie:akiwa-clean-supplies"]
+  - id: unpaid-bill
+    label: 森崎の未払い宿泊票
+    description: 森崎には以前からの宿泊代の未払いがあるが、杖音の偽装とは結びつかない。
+    reveal:
+      mode: conversation
+      condition: 森崎に桐谷との金銭関係を尋ね、未払いを否定したら開示する。
+    sources:
+      - type: character
+        id: morisaki
+    supports: [morisaki-secret-unpaid]
+    contradicts: ["lie:morisaki-paid-all"]
+  - id: spare-lumber
+    label: 持ち出し予定の余剰木材
+    description: 榊原が余剰木材を無断で持ち帰ろうとしていたことが分かるが、事件とは独立した秘密である。
+    reveal:
+      mode: conversation
+      condition: 榊原に余剰材料の扱いを尋ね、持ち帰りを否定したら開示する。
+    sources:
+      - type: character
+        id: sakakibara
+    supports: [sakakibara-secret-materials]
+    contradicts: ["lie:sakakibara-no-materials"]
+solution:
+  culprit: akiwa
+  summary: 犯人は秋庭澄。仕入れ業者から謝礼を受けていたことを桐谷に見抜かれ、翌朝の契約見直しを告げられたため桐谷を襲った。秋庭は桐谷の杖を厨房脇へ持ち出し、旧階段の中空壁へ金属部分を当てて特徴的な音を作った。森崎は長年聞き慣れた音だったため二階を桐谷が歩いていると思ったが、実際には足音も声も確認していない。杖が厨房脇で見つかったこと、旧階段に新しい打痕があること、建物の構造上そこから二階へ硬い音が伝わることを合わせると、九時二十五分の音は桐谷の生存証明ではない。
+  method: 桐谷を襲った後、愛用の杖と建物の音の伝わり方を利用して二階を歩く杖音を装い、死亡時刻を遅く見せた
+  motive: 業者からの不正な謝礼と割高な仕入れが発覚し、契約見直しで不正が表面化することを恐れたため
+  requiredFacts: [supplier-kickback, kiritani-confronted-akiwa, akiwa-killed-kiritani, akiwa-took-cane, old-partition-transmits, morisaki-heard-no-steps, akiwa-made-tapping, rail-fresh-marks]
+  secretKeywords:
+    - 犯人は秋庭
+    - 秋庭が桐谷を襲
+    - 秋庭が杖の音を作
+    - 杖音で死亡時刻を偽装
+quality:
+  expectedQuestionCount:
+    min: 10
+    max: 22
+  requiredEvidence:
+    min: 3
+  redHerrings: [morisaki-secret-unpaid, sakakibara-secret-materials]
+  notes: 特徴的な音を人物識別に使う危うさを問う。録音や電子機器ではなく、建物の音響と物品の移動を組み合わせる。
