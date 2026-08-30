@@ -143,6 +143,11 @@ export const historyExchangeSchema = z.object({
   answer: z.string().max(MAX_ANSWER_CHARS),
   /** その質問を投げた時刻（epoch ミリ秒）。NPCをまたいで時系列に並べ直すのに使う。 */
   askedAt: z.number().int(),
+  /**
+   * この往復から始まる話題。同じ話題の続きの往復と、話題という考え方より前に
+   * 始まったセッションでは null。
+   */
+  topic: z.string().nonempty().nullable(),
 })
 
 export const sessionHistorySchema = z.object({

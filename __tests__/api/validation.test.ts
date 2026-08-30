@@ -110,21 +110,21 @@ describe('POST /api/sessions', () => {
 })
 
 describe('POST /api/sessions/:id/ask', () => {
-  test('発話が空なら、LLMに触る前に 400', async () => {
+  test('話題が空なら、LLMに触る前に 400', async () => {
     const res = await postJson(`/api/sessions/${SESSION_ID}/ask`, {
       sessionId: SESSION_ID,
       characterId: CHARACTER_ID,
-      utterance: '',
+      topic: '',
     })
 
     expect(res.status).toBe(400)
   })
 
-  test('発話が501文字なら 400', async () => {
+  test('話題が501文字なら 400', async () => {
     const res = await postJson(`/api/sessions/${SESSION_ID}/ask`, {
       sessionId: SESSION_ID,
       characterId: CHARACTER_ID,
-      utterance: 'あ'.repeat(501),
+      topic: 'あ'.repeat(501),
     })
 
     expect(res.status).toBe(400)
@@ -134,7 +134,7 @@ describe('POST /api/sessions/:id/ask', () => {
     const res = await postJson(`/api/sessions/${SESSION_ID}/ask`, {
       sessionId: SESSION_ID,
       characterId: CHARACTER_ID,
-      utterance: 'あ'.repeat(500),
+      topic: 'あ'.repeat(500),
     })
 
     // バインディングが無いのでこの先は進めない。ここで見たいのは
@@ -146,7 +146,7 @@ describe('POST /api/sessions/:id/ask', () => {
     const res = await postJson(`/api/sessions/${SESSION_ID}/ask`, {
       sessionId: '11111111-1111-4111-8111-111111111111',
       characterId: CHARACTER_ID,
-      utterance: 'こんにちは',
+      topic: 'アリバイについて',
     })
 
     expect(res.status).toBe(400)

@@ -107,7 +107,7 @@ export const InterrogationScreen = ({
   }, [])
 
   const handleAsk = () => {
-    ask({ sessionId, characterId: activeCharacterId, utterance: inputText })
+    ask({ sessionId, characterId: activeCharacterId, topic: inputText })
     setInputText('')
   }
 
@@ -302,7 +302,9 @@ export const InterrogationScreen = ({
 
         <main className="flex flex-1 flex-col gap-3 overflow-y-auto p-3">
           {turnsToShow.length === 0 && (
-            <p className="text-center text-sm text-slate-500">気になることを聞いてみよう。</p>
+            <p className="text-center text-sm leading-relaxed text-slate-500">
+              話題を投げると、探偵が代わりに聞き込みます。
+            </p>
           )}
 
           {activeCharacter !== undefined && (
@@ -369,7 +371,7 @@ export const InterrogationScreen = ({
                   }
                 }}
                 maxLength={500}
-                placeholder="質問を入力…"
+                placeholder="何について訊く？"
                 disabled={isAsking}
                 className="min-w-0 flex-1"
               />
@@ -378,7 +380,7 @@ export const InterrogationScreen = ({
                 disabled={isAsking || inputText.trim().length === 0}
                 className="shrink-0"
               >
-                {isAsking ? '…' : '聞く'}
+                {isAsking ? '…' : '訊く'}
               </Button>
             </div>
           )}

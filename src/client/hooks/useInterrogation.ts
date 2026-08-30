@@ -1,17 +1,27 @@
 import { useState } from 'react'
-import { askQuestion, describeError } from '@/client/lib/api'
+import { askTopic, describeError } from '@/client/lib/api'
 import { mergeById } from '@/client/lib/merge-by-id'
 import type { Discovery, Hint, RevelationCard, TurnState } from '@/client/lib/schemas'
 import { advanceTurn } from '@/shared/turns'
 
 export type ChatTurn = {
-  role: 'user' | 'assistant'
+  /**
+   * この会話ログの中で一意。同じ話題から生まれた行は askedAt を共有するので、
+   * 時刻と役割の組では重なる。会話は末尾に積むだけで並べ替えないので、
+   * 積んだ時点の位置から作れば以後変わらない。
+   */
+  id: string
+  /**
+   * topic はプレイヤーが探偵へ渡した指示、user は探偵がNPCへ投げた質問、
+   * assistant はNPCの返答。1つの topic から user/assistant の往復が複数生まれる。
+   */
+  role: 'topic' | 'user' | 'assistant'
   text: string
   /**
-   * その質問を投げた時刻（epoch ミリ秒）。
+   * その話題を投げた時刻（epoch ミリ秒）。
    * 会話はNPCごとに分かれて保持されるので、これが無いと
    * 「誰に何を聞いたか」を1本の時系列に並べ直せない。
-   * 往復のペアで同じ値を持たせ、質問と答えが離れないようにする。
+   * 同じ話題から生まれた行はすべて同じ値を持たせ、塊のまま並ぶようにする。
    */
   askedAt: number
 }
@@ -57,7 +67,7 @@ export const useInterrogation = (seed: InterrogationSeed) => {
   const [askingCharacterId, setAskingCharacterId] = useState<string | undefined>(undefined)
   const [error, setError] = useState<string | undefined>(undefined)
 
-  const appendUserTurn = (characterId: string, text: string, askedAt: number) => {
+  const appendTurns = (characterId: string, added: Omit<ChatTurn, 'id'>[]) => {
     setConversations((prev) => {
       const current = prev[characterId]
       const turns = current === undefined ? [] : current
@@ -66,8 +76,10 @@ export const useInterrogation = (seed: InterrogationSeed) => {
         ...prev,
         [characterId]: [
           ...turns,
-          { role: 'user', text, askedAt },
-          { role: 'assistant', text: '', askedAt },
+          ...added.map((turn, index) => ({
+            ...turn,
+            id: `${turn.askedAt}:${turns.length + index}`,
+          })),
         ],
       }
     })
@@ -84,24 +96,26 @@ export const useInterrogation = (seed: InterrogationSeed) => {
         return prev
       }
 
-      const nextTurns = [
-        ...turns.slice(0, lastIndex),
-        { role: last.role, text: last.text + delta, askedAt: last.askedAt },
-      ]
+      const nextTurns = [...turns.slice(0, lastIndex), { ...last, text: last.text + delta }]
 
       return { ...prev, [characterId]: nextTurns }
     })
   }
 
-  const ask = (params: { sessionId: string; characterId: string; utterance: string }) => {
-    const utterance = params.utterance.trim()
+  const ask = (params: { sessionId: string; characterId: string; topic: string }) => {
+    const topic = params.topic.trim()
 
-    if (utterance.length === 0) {
+    if (topic.length === 0) {
       return
     }
 
     setError(undefined)
-    appendUserTurn(params.characterId, utterance, Date.now())
+
+    // 同じ話題から生まれる行はすべてこの時刻を共有する。往復ごとに取り直すと、
+    // 記録を時系列に並べ直したときに話題の塊が崩れる。
+    const askedAt = Date.now()
+
+    appendTurns(params.characterId, [{ role: 'topic', text: topic, askedAt }])
     setAskingCharacterId(params.characterId)
 
     // ターンは投げた瞬間に進める。サーバが質問回数を増やすのは返答を届け終えたあとで、
@@ -109,9 +123,16 @@ export const useInterrogation = (seed: InterrogationSeed) => {
     setQuestionCount((prev) => prev + 1)
     setTurn((prev) => (prev === undefined ? prev : advanceTurn(prev)))
 
-    askQuestion(
-      { sessionId: params.sessionId, characterId: params.characterId, utterance },
+    askTopic(
+      { sessionId: params.sessionId, characterId: params.characterId, topic },
       {
+        // 探偵の質問が届いたら、そこから次の往復が始まる。空の吹き出しを添えて
+        // 置くことで、返答が流れ始めるまでの待ちがそのまま目印になる。
+        onQuestion: (question) =>
+          appendTurns(params.characterId, [
+            { role: 'user', text: question, askedAt },
+            { role: 'assistant', text: '', askedAt },
+          ]),
         onDelta: (chunk) => appendAssistantDelta(params.characterId, chunk),
         onJudgement: (judgement) => {
           setDiscoveries((prev) => mergeById(prev, judgement.revealedEvidences))

@@ -62,7 +62,7 @@ const app = new Hono<{ Bindings: Bindings; Variables: { env: Env } }>()
 | `GET /api/scenarios/:id` | 詳細。事件の記録・見取り図・登場人物（`personality` のみ） |
 | `POST /api/sessions` | セッション開始。探偵の設定を受け取る。**ここで計時が始まる** |
 | `GET /api/sessions/:id` | 進行状況。発見済みの証拠だけをラベル付きで返す |
-| `POST /api/sessions/:id/ask` | NPCへの質問。SSE で `delta` → `judgement` → `done` |
+| `POST /api/sessions/:id/ask` | 話題を1つ投げる。SSE で（`question` → `delta`）×N → `judgement` → `done` |
 | `POST /api/sessions/:id/accuse` | 犯人当て。**真相を返してよいのはここだけ** |
 
 `/api/scenarios/:id` が返す登場人物は `personality` までです。`knowledge` / `secrets` / `lies` / `memories` はNPCのプロンプトの材料であって、プレイヤーに見せるものではありません。証拠の一覧も返しません。未発見の証拠名それ自体がネタバレになるためです。
