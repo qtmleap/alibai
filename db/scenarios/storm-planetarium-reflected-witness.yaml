@@ -1,0 +1,327 @@
+schemaVersion: 1
+id: storm-planetarium-reflected-witness
+meta:
+  title: 嵐の天象館、ガラスの向こうの目撃者
+  synopsis: 嵐で孤立した山頂の天象館で館長が死亡した。事件後の時刻に、投影室のガラス越しに館長らしい白い上着の人物が目撃されている。だが暗い室内を隔てるガラスは、向こう側だけでなく手前側の像も映す。目撃者が見た人物は本当に部屋の中にいたのか。
+  category: クローズドサークル
+  difficulty: 5
+  estimatedMinutes: 15
+  tags: [天象館, 反射, 目撃証言, 死亡時刻]
+briefing: |-
+  ——事件の記録を読み上げます。
+
+  午後十時、暴風で山道とロープウェイが停止した星見ヶ丘天象館で、館長の犬塚誠が投影準備室内で死亡しているのが見つかりました。館内に残っていたのは展示担当の小野寺莉香、投影技師の松田圭介、売店責任者の朝倉葉月の三人だけです。
+
+  松田は午後九時三十五分、投影室の観察ガラス越しに、館長がよく着る白い展示用上着の人物を見たと証言しています。小野寺もその場にいて、松田が「館長、まだ中にいるんですね」と話したことを認めています。
+
+  もし目撃が正しければ、犬塚は九時三十五分まで生きていたことになります。ところがその夜、投影室内は機器点検のため照明が落とされていました。ガラス越しの目撃が何を見たものか確かめてください。
+floorPlan: null
+facts:
+  - id: onodera-exhibit
+    statement: 小野寺莉香は展示企画と館内導線の設計を担当する職員である
+    kind: other
+  - id: matsuda-projection
+    statement: 松田圭介はプラネタリウム投影機器を担当する技師である
+    kind: other
+  - id: asakura-shop
+    statement: 朝倉葉月は売店と閉館後の在庫確認を担当している
+    kind: other
+  - id: white-jackets-similar
+    statement: 犬塚誠と小野寺莉香は閉館作業時、同型の白い展示用上着を着ることがある
+    kind: physical
+  - id: booth-dark-2130
+    statement: 21時30分以降、投影室内は機器点検のため主照明が落とされていた
+    kind: physical
+  - id: glass-reflects-dark-booth
+    statement: 投影室内が暗く廊下側が明るい場合、観察ガラスには廊下側の人物が強く反射して見える
+    kind: physical
+  - id: onodera-behind-matsuda-2135
+    statement: 21時35分、松田圭介が観察ガラスを見たとき、小野寺莉香は白い展示用上着を着て松田の数歩後ろに立っていた
+    kind: observation
+    secret: true
+  - id: matsuda-saw-white-figure
+    statement: 21時35分、松田圭介は観察ガラスに白い展示用上着の人物像を見て、投影室内の犬塚誠だと思った
+    kind: observation
+  - id: figure-was-reflection
+    statement: 21時35分に松田圭介が観察ガラスで見た白い人物像は、投影室内の犬塚誠ではなく、廊下側にいた小野寺莉香の反射像だった
+    kind: truth
+    secret: true
+  - id: onodera-knew-reflection
+    statement: 小野寺莉香は展示導線設計時の検証で、暗い投影室の観察ガラスが廊下側を強く反射することを知っていた
+    kind: truth
+    secret: true
+  - id: inuzuka-death-2124
+    statement: 21時24分ごろ、犬塚誠は投影準備室で襲われ死亡した
+    kind: truth
+    secret: true
+  - id: onodera-killed-inuzuka
+    statement: 小野寺莉香は21時24分ごろ投影準備室で犬塚誠を襲い死亡させた
+    kind: truth
+    secret: true
+  - id: onodera-endorsed-sighting
+    statement: 小野寺莉香は松田圭介の21時35分の目撃に対し、「館長はまだ投影室にいた」と同意した
+    kind: testimony
+  - id: exhibit-budget-found
+    statement: 犬塚誠は小野寺莉香が展示予算の一部を正式承認なしに別企画へ振り替えていたことに気づいた
+    kind: motive
+    secret: true
+  - id: budget-report-next-day
+    statement: 犬塚誠は翌朝、小野寺莉香の無断予算振替を運営法人へ報告する予定だった
+    kind: motive
+    secret: true
+  - id: matsuda-hid-test-failure
+    statement: 松田圭介は投影機器の事前テストを一部省略していた
+    kind: other
+    secret: true
+  - id: asakura-hid-stock-loss
+    statement: 朝倉葉月は売店在庫の不足を自費補填して帳簿上隠していた
+    kind: other
+    secret: true
+  - id: body-found-2200
+    statement: 22時00分、朝倉葉月が投影準備室で犬塚誠の死を発見した
+    kind: observation
+timeline:
+  - id: inuzuka-death
+    at: "21:24"
+    participants: [onodera]
+    facts: [inuzuka-death-2124, onodera-killed-inuzuka]
+    description: 小野寺が投影準備室で犬塚を襲い、犬塚は死亡する。
+  - id: booth-lights-down
+    at: "21:30"
+    participants: [matsuda]
+    facts: [booth-dark-2130, glass-reflects-dark-booth]
+    description: 機器点検のため投影室内の主照明が落とされ、観察ガラスが廊下側を反射しやすい状態になる。
+  - id: reflected-sighting
+    at: "21:35"
+    participants: [onodera, matsuda]
+    facts: [onodera-behind-matsuda-2135, matsuda-saw-white-figure, figure-was-reflection, onodera-endorsed-sighting]
+    description: 松田が観察ガラスに映った白い人物像を犬塚だと思い込み、小野寺がその誤認を訂正せず生存証言として補強する。
+  - id: discovery
+    at: "22:00"
+    participants: [asakura, onodera, matsuda]
+    facts: [body-found-2200]
+    description: 朝倉が投影準備室で犬塚の死を発見する。
+characters:
+  - id: onodera
+    name: 小野寺莉香
+    role: suspect
+    personality: 空間演出に詳しく、人の視線や展示の見え方を意識する企画担当。落ち着いて松田の目撃を肯定するが、ガラスの反射条件を誰より理解している。
+    goals:
+      - 21時35分の白い人物像を犬塚の生存証明として成立させたい
+      - 展示予算を無断で振り替えていたことを隠したい
+    knowledge: [onodera-exhibit, white-jackets-similar, booth-dark-2130, matsuda-saw-white-figure, onodera-endorsed-sighting, body-found-2200]
+    secrets:
+      - fact: onodera-behind-matsuda-2135
+        disclosure: pressured
+      - fact: onodera-knew-reflection
+        disclosure: pressured
+      - fact: exhibit-budget-found
+        disclosure: pressured
+      - fact: budget-report-next-day
+        disclosure: pressured
+      - fact: onodera-killed-inuzuka
+        disclosure: never
+    lies:
+      - id: onodera-sighting-was-inuzuka
+        about: figure-was-reflection
+        claim: 松田さんが21時35分に見た白い上着の人は館長です。私もその場にいましたが、反射で別人に見えたということはないと思います
+        strategy: maintain-until-contradicted
+      - id: onodera-not-behind-matsuda
+        about: onodera-behind-matsuda-2135
+        claim: そのとき私は松田さんの後ろではなく、少し離れた展示通路にいました
+        strategy: maintain-until-contradicted
+    memories:
+      - id: reflection-test
+        about: onodera-knew-reflection
+        detail: 展示導線の確認で、投影室を暗くすると観察ガラスに廊下側の人影が鏡のように映ることを何度も試している。
+      - id: budget-warning
+        about: budget-report-next-day
+        detail: 犬塚から「明日、法人に振替の経緯を報告する」と言われ、企画担当を外されると感じた。
+    relationships:
+      - character: matsuda
+        relation: 同僚
+        attitude: 見たものを素直に信じる性格なので、誤認を利用しやすいと思っている
+      - character: asakura
+        relation: 同僚
+        attitude: 閉館後の館内を歩き回るため目撃を警戒している
+  - id: matsuda
+    name: 松田圭介
+    role: witness
+    personality: 機械には強いが、視覚的な思い込みには無自覚な投影技師。白い上着を見て犬塚だと判断したが、顔までは確認していない。機器テストを省略したことを隠したい。
+    goals:
+      - 投影機器の事前テストを省略したことを隠したい
+      - 21時35分の目撃が顔の確認ではなかったことは正確に伝えたい
+    knowledge: [matsuda-projection, white-jackets-similar, booth-dark-2130, glass-reflects-dark-booth, matsuda-saw-white-figure, body-found-2200]
+    secrets:
+      - fact: matsuda-hid-test-failure
+        disclosure: pressured
+    lies:
+      - id: matsuda-full-test
+        about: matsuda-hid-test-failure
+        claim: 今日の投影機器テストは予定された項目を全部実施しました
+        strategy: maintain-until-contradicted
+    memories:
+      - id: saw-only-white-jacket
+        about: matsuda-saw-white-figure
+        detail: ガラス越しに白い上着の上半身が見えたので犬塚だと思ったが、顔をはっきり見たわけではない。
+      - id: onodera-behind
+        about: onodera-behind-matsuda-2135
+        detail: 「館長、まだ中にいるんですね」と言ったとき、小野寺がすぐ後ろから「そうみたいですね」と返事をしたのを覚えている。
+    relationships:
+      - character: onodera
+        relation: 同僚
+        attitude: ガラスの見え方は自分より小野寺のほうが詳しいと認識している
+  - id: asakura
+    name: 朝倉葉月
+    role: witness
+    personality: 現実的な売店責任者で、人の服装をよく覚えている。閉館作業中に小野寺が白い展示用上着を着ていたことを見ているが、在庫不足を隠している。
+    goals:
+      - 売店在庫の不足を隠したい
+      - 小野寺が白い上着を着ていたことは正確に伝えたい
+    knowledge: [asakura-shop, white-jackets-similar, body-found-2200]
+    secrets:
+      - fact: asakura-hid-stock-loss
+        disclosure: pressured
+    lies:
+      - id: asakura-stock-clean
+        about: asakura-hid-stock-loss
+        claim: 売店在庫には帳簿と合わない不足はありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: onodera-white-jacket
+        about: white-jackets-similar
+        detail: 閉館後、小野寺が犬塚と同じ型の白い展示用上着を着ているのを見た。
+    relationships:
+      - character: onodera
+        relation: 同僚
+        attitude: 展示の見せ方には詳しいが、人にも同じように印象操作をするところがあると感じる
+revelations:
+  - id: sighting-was-reflection
+    title: ガラスの向こうではなく、こちら側
+    text: 21時35分の白い人物像は投影室内の犬塚ではなく、松田の後ろに立っていた小野寺の反射だった。室内が暗く廊下側が明るいため観察ガラスは鏡のようになり、小野寺と犬塚が同型の白い上着を着ていたことが誤認を強めた。
+    category: timeline
+    subject:
+      type: event
+      id: reflected-sighting
+    sources:
+      - type: character
+        id: matsuda
+        revealCondition: 松田に21時35分に顔まで確認したか、室内と廊下の明るさ、小野寺がどこにいたかを順に尋ねた。
+        requires:
+          revelations: []
+          evidences: [glass-lighting-test]
+      - type: character
+        id: asakura
+        revealCondition: 朝倉に閉館後の小野寺の服装を尋ね、犬塚と同型の白い上着を着ていたことを確認した。
+        requires:
+          revelations: []
+          evidences: [white-jacket-record]
+    relatedFacts: [white-jackets-similar, booth-dark-2130, glass-reflects-dark-booth, onodera-behind-matsuda-2135, figure-was-reflection]
+  - id: budget-report-motive
+    title: 翌朝の予算振替報告
+    text: 犬塚は小野寺による無断の展示予算振替を発見し、翌朝運営法人へ正式に報告する予定だった。
+    category: motive
+    subject:
+      type: character
+      id: onodera
+    sources:
+      - type: character
+        id: onodera
+        revealCondition: 小野寺に展示予算の振替と犬塚が翌朝予定していた報告について追及した。
+        requires:
+          revelations: [sighting-was-reflection]
+          evidences: [budget-report-draft]
+    relatedFacts: [exhibit-budget-found, budget-report-next-day]
+evidences:
+  - id: glass-lighting-test
+    label: 観察ガラスの照明条件テスト
+    description: 投影室を暗くして廊下を明るくすると、観察ガラスには室内より廊下側の人物が強く反射する。
+    reveal:
+      mode: conversation
+      condition: 松田か小野寺に投影室消灯時の観察ガラスの見え方を具体的に尋ねたら開示する。
+    sources:
+      - type: character
+        id: matsuda
+      - type: character
+        id: onodera
+    supports: [booth-dark-2130, glass-reflects-dark-booth, onodera-knew-reflection]
+    contradicts: ["lie:onodera-sighting-was-inuzuka"]
+  - id: white-jacket-record
+    label: 閉館作業時の白い上着
+    description: 犬塚だけでなく小野寺も同型の白い展示用上着を着ていたことが確認できる。
+    reveal:
+      mode: conversation
+      condition: 朝倉か松田に閉館作業中の小野寺と犬塚の服装を尋ねたら開示する。
+    sources:
+      - type: character
+        id: asakura
+      - type: character
+        id: matsuda
+    supports: [white-jackets-similar]
+    contradicts: []
+  - id: matsuda-position-memory
+    label: 松田の立ち位置の記憶
+    description: 松田は白い像を見た直後、数歩後ろにいた小野寺から返事を受けており、反射像の位置関係と一致する。
+    reveal:
+      mode: conversation
+      condition: 松田に21時35分の目撃時、小野寺がどこから返事をしたか詳しく尋ねたら開示する。
+    sources:
+      - type: character
+        id: matsuda
+    supports: [onodera-behind-matsuda-2135, figure-was-reflection]
+    contradicts: ["lie:onodera-not-behind-matsuda", "lie:onodera-sighting-was-inuzuka"]
+  - id: budget-report-draft
+    label: 運営法人への予算報告草案
+    description: 犬塚の端末に、小野寺による正式承認のない予算振替を翌朝報告する草案が残っている。
+    reveal:
+      mode: conversation
+      condition: 小野寺か朝倉に犬塚が翌朝運営法人へ提出予定だった報告について尋ねたら開示する。
+    sources:
+      - type: character
+        id: onodera
+      - type: character
+        id: asakura
+    supports: [exhibit-budget-found, budget-report-next-day]
+    contradicts: []
+  - id: skipped-projection-test
+    label: 省略された投影機器テスト
+    description: 松田が事前テストを一部省略していたことが分かるが、犬塚の死とは独立した隠し事である。
+    reveal:
+      mode: conversation
+      condition: 松田に点検表の未記入項目を追及したら開示する。
+    sources:
+      - type: character
+        id: matsuda
+    supports: [matsuda-hid-test-failure]
+    contradicts: ["lie:matsuda-full-test"]
+  - id: shop-stock-gap
+    label: 売店在庫の不足記録
+    description: 朝倉が在庫不足を自費補填して隠していたことが分かるが、投影準備室の事件とは無関係である。
+    reveal:
+      mode: conversation
+      condition: 朝倉に売店在庫と帳簿の差について尋ねたら開示する。
+    sources:
+      - type: character
+        id: asakura
+    supports: [asakura-hid-stock-loss]
+    contradicts: ["lie:asakura-stock-clean"]
+solution:
+  culprit: onodera
+  summary: 犯人は小野寺莉香。21時35分に松田が観察ガラスで見た白い人物像は、投影室内の犬塚ではなかった。投影室は機器点検で暗く、廊下側が明るかったため、ガラスには松田の数歩後ろにいた小野寺が反射していた。小野寺は犬塚と同型の白い展示用上着を着ており、松田は顔を確認せず犬塚だと思い込んだ。小野寺自身はガラスの反射条件を以前から知っていたうえ、松田のすぐ後ろにいたのに「館長はまだ中にいた」と誤認を補強している。犬塚は実際には21時24分ごろ小野寺に襲われていた。翌朝、犬塚は小野寺による無断の予算振替を運営法人へ報告する予定だった。
+  method: 暗い投影室の観察ガラスに廊下側の自分の姿が反射した目撃を訂正せず、同型の白い上着による誤認を犬塚の生存証明として利用した
+  motive: 無断で行った展示予算の振替を犬塚が翌朝運営法人へ報告する予定で、責任問題になることを恐れたため
+  requiredFacts: [white-jackets-similar, glass-reflects-dark-booth, onodera-behind-matsuda-2135, figure-was-reflection, onodera-knew-reflection, budget-report-next-day, onodera-killed-inuzuka]
+  secretKeywords:
+    - 犯人は小野寺
+    - 小野寺が犯人
+    - 小野寺が犬塚を襲
+    - 私が犬塚を襲
+    - 白い人物は小野寺の反射
+quality:
+  expectedQuestionCount:
+    min: 12
+    max: 24
+  requiredEvidence:
+    min: 3
+  redHerrings: [matsuda-hid-test-failure, asakura-hid-stock-loss]
+  notes: 目撃証言を「誰を見たか」ではなく「光学的にどちら側の像を見たか」へ分解する。小野寺が反射条件を知っていたことと、実際に松田の後ろにいたことを合わせて故意の利用を確定する。
