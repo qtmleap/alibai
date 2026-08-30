@@ -91,6 +91,15 @@ const askedAtKey = (characterId: string) => `asked-at:${characterId}`
 const topicsKey = (characterId: string) => `topics:${characterId}`
 
 /**
+ * 何かを引き出した話題の位置（往復の番号）。
+ *
+ * 並走する配列ではなく番号の一覧で持つ。長さを history と揃える必要が無いので、
+ * 「印を付ける」操作が末尾への追加だけで済み、既に記録された往復との位置合わせを
+ * 気にせずに済む。この機能より前のセッションでは空になり、どこにも印が付かない。
+ */
+const yieldsKey = (characterId: string) => `yields:${characterId}`
+
+/**
  * ModelMessage の content は文字列とは限らない（パーツの配列にもなる）。
  * このDOが積むのは自分で組み立てた文字列だけだが、型の上では両方あり得るので
  * 復元して返すときにここで均しておく。
@@ -113,6 +122,8 @@ export type HistoryExchange = {
    * セッションでは null になる。
    */
   topic: string | null
+  /** この話題が証拠や気づきを引き出したか。話題の先頭の往復にだけ意味がある。 */
+  yielded: boolean
 }
 
 export type CharacterHistory = {
@@ -279,6 +290,33 @@ export class PlaySession extends DurableObject<SessionBindings> {
     return stored === undefined ? [] : stored
   }
 
+  /** 何かを引き出した往復の番号。印の付いていないセッションでは空になる。 */
+  private async yieldList(characterId: string): Promise<number[]> {
+    const stored = await this.ctx.storage.get<number[]>(yieldsKey(characterId))
+
+    return stored === undefined ? [] : stored
+  }
+
+  /**
+   * その話題が証拠や気づきを引き出したことを記録する。
+   *
+   * 会話ログのどこが実りのある話題だったかを、開き直した後でも辿れるようにするための印。
+   * 発見そのものは discovered 側が持っていて、そちらから「どの話題で出たか」は引けない。
+   *
+   * round は話題が始まった往復の番号。話題を積む前の履歴の長さから決まるので、
+   * 呼び出し側が数えて渡す（ここで最後の話題を探しにいくと、同じNPCへ続けて
+   * 投げたときにどちらの話題か決められない）。
+   */
+  async markTopicYield(characterId: string, round: number): Promise<void> {
+    const yields = await this.yieldList(characterId)
+
+    if (yields.includes(round)) {
+      return
+    }
+
+    await this.ctx.storage.put(yieldsKey(characterId), [...yields, round])
+  }
+
   /**
    * 画面を復元するための、NPCごとの会話。
    *
@@ -295,9 +333,10 @@ export class PlaySession extends DurableObject<SessionBindings> {
     return await Promise.all(
       characterIds.map(async (characterId) => {
         const messages = await this.getHistory(characterId)
-        const [times, topics] = await Promise.all([
+        const [times, topics, yields] = await Promise.all([
           this.askedAtList(characterId),
           this.topicList(characterId),
+          this.yieldList(characterId),
         ])
         const exchanges = messages.flatMap((message, index) => {
           if (message.role !== 'user') {
@@ -315,6 +354,7 @@ export class PlaySession extends DurableObject<SessionBindings> {
               answer: answer === undefined ? '' : textOf(answer.content),
               askedAt: recorded === undefined ? meta.startedAt + round * 1000 : recorded,
               topic: topic === undefined ? null : topic,
+              yielded: yields.includes(round),
             },
           ]
         })
