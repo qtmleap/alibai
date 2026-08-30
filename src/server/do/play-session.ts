@@ -1,6 +1,7 @@
 import { DurableObject } from 'cloudflare:workers'
 import type { ModelMessage } from 'ai'
 import { type DiscoveryState, mergeJudgementDiscoveryState } from '@/server/game/discovery-state'
+import type { SessionLimits } from '@/shared/turns'
 import type { Detective } from '~/db/schema'
 
 /**
@@ -38,6 +39,14 @@ export type SessionSnapshot = {
   finished: boolean
   /** 開始からの経過秒。呼び出し側が毎回計算しなくて済むように DO 側で出す */
   elapsedSeconds: number
+  /**
+   * このセッションの進行上限。開始時に決めて以降は動かさない。
+   *
+   * undefined なのは**この機能より前に始まったセッション**で、呼び出し側は env の値へ
+   * 落とす（`db/game-mode.ts` の `gameModeOf` が NULL を nohope に写すのと同じ考え方）。
+   * 既定値で埋め戻すと、進行中のセッションの残りターン数が突然変わる。
+   */
+  limits: SessionLimits | undefined
 }
 
 type Meta = {
@@ -54,6 +63,14 @@ type Meta = {
    * 「二度目以降は finished: true をそのまま返す」の冪等性が値レベルで崩れる。
    */
   finishedAt: number | undefined
+  /**
+   * 進行上限。途中で変えさせないためにここへ固定する。
+   *
+   * ターンは DO が持つ質問回数から逆算する（`src/shared/turns.ts`）ので、
+   * questionsPerTurn が途中で変わると過去の質問の解釈まで変わり、
+   * ターン番号が飛んだり exhausted が戻ったりする。
+   */
+  limits: SessionLimits | undefined
 }
 
 const META_KEY = 'meta'
@@ -141,6 +158,7 @@ export class PlaySession extends DurableObject<SessionBindings> {
       accusationCorrect: undefined,
       finished: false,
       finishedAt: undefined,
+      limits: undefined,
     }
     await this.ctx.storage.put(META_KEY, fresh)
 
@@ -188,7 +206,24 @@ export class PlaySession extends DurableObject<SessionBindings> {
       accusationCorrect: meta.accusationCorrect,
       finished: meta.finished,
       elapsedSeconds: Math.floor((elapsedUntil - meta.startedAt) / 1000),
+      limits: meta.limits,
     }
+  }
+
+  /**
+   * 進行上限を確定させる。セッション開始時に一度だけ呼ぶ。
+   *
+   * 既に入っていたら書き換えない。ask のたびに送られてくる値で上書きできると、
+   * 途中で上限を吊り上げられてしまい、固定した意味が無くなる。
+   */
+  async setLimits(limits: SessionLimits): Promise<void> {
+    const meta = await this.meta()
+
+    if (meta.limits !== undefined) {
+      return
+    }
+
+    await this.ctx.storage.put(META_KEY, { ...meta, limits })
   }
 
   /**

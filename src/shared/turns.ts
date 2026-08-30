@@ -35,6 +35,76 @@
  */
 export const EXCHANGES_PER_TOPIC = 3
 
+/**
+ * プレイヤーが設定画面から動かせる進行の数値と、その上限。
+ *
+ * 上限が要るのは、この3つの積が**1プレイのコストの唯一の天井**だから。
+ * 1回の話題で最大 `2 × exchangesPerTopic + 1` 回モデルを呼ぶので、
+ * 3つとも自由に上げられると天井そのものが消える。
+ *
+ * 積の上限を別に持つのは、`maxTurns` と `questionsPerTurn` を両方上限まで上げられると
+ * 質問回数が 30 まで伸びるため。10分で遊ぶゲームとして、そこまでは要らない。
+ */
+export const LIMIT_CEILINGS = {
+  maxTurns: 10,
+  questionsPerTurn: 3,
+  exchangesPerTopic: 5,
+  /** maxTurns × questionsPerTurn の上限。 */
+  totalQuestions: 20,
+}
+
+export type SessionLimits = {
+  maxTurns: number
+  questionsPerTurn: number
+  exchangesPerTopic: number
+}
+
+/**
+ * 受け取った希望を、遊べる範囲へ収める。
+ *
+ * 範囲外をエラーにせず切り詰めるのは、古い設定が localStorage に残っているだけの
+ * プレイヤーを事件の途中で締め出さないため。積の上限に当たったときに削るのは
+ * `questionsPerTurn` のほう——ターン数を削るとゲームの見た目の長さが変わってしまう。
+ */
+export const clampLimits = (
+  wanted: Partial<SessionLimits>,
+  fallback: SessionLimits,
+): SessionLimits => {
+  const pick = (value: number | undefined, ceiling: number, base: number): number =>
+    value === undefined || !Number.isFinite(value)
+      ? Math.min(base, ceiling)
+      : Math.min(Math.max(1, Math.floor(value)), ceiling)
+
+  const maxTurns = pick(wanted.maxTurns, LIMIT_CEILINGS.maxTurns, fallback.maxTurns)
+  const wantedPerTurn = pick(
+    wanted.questionsPerTurn,
+    LIMIT_CEILINGS.questionsPerTurn,
+    fallback.questionsPerTurn,
+  )
+
+  return {
+    maxTurns,
+    questionsPerTurn: Math.max(
+      1,
+      Math.min(wantedPerTurn, Math.floor(LIMIT_CEILINGS.totalQuestions / maxTurns)),
+    ),
+    exchangesPerTopic: pick(
+      wanted.exchangesPerTopic,
+      LIMIT_CEILINGS.exchangesPerTopic,
+      fallback.exchangesPerTopic,
+    ),
+  }
+}
+
+/**
+ * 1つの話題を処理するのに走るモデル呼び出しの回数。
+ *
+ * 往復ごとに「質問を組み立てる」と「NPCが答える」の2回、最後に判定が1回。
+ * レート制限をこの重みで消費させることで、往復数を増やしたプレイヤーが
+ * 同じ予算をその分速く使い切るようになる。
+ */
+export const modelCallsPerTopic = (exchangesPerTopic: number): number => 2 * exchangesPerTopic + 1
+
 export type TurnState = {
   /** 何ターン目か。1始まり。使い切ったあとは最終ターンの番号で止まる。 */
   turn: number

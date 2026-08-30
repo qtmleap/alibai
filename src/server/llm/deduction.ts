@@ -1,7 +1,7 @@
 import { generateObject, type LanguageModelUsage, type ProviderMetadata } from 'ai'
 import { z } from 'zod'
 import type { Env } from '@/server/env'
-import { resolveModel } from '@/server/llm/provider'
+import { type LlmChoice, resolveModel } from '@/server/llm/provider'
 
 /**
  * 推理の採点結果。構造化出力なのでパース失敗を考えなくてよい。
@@ -44,6 +44,8 @@ export type DeductionGradeResult = {
 export type GradeDeductionInput = {
   /** リクエストスコープで検証済みの設定。 */
   env: Env
+  /** この呼び出しで使う組み合わせ。役割から引き直さず、呼び出し側が決めた値を使う。 */
+  choice: LlmChoice
   truth: DeductionTruth
   submission: DeductionSubmission
 }
@@ -81,13 +83,14 @@ const rubricOf = (truth: DeductionTruth): string =>
 /**
  * プレイヤーの推理を採点する。
  *
- * judge と役割を分けず resolveModel(env, 'judge') に相乗りしているのは、
+ * judge と役割を分けず 'judge' の choice に相乗りしているのは、
  * LlmRole を増やすと env と wrangler vars に設定列が生えるため。
  * 求めている性質（構造化出力・安価・高速）が judge とまったく同じなので、
  * 設定を分ける実益がない。
  */
 export const gradeDeduction = async ({
   env,
+  choice,
   truth,
   submission,
 }: GradeDeductionInput): Promise<DeductionGradeResult> => {
@@ -101,7 +104,7 @@ export const gradeDeduction = async ({
   ].join('\n')
 
   const result = await generateObject({
-    model: resolveModel(env, 'judge'),
+    model: resolveModel(env, choice),
     schema: deductionGradeSchema,
     system: rubricOf(truth),
     messages: [{ role: 'user', content: answer }],

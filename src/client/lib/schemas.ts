@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { detectiveSchema } from '~/db/detective'
 import { floorPlanSchema } from '~/db/floor-plan'
 import { gameModeSchema, hintSchema } from '~/db/game-mode'
+import { llmProviderSchema, settableLlmRoleSchema } from '~/db/llm-catalog'
 
 /**
  * サーバのレスポンスは fetch の時点では unknown。
@@ -175,6 +176,38 @@ export const sessionHistorySchema = z.object({
   ),
 })
 
+/**
+ * 設定画面が選択肢を組み立てるための材料（GET /api/settings/llm）。
+ *
+ * available はキーが設定されているかの真偽値だけ。鍵も、その長さも、
+ * ゲートウェイの向き先も返ってこない。
+ */
+const limitBoundSchema = z.object({ value: z.int().positive().optional(), max: z.int().positive() })
+
+export const llmSettingsResponseSchema = z.object({
+  providers: z.array(
+    z.object({
+      id: llmProviderSchema,
+      label: z.string().nonempty(),
+      available: z.boolean(),
+      models: z.array(z.object({ id: z.string().nonempty(), label: z.string().nonempty() })),
+    }),
+  ),
+  roles: z.array(
+    z.object({
+      id: settableLlmRoleSchema,
+      label: z.string().nonempty(),
+      note: z.string().nonempty(),
+    }),
+  ),
+  limits: z.object({
+    maxTurns: limitBoundSchema,
+    questionsPerTurn: limitBoundSchema,
+    exchangesPerTopic: limitBoundSchema,
+    totalQuestions: limitBoundSchema,
+  }),
+})
+
 /** 400/404/429/500 共通のエラーボディ。429 だけ resetAt (epoch ms) を持つ。 */
 export const apiErrorSchema = z.object({
   error: z.string().nonempty(),
@@ -195,3 +228,11 @@ export type Judgement = z.infer<typeof judgementSchema>
 export type AccuseResult = z.infer<typeof accuseResultSchema>
 export type SessionHistory = z.infer<typeof sessionHistorySchema>
 export type { GameMode, Hint, SubjectCount } from '~/db/game-mode'
+export type LlmSettingsResponse = z.infer<typeof llmSettingsResponseSchema>
+// 選択肢の正典は db/llm-catalog.ts。ここで並べ直すと画面とAPIの受け入れ値がずれる。
+export {
+  LLM_CATALOG,
+  LLM_PROVIDER_LABELS,
+  type LlmProvider,
+  type SettableLlmRole,
+} from '~/db/llm-catalog'

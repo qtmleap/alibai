@@ -4,6 +4,12 @@ import { createOpenAI } from '@ai-sdk/openai'
 import type { ProviderOptions } from '@ai-sdk/provider-utils'
 import type { LanguageModel } from 'ai'
 import type { Env } from '@/server/env'
+import {
+  isKnownModel,
+  LLM_DEFAULT_MODELS,
+  type LlmOverride,
+  type LlmProvider,
+} from '~/db/llm-catalog'
 
 /**
  * AlibAIはLLMを「役割」で使い分ける。
@@ -14,35 +20,18 @@ import type { Env } from '@/server/env'
  *
  * 役割ごとに別プロバイダを選べる。actorはClaude、judgeはGeminiのFlash系、
  * みたいな混成構成も設定だけで組める。
+ *
+ * このモジュールは「役割 → 使う値を決める」（chooseLlm）と「値 → SDKクライアント」
+ * （resolveModel / cacheHint）に分かれている。分けてあるのは、プレイヤーが画面から
+ * モデルを差し替えられるようにしたときに、決定を**リクエストごとに一度だけ**行って
+ * 以降は同じ値を配り回すため。役割から二度引くと、片方だけ差し替わって食い違う。
  */
 export type LlmRole = 'actor' | 'judge' | 'author'
-export type LlmProvider = 'anthropic' | 'openai' | 'google'
 
-/**
- * 役割 × プロバイダ の既定モデル。
- *
- * NOTE: モデルIDと料金は各社とも改定が速い。ここは「既定値」であって
- *       正典ではないので、採用前に必ず各社の公式ドキュメントで確認すること。
- */
-const DEFAULT_MODELS: Record<LlmProvider, Record<LlmRole, string>> = {
-  anthropic: {
-    actor: 'claude-sonnet-5',
-    judge: 'claude-haiku-4-5',
-    author: 'claude-opus-5',
-  },
-  openai: {
-    actor: 'gpt-5.6-terra',
-    judge: 'gpt-5.6-luna',
-    author: 'gpt-5.6-sol',
-  },
-  google: {
-    actor: 'gemini-3.5-flash',
-    judge: 'gemini-3.1-flash-lite',
-    // pro 系は preview 付きのIDでしか公開されていない（`gemini-3.1-pro` は存在しない）。
-    // models API で実在を確認した上でこの値にしてある。
-    author: 'gemini-3.1-pro-preview',
-  },
-}
+export type { LlmProvider }
+
+/** 一度決めた結果。これを配り回す。 */
+export type LlmChoice = { provider: LlmProvider; modelId: string }
 
 /**
  * 役割ごとの設定を env から引く。
@@ -51,7 +40,10 @@ const DEFAULT_MODELS: Record<LlmProvider, Record<LlmRole, string>> = {
  * モジュールのトップレベルで env を読んだりクライアントを組み立てたりすると、
  * デプロイした瞬間に起動しなくなる。だから全部リクエストスコープに降ろす。
  */
-const configOf = (env: Env, role: LlmRole): { provider: LlmProvider; model?: string } => {
+const configOf = (
+  env: Env,
+  role: LlmRole,
+): { provider: LlmProvider; model: string | undefined } => {
   switch (role) {
     case 'actor':
       return { provider: env.LLM_ACTOR_PROVIDER, model: env.LLM_ACTOR_MODEL }
@@ -62,10 +54,26 @@ const configOf = (env: Env, role: LlmRole): { provider: LlmProvider; model?: str
   }
 }
 
-export const providerOf = (env: Env, role: LlmRole): LlmProvider => configOf(env, role).provider
+const apiKeyOf = (env: Env, provider: LlmProvider): string | undefined => {
+  switch (provider) {
+    case 'anthropic':
+      return env.ANTHROPIC_API_KEY
+    case 'openai':
+      return env.OPENAI_API_KEY
+    case 'google':
+      return env.GOOGLE_GENERATIVE_AI_API_KEY
+  }
+}
+
+/** 設定画面が「選ばせてよいプロバイダ」を出すのに使う。鍵そのものは決して外へ出さない。 */
+export const hasApiKey = (env: Env, provider: LlmProvider): boolean =>
+  apiKeyOf(env, provider) !== undefined
 
 /**
  * ゲートウェイを挟む場合の向き先。未設定なら undefined を返し、各SDKの既定に任せる。
+ *
+ * ここはクライアントから差し替えられない。公開された画面から向き先を変えられると、
+ * 攻撃者が自分のサーバを指定するだけで、Worker がそこへ API キーを添えて送ってしまう。
  */
 const baseUrlOf = (env: Env, provider: LlmProvider): string | undefined => {
   switch (provider) {
@@ -79,23 +87,52 @@ const baseUrlOf = (env: Env, provider: LlmProvider): string | undefined => {
 }
 
 /**
+ * どのプロバイダのどのモデルを使うかを決める。リクエストごとに一度だけ呼ぶ。
+ *
+ * 優先順位は override → env → 既定表。ただし override は次の2つの場合に黙って捨てる。
+ * どちらも 400 にはしない——localStorage に古い設定が残っているだけのプレイヤーを、
+ * 事件の途中で締め出すことになるため。
+ *
+ *   - 指定されたプロバイダの API キーが設定されていない
+ *     （通すと、応答を流し始めてから SDK の中で落ちる。一番後味の悪い壊れ方）
+ *   - 指定されたモデルIDが `db/llm-catalog.ts` の表に無い
+ *
+ * provider が override で変わったときに env のモデルIDを引き継がないのが要点。
+ * `LLM_ACTOR_MODEL` は別のプロバイダ向けの値なので、openai に `claude-sonnet-5` を
+ * 投げることになる。プロバイダが変わったら、モデルは必ず既定表から引き直す。
+ */
+export const chooseLlm = (env: Env, role: LlmRole, override?: LlmOverride): LlmChoice => {
+  const config = configOf(env, role)
+  const wanted = override?.provider
+  const provider = wanted !== undefined && hasApiKey(env, wanted) ? wanted : config.provider
+
+  const fromEnv = provider === config.provider ? config.model : undefined
+  const requested = override?.model
+  const modelId =
+    requested !== undefined && isKnownModel(provider, requested)
+      ? requested
+      : fromEnv === undefined
+        ? LLM_DEFAULT_MODELS[provider][role]
+        : fromEnv
+
+  return { provider, modelId }
+}
+
+/**
  * プロバイダのクライアントはただのファクトリなので、リクエストごとに作っても実質コストはない。
  * isolate をまたいで使い回そうとするより、毎回作るほうが安全で読みやすい。
  */
-export const resolveModel = (env: Env, role: LlmRole): LanguageModel => {
-  const config = configOf(env, role)
-  const modelId = config.model === undefined ? DEFAULT_MODELS[config.provider][role] : config.model
-  const baseURL = baseUrlOf(env, config.provider)
+export const resolveModel = (env: Env, choice: LlmChoice): LanguageModel => {
+  const baseURL = baseUrlOf(env, choice.provider)
+  const apiKey = apiKeyOf(env, choice.provider)
 
-  switch (config.provider) {
+  switch (choice.provider) {
     case 'anthropic':
-      return createAnthropic({ apiKey: env.ANTHROPIC_API_KEY, baseURL })(modelId)
+      return createAnthropic({ apiKey, baseURL })(choice.modelId)
     case 'openai':
-      return createOpenAI({ apiKey: env.OPENAI_API_KEY, baseURL })(modelId)
+      return createOpenAI({ apiKey, baseURL })(choice.modelId)
     case 'google':
-      return createGoogleGenerativeAI({ apiKey: env.GOOGLE_GENERATIVE_AI_API_KEY, baseURL })(
-        modelId,
-      )
+      return createGoogleGenerativeAI({ apiKey, baseURL })(choice.modelId)
   }
 }
 
@@ -108,8 +145,10 @@ export const resolveModel = (env: Env, role: LlmRole): LanguageModel => {
  *
  * 「Anthropicだけ明示が要る」ので、ここを抽象化の裏に隠すと
  * プロバイダを切り替えた瞬間にコストが跳ねる。だから関数として表に出す。
+ *
+ * 引数が env と role ではなく決定済みの choice なのは意図的。役割から引き直せる形だと、
+ * resolveModel だけ差し替えたときに「actor は openai なのに anthropic のキャッシュ指定が
+ * 付く」というズレが起こせてしまう。材料が手元に無ければ、そのズレは型で書けない。
  */
-export const cacheHint = (env: Env, role: LlmRole): ProviderOptions =>
-  providerOf(env, role) === 'anthropic'
-    ? { anthropic: { cacheControl: { type: 'ephemeral' } } }
-    : {}
+export const cacheHint = (choice: LlmChoice): ProviderOptions =>
+  choice.provider === 'anthropic' ? { anthropic: { cacheControl: { type: 'ephemeral' } } } : {}
