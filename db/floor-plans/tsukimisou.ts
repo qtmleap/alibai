@@ -107,27 +107,29 @@ export const TSUKIMISOU_PLAN: FloorPlanInput = {
       h: 20,
       doors: [
         { wall: 'north', offset: 10, width: 4.5 },
-        { wall: 'south', offset: 8, width: 4.5, swing: 'out' },
+        { wall: 'south', offset: 4, width: 4.5, swing: 'out' },
       ],
       windows: [{ wall: 'east', offset: 6, width: 8 }],
     },
     {
       // 母屋から離れて建つ小屋。屋外の範囲ではなく壁のある構造物として描く。
+      // 玄関の正面には置かない。人目に付く所にあると、深川が電話のために
+      // 抜け出したことを誰も見ていない、という筋が通らなくなる。
       id: 'phone',
       label: '電話ボックス',
-      x: 8,
+      x: 84,
       y: 59,
       w: 12,
       h: 10,
       note: '建物の外',
-      doors: [{ wall: 'north', offset: 3, width: 4, swing: 'out' }],
+      doors: [{ wall: 'west', offset: 3, width: 4, swing: 'out' }],
     },
     {
       id: 'garden',
       label: '裏庭の薬草園',
       x: 26,
       y: 59,
-      w: 70,
+      w: 52,
       h: 10,
       note: '旅館の裏手',
       kind: 'outdoor',
