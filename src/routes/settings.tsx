@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { SettingsScreen } from '@/client/screens/SettingsScreen'
 
 /**
@@ -9,5 +9,11 @@ import { SettingsScreen } from '@/client/screens/SettingsScreen'
  */
 export const Route = createFileRoute('/settings')({
   ssr: false,
-  component: SettingsScreen,
+  component: Settings,
 })
+
+function Settings() {
+  const navigate = useNavigate()
+
+  return <SettingsScreen onBack={() => navigate({ to: '/' })} />
+}

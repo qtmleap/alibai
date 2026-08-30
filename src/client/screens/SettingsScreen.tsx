@@ -1,4 +1,3 @@
-import { Link } from '@tanstack/react-router'
 import { useEffect, useId, useState } from 'react'
 import { Input } from '@/client/components/ui/input'
 import {
@@ -43,9 +42,11 @@ const UNSET = '__unset__'
 type Props = {
   /** 差し替え可能にしてあるのは、通信を伴わずに画面を確かめられるようにするため。 */
   load?: () => Promise<LlmSettingsResponse>
+  /** 戻り先はルートが決める。他の画面と同じく、ここは表示に専念する。 */
+  onBack: () => void
 }
 
-export const SettingsScreen = ({ load = fetchLlmSettings }: Props) => {
+export const SettingsScreen = ({ load = fetchLlmSettings, onBack }: Props) => {
   const [settings, setSettings] = useState<Settings>(loadSettings)
   const [catalog, setCatalog] = useState<LlmSettingsResponse | undefined>(undefined)
   const [failed, setFailed] = useState(false)
@@ -76,9 +77,9 @@ export const SettingsScreen = ({ load = fetchLlmSettings }: Props) => {
   return (
     <div className="screen-enter mx-auto flex min-h-dvh max-w-md flex-col gap-[18px] bg-sumi px-5 py-6 text-kinari">
       <header>
-        <Link to="/" className={LEGEND}>
+        <button type="button" onClick={onBack} className={LEGEND}>
           ← 事件を選ぶ
-        </Link>
+        </button>
         <h1 className="pt-4 font-bold font-mincho text-xl tracking-[0.14em]">設定</h1>
         <p className="pt-1.5 text-[10.5px] text-nezumi-dim leading-[1.7]">
           この端末にだけ保存されます。サーバには残らず、あなたのプレイにだけ効きます。
@@ -171,7 +172,8 @@ const Budget = ({ settings, max }: { settings: Settings; max: number }) => (
       全部で{settings.limits.maxTurns * settings.limits.questionsPerTurn}問
     </b>
     （上限{max}問）。
-    <br />1 話題ごとに、モデルを
+    <br />
+    1話題ごとに、モデルを
     <b className="font-medium text-kinari">
       {modelCallsPerTopic(settings.limits.exchangesPerTopic)}回
     </b>

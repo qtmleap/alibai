@@ -80,7 +80,7 @@ export const ScenarioSelectScreen = ({ scenarios, onSelect }: Props) => {
         一覧は読み物ではないので、行ごとに行間を締める。
       */}
       <ul className="flex flex-col border-keisen border-t">
-        {scenarios.map((scenario) => (
+        {scenarios.map((scenario, index) => (
           <li key={scenario.id} className="border-keisen border-b">
             <button
               type="button"
@@ -88,11 +88,16 @@ export const ScenarioSelectScreen = ({ scenarios, onSelect }: Props) => {
               disabled={loadingId !== undefined}
               className="flex w-full flex-col gap-[3px] py-[9px] text-left disabled:opacity-40"
             >
-              {scenario.category.length > 0 && (
-                <span className="text-[10px] text-nezumi-dim leading-[1.4] tracking-[0.16em]">
-                  {scenario.category}
-                </span>
-              )}
+              {/*
+                同じ分類が続くあいだは繰り返さない。3行続けて「殺人」と書いても
+                読み手が得るものは無く、題字の手前で毎回目が止まるだけ。
+              */}
+              {scenario.category.length > 0 &&
+                scenarios[index - 1]?.category !== scenario.category && (
+                  <span className="text-[10px] text-nezumi-dim leading-[1.4] tracking-[0.16em]">
+                    {scenario.category}
+                  </span>
+                )}
               <span className="font-medium font-mincho text-base leading-[1.5] tracking-[0.03em]">
                 {scenario.title}
               </span>
