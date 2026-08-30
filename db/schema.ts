@@ -11,7 +11,8 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core'
 import type { Detective } from './detective'
-import type { FloorPlan } from './floor-plan'
+import type { FloorPlanInput } from './floor-plan'
+import type { ScenarioEvidenceSource, ScenarioRevelationSource } from './scenario-definition'
 
 /**
  * プレイヤーが演じる探偵の形と検証は db/detective.ts が正典。
@@ -22,7 +23,7 @@ export type { Detective } from './detective'
  * 見取り図の形と検証は db/floor-plan.ts が正典。
  * ここでは列に型を付けるためだけに読み込み、定義は持たない。
  */
-export type { FloorPlan, Room } from './floor-plan'
+export type { FloorPlan, FloorPlanInput, Room } from './floor-plan'
 
 /**
  * 公開されるシナリオのメタ情報。クライアントに返してよい範囲。
@@ -36,8 +37,11 @@ export const scenarios = pgTable('scenarios', {
   /**
    * 事件現場の見取り図。UI が SVG で描くための論理座標。
    * 地図を持たないシナリオもあるので nullable。
+   *
+   * 入力側の型を当てるのは、既に保存されている行に扉や部屋の種別が無いから。
+   * 描く前に parseFloorPlan を通して既定値を埋める（src/server/read/scenarios.ts）。
    */
-  floorPlan: jsonb('floor_plan').$type<FloorPlan>(),
+  floorPlan: jsonb('floor_plan').$type<FloorPlanInput>(),
   /** シナリオの傾向。一覧でタイトルの横に出す短いラベル。 */
   category: text('category').notNull().default(''),
   authorId: uuid('author_id'),
@@ -98,8 +102,36 @@ export const evidences = pgTable(
     label: text('label').notNull(),
     /** Judgeがこの証拠の開示を判定するための条件文 */
     revealCondition: text('reveal_condition').notNull(),
+    /**
+     * どこから／誰から得られるか。難易度モードの「あと N 件」を数えるのに使う。
+     * 空の証拠は内訳には出ないが、残りの総数には数える。
+     */
+    sources: jsonb('sources').$type<ScenarioEvidenceSource[]>().notNull().default([]),
   },
   (table) => [index('evidences_scenario_id_idx').on(table.scenarioId)],
+)
+
+export const revelations = pgTable(
+  'revelations',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    scenarioId: uuid('scenario_id')
+      .notNull()
+      .references(() => scenarios.id, { onDelete: 'cascade' }),
+    title: text('title').notNull(),
+    text: text('text').notNull(),
+    category: text('category').notNull(),
+    subjectType: text('subject_type').notNull(),
+    subjectId: text('subject_id').notNull(),
+    /**
+     * 解禁経路。character / location のどちらから到達できるか、前提情報と条件文を持つ。
+     * Authoring時のローカルIDはコンパイル時にランタイムIDへ置換して保存する。
+     */
+    sources: jsonb('sources').$type<ScenarioRevelationSource[]>().notNull(),
+    /** Authoring / 検証用。ランタイムのカード表示には使わないが、再編集時に失わない。 */
+    relatedFacts: text('related_facts').array().notNull(),
+  },
+  (table) => [index('revelations_scenario_id_idx').on(table.scenarioId)],
 )
 
 export const playSessions = pgTable(
@@ -116,6 +148,14 @@ export const playSessions = pgTable(
      * セッション開始時に決まったら以降は変えない。名乗らずに始めた場合は null。
      */
     detective: jsonb('detective').$type<Detective>(),
+    /**
+     * 難易度モード。未発見の情報をどこまで教えるかだけを決める（db/game-mode.ts が正典）。
+     *
+     * nullable なのは、この列より前に作られたセッションを既定値で埋め戻さないため。
+     * それらは実際にヒント無しで進行していたので、読むときは gameModeOf が nohope に写す。
+     * 既定値で埋めると、進行中のセッションに突然ヒントが生えることになる。
+     */
+    mode: text('mode'),
     startedAt: timestamp('started_at', { withTimezone: true }).notNull().defaultNow(),
     finishedAt: timestamp('finished_at', { withTimezone: true }),
   },
@@ -168,6 +208,23 @@ export const discoveries = pgTable(
     primaryKey({ columns: [table.sessionId, table.evidenceId] }),
     // sessionId は主キーの先頭なので索引は要らない。evidenceId は自前で張る。
     index('discoveries_evidence_id_idx').on(table.evidenceId),
+  ],
+)
+
+export const revelationDiscoveries = pgTable(
+  'revelation_discoveries',
+  {
+    sessionId: uuid('session_id')
+      .notNull()
+      .references(() => playSessions.id, { onDelete: 'cascade' }),
+    revelationId: uuid('revelation_id')
+      .notNull()
+      .references(() => revelations.id, { onDelete: 'cascade' }),
+    discoveredAt: timestamp('discovered_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.sessionId, table.revelationId] }),
+    index('revelation_discoveries_revelation_id_idx').on(table.revelationId),
   ],
 )
 

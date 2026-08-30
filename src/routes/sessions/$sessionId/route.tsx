@@ -35,6 +35,8 @@ function PlaySession() {
   const interrogation = useInterrogation({
     conversations,
     discoveries: state.discoveries,
+    revelations: state.revelations,
+    hint: state.hint,
     questionCount: state.questionCount,
     turn: state.turn,
   })

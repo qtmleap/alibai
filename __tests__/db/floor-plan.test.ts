@@ -1,16 +1,43 @@
 import { describe, expect, test } from 'bun:test'
-import { floorPlanSchema, overlaps, validateFloorPlan } from '~/db/floor-plan'
+import {
+  type Door,
+  type FloorPlan,
+  floorPlanSchema,
+  type Opening,
+  overlaps,
+  parseFloorPlan,
+  type Room,
+  validateFloorPlan,
+  type WallSide,
+} from '~/db/floor-plan'
 
-const room = (id: string, x: number, y: number, w: number, h: number) => ({
+const room = (id: string, x: number, y: number, w: number, h: number): Room => ({
   id,
   label: id,
   x,
   y,
   w,
   h,
+  kind: 'normal',
+  doors: [],
+  windows: [],
 })
 
-const plan = (rooms: ReturnType<typeof room>[]) => ({ width: 100, height: 70, rooms })
+const plan = (rooms: Room[]): FloorPlan => ({ width: 100, height: 70, north: 'up', rooms })
+
+const doorOn = (wall: WallSide, offset: number, width: number): Door => ({
+  wall,
+  offset,
+  width,
+  swing: 'in',
+  hinge: 'start',
+})
+
+const windowOn = (wall: WallSide, offset: number, width: number): Opening => ({
+  wall,
+  offset,
+  width,
+})
 
 describe('overlaps', () => {
   test('重なっていれば true', () => {
@@ -77,6 +104,59 @@ describe('validateFloorPlan', () => {
   })
 })
 
+describe('validateFloorPlan（扉と窓）', () => {
+  test('壁の長さを超える扉を検出する', () => {
+    // 幅40の南壁に、36の位置から幅10の扉。6だけ壁からはみ出す。
+    const target = { ...room('a', 0, 0, 40, 30), doors: [doorOn('south', 36, 10)] }
+    const issues = validateFloorPlan(plan([target]))
+
+    expect(issues.some((issue) => issue.kind === 'opening-out-of-wall')).toBe(true)
+  })
+
+  test('東西の壁は高さで測る（幅と取り違えない）', () => {
+    // 幅40・高さ30の部屋。東壁の長さは30なので、25から幅10は入らない。
+    const target = { ...room('a', 0, 0, 40, 30), doors: [doorOn('east', 25, 10)] }
+    const issues = validateFloorPlan(plan([target]))
+
+    expect(issues.some((issue) => issue.kind === 'opening-out-of-wall')).toBe(true)
+  })
+
+  test('壁にちょうど収まる扉は通す', () => {
+    const target = { ...room('a', 0, 0, 40, 30), doors: [doorOn('south', 30, 10)] }
+
+    expect(validateFloorPlan(plan([target]))).toEqual([])
+  })
+
+  test('同じ壁で扉と窓が食い合っていれば検出する', () => {
+    const target = {
+      ...room('a', 0, 0, 40, 30),
+      doors: [doorOn('north', 5, 10)],
+      windows: [windowOn('north', 12, 8)],
+    }
+    const issues = validateFloorPlan(plan([target]))
+
+    expect(issues.some((issue) => issue.kind === 'opening-overlap')).toBe(true)
+  })
+
+  test('隣り合うだけの開口は重なりではない', () => {
+    const target = {
+      ...room('a', 0, 0, 40, 30),
+      doors: [doorOn('north', 5, 10), doorOn('north', 15, 10)],
+    }
+
+    expect(validateFloorPlan(plan([target]))).toEqual([])
+  })
+
+  test('壁が違えば位置が同じでも重ならない', () => {
+    const target = {
+      ...room('a', 0, 0, 40, 30),
+      doors: [doorOn('north', 5, 10), doorOn('south', 5, 10)],
+    }
+
+    expect(validateFloorPlan(plan([target]))).toEqual([])
+  })
+})
+
 describe('floorPlanSchema', () => {
   test('幅や高さが0以下なら弾く', () => {
     expect(floorPlanSchema.safeParse({ width: 0, height: 70, rooms: [] }).success).toBe(false)
@@ -96,5 +176,63 @@ describe('floorPlanSchema', () => {
     })
 
     expect(result.success).toBe(false)
+  })
+})
+
+describe('parseFloorPlan', () => {
+  /**
+   * 扉・窓・種別・方位は後から足した項目。先に保存された図面にはこれらが無い。
+   * 古い行を捨てずに読めることが、この関数のいちばんの仕事。
+   */
+  test('扉も種別も方位も持たない古い図面が、既定値付きで読める', () => {
+    const stored = {
+      width: 100,
+      height: 70,
+      rooms: [{ id: 'study', label: '書斎', x: 0, y: 0, w: 30, h: 22 }],
+    }
+
+    const parsed = parseFloorPlan(stored)
+
+    expect(parsed?.north).toBe('up')
+    expect(parsed?.rooms[0]?.kind).toBe('normal')
+    expect(parsed?.rooms[0]?.doors).toEqual([])
+    expect(parsed?.rooms[0]?.windows).toEqual([])
+  })
+
+  test('古い図面の部屋名と注記はそのまま残る', () => {
+    const parsed = parseFloorPlan({
+      width: 100,
+      height: 70,
+      rooms: [{ id: 'study', label: '書斎', x: 0, y: 0, w: 30, h: 22, note: '涼子が倒れていた' }],
+    })
+
+    expect(parsed?.rooms[0]?.label).toBe('書斎')
+    expect(parsed?.rooms[0]?.note).toBe('涼子が倒れていた')
+  })
+
+  test('扉の swing と hinge にも既定値が入る', () => {
+    const parsed = parseFloorPlan({
+      width: 100,
+      height: 70,
+      rooms: [
+        {
+          id: 'study',
+          label: '書斎',
+          x: 0,
+          y: 0,
+          w: 30,
+          h: 22,
+          doors: [{ wall: 'south', offset: 10, width: 6 }],
+        },
+      ],
+    })
+
+    expect(parsed?.rooms[0]?.doors[0]?.swing).toBe('in')
+    expect(parsed?.rooms[0]?.doors[0]?.hinge).toBe('start')
+  })
+
+  test('図面として読めない値は undefined', () => {
+    expect(parseFloorPlan(null)).toBeUndefined()
+    expect(parseFloorPlan({ width: 100 })).toBeUndefined()
   })
 })

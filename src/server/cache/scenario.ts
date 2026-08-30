@@ -1,6 +1,13 @@
 import { count, eq } from 'drizzle-orm'
 import type { Db } from '@/server/db/client'
-import { characters, evidences, scenarios } from '~/db/schema'
+import type { HintItem } from '@/server/game/hints'
+import {
+  eligibleRevelationCandidates,
+  type RevelationCandidate,
+  type RevelationEligibilityContext,
+  type RevelationRule,
+} from '@/server/game/revelations'
+import { characters, evidences, revelations, scenarios } from '~/db/schema'
 
 /**
  * 読み主体で、数秒古くても誰も困らないものだけを KV に置く。
@@ -17,6 +24,8 @@ const JUDGE_RUBRIC_TTL_SECONDS = 3600
 
 const characterKey = (characterId: string) => `character:${characterId}`
 const judgeRubricKey = (scenarioId: string) => `judge-rubric:${scenarioId}`
+const judgeRevelationsKey = (scenarioId: string) => `judge-revelations:${scenarioId}`
+const hintSubjectsKey = (scenarioId: string) => `hint-subjects:${scenarioId}`
 const SCENARIO_LIST_KEY = 'scenarios:published'
 
 /**
@@ -154,6 +163,7 @@ export const loadJudgeRubric = async (
   const rubric = `あなたはマーダーミステリーの進行審判である。プレイヤーの質問とNPCの返答を読み、以下を判定する。
 
 - revealedEvidenceIds: 今回のやり取りで開示条件を満たした証拠のIDを列挙する。満たしていなければ空配列。
+- revealedRevelationIds: ユーザーメッセージ末尾の「今回判定可能なRevelation」に列挙された候補のうち、今回の会話で条件を満たしたIDだけを列挙する。候補外のIDを推測してはいけない。満たしていなければ空配列。
 - contradictionPointedOut: プレイヤーが過去の発言との矛盾を指摘できていたら true。
 - npcLied: NPCの返答が、その場しのぎの嘘や誤誘導を含んでいたら true。
 - suggestedQuestions: 会話の流れから次に聞くとよい質問を最大3件、プレイヤー視点の短い文で提案する。
@@ -165,6 +175,108 @@ ${evidenceList}`
   await kv.put(judgeRubricKey(scenarioId), rubric, { expirationTtl: JUDGE_RUBRIC_TTL_SECONDS })
 
   return rubric
+}
+
+const loadRevelationRules = async (
+  kv: KVNamespace,
+  db: Db,
+  scenarioId: string,
+): Promise<RevelationRule[]> => {
+  const key = judgeRevelationsKey(scenarioId)
+  const cached = await kv.get<RevelationRule[]>(key, 'json')
+
+  if (cached !== null) {
+    return cached
+  }
+
+  const rows = await db
+    .select({ id: revelations.id, sources: revelations.sources })
+    .from(revelations)
+    .where(eq(revelations.scenarioId, scenarioId))
+
+  await kv.put(key, JSON.stringify(rows), { expirationTtl: JUDGE_RUBRIC_TTL_SECONDS })
+
+  return rows
+}
+
+/**
+ * 現在の会話でJudgeが判定してよいRevelationだけを返す。
+ * 前提未達・別NPC由来・既に解禁済みのカードは、この時点でモデルから隠す。
+ */
+export const loadEligibleRevelationCandidates = async (
+  kv: KVNamespace,
+  db: Db,
+  scenarioId: string,
+  context: RevelationEligibilityContext,
+): Promise<RevelationCandidate[]> =>
+  eligibleRevelationCandidates(await loadRevelationRules(kv, db, scenarioId), context)
+
+/**
+ * 難易度モードの「あと何件」を数えるための材料。
+ *
+ * 解禁され得るもの（revelation と evidence）を同じ形に均したものと、
+ * 数を並べる先である全部屋・全人物。セッション状態の取得は5秒ごとに叩かれるので、
+ * そのたびに3本引かずに済むよう1つにまとめてKVへ置く。
+ *
+ * 未発見のものの中身（名前や条件文）はここには入れない。数えるのに要らないし、
+ * 万一そのまま応答へ流れてもネタバレにならない形にしておきたい。
+ */
+export type HintSubjects = {
+  items: HintItem[]
+  /** 見取り図に並ぶ順のままの部屋ID。 */
+  roomIds: string[]
+  characterIds: string[]
+}
+
+export const loadHintSubjects = async (
+  kv: KVNamespace,
+  db: Db,
+  scenarioId: string,
+): Promise<HintSubjects> => {
+  const key = hintSubjectsKey(scenarioId)
+  const cached = await kv.get<HintSubjects>(key, 'json')
+
+  if (cached !== null) {
+    return cached
+  }
+
+  const [revelationRows, evidenceRows, scenarioRows, characterRows] = await Promise.all([
+    db
+      .select({ id: revelations.id, sources: revelations.sources })
+      .from(revelations)
+      .where(eq(revelations.scenarioId, scenarioId)),
+    db
+      .select({ id: evidences.id, sources: evidences.sources })
+      .from(evidences)
+      .where(eq(evidences.scenarioId, scenarioId)),
+    db
+      .select({ floorPlan: scenarios.floorPlan })
+      .from(scenarios)
+      .where(eq(scenarios.id, scenarioId))
+      .limit(1),
+    db.select({ id: characters.id }).from(characters).where(eq(characters.scenarioId, scenarioId)),
+  ])
+
+  const plan = scenarioRows[0]
+  const subjects: HintSubjects = {
+    // revelation の source は解禁条件と前提条件も持っているが、数えるのに要るのは行き先だけ。
+    items: [
+      ...revelationRows.map((row) => ({
+        id: row.id,
+        sources: row.sources.map((source) => ({ type: source.type, id: source.id })),
+      })),
+      ...evidenceRows.map((row) => ({ id: row.id, sources: row.sources })),
+    ],
+    roomIds:
+      plan === undefined || plan.floorPlan === null
+        ? []
+        : plan.floorPlan.rooms.map((room) => room.id),
+    characterIds: characterRows.map((row) => row.id),
+  }
+
+  await kv.put(key, JSON.stringify(subjects), { expirationTtl: JUDGE_RUBRIC_TTL_SECONDS })
+
+  return subjects
 }
 
 /**
@@ -179,6 +291,8 @@ export const invalidateScenario = async (
   await Promise.all([
     kv.delete(SCENARIO_LIST_KEY),
     kv.delete(judgeRubricKey(scenarioId)),
+    kv.delete(judgeRevelationsKey(scenarioId)),
+    kv.delete(hintSubjectsKey(scenarioId)),
     ...characterIds.map((id) => kv.delete(characterKey(id))),
   ])
 }

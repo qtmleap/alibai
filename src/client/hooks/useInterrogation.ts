@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { askQuestion, describeError } from '@/client/lib/api'
-import type { Discovery, TurnState } from '@/client/lib/schemas'
+import { mergeById } from '@/client/lib/merge-by-id'
+import type { Discovery, Hint, RevelationCard, TurnState } from '@/client/lib/schemas'
 import { advanceTurn } from '@/shared/turns'
 
 export type ChatTurn = {
@@ -15,13 +16,6 @@ export type ChatTurn = {
   askedAt: number
 }
 
-const mergeDiscoveries = (current: Discovery[], additions: Discovery[]): Discovery[] => {
-  const existingIds = new Set(current.map((discovery) => discovery.id))
-  const newOnes = additions.filter((discovery) => !existingIds.has(discovery.id))
-
-  return [...current, ...newOnes]
-}
-
 /**
  * 開いた時点でサーバに残っていたぶん。リロードや直リンクで入ったときの続き。
  * suggestedQuestions は次の質問で作り直されるので復元しない。
@@ -29,6 +23,9 @@ const mergeDiscoveries = (current: Discovery[], additions: Discovery[]): Discove
 export type InterrogationSeed = {
   conversations: Record<string, ChatTurn[]>
   discoveries: Discovery[]
+  revelations: RevelationCard[]
+  /** 未発見のものの残り件数。難易度が許した粒度までしか入っていない。 */
+  hint: Hint
   questionCount: number
   turn: TurnState | undefined
 }
@@ -45,6 +42,12 @@ export const useInterrogation = (seed: InterrogationSeed) => {
   const [conversations, setConversations] = useState<Record<string, ChatTurn[]>>(seed.conversations)
   const [suggestedQuestions, setSuggestedQuestions] = useState<Record<string, string[]>>({})
   const [discoveries, setDiscoveries] = useState<Discovery[]>(seed.discoveries)
+  const [revelations, setRevelations] = useState<RevelationCard[]>(seed.revelations)
+  /**
+   * 残り件数はサーバが数える（発見済みの正典はDO側にあるので、こちらでは足し引きしない）。
+   * 定期取得したセッション状態で丸ごと差し替える。
+   */
+  const [hint, setHint] = useState<Hint>(seed.hint)
   const [questionCount, setQuestionCount] = useState(seed.questionCount)
   /**
    * ターンの進行。正典はサーバ側（DOの質問回数から導かれる）で、
@@ -111,7 +114,8 @@ export const useInterrogation = (seed: InterrogationSeed) => {
       {
         onDelta: (chunk) => appendAssistantDelta(params.characterId, chunk),
         onJudgement: (judgement) => {
-          setDiscoveries((prev) => mergeDiscoveries(prev, judgement.revealedEvidences))
+          setDiscoveries((prev) => mergeById(prev, judgement.revealedEvidences))
+          setRevelations((prev) => mergeById(prev, judgement.revealedRevelations))
           setSuggestedQuestions((prev) => ({
             ...prev,
             [params.characterId]: judgement.suggestedQuestions,
@@ -133,6 +137,9 @@ export const useInterrogation = (seed: InterrogationSeed) => {
     conversations,
     suggestedQuestions,
     discoveries,
+    revelations,
+    hint,
+    setHint,
     questionCount,
     askingCharacterId,
     error,

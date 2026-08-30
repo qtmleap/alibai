@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { CaseNoteModal } from '@/client/components/CaseNote'
-import { Modal } from '@/client/components/Modal'
+import { CaseNoteDialog } from '@/client/components/CaseNote'
+import { Button } from '@/client/components/ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/client/components/ui/dialog'
 import type { UseInterrogation } from '@/client/hooks/useInterrogation'
 import { buildHistory } from '@/client/lib/history'
 import type { ScenarioDetail } from '@/client/lib/schemas'
@@ -23,35 +24,35 @@ export const SessionReference = ({ scenario, interrogation }: Props) => {
   const [view, setView] = useState<ReferenceView | undefined>(undefined)
   const history = buildHistory(interrogation.conversations, scenario.characters)
 
-  const close = () => setView(undefined)
-
   return (
     <>
       <div className="flex gap-3 border-b border-slate-800 bg-slate-950 px-3 py-2 text-xs">
-        <button
-          type="button"
-          onClick={() => setView('prologue')}
-          className="text-slate-400 underline"
-        >
+        <Button variant="link" size="sm" className="px-0" onClick={() => setView('prologue')}>
           事件の記録
-        </button>
-        <button
-          type="button"
-          onClick={() => setView('history')}
-          className="text-slate-400 underline"
-        >
+        </Button>
+        <Button variant="link" size="sm" className="px-0" onClick={() => setView('history')}>
           聞き込み記録{history.length === 0 ? '' : ` (${history.length})`}
-        </button>
+        </Button>
       </div>
 
-      {view === 'prologue' && <CaseNoteModal briefing={scenario.briefing} onClose={close} />}
+      <CaseNoteDialog
+        briefing={scenario.briefing}
+        open={view === 'prologue'}
+        onOpenChange={(open) => setView(open ? 'prologue' : undefined)}
+      />
 
-      {view === 'history' && (
-        <Modal title="聞き込み記録" onClose={close}>
+      <Dialog
+        open={view === 'history'}
+        onOpenChange={(open) => setView(open ? 'history' : undefined)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>聞き込み記録</DialogTitle>
+          </DialogHeader>
           {history.length === 0 ? (
             <p className="text-sm text-slate-500">まだ誰にも質問していません。</p>
           ) : (
-            <ol className="flex flex-col gap-5">
+            <ol className="flex max-h-[70dvh] flex-col gap-5 overflow-y-auto">
               {history.map((entry) => (
                 <li
                   key={`${entry.characterId}:${entry.askedAt}`}
@@ -74,8 +75,8 @@ export const SessionReference = ({ scenario, interrogation }: Props) => {
               ))}
             </ol>
           )}
-        </Modal>
-      )}
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

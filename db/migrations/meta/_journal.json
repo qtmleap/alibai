@@ -36,6 +36,20 @@
       "when": 1788020036365,
       "tag": "0004_stale_sprite",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1788037776721,
+      "tag": "0005_careful_jigsaw",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1788043546288,
+      "tag": "0006_adorable_mystique",
+      "breakpoints": true
     }
   ]
 }

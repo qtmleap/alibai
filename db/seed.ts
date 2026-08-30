@@ -2,8 +2,9 @@ import { eq } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
 import { z } from 'zod'
-import { type FloorPlan, validateFloorPlan } from './floor-plan'
-import { characters, evidences, scenarios, scenarioTruths } from './schema'
+import { floorPlanSchema, validateFloorPlan } from './floor-plan'
+import { TSUKIMISOU_PLAN } from './floor-plans/tsukimisou'
+import { characters, evidences, revelations, scenarios, scenarioTruths } from './schema'
 
 /**
  * 遊べるシナリオを1本 DB に投入するシードスクリプト。
@@ -47,42 +48,23 @@ const BRIEFING = `——事件の記録を読み上げます。
 
 ——では、聞き込みを始めましょう。`
 
-/**
- * 事件現場の見取り図。証言に出てくる場所は必ず図に入れる。
- * 「廊下ですれ違った」という証言は、その廊下が図にあって初めて検証できる。
- *
- * 座標は 100 × 70 の論理座標。矩形は互いに重ならないよう並べてある
- * （重なると図として破綻するので、変更するときは必ず確認すること）。
- */
-const FLOOR_PLAN: FloorPlan = {
-  width: 100,
-  height: 70,
-  rooms: [
-    { id: 'guest-a', label: '客室（東）', x: 0, y: 0, w: 25, h: 22 },
-    { id: 'guest-b', label: '客室（西）', x: 25, y: 0, w: 25, h: 22 },
-    {
-      id: 'study',
-      label: '書斎',
-      x: 50,
-      y: 0,
-      w: 30,
-      h: 22,
-      note: '涼子が倒れているのが見つかった',
-    },
-    { id: 'kitchen', label: '厨房', x: 80, y: 0, w: 20, h: 22 },
-    { id: 'corridor', label: '廊下', x: 0, y: 22, w: 100, h: 10, note: '書斎の前を通る' },
-    { id: 'entrance', label: '玄関', x: 0, y: 32, w: 22, h: 23 },
-    { id: 'dining', label: '食堂', x: 22, y: 32, w: 38, h: 23, note: '夕食会が開かれた' },
-    { id: 'hall', label: '広間', x: 60, y: 32, w: 40, h: 23 },
-    { id: 'phone', label: '電話ボックス', x: 0, y: 55, w: 20, h: 15, note: '建物の外' },
-    { id: 'garden', label: '裏庭の薬草園', x: 20, y: 55, w: 80, h: 15, note: '旅館の裏手' },
-  ],
-}
-
 const seed = async () => {
   // 図面は投入前に検査する。重なった矩形や枠外の部屋は、DBに入ってしまうと
   // 画面が崩れて初めて気づくことになる。ここで落としておけば直す場所が明確。
-  const issues = validateFloorPlan(FLOOR_PLAN)
+  //
+  // 先に safeParse を通すのは、検査も描画も既定値の埋まった形を前提にしているから。
+  // 埋めた結果をそのまま投入するので、新しく入る行には扉も種別も揃っている。
+  const parsedPlan = floorPlanSchema.safeParse(TSUKIMISOU_PLAN)
+
+  if (!parsedPlan.success) {
+    throw new Error(
+      `見取り図の形が不正です:\n${parsedPlan.error.issues
+        .map((issue) => `  - ${issue.path.join('.')}: ${issue.message}`)
+        .join('\n')}`,
+    )
+  }
+
+  const issues = validateFloorPlan(parsedPlan.data)
 
   if (issues.length > 0) {
     throw new Error(
@@ -99,7 +81,7 @@ const seed = async () => {
       synopsis:
         '老舗旅館「月見荘」の女将・高瀬涼子は、亡き夫の十七回忌を兼ねた内輪の夕食会を開いた。集まったのは涼子と縁の深い3人。会がお開きになって間もなく、涼子は書斎で冷たくなっているのが見つかった。手元には飲みかけのブランデー。夕食会の間、誰が、いつ、どこにいたのか——3人の証言を突き合わせ、真犯人を見つけ出そう。',
       briefing: BRIEFING,
-      floorPlan: FLOOR_PLAN,
+      floorPlan: parsedPlan.data,
       category: '館もの',
       isPublished: true,
       difficulty: 2,
@@ -172,44 +154,127 @@ const seed = async () => {
     throw new Error('characters への insert に失敗しました。')
   }
 
-  await db.insert(evidences).values([
-    {
+  const insertedEvidences = await db
+    .insert(evidences)
+    .values([
+      {
+        scenarioId: scenario.id,
+        label: '深川の携帯電話の発着信履歴',
+        revealCondition:
+          'プレイヤーが深川に「19時30分、本当に書斎で涼子さんと会ったのか」のように問い詰め、深川が動揺して言い訳を始めたら開示する。または桐生に「19時15分から19時45分の間、深川さんはどこにいたか」と尋ね、桐生が「廊下の電話ボックスにいた深川を見た」と答えたら開示する。',
+        sources: [
+          { type: 'character', id: fukagawa.id },
+          { type: 'character', id: kiryu.id },
+          { type: 'location', id: 'phone' },
+        ],
+      },
+      {
+        scenarioId: scenario.id,
+        label: '桐生が見た、書斎前の廊下ですれ違った人物',
+        revealCondition:
+          'プレイヤーが桐生に「19時50分ごろ、廊下で誰かを見なかったか」または「書斎に近づいた人はいたか」と尋ね、桐生が「手ぶらの美月さんとすれ違った」と答えたら開示する。',
+        sources: [
+          { type: 'character', id: kiryu.id },
+          { type: 'location', id: 'corridor' },
+        ],
+      },
+      {
+        scenarioId: scenario.id,
+        label: '旅館裏庭の薬草園とトリカブトの管理記録',
+        revealCondition:
+          'プレイヤーが桐生に薬草園やトリカブトの栽培について尋ね、桐生が研究用に育てていたことを認めたら開示する。または美月に毒の入手経路について尋ね、美月が薬草園の存在を口にしたら開示する。',
+        sources: [
+          { type: 'character', id: kiryu.id },
+          { type: 'character', id: mizuki.id },
+          { type: 'location', id: 'garden' },
+        ],
+      },
+      {
+        scenarioId: scenario.id,
+        label: '涼子の遺言書に記された後継者指定',
+        revealCondition:
+          'プレイヤーが美月に「月見荘の跡継ぎについて涼子さんと何か話していたか」と尋ね、美月が後継者に指定されていたことを認めたら開示する。',
+        sources: [{ type: 'character', id: mizuki.id }],
+      },
+      {
+        scenarioId: scenario.id,
+        label: '書斎に残されたブランデーの瓶とグラス',
+        revealCondition:
+          'プレイヤーが美月に「20時に書斎へ運んだブランデーの様子」を尋ねるか、桐生に「涼子さんが倒れていた時、手元に何があったか」を尋ねたら開示する。',
+        sources: [
+          { type: 'character', id: mizuki.id },
+          { type: 'character', id: kiryu.id },
+          { type: 'location', id: 'study' },
+        ],
+      },
+      {
+        scenarioId: scenario.id,
+        label: '涼子と桐生が交わした口論の記憶',
+        revealCondition:
+          'プレイヤーが桐生に「事件前に涼子さんと何か揉め事はなかったか」と繰り返し尋ね、桐生が根負けして19時35分の口論を認めたら開示する。',
+        sources: [
+          { type: 'character', id: kiryu.id },
+          { type: 'location', id: 'study' },
+        ],
+      },
+    ])
+    .returning()
+
+  const inheritanceEvidence = insertedEvidences.find(
+    (evidence) => evidence.label === '涼子の遺言書に記された後継者指定',
+  )
+
+  if (inheritanceEvidence === undefined) {
+    throw new Error('後継者指定の証拠 insert に失敗しました。')
+  }
+
+  const [inheritanceRevelation] = await db
+    .insert(revelations)
+    .values({
       scenarioId: scenario.id,
-      label: '深川の携帯電話の発着信履歴',
-      revealCondition:
-        'プレイヤーが深川に「19時30分、本当に書斎で涼子さんと会ったのか」のように問い詰め、深川が動揺して言い訳を始めたら開示する。または桐生に「19時15分から19時45分の間、深川さんはどこにいたか」と尋ね、桐生が「廊下の電話ボックスにいた深川を見た」と答えたら開示する。',
-    },
-    {
-      scenarioId: scenario.id,
-      label: '桐生が見た、書斎前の廊下ですれ違った人物',
-      revealCondition:
-        'プレイヤーが桐生に「19時50分ごろ、廊下で誰かを見なかったか」または「書斎に近づいた人はいたか」と尋ね、桐生が「手ぶらの美月さんとすれ違った」と答えたら開示する。',
-    },
-    {
-      scenarioId: scenario.id,
-      label: '旅館裏庭の薬草園とトリカブトの管理記録',
-      revealCondition:
-        'プレイヤーが桐生に薬草園やトリカブトの栽培について尋ね、桐生が研究用に育てていたことを認めたら開示する。または美月に毒の入手経路について尋ね、美月が薬草園の存在を口にしたら開示する。',
-    },
-    {
-      scenarioId: scenario.id,
-      label: '涼子の遺言書に記された後継者指定',
-      revealCondition:
-        'プレイヤーが美月に「月見荘の跡継ぎについて涼子さんと何か話していたか」と尋ね、美月が後継者に指定されていたことを認めたら開示する。',
-    },
-    {
-      scenarioId: scenario.id,
-      label: '書斎に残されたブランデーの瓶とグラス',
-      revealCondition:
-        'プレイヤーが美月に「20時に書斎へ運んだブランデーの様子」を尋ねるか、桐生に「涼子さんが倒れていた時、手元に何があったか」を尋ねたら開示する。',
-    },
-    {
-      scenarioId: scenario.id,
-      label: '涼子と桐生が交わした口論の記憶',
-      revealCondition:
-        'プレイヤーが桐生に「事件前に涼子さんと何か揉め事はなかったか」と繰り返し尋ね、桐生が根負けして19時35分の口論を認めたら開示する。',
-    },
-  ])
+      title: '美月は月見荘の後継者',
+      text: '涼子は数ヶ月前、美月を月見荘の後継者・遺産の受取人に指定していた。',
+      category: 'relationship',
+      subjectType: 'character',
+      subjectId: mizuki.id,
+      sources: [
+        {
+          type: 'character',
+          id: mizuki.id,
+          revealCondition:
+            '美月に月見荘の後継者や遺産について尋ね、美月自身が後継者・受取人に指定されていたと認めた。',
+          requires: { revelations: [], evidences: [] },
+        },
+      ],
+      relatedFacts: [],
+    })
+    .returning({ id: revelations.id })
+
+  if (inheritanceRevelation === undefined) {
+    throw new Error('後継者Revelation の insert に失敗しました。')
+  }
+
+  await db.insert(revelations).values({
+    scenarioId: scenario.id,
+    title: '後継者指定への焦り',
+    text: '涼子は最近、後継者の指定を考え直す可能性を口にしており、美月は指定が覆ることを恐れていた。',
+    category: 'motive',
+    subjectType: 'character',
+    subjectId: mizuki.id,
+    sources: [
+      {
+        type: 'character',
+        id: mizuki.id,
+        revealCondition:
+          '後継者指定が見直される可能性や、美月がそれをどう受け止めたかを追及し、美月の焦りが明確に伝わった。',
+        requires: {
+          revelations: [inheritanceRevelation.id],
+          evidences: [inheritanceEvidence.id],
+        },
+      },
+    ],
+    relatedFacts: [],
+  })
 
   await db.insert(scenarioTruths).values({
     scenarioId: scenario.id,
@@ -253,6 +318,13 @@ const seed = async () => {
   })
 
   console.log(`シード完了: ${scenario.title} (${scenario.id})`)
+  /*
+    投入し直すとシナリオのIDが変わるが、一覧は KV に最大60秒キャッシュされている
+    （src/server/cache/scenario.ts の SCENARIO_LIST_TTL_SECONDS）。その間に開くと、
+    一覧には消えたほうのIDが並び、選んだ先が404になって「事件がない」ように見える。
+    シードはWorkersの外で走るのでKVを消せない。待てば直る、と伝えるだけにしておく。
+  */
+  console.log('  ※ 一覧のキャッシュが切れるまで最大60秒、古い事件が表示されることがあります')
   console.log(`  深川誠也: ${fukagawa.id}`)
   console.log(`  早坂美月: ${mizuki.id} (犯人)`)
   console.log(`  桐生涼: ${kiryu.id}`)

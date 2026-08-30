@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { Button } from '@/client/components/ui/button'
 import { characterCount, visibleText } from '@/client/lib/briefing-mode'
 import { playTypeClick, shouldClick } from '@/client/lib/typing-sound'
 
@@ -210,8 +211,8 @@ export const TypewriterBriefing = ({ paragraphs, soundOn, onFinished }: Props) =
         fixed だが、親（.screen-enter）に transform が残るため基準は画面ではなく
         この画面の箱になる。狙いどおり、語りの領域だけを覆う。
       */}
-      <button
-        type="button"
+      <Button
+        variant="ghost"
         onClick={handleAdvance}
         aria-label={
           reviewing
@@ -222,13 +223,18 @@ export const TypewriterBriefing = ({ paragraphs, soundOn, onFinished }: Props) =
                 ? '事件の記録を読む'
                 : '次の文章へ'
         }
-        className="fixed inset-0 z-0 cursor-default"
+        // 高さは inset で決まるので、ボタンの既定の高さは外す。
+        className="fixed inset-0 z-0 h-auto cursor-default"
       />
 
       <div
         ref={windowRef}
         className="pointer-events-none relative z-10 flex h-[46dvh] w-full flex-col gap-6 overflow-hidden px-1"
       >
+        {/*
+          読み返し用の当たり判定は段落の本文そのもの。Button は中身を一行に詰めて
+          中央へ寄せる組み方をするので、ここは素のボタンのまま置く。
+        */}
         {done.map((paragraph, index) => (
           <button
             // biome-ignore lint/suspicious/noArrayIndexKey: 本文から作る静的な配列で、末尾に足す以外の並び替え・削除が無い
@@ -270,13 +276,14 @@ export const TypewriterBriefing = ({ paragraphs, soundOn, onFinished }: Props) =
               段落を押す操作（さらに遡る）を殺さずに、続きへ帰る道も残すため。
               本文の当たり判定を外して画面全体を戻り口にすると、遡れなくなる。
             */
-            <button
-              type="button"
+            <Button
+              variant="outline"
+              size="sm"
               onClick={returnToTail}
-              className="pointer-events-auto border border-slate-700 px-3 py-1 text-slate-300"
+              className="pointer-events-auto border-slate-700 px-3 text-slate-300"
             >
               続きへ戻る
-            </button>
+            </Button>
           ) : (
             <span>{done.length === 0 ? '' : '前の段落を押すと読み返せます'}</span>
           )}

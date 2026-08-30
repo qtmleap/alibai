@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DevFloorPlanRouteImport } from './routes/dev/floor-plan'
 import { Route as ScenariosScenarioIdRouteRouteImport } from './routes/scenarios/$scenarioId/route'
 import { Route as SessionsSessionIdRouteRouteImport } from './routes/sessions/$sessionId/route'
 import { Route as ScenariosScenarioIdIndexRouteImport } from './routes/scenarios/$scenarioId/index'
@@ -23,6 +24,11 @@ import { Route as SessionsSessionIdResultRouteImport } from './routes/sessions/$
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DevFloorPlanRoute = DevFloorPlanRouteImport.update({
+  id: '/dev/floor-plan',
+  path: '/dev/floor-plan',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ScenariosScenarioIdRouteRoute =
@@ -80,6 +86,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/scenarios/$scenarioId': typeof ScenariosScenarioIdRouteRouteWithChildren
   '/sessions/$sessionId': typeof SessionsSessionIdRouteRouteWithChildren
+  '/dev/floor-plan': typeof DevFloorPlanRoute
   '/scenarios/$scenarioId/briefing': typeof ScenariosScenarioIdBriefingRoute
   '/scenarios/$scenarioId/detective': typeof ScenariosScenarioIdDetectiveRoute
   '/scenarios/$scenarioId/overview': typeof ScenariosScenarioIdOverviewRoute
@@ -90,6 +97,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/dev/floor-plan': typeof DevFloorPlanRoute
   '/scenarios/$scenarioId/briefing': typeof ScenariosScenarioIdBriefingRoute
   '/scenarios/$scenarioId/detective': typeof ScenariosScenarioIdDetectiveRoute
   '/scenarios/$scenarioId/overview': typeof ScenariosScenarioIdOverviewRoute
@@ -103,6 +111,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/scenarios/$scenarioId': typeof ScenariosScenarioIdRouteRouteWithChildren
   '/sessions/$sessionId': typeof SessionsSessionIdRouteRouteWithChildren
+  '/dev/floor-plan': typeof DevFloorPlanRoute
   '/scenarios/$scenarioId/briefing': typeof ScenariosScenarioIdBriefingRoute
   '/scenarios/$scenarioId/detective': typeof ScenariosScenarioIdDetectiveRoute
   '/scenarios/$scenarioId/overview': typeof ScenariosScenarioIdOverviewRoute
@@ -117,6 +126,7 @@ export interface FileRouteTypes {
     | '/'
     | '/scenarios/$scenarioId'
     | '/sessions/$sessionId'
+    | '/dev/floor-plan'
     | '/scenarios/$scenarioId/briefing'
     | '/scenarios/$scenarioId/detective'
     | '/scenarios/$scenarioId/overview'
@@ -127,6 +137,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/dev/floor-plan'
     | '/scenarios/$scenarioId/briefing'
     | '/scenarios/$scenarioId/detective'
     | '/scenarios/$scenarioId/overview'
@@ -139,6 +150,7 @@ export interface FileRouteTypes {
     | '/'
     | '/scenarios/$scenarioId'
     | '/sessions/$sessionId'
+    | '/dev/floor-plan'
     | '/scenarios/$scenarioId/briefing'
     | '/scenarios/$scenarioId/detective'
     | '/scenarios/$scenarioId/overview'
@@ -152,6 +164,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ScenariosScenarioIdRouteRoute: typeof ScenariosScenarioIdRouteRouteWithChildren
   SessionsSessionIdRouteRoute: typeof SessionsSessionIdRouteRouteWithChildren
+  DevFloorPlanRoute: typeof DevFloorPlanRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -161,6 +174,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dev/floor-plan': {
+      id: '/dev/floor-plan'
+      path: '/dev/floor-plan'
+      fullPath: '/dev/floor-plan'
+      preLoaderRoute: typeof DevFloorPlanRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/scenarios/$scenarioId': {
@@ -271,6 +291,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ScenariosScenarioIdRouteRoute: ScenariosScenarioIdRouteRouteWithChildren,
   SessionsSessionIdRouteRoute: SessionsSessionIdRouteRouteWithChildren,
+  DevFloorPlanRoute: DevFloorPlanRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

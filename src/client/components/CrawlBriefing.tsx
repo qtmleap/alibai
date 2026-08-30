@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Button } from '@/client/components/ui/button'
 import { crawlDurationSeconds } from '@/client/lib/briefing-mode'
 
 type Props = {
@@ -84,13 +85,14 @@ export const CrawlBriefing = ({ briefing, paragraphs, onFinished }: Props) => {
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent" />
       </div>
 
-      <button
-        type="button"
+      <Button
+        variant="ghost"
+        size="sm"
         onClick={handleSkip}
-        className="self-center text-xs tracking-widest text-slate-600"
+        className="self-center tracking-widest text-slate-600"
       >
         全文を表示
-      </button>
+      </Button>
     </div>
   )
 }
