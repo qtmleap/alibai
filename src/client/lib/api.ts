@@ -138,11 +138,13 @@ export const submitAccusation = (params: {
 
 export type AskCallbacks = {
   /**
-   * 探偵がNPCへ投げた質問。1つの話題で何度か届く（探偵が答えを受けて掘り下げるため）。
-   * 届くたびに新しい往復が始まる。
+   * 探偵が新しい質問を書き始めた合図。1つの話題で何度か届く
+   * （探偵が答えを受けて掘り下げるため）。届くたびに新しい往復が始まる。
    */
-  onQuestion: (question: string) => void
-  /** NPCの返答の断片。直前の `onQuestion` で始まった往復の答えとして継ぎ足す。 */
+  onQuestionStart: () => void
+  /** 探偵の質問の断片。直前の `onQuestionStart` で始まった往復の質問として継ぎ足す。 */
+  onQuestion: (chunk: string) => void
+  /** NPCの返答の断片。同じ往復の答えとして継ぎ足す。 */
   onDelta: (chunk: string) => void
   onJudgement: (judgement: Judgement) => void
   onDone: () => void
@@ -177,6 +179,10 @@ export const askTopic = async (
   }
 
   for await (const event of parseSseStream(res.body)) {
+    if (event.event === 'question-start') {
+      callbacks.onQuestionStart()
+    }
+
     if (event.event === 'question') {
       callbacks.onQuestion(event.data)
     }

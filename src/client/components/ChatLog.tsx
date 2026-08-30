@@ -29,10 +29,9 @@ export const ChatLog = ({ turns, speakerName, speakerIndex, awaiting }: Props) =
    * 返答中ずっと出すと、本文が流れているのに下で点が跳ね続けることになる。
    * 送信の直後に置かれる空の吹き出しが、そのまま待ち状態の目印になる。
    */
+  // 話題を投げた直後、探偵が質問を書き始めるまでは行が1つも無い。そこにも点を出す。
+  // 1つの話題で一番長く待たされるのがこの区間で、空のまま置くと送信できなかったように見える。
   const last = turns[turns.length - 1]
-  // 話題を投げた直後は、探偵が質問を組み立てているあいだ何も無い時間ができる。
-  // そこにも点を出す。1つの話題で一番長く待たされるのがこの区間で、
-  // 空のまま置くと送信できなかったように見える。
   const showTyping =
     awaiting &&
     last !== undefined &&
@@ -45,9 +44,21 @@ export const ChatLog = ({ turns, speakerName, speakerIndex, awaiting }: Props) =
           return (
             // 話題はプレイヤーが探偵へ渡した指示で、会話の発言ではない。
             // 吹き出しにすると誰かの台詞に見えるので、区切りの罫線として置く。
-            <div key={turn.id} className="flex items-center gap-2 pt-2 text-[11px] text-slate-500">
+            <div key={turn.id} className="flex items-center gap-2 pt-2 text-[11px]">
               <span aria-hidden="true" className="h-px flex-1 bg-slate-800" />
-              <span className="max-w-[70%] text-center break-words">話題: {turn.text}</span>
+              {/*
+                何かを引き出せた話題には下線と色を付ける。話題は何度も並ぶので、
+                遡ったときにどれが効いたのかを、読み返さずに拾えるようにする。
+              */}
+              <span
+                className={
+                  turn.notable
+                    ? 'max-w-[70%] text-center break-words text-amber-400 underline decoration-amber-600/70 underline-offset-4'
+                    : 'max-w-[70%] text-center break-words text-slate-500'
+                }
+              >
+                話題: {turn.text}
+              </span>
               <span aria-hidden="true" className="h-px flex-1 bg-slate-800" />
             </div>
           )
@@ -56,10 +67,10 @@ export const ChatLog = ({ turns, speakerName, speakerIndex, awaiting }: Props) =
         const isUser = turn.role === 'user'
         const previous = turns[index - 1]
         const sameSpeakerAsPrevious = previous !== undefined && previous.role === turn.role
-        // 返答待ちの間は空の吹き出しが積まれている。中身が届くまでは出さない。
-        const isPlaceholder = !isUser && turn.text.length === 0
 
-        if (isPlaceholder) {
+        // 中身が届く前の行は、場所だけ取って待っている状態。空の吹き出しを描くと
+        // 「何も言わなかった」ように見えるので、文字が来るまで出さない。
+        if (turn.text.length === 0) {
           return null
         }
 

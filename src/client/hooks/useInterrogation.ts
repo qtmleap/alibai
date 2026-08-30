@@ -4,18 +4,7 @@ import { mergeById } from '@/client/lib/merge-by-id'
 import type { Discovery, Hint, RevelationCard, TurnState } from '@/client/lib/schemas'
 import { advanceTurn } from '@/shared/turns'
 
-export type ChatTurn = {
-  /**
-   * この会話ログの中で一意。同じ話題から生まれた行は askedAt を共有するので、
-   * 時刻と役割の組では重なる。会話は末尾に積むだけで並べ替えないので、
-   * 積んだ時点の位置から作れば以後変わらない。
-   */
-  id: string
-  /**
-   * topic はプレイヤーが探偵へ渡した指示、user は探偵がNPCへ投げた質問、
-   * assistant はNPCの返答。1つの topic から user/assistant の往復が複数生まれる。
-   */
-  role: 'topic' | 'user' | 'assistant'
+type ChatLine = {
   text: string
   /**
    * その話題を投げた時刻（epoch ミリ秒）。
@@ -24,6 +13,36 @@ export type ChatTurn = {
    * 同じ話題から生まれた行はすべて同じ値を持たせ、塊のまま並ぶようにする。
    */
   askedAt: number
+}
+
+/**
+ * 会話ログの1行。
+ *
+ * topic はプレイヤーが探偵へ渡した指示、user は探偵がNPCへ投げた質問、
+ * assistant はNPCの返答。1つの topic から user/assistant の往復が複数生まれる。
+ *
+ * notable を topic にだけ持たせるのは、実りがあったかどうかが話題の単位で決まるため。
+ * 全ての行に持たせると、往復の片側だけに印が付いた状態を型が許してしまう。
+ */
+export type ChatDraft =
+  | (ChatLine & { role: 'topic'; notable: boolean })
+  | (ChatLine & { role: 'user' | 'assistant' })
+
+/**
+ * 会話ログに積まれた1行。
+ *
+ * id はこの会話ログの中で一意。同じ話題から生まれた行は askedAt を共有するので、
+ * 時刻と役割の組では重なる。会話は末尾に積むだけで並べ替えないので、
+ * 積んだ時点の位置から作れば以後変わらない。
+ */
+export type ChatTurn = ChatDraft & { id: string }
+
+/** 話題を1つ終えた直後に知らせる、新しく出たもの。 */
+export type Reveal = {
+  /** 演出を出し直すための鍵。同じ内容が続けて出ても作り直したい。 */
+  at: number
+  /** 証拠のラベルと気づきの見出し。どちらも既に発見済みとして扱ってよいもの。 */
+  labels: string[]
 }
 
 /**
@@ -66,8 +85,14 @@ export const useInterrogation = (seed: InterrogationSeed) => {
   const [turn, setTurn] = useState<TurnState | undefined>(seed.turn)
   const [askingCharacterId, setAskingCharacterId] = useState<string | undefined>(undefined)
   const [error, setError] = useState<string | undefined>(undefined)
+  /**
+   * 直近の話題で新しく出たもの。演出を出すためだけに持つ写しで、
+   * 一覧の正典は discoveries / revelations のほう。
+   * 開き直したときは復元しない（そのとき初めて出たものではないので）。
+   */
+  const [reveal, setReveal] = useState<Reveal | undefined>(undefined)
 
-  const appendTurns = (characterId: string, added: Omit<ChatTurn, 'id'>[]) => {
+  const appendTurns = (characterId: string, added: ChatDraft[]) => {
     setConversations((prev) => {
       const current = prev[characterId]
       const turns = current === undefined ? [] : current
@@ -85,20 +110,57 @@ export const useInterrogation = (seed: InterrogationSeed) => {
     })
   }
 
-  const appendAssistantDelta = (characterId: string, delta: string) => {
+  /**
+   * 末尾から数えて最初に見つかった、その役割の行へ文字を足す。
+   *
+   * 探偵の質問とNPCの返答は同時には流れてこないが、質問が書き終わった時点で
+   * 返答用の空の行が既に積まれている（待ちの目印を出すため）。だから
+   * 「いつも末尾」では質問の続きを書き足す先が見つからない。
+   */
+  const appendDelta = (characterId: string, role: 'user' | 'assistant', delta: string) => {
     setConversations((prev) => {
       const current = prev[characterId]
       const turns = current === undefined ? [] : current
-      const lastIndex = turns.length - 1
-      const last = turns[lastIndex]
+      const index = turns.findLastIndex((turn) => turn.role === role)
+      const target = turns[index]
 
-      if (last === undefined) {
+      // topic を弾くのは型のため。role で探している以上ここには来ないが、
+      // 絞っておかないと展開したときに union が潰れる（withLineId と同じ事情）。
+      if (target === undefined || target.role === 'topic') {
         return prev
       }
 
-      const nextTurns = [...turns.slice(0, lastIndex), { ...last, text: last.text + delta }]
+      return {
+        ...prev,
+        [characterId]: [
+          ...turns.slice(0, index),
+          { ...target, text: target.text + delta },
+          ...turns.slice(index + 1),
+        ],
+      }
+    })
+  }
 
-      return { ...prev, [characterId]: nextTurns }
+  /**
+   * その話題が何かを引き出したことを画面上でも印にする。
+   *
+   * 話題の行は askedAt で一意に指せる（同じ話題から生まれた行は同じ値を持ち、
+   * その中で role が topic のものは1つだけ）。
+   */
+  const markTopicNotable = (characterId: string, askedAt: number) => {
+    setConversations((prev) => {
+      const current = prev[characterId]
+
+      if (current === undefined) {
+        return prev
+      }
+
+      return {
+        ...prev,
+        [characterId]: current.map((turn) =>
+          turn.role === 'topic' && turn.askedAt === askedAt ? { ...turn, notable: true } : turn,
+        ),
+      }
     })
   }
 
@@ -115,7 +177,7 @@ export const useInterrogation = (seed: InterrogationSeed) => {
     // 記録を時系列に並べ直したときに話題の塊が崩れる。
     const askedAt = Date.now()
 
-    appendTurns(params.characterId, [{ role: 'topic', text: topic, askedAt }])
+    appendTurns(params.characterId, [{ role: 'topic', text: topic, askedAt, notable: false }])
     setAskingCharacterId(params.characterId)
 
     // ターンは投げた瞬間に進める。サーバが質問回数を増やすのは返答を届け終えたあとで、
@@ -126,14 +188,15 @@ export const useInterrogation = (seed: InterrogationSeed) => {
     askTopic(
       { sessionId: params.sessionId, characterId: params.characterId, topic },
       {
-        // 探偵の質問が届いたら、そこから次の往復が始まる。空の吹き出しを添えて
-        // 置くことで、返答が流れ始めるまでの待ちがそのまま目印になる。
-        onQuestion: (question) =>
+        // 探偵が質問を書き始めたら、そこから次の往復が始まる。返答用の空の行も
+        // 一緒に積む。中身が届くまでのあいだ、それが待ちの目印になる。
+        onQuestionStart: () =>
           appendTurns(params.characterId, [
-            { role: 'user', text: question, askedAt },
+            { role: 'user', text: '', askedAt },
             { role: 'assistant', text: '', askedAt },
           ]),
-        onDelta: (chunk) => appendAssistantDelta(params.characterId, chunk),
+        onQuestion: (chunk) => appendDelta(params.characterId, 'user', chunk),
+        onDelta: (chunk) => appendDelta(params.characterId, 'assistant', chunk),
         onJudgement: (judgement) => {
           setDiscoveries((prev) => mergeById(prev, judgement.revealedEvidences))
           setRevelations((prev) => mergeById(prev, judgement.revealedRevelations))
@@ -143,6 +206,18 @@ export const useInterrogation = (seed: InterrogationSeed) => {
           }))
           setQuestionCount(judgement.questionCount)
           setTurn(judgement.turn)
+
+          const found = [
+            ...judgement.revealedEvidences.map((evidence) => evidence.label),
+            ...judgement.revealedRevelations.map((revelation) => revelation.title),
+          ]
+
+          if (found.length > 0) {
+            markTopicNotable(params.characterId, askedAt)
+            // 出したら時間で消える演出。同じ内容が続けて出ても作り直したいので、
+            // 届いた時刻を鍵として一緒に持つ。
+            setReveal({ at: Date.now(), labels: found })
+          }
         },
         onDone: () => setAskingCharacterId(undefined),
       },
@@ -164,6 +239,7 @@ export const useInterrogation = (seed: InterrogationSeed) => {
     questionCount,
     askingCharacterId,
     error,
+    reveal,
     ask,
   }
 }

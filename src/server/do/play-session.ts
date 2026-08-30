@@ -245,7 +245,7 @@ export class PlaySession extends DurableObject<SessionBindings> {
     characterId: string,
     topic: string,
     exchanges: { question: string; answer: string }[],
-  ): Promise<number> {
+  ): Promise<{ questionCount: number; round: number }> {
     const current = await this.getHistory(characterId)
     const next: ModelMessage[] = [
       ...current,
@@ -273,7 +273,10 @@ export class PlaySession extends DurableObject<SessionBindings> {
       [META_KEY]: updated,
     })
 
-    return updated.questionCount
+    // 話題が始まった往復の番号も返す。あとで印を付けるときに要るが、呼び出し側では
+    // 数えられない（getHistory の戻り値は Workers の RPC 型ユーティリティが
+    // 解決できず never に潰れるので、長さが読めない）。
+    return { questionCount: updated.questionCount, round: current.length / 2 }
   }
 
   /** 往復ごとの質問時刻。この機能より前に始まったセッションでは空になる。 */

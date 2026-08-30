@@ -128,6 +128,8 @@ streamText({
 やり取りを組み替えるときに役割が裏返る点に注意してください。Actor 側の履歴では探偵の質問が `user` ですが、
 Interviewer から見ると自分の発言なので `assistant` です。あちらの `ModelMessage[]` をそのまま渡し回してはいけません。
 
+質問は `streamText` で流します。NPCの返答だけが一文字ずつ現れて探偵の質問が一息に貼り付くと、同じ会話の中で書かれ方が違い、探偵だけが人でないように読めます。最初の一文字までの待ちも短くなります。
+
 ### 往復の上限
 
 1つの話題につき `EXCHANGES_PER_TOPIC`（`src/shared/turns.ts`）往復まで、探偵が相手の答えを受けて掘り下げます。
@@ -266,10 +268,10 @@ Anthropic の既定 TTL は5分です。1回のプレイが約10分なので、�
 const askSchema = z.object({
   sessionId: z.uuid(),
   characterId: z.uuid(),
-  topic: z.string().nonempty().max(500),
+  topic: z.string().nonempty().max(MAX_TOPIC_CHARS),
 })
 ```
 
-`max(500)` は入力トークンの上限であると同時に、長大なインジェクションペイロードを投げ込む余地を減らします。パスパラメータとボディの `sessionId` が食い違う場合も 400 で弾きます（どちらを信じてよいか決められないため）。
+`MAX_TOPIC_CHARS`（`src/shared/turns.ts`）は入力欄と共有します。片方だけ広いと、画面では書けるのに送ると弾かれる状態ができます。長さを絞るのはインジェクションペイロードの余地を減らすためでもありますが、それ以上に「質問の文面ではなく話題を書く」欄だと形で示すためです。パスパラメータとボディの `sessionId` が食い違う場合も 400 で弾きます（どちらを信じてよいか決められないため）。
 
 その手前で RateLimiter を消費するので、LLM を呼ぶ前に上限超過を止められます。

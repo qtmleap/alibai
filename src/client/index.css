@@ -64,12 +64,13 @@ body {
 }
 
 /*
- * ターンの切り替わり。
+ * 画面の中央で一度だけ知らせるときの動き。ターンの切り替わりと、
+ * 新しい手がかりが出たときに使う。
  *
- * 中央でふっと現れて、少し沈みながら消える。時間が動いたことを示すのが役目なので、
+ * 中央でふっと現れて、少し沈みながら消える。何かが動いたことを示すのが役目なので、
  * 派手に動かさず、短く終える。
  */
-@keyframes turn-announce {
+@keyframes announce {
   0% {
     opacity: 0;
     transform: scale(0.9);
@@ -90,12 +91,12 @@ body {
   }
 }
 
-.turn-announce {
-  animation: turn-announce 1600ms ease-out both;
+.announce {
+  animation: announce 1600ms ease-out both;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .turn-announce {
+  .announce {
     animation: none;
   }
 }

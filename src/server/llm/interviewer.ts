@@ -1,4 +1,4 @@
-import { generateText, type LanguageModelUsage, type ModelMessage, type ProviderMetadata } from 'ai'
+import { type ModelMessage, streamText } from 'ai'
 import type { Env } from '@/server/env'
 import { buildDetectiveSelfBlock } from '@/server/llm/detective'
 import { resolveModel } from '@/server/llm/provider'
@@ -49,15 +49,6 @@ export type InterviewerContext = {
   exchanges: TopicExchange[]
 }
 
-export type InterviewerResult = {
-  /** 次に投げる質問。モデルが何も返さなかったときは空文字。 */
-  question: string
-  usage: LanguageModelUsage
-  providerMetadata: ProviderMetadata | undefined
-  /** 実際に応答したモデルID。設定値ではなくレスポンス由来。 */
-  model: string
-}
-
 /**
  * ここまでのやり取りを、探偵から見た会話に組み替える。
  *
@@ -70,16 +61,23 @@ const toConversation = (characterName: string, exchanges: TopicExchange[]): Mode
     { role: 'user', content: `${characterName}: ${exchange.answer}` },
   ])
 
-export const generateQuestion = async ({
+/**
+ * 質問をストリーミングで組み立てる。
+ *
+ * 丸ごと出来上がってから流すと、NPCの返答だけが一文字ずつ現れて探偵の質問は一息に
+ * 貼り付いたように見える。同じ会話の中で書かれ方が違うと、探偵だけが人でないように読める。
+ * 待ち時間そのものも、最初の一文字が出るまでに短くなる。
+ */
+export const streamQuestion = ({
   env,
   detective,
   characterName,
   topic,
   exchanges,
-}: InterviewerContext): Promise<InterviewerResult> => {
+}: InterviewerContext) =>
   // 話題はプレイヤー由来の文字列なので、必ず user ロールに閉じ込める。
   // system 側へ回すと、指示文として読ませる経路をこちらから開くことになる。
-  const result = await generateText({
+  streamText({
     model: resolveModel(env, INTERVIEWER_ROLE),
     system:
       detective === undefined
@@ -95,11 +93,3 @@ export const generateQuestion = async ({
     // 質問は1〜2文。長く喋られると探偵の独演になり、相手の言葉が減る。
     maxOutputTokens: 256,
   })
-
-  return {
-    question: result.text.trim(),
-    usage: result.usage,
-    providerMetadata: result.providerMetadata,
-    model: result.response.modelId,
-  }
-}

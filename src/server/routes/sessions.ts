@@ -19,11 +19,11 @@ import { GAME_RULES } from '@/server/game/rules'
 import { scoreSession } from '@/server/game/scoring'
 import { streamNpcReply } from '@/server/llm/actor'
 import { createFilterState, FALLBACK_REPLY, feedChunk, finalizeFilter } from '@/server/llm/filter'
-import { generateQuestion, type TopicExchange } from '@/server/llm/interviewer'
+import { streamQuestion, type TopicExchange } from '@/server/llm/interviewer'
 import { judgeTurn } from '@/server/llm/judge'
 import { toUsageRow } from '@/server/llm/usage'
 import { withEnv } from '@/server/middleware/env'
-import { EXCHANGES_PER_TOPIC, turnStateOf } from '@/shared/turns'
+import { EXCHANGES_PER_TOPIC, MAX_TOPIC_CHARS, turnStateOf } from '@/shared/turns'
 // 探偵の形と検証は db/detective.ts が正典。ここで定義し直すと、
 // クライアントの選択肢とAPIが受ける値が静かにずれる。
 import { detectiveSchema } from '~/db/detective'
@@ -316,7 +316,7 @@ const askSchema = z.object({
    * プレイヤーが指定する話題。「アリバイについて」「被害者との関係を」のような指示で、
    * 実際にNPCへ投げる質問は探偵役のモデルがここから組み立てる。
    */
-  topic: z.string().nonempty().max(500),
+  topic: z.string().nonempty().max(MAX_TOPIC_CHARS),
 })
 
 /**
@@ -510,7 +510,7 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
     } = { exchanges: [], usages: [], blocked: false }
 
     for (const _round of TOPIC_ROUNDS) {
-      const interviewer = await generateQuestion({
+      const asking = streamQuestion({
         env,
         detective,
         characterName,
@@ -518,25 +518,48 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
         exchanges: collected.exchanges,
       })
 
-      collected.usages.push(
-        toUsageRow({
-          env,
-          role: 'actor',
-          model: interviewer.model,
-          usage: interviewer.usage,
-          providerMetadata: interviewer.providerMetadata,
-          sessionId,
-          scenarioId,
-        }),
-      )
+      // 最初の断片が届いてから question-start を送る。先に送ってしまうと、
+      // モデルが何も返さなかった回に、中身の無い吹き出しだけが画面へ残る。
+      const asked = { started: false }
+
+      for await (const chunk of asking.textStream) {
+        if (!asked.started) {
+          asked.started = true
+          await stream.writeSSE({ event: 'question-start', data: '' })
+        }
+
+        await stream.writeSSE({ event: 'question', data: chunk })
+      }
+
+      const question = (await asking.text).trim()
+
+      try {
+        const [usage, response, providerMetadata] = await Promise.all([
+          asking.usage,
+          asking.response,
+          asking.providerMetadata,
+        ])
+
+        collected.usages.push(
+          toUsageRow({
+            env,
+            role: 'actor',
+            model: response.modelId,
+            usage,
+            providerMetadata,
+            sessionId,
+            scenarioId,
+          }),
+        )
+      } catch (error) {
+        console.error('[ask] failed to read interviewer usage', error)
+      }
 
       // 探偵が何も返さなかったら、そこで話題を切り上げる。空の質問をNPCへ投げると
       // 「何も言われていないのに喋り出す」返答が返ってきて、会話として読めなくなる。
-      if (interviewer.question.length === 0) {
+      if (question.length === 0) {
         break
       }
-
-      await stream.writeSSE({ event: 'question', data: interviewer.question })
 
       const result = streamNpcReply({
         env,
@@ -552,7 +575,7 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
             { role: 'assistant', content: exchange.answer },
           ]),
         ],
-        utterance: interviewer.question,
+        utterance: question,
       })
 
       const streamed = await streamFilteredReply(stream, result.textStream, secretKeywords)
@@ -584,7 +607,7 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
         break
       }
 
-      collected.exchanges.push({ question: interviewer.question, answer: streamed.text })
+      collected.exchanges.push({ question, answer: streamed.text })
     }
 
     if (collected.blocked) {
@@ -610,14 +633,20 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
 
     // ここから先は永続化。DOは作業領域であって、正典はPostgres。
     // 失敗しても流し終えた会話は返す。記録の取りこぼしでプレイを止めない。
-    const persisted: { questionCount: number | undefined } = { questionCount: undefined }
+    const persisted: { questionCount: number | undefined; round: number | undefined } = {
+      questionCount: undefined,
+      round: undefined,
+    }
 
     try {
-      persisted.questionCount = await session.appendTopic(
+      const appended = await session.appendTopic(
         askInput.characterId,
         askInput.topic,
         collected.exchanges,
       )
+
+      persisted.questionCount = appended.questionCount
+      persisted.round = appended.round
 
       // 会話ログとコストは別のテーブルへ、同時に書く。ここは Judge の手前なので、
       // 直列にすると往復ぶんだけ判定の開始が遅れる。
@@ -691,6 +720,15 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
         contradictionPointedOut: judgement.contradictionPointedOut,
         npcLied: judgement.npcLied,
       })
+
+      // 実りのあった話題に印を付ける。会話ログを遡ったときに、どこが効いたのかが
+      // 分かるようにするためのもの。話題を積んだときの往復番号が要るので、
+      // 記録そのものが落ちていた回は印も付けない。
+      const yielded = judgement.revealedEvidenceIds.length > 0 || revealedRevelationIds.length > 0
+
+      if (yielded && persisted.round !== undefined) {
+        await session.markTopicYield(askInput.characterId, persisted.round)
+      }
 
       await Promise.all([
         judgement.revealedEvidenceIds.length === 0

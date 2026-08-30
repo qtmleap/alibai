@@ -3,15 +3,17 @@ import { CaseNoteButton } from '@/client/components/CaseNote'
 import { CharacterAvatar } from '@/client/components/CharacterAvatar'
 import { ChatLog } from '@/client/components/ChatLog'
 import { FloorPlanMap } from '@/client/components/FloorPlan'
+import { RevealAnnounce } from '@/client/components/RevealAnnounce'
 import { TurnAnnounce } from '@/client/components/TurnAnnounce'
 import { Badge } from '@/client/components/ui/badge'
 import { Button } from '@/client/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/client/components/ui/dialog'
-import { Input } from '@/client/components/ui/input'
+import { Textarea } from '@/client/components/ui/textarea'
 import type { UseInterrogation } from '@/client/hooks/useInterrogation'
 import { fetchSessionState } from '@/client/lib/api'
 import { formatSeconds } from '@/client/lib/format'
 import type { ScenarioDetail, SessionState } from '@/client/lib/schemas'
+import { MAX_TOPIC_CHARS } from '@/shared/turns'
 
 type Props = {
   scenario: ScenarioDetail
@@ -65,6 +67,7 @@ export const InterrogationScreen = ({
     setHint,
     askingCharacterId,
     error,
+    reveal,
     ask,
   } = interrogation
 
@@ -263,6 +266,9 @@ export const InterrogationScreen = ({
           <TurnAnnounce key={turn.turn} turn={turn.turn} maxTurns={turn.maxTurns} />
         )}
 
+        {/* 話題を1つ終えて何かが出たときだけ。key は届いた時刻で、出るたびに作り直す */}
+        {reveal !== undefined && <RevealAnnounce key={reveal.at} labels={reveal.labels} />}
+
         {(discoveries.length > 0 || hintSummary !== undefined) && (
           <div className="flex flex-wrap items-center gap-1 border-b border-slate-800 bg-slate-900 p-2">
             {hintSummary !== undefined && (
@@ -353,9 +359,10 @@ export const InterrogationScreen = ({
               </Button>
             </div>
           ) : (
-            <div className="flex gap-2">
-              <Input
-                type="text"
+            // 1行の入力欄だと、長めの指示が横へ流れて書いた先が見えなくなる。
+            // 折り返して伸びる欄にして、書いたものが全部見える状態で送れるようにする。
+            <div className="flex items-end gap-2">
+              <Textarea
                 value={inputText}
                 onChange={(event) => setInputText(event.target.value)}
                 onKeyDown={(event) => {
@@ -367,10 +374,13 @@ export const InterrogationScreen = ({
                    * 変換中かどうかは isComposing に出るので、そこで分ける。
                    */
                   if (event.key === 'Enter' && !event.nativeEvent.isComposing) {
+                    // 欄の中で改行させない。折り返しは幅で起きればよく、
+                    // 明示的な改行が入ると1行目だけを読んだような話題になる。
+                    event.preventDefault()
                     handleAsk()
                   }
                 }}
-                maxLength={500}
+                maxLength={MAX_TOPIC_CHARS}
                 placeholder="何について訊く？"
                 disabled={isAsking}
                 className="min-w-0 flex-1"
