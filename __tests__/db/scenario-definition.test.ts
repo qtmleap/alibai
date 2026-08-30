@@ -146,6 +146,7 @@ const validScenario: ScenarioDefinition = {
   solution: {
     culprit: 'b',
     summary: 'Bが18:10ごろ美術室から作品を持ち出した。',
+    method: '施錠前の美術室に入り、額縁ごと持ち去った。',
     motive: 'competition',
     requiredFacts: ['b-seen-at-1810', 'b-took-painting'],
     secretKeywords: ['Bが作品を持ち出した'],
@@ -772,12 +773,31 @@ describe('scenarioSolutionSchema', () => {
   const minimalSolution = {
     culprit: 'a',
     summary: '真相',
+    method: '毒殺',
+    motive: '怨恨',
     requiredFacts: ['fact'],
     secretKeywords: ['秘密'],
   }
 
-  test('motive は省略できる', () => {
+  test('必須が揃っていれば通る', () => {
     expect(scenarioSolutionSchema.safeParse(minimalSolution).success).toBe(true)
+  })
+
+  // method と motive はプレイヤーの推理を採点する的になるので、省略を許さない。
+  test('method が無ければ拒否する', () => {
+    const { method, ...withoutMethod } = minimalSolution
+    expect(scenarioSolutionSchema.safeParse(withoutMethod).success).toBe(false)
+  })
+
+  test('motive が無ければ拒否する', () => {
+    const { motive, ...withoutMotive } = minimalSolution
+    expect(scenarioSolutionSchema.safeParse(withoutMotive).success).toBe(false)
+  })
+
+  test('method が空白だけなら拒否する', () => {
+    expect(scenarioSolutionSchema.safeParse({ ...minimalSolution, method: '   ' }).success).toBe(
+      false,
+    )
   })
 
   test('culprit が空文字なら拒否する', () => {

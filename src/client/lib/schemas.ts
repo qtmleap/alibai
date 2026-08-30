@@ -119,15 +119,30 @@ export const accuseResultSchema = z.object({
     questionCount: z.number().int(),
     evidenceFound: z.number().int(),
     contradictionCount: z.number().int(),
+    methodCorrect: z.boolean(),
+    motiveCorrect: z.boolean(),
     accuracyPercent: z.number().int(),
   }),
   truth: z.object({
     culpritCharacterId: z.uuid(),
     culpritName: z.string().nonempty(),
     truth: z.string().nonempty(),
+    // 推理採点より前に登録されたシナリオでは null。答え合わせの行ごと出さない。
+    method: z.string().nonempty().nullable(),
+    motive: z.string().nonempty().nullable(),
     // timeline は jsonb で中身の形が確定していないので、要素の形までは強制しない。
     timeline: z.array(z.unknown()),
   }),
+  /** 提出した推理と採点者の短評。この機能より前に終わったセッションでは null。 */
+  deduction: z
+    .object({
+      reasoning: z.string().nonempty(),
+      method: z.string().nonempty(),
+      motive: z.string().nonempty(),
+      methodComment: z.string().nonempty(),
+      motiveComment: z.string().nonempty(),
+    })
+    .nullable(),
 })
 
 /**

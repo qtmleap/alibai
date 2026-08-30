@@ -154,21 +154,52 @@ describe('POST /api/sessions/:id/ask', () => {
 })
 
 describe('POST /api/sessions/:id/accuse', () => {
+  const validAccusation = {
+    sessionId: SESSION_ID,
+    culpritCharacterId: CHARACTER_ID,
+    reasoning: '証言が食い違うため',
+    method: '毒を盛った',
+    motive: '遺産のため',
+  }
+
   test('理由が空なら 400', async () => {
     const res = await postJson(`/api/sessions/${SESSION_ID}/accuse`, {
-      sessionId: SESSION_ID,
-      culpritCharacterId: CHARACTER_ID,
+      ...validAccusation,
       reasoning: '',
     })
 
     expect(res.status).toBe(400)
   })
 
+  test('殺害方法が空なら 400', async () => {
+    const res = await postJson(`/api/sessions/${SESSION_ID}/accuse`, {
+      ...validAccusation,
+      method: '',
+    })
+
+    expect(res.status).toBe(400)
+  })
+
+  test('動機が空なら 400', async () => {
+    const res = await postJson(`/api/sessions/${SESSION_ID}/accuse`, {
+      ...validAccusation,
+      motive: '',
+    })
+
+    expect(res.status).toBe(400)
+  })
+
+  test('殺害方法と動機が無ければ 400', async () => {
+    const { method, motive, ...withoutDeduction } = validAccusation
+    const res = await postJson(`/api/sessions/${SESSION_ID}/accuse`, withoutDeduction)
+
+    expect(res.status).toBe(400)
+  })
+
   test('パスとボディの sessionId が食い違えば 400', async () => {
     const res = await postJson(`/api/sessions/${SESSION_ID}/accuse`, {
+      ...validAccusation,
       sessionId: '11111111-1111-4111-8111-111111111111',
-      culpritCharacterId: CHARACTER_ID,
-      reasoning: '証言が食い違うため',
     })
 
     expect(res.status).toBe(400)

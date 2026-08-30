@@ -129,6 +129,8 @@ export const submitAccusation = (params: {
   sessionId: string
   culpritCharacterId: string
   reasoning: string
+  method: string
+  motive: string
 }): Promise<AccuseResult> =>
   requestJson(
     `/api/sessions/${params.sessionId}/accuse`,

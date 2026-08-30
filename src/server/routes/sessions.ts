@@ -18,6 +18,7 @@ import { acceptRevealedRevelationIds } from '@/server/game/revelations'
 import { GAME_RULES } from '@/server/game/rules'
 import { scoreSession } from '@/server/game/scoring'
 import { streamNpcReply } from '@/server/llm/actor'
+import { gradeDeduction } from '@/server/llm/deduction'
 import { createFilterState, FALLBACK_REPLY, feedChunk, finalizeFilter } from '@/server/llm/filter'
 import { generateQuestion, type TopicExchange } from '@/server/llm/interviewer'
 import { judgeTurn } from '@/server/llm/judge'
@@ -30,6 +31,7 @@ import { detectiveSchema } from '~/db/detective'
 import { type GameMode, gameModeOf, gameModeSchema } from '~/db/game-mode'
 import {
   characters,
+  type DeductionRecord,
   discoveries,
   evidences,
   llmUsages,
@@ -43,8 +45,8 @@ import {
 } from '~/db/schema'
 
 // このルーターは Bindings だけを app-level の型に持たせる。env の値（Variables.env）が
-// 要るのは ask ルートだけで、それも validateAsk → withEnv → handler という
-// ルート単位のミドルウェアチェーンで型を合成する（下の ask ルート登録を参照）。
+// 要るのは一部のルートだけで、それも 検証ミドルウェア → withEnv → handler という
+// ルート単位のミドルウェアチェーンで型を合成する（ask / accuse のルート登録を参照）。
 // ここに Variables: { env: Env } を書いてしまうと他のルートまで env 前提の型になり、
 // 「実際には c.get('env') を呼ばないルートが env 未設定のまま実行される」誤りを
 // 型検査で防げなくなる。
@@ -89,6 +91,9 @@ type Truth = {
   culpritCharacterId: string
   culpritName: string
   truth: string
+  /** この2列より前に登録されたシナリオでは null。答え合わせの行ごと出さない。 */
+  method: string | null
+  motive: string | null
   timeline: unknown
 }
 
@@ -121,6 +126,8 @@ const loadTruth = async (db: Db, scenarioId: string): Promise<Truth | undefined>
     culpritCharacterId: truthRow.culpritCharacterId,
     culpritName: culpritRow.name,
     truth: truthRow.truth,
+    method: truthRow.method,
+    motive: truthRow.motive,
     timeline: truthRow.timeline,
   }
 }
@@ -784,17 +791,19 @@ const accuseSchema = z.object({
   sessionId: z.uuid(),
   culpritCharacterId: z.uuid(),
   reasoning: z.string().nonempty().max(1000),
+  method: z.string().nonempty().max(1000),
+  motive: z.string().nonempty().max(1000),
 })
 
 /**
- * 犯人当て。真相を返してよいのはここだけ（セッション終了後だから）。
- *
- * recordAccusation / finish はDO側で冪等に実装されている
- * （2回目以降は最初の回答をそのまま返す）ので、ここでは常に呼んで
- * 返ってきたスナップショットを信じればよい。二重送信で results 行が
- * 重複しないよう、DB側の insert にも onConflictDoNothing を重ねておく。
+ * accuse の入力バリデーション。validateAsk と同じ理由でミドルウェアに切り出す
+ * （withEnv より先に走る順序をルート登録で保証するため）。採点にLLMを呼ぶように
+ * なってこのルートも env を要るようになったので、ask と同じ形が要る。
  */
-sessionRoutes.post('/api/sessions/:id/accuse', async (c) => {
+const validateAccuse = createMiddleware<{
+  Bindings: Bindings
+  Variables: { accuseInput: z.infer<typeof accuseSchema> }
+}>(async (c, next) => {
   const body = await c.req.json()
   const parsed = accuseSchema.safeParse(body)
 
@@ -806,6 +815,38 @@ sessionRoutes.post('/api/sessions/:id/accuse', async (c) => {
 
   if (sessionId !== parsed.data.sessionId) {
     return c.json({ error: 'session id mismatch' }, 400)
+  }
+
+  c.set('accuseInput', parsed.data)
+  await next()
+})
+
+/**
+ * 犯人当て。真相を返してよいのはここだけ（セッション終了後だから）。
+ *
+ * recordAccusation / finish はDO側で冪等に実装されている
+ * （2回目以降は最初の回答をそのまま返す）ので、ここでは常に呼んで
+ * 返ってきたスナップショットを信じればよい。二重送信で results 行が
+ * 重複しないよう、DB側の insert にも onConflictDoNothing を重ねておく。
+ *
+ * 採点はセッションを確定させる前に済ませる。recordAccusation を先に呼ぶと、
+ * モデルが落ちたときに事件だけ消費されて二度と提出できなくなる。ここだけは
+ * 他のLLM呼び出しと違って失敗を握り潰さない（30点ぶんが黙って消えるより、
+ * エラーを見せて出し直してもらうほうがいい）。
+ */
+sessionRoutes.post('/api/sessions/:id/accuse', validateAccuse, withEnv, async (c) => {
+  const accuseInput = c.get('accuseInput')
+  const sessionId = accuseInput.sessionId
+  const env = c.get('env')
+
+  // LLMを呼ぶ口になったので ask と同じ上限を通す。認証がまだ無いのでキーはIP。
+  const clientIp = c.req.header('cf-connecting-ip')
+  const limiterKey = clientIp === undefined ? 'anonymous' : clientIp
+  const limiter = c.env.RATE_LIMITER.get(c.env.RATE_LIMITER.idFromName(limiterKey))
+  const verdict = await limiter.consume(env.RATE_LIMIT_MAX_CALLS, env.RATE_LIMIT_WINDOW_SECONDS)
+
+  if (!verdict.allowed) {
+    return c.json({ error: 'rate limit exceeded', resetAt: verdict.resetAt }, 429)
   }
 
   const db = createDb(c.env.HYPERDRIVE)
@@ -825,11 +866,45 @@ sessionRoutes.post('/api/sessions/:id/accuse', async (c) => {
     return c.json({ error: 'scenario is not playable' }, 500)
   }
 
-  const localCorrect = parsed.data.culpritCharacterId === truth.culpritCharacterId
+  // 名指しされた人物の名前は採点者への入力になる。ついでにこの照合が
+  // 「そのシナリオに居ない人物のID」を弾く役も果たす。
+  const accusedRows = await db
+    .select({ name: characters.name })
+    .from(characters)
+    .where(
+      and(eq(characters.id, accuseInput.culpritCharacterId), eq(characters.scenarioId, scenarioId)),
+    )
+    .limit(1)
+
+  const accusedRow = accusedRows[0]
+
+  if (accusedRow === undefined) {
+    return c.json({ error: 'character not in this scenario' }, 400)
+  }
+
+  const graded = await gradeDeduction({
+    env,
+    // method / motive が空のシナリオでは summary を的に使う。採点の精度は落ちるが、
+    // 古いシナリオで推理パートごと成立しなくなるよりはいい。
+    truth: {
+      culpritName: truth.culpritName,
+      summary: truth.truth,
+      method: truth.method === null ? truth.truth : truth.method,
+      motive: truth.motive === null ? truth.truth : truth.motive,
+    },
+    submission: {
+      accusedName: accusedRow.name,
+      reasoning: accuseInput.reasoning,
+      method: accuseInput.method,
+      motive: accuseInput.motive,
+    },
+  })
+
+  const localCorrect = accuseInput.culpritCharacterId === truth.culpritCharacterId
 
   const session = c.env.PLAY_SESSION.get(c.env.PLAY_SESSION.idFromName(sessionId))
   const afterAccusation = await session.recordAccusation(
-    parsed.data.culpritCharacterId,
+    accuseInput.culpritCharacterId,
     localCorrect,
   )
   const finalSnapshot = await session.finish()
@@ -846,6 +921,8 @@ sessionRoutes.post('/api/sessions/:id/accuse', async (c) => {
 
   const score = scoreSession({
     correct,
+    methodCorrect: graded.grade.methodCorrect,
+    motiveCorrect: graded.grade.motiveCorrect,
     elapsedSeconds: finalSnapshot.elapsedSeconds,
     questionCount: finalSnapshot.questionCount,
     evidenceFound: finalSnapshot.discoveredEvidenceIds.length,
@@ -853,12 +930,20 @@ sessionRoutes.post('/api/sessions/:id/accuse', async (c) => {
     contradictionCount: finalSnapshot.contradictionCount,
   })
 
+  const deduction: DeductionRecord = {
+    reasoning: accuseInput.reasoning,
+    method: accuseInput.method,
+    motive: accuseInput.motive,
+    methodComment: graded.grade.methodComment,
+    motiveComment: graded.grade.motiveComment,
+  }
+
   // DBへの書き出しが失敗しても、プレイヤーへ返すレスポンス自体はDO側の値から組み立て済み。
   // 記録の取りこぼしでリザルト画面を止めない。
   try {
     await db
       .insert(results)
-      .values({ sessionId, ...score })
+      .values({ sessionId, ...score, deduction })
       .onConflictDoNothing()
     await db
       .update(playSessions)
@@ -868,7 +953,24 @@ sessionRoutes.post('/api/sessions/:id/accuse', async (c) => {
     console.error('[accuse] failed to persist result', error)
   }
 
-  return c.json({ correct, result: score, truth })
+  // 採点は既に届いているので、集計の失敗を採点の失敗として扱わない。
+  try {
+    await db.insert(llmUsages).values(
+      toUsageRow({
+        env,
+        role: 'judge',
+        model: graded.model,
+        usage: graded.usage,
+        providerMetadata: graded.providerMetadata,
+        sessionId,
+        scenarioId,
+      }),
+    )
+  } catch (error) {
+    console.error('[accuse] failed to persist grader usage', error)
+  }
+
+  return c.json({ correct, result: score, truth, deduction })
 })
 
 /**
@@ -955,8 +1057,12 @@ sessionRoutes.get('/api/sessions/:id/result', validateSessionId, async (c) => {
       questionCount: resultRow.questionCount,
       evidenceFound: resultRow.evidenceFound,
       contradictionCount: resultRow.contradictionCount,
+      // 推理採点より前に終わったセッションでは null。未判定を「不正解」に寄せる。
+      methodCorrect: resultRow.methodCorrect === true,
+      motiveCorrect: resultRow.motiveCorrect === true,
       accuracyPercent: resultRow.accuracyPercent,
     },
     truth,
+    deduction: resultRow.deduction,
   })
 })

@@ -50,6 +50,13 @@
       "when": 1788043546288,
       "tag": "0006_adorable_mystique",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1788068191111,
+      "tag": "0007_funny_namorita",
+      "breakpoints": true
     }
   ]
 }

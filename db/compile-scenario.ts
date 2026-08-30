@@ -237,6 +237,8 @@ const compileDefinition = (
       scenarioId,
       culpritCharacterId: characterUuid(definition.solution.culprit),
       truth: definition.solution.summary,
+      method: definition.solution.method,
+      motive: definition.solution.motive,
       timeline,
       secretKeywords: definition.solution.secretKeywords,
     },

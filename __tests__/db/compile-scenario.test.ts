@@ -127,6 +127,8 @@ const makeMinimal = (): ScenarioDefinitionInput => ({
   solution: {
     culprit: 'alpha',
     summary: 'アルファがやった。',
+    method: '鈍器で殴った。',
+    motive: '金銭トラブル。',
     requiredFacts: ['fact-never'],
     secretKeywords: ['アルファがやった'],
   },

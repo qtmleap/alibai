@@ -140,7 +140,13 @@ export const scenarioEvidenceSchema = z.object({
 export const scenarioSolutionSchema = z.object({
   culprit: localIdSchema,
   summary: nonemptyTextSchema,
-  motive: nonemptyTextSchema.optional(),
+  /**
+   * 殺害方法と動機。プレイヤーの推理を採点する的になるので、summary から
+   * 読み取れるとしても独立して書く。summary は物語の文章で、採点に使うには
+   * 犯人の名前や時刻など的以外の情報を抱えすぎている。
+   */
+  method: nonemptyTextSchema,
+  motive: nonemptyTextSchema,
   requiredFacts: z.array(localIdSchema).min(1),
   secretKeywords: z.array(nonemptyTextSchema).min(1),
 })

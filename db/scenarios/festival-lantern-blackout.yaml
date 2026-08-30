@@ -1,0 +1,320 @@
+schemaVersion: 1
+id: festival-lantern-blackout
+meta:
+  title: 消えた提灯、八分間の暗闇
+  synopsis: 夏祭りの最中、実行委員長・神谷宗一が神社の祭具倉庫で死亡しているのが見つかった。直前には会場一帯の提灯が八分間だけ消えている。停電対応に追われていたはずの三人のうち、一人だけが「その場にいなければできない仕事」をしていなかった。
+  category: 祭りの夜
+  difficulty: 3
+  estimatedMinutes: 10
+  tags: [夏祭り, 停電, アリバイ]
+briefing: |-
+  ——事件の記録を読み上げます。
+
+  午後八時三十五分、八坂野神社の夏祭りで、実行委員長の神谷宗一が祭具倉庫の中で死亡しているのが見つかりました。会場には多くの客がいましたが、事件の直前、午後八時十八分から八時二十六分まで提灯と舞台照明が一斉に消えるトラブルが起きています。
+
+  調査対象は三人です。照明設備を担当していた電気技師の戸塚岳、神社の禰宜・真壁聡、屋台会をまとめる相原夏帆。戸塚は「停電中ずっと操作卓で復旧作業をしていた」と言い、真壁は「倉庫へは近づいていない」と話し、相原は「暗くて誰の姿も見ていない」と答えています。
+
+  停電の八分間、会場の設備は何を自動で動かし、誰が実際にその場所へいなければならなかったのか。三人の証言から、暗闇の使われ方を明らかにしてください。
+floorPlan: null
+facts:
+  - id: tozuka-is-electrician
+    statement: 戸塚岳は夏祭りの提灯と舞台照明の電気設備を担当する技師である
+    kind: other
+  - id: makabe-is-priest
+    statement: 真壁聡は八坂野神社の禰宜で、祭具倉庫の鍵を管理している
+    kind: other
+  - id: aihara-leads-stalls
+    statement: 相原夏帆は屋台会の取りまとめ役で、祭り本部と各屋台の連絡を担当している
+    kind: other
+  - id: kamiya-found-kickbacks
+    statement: 神谷宗一は照明設備の発注額が水増しされ、戸塚岳へ不正な謝礼が流れていることに気づいていた
+    kind: motive
+    secret: true
+  - id: kamiya-warned-tozuka
+    statement: 事件当日の19時50分ごろ、神谷宗一は戸塚岳に帳簿を見せ、祭り終了後に発注不正を公表すると告げた
+    kind: motive
+    secret: true
+  - id: makabe-used-donations
+    statement: 真壁聡は神社の修繕費を補うため、祭りの寄付金から一時的に金を流用していた
+    kind: motive
+    secret: true
+  - id: aihara-unlicensed-stall
+    statement: 相原夏帆は知人の屋台一軒を正式な申請前に出店させており、神谷宗一から注意を受けていた
+    kind: other
+    secret: true
+  - id: blackout-started-2018
+    statement: 20時18分、会場の提灯と舞台照明が一斉に消えた
+    kind: physical
+  - id: lighting-preset-ran
+    statement: 停電中の20時18分から20時26分まで、照明制御盤は事前に設定された自動復旧シーケンスを実行していた
+    kind: physical
+    secret: true
+  - id: tozuka-left-console-2020
+    statement: 20時20分ごろ、戸塚岳は照明操作卓を離れ、祭具倉庫へ向かった
+    kind: truth
+    secret: true
+  - id: aihara-saw-tozuka-2022
+    statement: 20時22分ごろ、相原夏帆は非常灯の下で祭具倉庫の方向へ急ぐ戸塚岳を見た
+    kind: observation
+  - id: tozuka-killed-kamiya-2023
+    statement: 20時23分ごろ、戸塚岳は祭具倉庫内で神谷宗一を襲い死亡させた
+    kind: truth
+    secret: true
+  - id: tozuka-returned-2025
+    statement: 20時25分ごろ、戸塚岳は照明操作卓へ戻った
+    kind: truth
+    secret: true
+  - id: lights-restored-2026
+    statement: 20時26分、自動復旧シーケンスが完了して提灯と舞台照明が再点灯した
+    kind: physical
+  - id: makabe-checked-key-2028
+    statement: 20時28分、真壁聡は祭具倉庫の予備鍵が所定の箱に戻っていることを確認した
+    kind: observation
+  - id: body-found-2035
+    statement: 20時35分、真壁聡が祭具倉庫で神谷宗一の死を発見した
+    kind: observation
+  - id: spare-key-borrowed
+    statement: 戸塚岳は祭り準備中に配線確認を理由として祭具倉庫の予備鍵を借りた経験があり、鍵箱の暗証番号を知っていた
+    kind: truth
+    secret: true
+timeline:
+  - id: kamiya-warning
+    at: "19:50"
+    participants: [tozuka]
+    facts: [kamiya-warned-tozuka, kamiya-found-kickbacks]
+    description: 神谷が戸塚に発注帳簿を示し、祭り終了後に不正を公表すると告げる。
+  - id: blackout-start
+    at: "20:18"
+    participants: [tozuka, makabe, aihara]
+    facts: [blackout-started-2018, lighting-preset-ran]
+    description: 会場の照明が一斉に消え、自動復旧シーケンスが始まる。
+  - id: tozuka-leaves
+    at: "20:20"
+    participants: [tozuka]
+    facts: [tozuka-left-console-2020]
+    description: 戸塚が操作卓を離れ、暗い境内を祭具倉庫へ向かう。
+  - id: aihara-sighting
+    at: "20:22"
+    participants: [tozuka, aihara]
+    facts: [aihara-saw-tozuka-2022]
+    description: 相原が非常灯の下で祭具倉庫方向へ急ぐ戸塚を目撃する。
+  - id: kamiya-death
+    at: "20:23"
+    participants: [tozuka]
+    facts: [tozuka-killed-kamiya-2023, spare-key-borrowed]
+    description: 戸塚が祭具倉庫へ入り、神谷を襲う。
+  - id: tozuka-returns
+    at: "20:25"
+    participants: [tozuka]
+    facts: [tozuka-returned-2025]
+    description: 戸塚が照明操作卓へ戻る。
+  - id: lights-return
+    at: "20:26"
+    participants: [tozuka, makabe, aihara]
+    facts: [lights-restored-2026]
+    description: 自動復旧シーケンスが完了し、会場の照明が戻る。
+  - id: key-check
+    at: "20:28"
+    participants: [makabe]
+    facts: [makabe-checked-key-2028]
+    description: 真壁が予備鍵の箱を確認し、鍵が戻されているのを見る。
+  - id: discovery
+    at: "20:35"
+    participants: [makabe, aihara, tozuka]
+    facts: [body-found-2035]
+    description: 真壁が祭具倉庫で神谷の死を発見する。
+characters:
+  - id: tozuka
+    name: 戸塚岳
+    role: suspect
+    personality: 現場慣れした電気技師で、トラブル時ほど落ち着いて話す。専門知識への自負が強く、素人には設備の細部まで分からないと思っている。神谷とは発注費を巡って関係が悪化していた。
+    goals:
+      - 発注額の水増しと謝礼の受領を隠したい
+      - 停電中は操作卓から一歩も離れていないと思わせたい
+    knowledge: [tozuka-is-electrician, blackout-started-2018, lighting-preset-ran, lights-restored-2026, body-found-2035]
+    secrets:
+      - fact: kamiya-found-kickbacks
+        disclosure: pressured
+      - fact: kamiya-warned-tozuka
+        disclosure: pressured
+      - fact: tozuka-left-console-2020
+        disclosure: never
+      - fact: tozuka-killed-kamiya-2023
+        disclosure: never
+      - fact: tozuka-returned-2025
+        disclosure: never
+      - fact: spare-key-borrowed
+        disclosure: never
+    lies:
+      - id: tozuka-console-alibi
+        about: tozuka-left-console-2020
+        claim: 20時18分から照明が戻る20時26分まで、操作卓で手動復旧を続けていた。あの八分間は一度も席を離れていない
+        strategy: maintain-until-contradicted
+    memories:
+      - id: ledger-threat
+        about: kamiya-warned-tozuka
+        detail: 神谷が帳簿のコピーを机に置き「今夜で終わりにする」と言ったとき、祭りの音が急に遠くなった気がした。
+    relationships:
+      - character: aihara
+        relation: 祭り運営の協力者
+        attitude: 現場の事情を知らないのに口を出す人だと思っている
+  - id: makabe
+    name: 真壁聡
+    role: suspect
+    personality: 真面目で融通の利かない禰宜。神社を守る責任感は強いが、修繕費の不足から寄付金を一時流用したことを深く後悔している。鍵の管理について聞かれると必要以上に神経質になる。
+    goals:
+      - 寄付金の流用を隠したい
+      - 鍵の管理責任を自分だけに負わされたくない
+    knowledge: [makabe-is-priest, blackout-started-2018, makabe-checked-key-2028, body-found-2035]
+    secrets:
+      - fact: makabe-used-donations
+        disclosure: pressured
+      - fact: spare-key-borrowed
+        disclosure: voluntary
+    lies:
+      - id: makabe-perfect-key-control
+        about: spare-key-borrowed
+        claim: 祭具倉庫の予備鍵の扱いを知っているのは私だけで、他の人が暗証番号を知ることはありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: returned-key
+        about: makabe-checked-key-2028
+        detail: 停電が戻った後、心配になって鍵箱を確認し、予備鍵がいつもの位置に戻っていたので少し安心した。
+    relationships: []
+  - id: aihara
+    name: 相原夏帆
+    role: witness
+    personality: 活発で世話焼きな屋台会のまとめ役。祭りの成功を優先するあまり、申請前の知人を出店させた後ろめたさがある。暗闇で見た人物について断定するのをためらうが、服装と歩き方には自信がある。
+    goals:
+      - 無許可に近い状態で知人の屋台を出したことを隠したい
+      - 停電中に見た人物を、確信のある範囲で伝えたい
+    knowledge: [aihara-leads-stalls, blackout-started-2018, aihara-saw-tozuka-2022, lights-restored-2026, body-found-2035]
+    secrets:
+      - fact: aihara-unlicensed-stall
+        disclosure: pressured
+    lies:
+      - id: aihara-saw-nothing
+        about: aihara-saw-tozuka-2022
+        claim: 停電中は屋台の安全確認で手いっぱいで、暗くて誰がどこへ行ったかまでは見ていません
+        strategy: evasive
+    memories:
+      - id: reflective-vest
+        about: aihara-saw-tozuka-2022
+        detail: 非常灯の下を横切った反射ベストが一瞬だけ光り、戸塚の早足の歩き方だと思ったことを覚えている。
+    relationships:
+      - character: tozuka
+        relation: 祭り運営の協力者
+        attitude: 技術は頼りにしているが、説明が上から目線で苦手
+revelations:
+  - id: blackout-was-automatic
+    title: 八分間の復旧は自動だった
+    text: 停電中、照明制御盤は事前設定された自動復旧シーケンスを実行しており、戸塚が操作卓に居続ける必要はなかった。
+    category: alibi
+    subject:
+      type: event
+      id: blackout-start
+    sources:
+      - type: character
+        id: tozuka
+        revealCondition: 戸塚に停電復旧で実際に手動操作した内容を具体的に尋ね、制御ログとの違いを確認した。
+        requires:
+          revelations: []
+          evidences: [lighting-control-log]
+    relatedFacts: [lighting-preset-ran, blackout-started-2018, lights-restored-2026]
+  - id: procurement-motive
+    title: 祭り終了後に公表される不正
+    text: 神谷は照明設備の発注水増しと戸塚への謝礼を把握し、祭り終了後に公表すると本人へ告げていた。
+    category: motive
+    subject:
+      type: character
+      id: tozuka
+    sources:
+      - type: character
+        id: tozuka
+        revealCondition: 戸塚に発注帳簿と神谷から19時50分に言われた内容を追及し、不正公表への恐れが明確になった。
+        requires:
+          revelations: [blackout-was-automatic]
+          evidences: [procurement-ledger]
+    relatedFacts: [kamiya-found-kickbacks, kamiya-warned-tozuka]
+evidences:
+  - id: lighting-control-log
+    label: 照明制御盤の自動復旧ログ
+    description: 20時18分から20時26分まで、制御盤が登録済みの復旧シーケンスを自動実行していた記録が残る。
+    reveal:
+      mode: conversation
+      condition: 戸塚に停電中の操作内容を尋ねるか、相原に復旧作業で操作卓へ人が張り付く必要があったのか確認したら開示する。
+    sources:
+      - type: character
+        id: tozuka
+      - type: character
+        id: aihara
+    supports: [lighting-preset-ran, lights-restored-2026]
+    contradicts: ["lie:tozuka-console-alibi"]
+  - id: emergency-light-sighting
+    label: 非常灯の下の反射ベスト
+    description: 20時22分ごろ、相原は祭具倉庫方向へ急ぐ戸塚を非常灯の下で見ている。
+    reveal:
+      mode: conversation
+      condition: 相原に停電中に見た人影や反射ベストについて具体的に尋ね、戸塚だと思った理由まで話したら開示する。
+    sources:
+      - type: character
+        id: aihara
+    supports: [aihara-saw-tozuka-2022]
+    contradicts: ["lie:tozuka-console-alibi", "lie:aihara-saw-nothing"]
+  - id: key-box-history
+    label: 祭具倉庫の予備鍵の貸出記録
+    description: 戸塚は準備期間中に予備鍵を借りており、その際に鍵箱の暗証番号を知る機会があった。
+    reveal:
+      mode: conversation
+      condition: 真壁に予備鍵を過去に誰へ貸したか尋ねるか、戸塚に倉庫へ入った経験があるか確認したら開示する。
+    sources:
+      - type: character
+        id: makabe
+      - type: character
+        id: tozuka
+    supports: [spare-key-borrowed]
+    contradicts: ["lie:makabe-perfect-key-control"]
+  - id: procurement-ledger
+    label: 照明設備の発注帳簿
+    description: 同規模の設備と比べて発注額が不自然に高く、戸塚へ還流した謝礼を神谷が照合したメモが挟まれている。
+    reveal:
+      mode: conversation
+      condition: 戸塚に設備費の内訳を尋ねるか、真壁に神谷が祭り前から確認していた帳簿について尋ねたら開示する。
+    sources:
+      - type: character
+        id: tozuka
+      - type: character
+        id: makabe
+    supports: [kamiya-found-kickbacks, kamiya-warned-tozuka]
+    contradicts: []
+  - id: donation-shortfall
+    label: 神社の寄付金収支の不足
+    description: 真壁が修繕費へ一時流用した金額が確認できるが、神谷の死亡時刻や停電とは関係がない。
+    reveal:
+      mode: conversation
+      condition: 真壁に神谷との金銭上の揉め事がなかったか尋ね、寄付金の扱いを強く否定したら開示する。
+    sources:
+      - type: character
+        id: makabe
+    supports: [makabe-used-donations]
+    contradicts: []
+solution:
+  culprit: tozuka
+  summary: 犯人は戸塚岳。照明設備の発注水増しと謝礼の受領を神谷に知られ、祭り終了後に公表されると告げられていた。20時18分に照明トラブルが起きると、実際には制御盤が自動復旧を始めていたにもかかわらず「操作卓で手動復旧していた」とアリバイを作り、20時20分ごろその場を離れた。20時22分には相原が祭具倉庫方向へ急ぐ戸塚を見ており、戸塚は予備鍵の暗証番号も知っていた。20時23分ごろ倉庫内で神谷を襲い、20時25分に操作卓へ戻る。20時26分に照明が自動で復旧したため、外からは戸塚がずっと対応していたように見えた。真壁の寄付金流用と相原の出店問題は独立した隠し事である。
+  method: 停電中の自動復旧を利用して操作卓を離れ、祭具倉庫で神谷を襲った後に操作卓へ戻った
+  motive: 発注不正と謝礼の受領が祭り終了後に公表されることを恐れたため
+  requiredFacts: [kamiya-found-kickbacks, kamiya-warned-tozuka, lighting-preset-ran, tozuka-left-console-2020, aihara-saw-tozuka-2022, tozuka-killed-kamiya-2023, spare-key-borrowed]
+  secretKeywords:
+    - 犯人は戸塚
+    - 戸塚が犯人
+    - 戸塚が神谷を襲
+    - 私が神谷を襲
+    - 停電をアリバイに殺
+quality:
+  expectedQuestionCount:
+    min: 9
+    max: 19
+  requiredEvidence:
+    min: 2
+  redHerrings: [makabe-used-donations, aihara-unlicensed-stall]
+  notes: 核心は「停電復旧はその場に人が必要」という思い込みを制御ログで外し、相原の目撃と戸塚の操作卓アリバイを衝突させること。鍵の入手可能性は補強であり、単独で犯人を決める証拠にはしない。

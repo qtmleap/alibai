@@ -65,6 +65,15 @@ export const scenarioTruths = pgTable('scenario_truths', {
     .references(() => scenarios.id, { onDelete: 'cascade' }),
   culpritCharacterId: uuid('culprit_character_id'),
   truth: text('truth').notNull(),
+  /**
+   * 殺害方法と動機。プレイヤーの推理を採点する的。
+   *
+   * nullable なのは、この2列より前に登録されたシナリオ行があるため。
+   * db/scenario-definition.ts 側では必須なので、seed を通った行には必ず入る。
+   * 読む側は null を「未設定」として truth へ落とすこと。
+   */
+  method: text('method'),
+  motive: text('motive'),
   timeline: jsonb('timeline').notNull(),
   /** 出力フィルタが漏洩検知に使う秘匿キーワード */
   secretKeywords: text('secret_keywords').array().notNull(),
@@ -228,6 +237,18 @@ export const revelationDiscoveries = pgTable(
   ],
 )
 
+/**
+ * プレイヤーが書いた推理と、それに対する採点者の短評。
+ * 点の再計算に要るのは正誤だけなので、そちらは列に出してこちらは表示専用。
+ */
+export type DeductionRecord = {
+  reasoning: string
+  method: string
+  motive: string
+  methodComment: string
+  motiveComment: string
+}
+
 export const results = pgTable('results', {
   sessionId: uuid('session_id')
     .primaryKey()
@@ -237,6 +258,10 @@ export const results = pgTable('results', {
   evidenceFound: integer('evidence_found').notNull(),
   contradictionCount: integer('contradiction_count').notNull(),
   accuracyPercent: smallint('accuracy_percent').notNull(),
+  /** 推理採点。3列とも nullable なのは、採点を入れる前に終わったセッション行があるため。 */
+  methodCorrect: boolean('method_correct'),
+  motiveCorrect: boolean('motive_correct'),
+  deduction: jsonb('deduction').$type<DeductionRecord>(),
 })
 
 export const reports = pgTable(

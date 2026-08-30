@@ -40,8 +40,33 @@ const ResultRow = ({ label, value }: { label: string; value: string }) => (
   </div>
 )
 
+/**
+ * 推理1つぶんの答え合わせ。自分が書いた文・採点者の短評・真相を上から並べる。
+ * 正誤は見出しの色で示し、記号を足さない（記録側に○×が既に出ている）。
+ */
+const DeductionReview = ({
+  label,
+  correct,
+  answer,
+  comment,
+  truth,
+}: {
+  label: string
+  correct: boolean
+  answer: string
+  comment: string
+  truth: string | null
+}) => (
+  <div className="flex flex-col gap-1.5 border-b border-slate-800 py-3">
+    <p className={correct ? 'text-sm text-emerald-400' : 'text-sm text-red-400'}>{label}</p>
+    <p className="text-sm leading-relaxed whitespace-pre-wrap text-slate-200">{answer}</p>
+    <p className="text-sm leading-relaxed text-slate-400">{comment}</p>
+    {truth !== null && <p className="text-sm leading-relaxed text-slate-500">真相　{truth}</p>}
+  </div>
+)
+
 export const ResultScreen = ({ accuseResult, onRestart }: Props) => {
-  const { correct, result, truth } = accuseResult
+  const { correct, result, truth, deduction } = accuseResult
 
   return (
     <div className="screen-enter mx-auto flex min-h-dvh max-w-md flex-col gap-8 bg-slate-950 px-5 py-6 text-slate-100">
@@ -62,9 +87,33 @@ export const ResultScreen = ({ accuseResult, onRestart }: Props) => {
           <ResultRow label="質問回数" value={`${result.questionCount}回`} />
           <ResultRow label="発見した証拠" value={`${result.evidenceFound}個`} />
           <ResultRow label="矛盾の指摘" value={`${result.contradictionCount}回`} />
+          <ResultRow label="殺害方法" value={result.methodCorrect ? '正解' : '不正解'} />
+          <ResultRow label="動機" value={result.motiveCorrect ? '正解' : '不正解'} />
           <ResultRow label="正答率" value={`${result.accuracyPercent}%`} />
         </dl>
       </section>
+
+      {deduction !== null && (
+        <section className="flex flex-col">
+          <h2 className="pb-2 text-[10px] tracking-[0.3em] text-slate-600">答え合わせ</h2>
+          <div className="flex flex-col border-t border-slate-800">
+            <DeductionReview
+              label="殺害方法"
+              correct={result.methodCorrect}
+              answer={deduction.method}
+              comment={deduction.methodComment}
+              truth={truth.method}
+            />
+            <DeductionReview
+              label="動機"
+              correct={result.motiveCorrect}
+              answer={deduction.motive}
+              comment={deduction.motiveComment}
+              truth={truth.motive}
+            />
+          </div>
+        </section>
+      )}
 
       <section className="flex flex-col gap-2">
         <h2 className="text-[10px] tracking-[0.3em] text-slate-600">真相</h2>
