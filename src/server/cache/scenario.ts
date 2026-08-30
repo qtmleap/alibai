@@ -160,13 +160,13 @@ export const loadJudgeRubric = async (
 
   const evidenceList = rows.map((row) => `- ${row.id}: ${row.revealCondition}`).join('\n')
 
-  const rubric = `あなたはマーダーミステリーの進行審判である。プレイヤーの質問とNPCの返答を読み、以下を判定する。
+  const rubric = `あなたはマーダーミステリーの進行審判である。プレイヤーが指定した話題と、それを受けて探偵がNPCと交わしたやり取りを読み、以下を判定する。やり取りは同じ話題について複数の往復にわたることがあり、その全体をまとめて1回として判定する。
 
 - revealedEvidenceIds: 今回のやり取りで開示条件を満たした証拠のIDを列挙する。満たしていなければ空配列。
 - revealedRevelationIds: ユーザーメッセージ末尾の「今回判定可能なRevelation」に列挙された候補のうち、今回の会話で条件を満たしたIDだけを列挙する。候補外のIDを推測してはいけない。満たしていなければ空配列。
-- contradictionPointedOut: プレイヤーが過去の発言との矛盾を指摘できていたら true。
+- contradictionPointedOut: 探偵が過去の発言との矛盾を指摘できていたら true。
 - npcLied: NPCの返答が、その場しのぎの嘘や誤誘導を含んでいたら true。
-- suggestedQuestions: 会話の流れから次に聞くとよい質問を最大3件、プレイヤー視点の短い文で提案する。
+- suggestedQuestions: 会話の流れから次に指定するとよい話題を最大3件、プレイヤーが探偵へ渡す短い指示の形で提案する。
 
 証拠の開示条件は以下の通り。与えられているのはIDと条件文だけで、それ以外の情報（真相・犯人など）は渡されていない。条件に明確に合致しない証拠は開示したと判定しないこと。
 
