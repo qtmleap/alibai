@@ -1,0 +1,383 @@
+schemaVersion: 1
+id: snowbound-studio-roomtone-loop
+meta:
+  title: 雪籠りの録音所、四十七秒の無音
+  synopsis: 吹雪で孤立した山中の録音スタジオで音楽監督が死亡した。録音技師は「事件時刻には防音ブースで連続収録を監視していた」といい、記録には確かに二十分途切れない音声が残る。だが無音に近い部屋の響きまで、四十七秒ごとに同じ形を繰り返していた。
+  category: クローズドサークル
+  difficulty: 5
+  estimatedMinutes: 18
+  tags: [録音スタジオ, 吹雪, 音声, ループ]
+briefing: |-
+  ——事件の記録を読み上げます。
+
+  午後十一時十八分、山中の録音所「ノース・レイク」の編集室で、音楽監督の冬木圭介が死亡しているのが見つかりました。午後十時半から吹雪で道路が閉鎖され、館内には冬木を含め五人しかいませんでした。
+
+  録音技師の真鍋伊織は「午後十時五十分から十一時十分まで第2ブースの連続録音を監視していた」と話しています。収録ファイルはその二十分間、一度も止まっていません。歌手の白瀬は廊下でブースから音が流れていたのを聞いたとも証言しています。
+
+  ほかに残っていたのは、歌手の白瀬環、制作進行の鷹野徹、機材担当の牧村葉月。音が残っていることと、その音を誰かがその場で生み続けていたことは同じなのか。録音所の中だけで答えを探してください。
+floorPlan: null
+facts:
+  - id: manabe-engineer
+    statement: 真鍋伊織は録音と編集機器を担当する録音技師である
+    kind: other
+  - id: shirase-singer
+    statement: 白瀬環は収録中のボーカリストである
+    kind: other
+  - id: takano-production
+    statement: 鷹野徹は収録日程と契約処理を担当する制作進行である
+    kind: other
+  - id: makimura-equipment
+    statement: 牧村葉月はマイクや配線など録音機材の管理を担当している
+    kind: other
+  - id: manabe-copied-masters
+    statement: 真鍋伊織は未公開の音源データを許可なく複製し、外部へ渡していた
+    kind: motive
+    secret: true
+  - id: fuyuki-found-master-leak
+    statement: 冬木圭介は事件当日、真鍋伊織による未公開音源の持ち出しを突き止めた
+    kind: motive
+    secret: true
+  - id: fuyuki-planned-report
+    statement: 冬木圭介は翌朝、真鍋伊織の音源持ち出しを制作会社へ報告し、機材アクセス権を停止する予定だった
+    kind: motive
+    secret: true
+  - id: manabe-made-roomtone-loop
+    statement: 22時46分、真鍋伊織は第2ブースで録った四十七秒の室内音を連続再生できるループ素材にした
+    kind: physical
+    secret: true
+  - id: loop-routed-to-recorder
+    statement: 22時50分から23時10分まで、第2ブースの録音機には生マイクではなく四十七秒のループ素材が入力されていた
+    kind: physical
+    secret: true
+  - id: recording-repeats-identically
+    statement: 22時50分から23時10分の収録ファイルでは、空調音や小さな物音を含む波形が四十七秒ごとに完全一致している
+    kind: physical
+  - id: manabe-left-booth
+    statement: 22時53分ごろ、真鍋伊織は第2ブースの監視席を離れた
+    kind: truth
+    secret: true
+  - id: makimura-saw-manabe
+    statement: 22時58分ごろ、牧村葉月は編集室へ続く機材廊下で真鍋伊織を見た
+    kind: observation
+  - id: manabe-killed-fuyuki
+    statement: 23時02分ごろ、真鍋伊織は編集室で冬木圭介を襲い死亡させた
+    kind: truth
+    secret: true
+  - id: manabe-returned-booth
+    statement: 23時08分ごろ、真鍋伊織は第2ブースの監視席へ戻った
+    kind: truth
+    secret: true
+  - id: shirase-heard-loop
+    statement: 22時56分ごろ、白瀬環は第2ブース前の廊下で録音中のような室内音を聞いた
+    kind: observation
+  - id: takano-hid-contract-change
+    statement: 鷹野徹は出演条件の変更を正式承認前に処理し、制作費を別項目へ付け替えていた
+    kind: other
+    secret: true
+  - id: shirase-broke-embargo
+    statement: 白瀬環は公開前の新曲情報を親しい知人へ話していた
+    kind: other
+    secret: true
+  - id: makimura-damaged-microphone
+    statement: 牧村葉月は高価なマイクを落として傷つけたことを報告せず、別のケースへ戻していた
+    kind: other
+    secret: true
+  - id: body-found-2318
+    statement: 23時18分、鷹野徹が編集室で冬木圭介の死を発見した
+    kind: observation
+
+timeline:
+  - id: roomtone-loop-made
+    at: "22:46"
+    participants: [manabe]
+    facts: [manabe-made-roomtone-loop]
+    description: 真鍋が第2ブースの四十七秒の室内音をループ素材として作成する。
+  - id: loop-recording-starts
+    at: "22:50"
+    participants: [manabe]
+    facts: [loop-routed-to-recorder, recording-repeats-identically]
+    description: 第2ブースの録音機へループ素材が入力され、連続収録が始まる。
+  - id: manabe-leaves
+    at: "22:53"
+    participants: [manabe]
+    facts: [manabe-left-booth]
+    description: 真鍋が録音を動かしたまま監視席を離れる。
+  - id: shirase-hearing
+    at: "22:56"
+    participants: [shirase]
+    facts: [shirase-heard-loop]
+    description: 白瀬が廊下から第2ブースの録音中らしい音を聞く。
+  - id: makimura-sighting
+    at: "22:58"
+    participants: [manabe, makimura]
+    facts: [makimura-saw-manabe]
+    description: 牧村が編集室へ続く機材廊下で真鍋を目撃する。
+  - id: fuyuki-death
+    at: "23:02"
+    participants: [manabe]
+    facts: [manabe-killed-fuyuki]
+    description: 真鍋が編集室で冬木を襲い、冬木は死亡する。
+  - id: manabe-return
+    at: "23:08"
+    participants: [manabe]
+    facts: [manabe-returned-booth]
+    description: 真鍋が第2ブースの監視席へ戻る。
+  - id: discovery
+    at: "23:18"
+    participants: [takano, manabe, shirase, makimura]
+    facts: [body-found-2318]
+    description: 鷹野が編集室で冬木の死を発見する。
+
+characters:
+  - id: manabe
+    name: 真鍋伊織
+    role: suspect
+    personality: 音の差異に異常なほど敏感で、自分の技術に強い自負を持つ録音技師。説明は専門的だが、連続した収録ファイルを在席の客観証拠として押し出し、入力経路の話になると曖昧になる。
+    goals:
+      - 未公開音源を外部へ渡したことを隠したい
+      - 二十分の連続録音を、自分が監視席に居続けた証拠として通したい
+    knowledge: [manabe-engineer, recording-repeats-identically, body-found-2318]
+    secrets:
+      - fact: manabe-copied-masters
+        disclosure: pressured
+      - fact: fuyuki-found-master-leak
+        disclosure: pressured
+      - fact: fuyuki-planned-report
+        disclosure: pressured
+      - fact: manabe-made-roomtone-loop
+        disclosure: pressured
+      - fact: loop-routed-to-recorder
+        disclosure: pressured
+      - fact: manabe-left-booth
+        disclosure: never
+      - fact: manabe-killed-fuyuki
+        disclosure: never
+      - fact: manabe-returned-booth
+        disclosure: never
+    lies:
+      - id: manabe-booth-alibi
+        about: manabe-left-booth
+        claim: 22時50分から23時10分まで第2ブースの監視席を離れていません。録音が二十分連続しているのが証拠です
+        strategy: maintain-until-contradicted
+      - id: manabe-live-input
+        about: loop-routed-to-recorder
+        claim: あの収録はずっと第2ブースの生マイク入力でした。ループ素材を録音機へ回してはいません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: access-stop-threat
+        about: fuyuki-planned-report
+        detail: 冬木に「朝になったら会社へ報告して、君のアクセス権を止める」と言われ、過去の持ち出しまで全部調べられると思った。
+    relationships:
+      - character: makimura
+        relation: 機材管理の同僚
+        attitude: 配線には詳しいので、自分の入力経路を見抜かれるのを警戒している
+      - character: takano
+        relation: 制作進行
+        attitude: 金の処理ばかり気にして音を理解しない人だと思っている
+  - id: shirase
+    name: 白瀬環
+    role: witness
+    personality: 感覚的に物事を捉える歌手。公開前情報を知人へ話したことを隠したいが、廊下で聞いた音については率直に答える。音が聞こえたため最初は真鍋が中にいると思い込んでいる。
+    goals:
+      - 新曲情報を知人へ漏らしたことを隠したい
+      - 22時56分ごろ第2ブースから音が聞こえたことは正確に話したい
+    knowledge: [shirase-singer, shirase-heard-loop, body-found-2318]
+    secrets:
+      - fact: shirase-broke-embargo
+        disclosure: pressured
+    lies:
+      - id: shirase-no-leak
+        about: shirase-broke-embargo
+        claim: 公開前の曲について外の人に話したことはありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: booth-sound-memory
+        about: shirase-heard-loop
+        detail: 22時56分ごろ、ブース前を通ったとき空調の低い音と椅子が小さく鳴るような音が続いていて、収録中だと思って静かに通り過ぎた。
+    relationships:
+      - character: manabe
+        relation: 録音担当
+        attitude: 技術は信頼しているが、音源データの扱いには神経質すぎると感じている
+  - id: takano
+    name: 鷹野徹
+    role: suspect
+    personality: 現実的で数字に強い制作進行。契約処理の付け替えが露見するのを恐れているため冬木との事務的な衝突を小さく見せるが、音響機器の細部には疎い。
+    goals:
+      - 制作費の付け替えを隠したい
+      - 冬木と契約処理で揉めていたことを事件と結びつけられたくない
+    knowledge: [takano-production, body-found-2318]
+    secrets:
+      - fact: takano-hid-contract-change
+        disclosure: pressured
+    lies:
+      - id: takano-no-cost-shift
+        about: takano-hid-contract-change
+        claim: 制作費の項目を承認前に付け替えたことはありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: fuyuki-angry-at-manabe
+        about: fuyuki-found-master-leak
+        detail: 事件前、冬木が真鍋に「これは技術の問題じゃなく信用の問題だ」と低い声で言っているのを聞いた。
+    relationships:
+      - character: shirase
+        relation: 出演者と制作進行
+        attitude: 情報管理が甘いところを心配している
+  - id: makimura
+    name: 牧村葉月
+    role: witness
+    personality: 配線と機材配置を記憶するのが得意な機材担当。高価なマイクを傷つけたことを隠したいが、パッチ盤の入力経路と廊下で見た真鍋については正確に話せる。
+    goals:
+      - マイクを落として傷つけたことを隠したい
+      - 22時58分の真鍋の目撃と入力経路は正確に説明したい
+    knowledge: [makimura-equipment, makimura-saw-manabe, recording-repeats-identically, body-found-2318]
+    secrets:
+      - fact: makimura-damaged-microphone
+        disclosure: pressured
+    lies:
+      - id: makimura-no-damage
+        about: makimura-damaged-microphone
+        claim: 今夜、機材を落としたり傷つけたりしていません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: patch-bay-route
+        about: loop-routed-to-recorder
+        detail: 事件後に第2ブースのパッチ盤を見ると、生マイクではなく編集機側の再生出力が録音機へ戻されていたのが気になった。
+    relationships: []
+
+revelations:
+  - id: recording-was-loop
+    title: 二十分の音は四十七秒の繰り返し
+    text: 第2ブースの収録は生マイクではなく、四十七秒の室内音を繰り返すループ素材だった。収録が続いていても真鍋がブースにいた証明にはならない。
+    category: alibi
+    subject: { type: character, id: manabe }
+    sources:
+      - type: character
+        id: makimura
+        revealCondition: 牧村に第2ブースのパッチ盤と録音機への入力経路を尋ね、再生出力が戻されていたことを確認した。
+        requires:
+          revelations: []
+          evidences: [waveform-repeat]
+      - type: character
+        id: manabe
+        revealCondition: 真鍋に四十七秒ごとに完全一致する波形と入力経路を突きつけ、生録音だという説明を崩した。
+        requires:
+          revelations: []
+          evidences: [waveform-repeat]
+    relatedFacts: [manabe-made-roomtone-loop, loop-routed-to-recorder, recording-repeats-identically, manabe-left-booth]
+  - id: corridor-sighting-breaks-studio-alibi
+    title: 録音中のはずの機材廊下
+    text: 22時58分ごろ、牧村は編集室へ続く機材廊下で真鍋を目撃しており、二十分間監視席を離れなかったという説明と両立しない。
+    category: timeline
+    subject: { type: event, id: makimura-sighting }
+    sources:
+      - type: character
+        id: makimura
+        revealCondition: 牧村に22時台後半の機材廊下で会った人物を尋ね、真鍋の目撃時刻を具体化した。
+        requires:
+          revelations: [recording-was-loop]
+          evidences: [equipment-corridor-sighting]
+    relatedFacts: [makimura-saw-manabe, manabe-left-booth]
+  - id: manabe-master-leak-motive
+    title: 翌朝に止められるアクセス権
+    text: 冬木は真鍋による未公開音源の持ち出しを突き止め、翌朝に制作会社へ報告して真鍋の機材アクセス権を停止する予定だった。
+    category: motive
+    subject: { type: character, id: manabe }
+    sources:
+      - type: character
+        id: manabe
+        revealCondition: 真鍋に冬木が調べていた未公開音源の複製と翌朝の対応を追及し、アクセス停止への恐れを明確にした。
+        requires:
+          revelations: [corridor-sighting-breaks-studio-alibi]
+          evidences: [master-copy-history]
+      - type: character
+        id: takano
+        revealCondition: 鷹野に冬木が事件前に問題視していたデータ持ち出しを尋ね、会社への報告予定を確認した。
+        requires:
+          revelations: []
+          evidences: [master-copy-history]
+    relatedFacts: [manabe-copied-masters, fuyuki-found-master-leak, fuyuki-planned-report]
+
+evidences:
+  - id: waveform-repeat
+    label: 四十七秒ごとに一致する収録波形
+    description: 空調音や小さな物音まで含めた波形が四十七秒周期で完全一致し、同じ室内音が繰り返し再生されていたと分かる。
+    reveal:
+      mode: conversation
+      condition: 真鍋か牧村に収録ファイルが本当に生マイク入力だったか、波形の反復と入力経路を含めて尋ねたら開示する。
+    sources:
+      - { type: character, id: manabe }
+      - { type: character, id: makimura }
+    supports: [manabe-made-roomtone-loop, loop-routed-to-recorder, recording-repeats-identically]
+    contradicts: ["lie:manabe-booth-alibi", "lie:manabe-live-input"]
+  - id: equipment-corridor-sighting
+    label: 二十二時五十八分の機材廊下目撃
+    description: 牧村は22時58分ごろ、編集室へ続く機材廊下で真鍋を見ている。
+    reveal:
+      mode: conversation
+      condition: 牧村に22時50分から23時ごろ機材廊下で誰を見たか尋ねたら開示する。
+    sources:
+      - { type: character, id: makimura }
+    supports: [makimura-saw-manabe]
+    contradicts: ["lie:manabe-booth-alibi"]
+  - id: master-copy-history
+    label: 未公開音源の複製履歴
+    description: 真鍋の作業端末から未公開マスターが外部媒体へ複製され、冬木が翌朝のアクセス停止を記したメモを残している。
+    reveal:
+      mode: conversation
+      condition: 真鍋か鷹野に冬木が事件前に調べていた音源データの持ち出しについて尋ね、複製履歴を追及したら開示する。
+    sources:
+      - { type: character, id: manabe }
+      - { type: character, id: takano }
+    supports: [manabe-copied-masters, fuyuki-found-master-leak, fuyuki-planned-report]
+    contradicts: []
+  - id: shirase-message
+    label: 白瀬の新曲情報メッセージ
+    description: 白瀬が公開前の新曲情報を知人へ送っていたことが分かるが、編集室の事件とは独立している。
+    reveal:
+      mode: conversation
+      condition: 白瀬に公開前情報を外部へ話していないか尋ね、否定を続けたら開示する。
+    sources:
+      - { type: character, id: shirase }
+    supports: [shirase-broke-embargo]
+    contradicts: ["lie:shirase-no-leak"]
+  - id: production-cost-sheet
+    label: 鷹野の制作費付け替え表
+    description: 鷹野が承認前に制作費項目を付け替えたことが分かるが、冬木の死亡とは別件である。
+    reveal:
+      mode: conversation
+      condition: 鷹野に出演条件変更と制作費処理について尋ね、付け替えをしていないという説明を検証したら開示する。
+    sources:
+      - { type: character, id: takano }
+    supports: [takano-hid-contract-change]
+    contradicts: ["lie:takano-no-cost-shift"]
+  - id: damaged-mic-case
+    label: 傷のある収録用マイク
+    description: 牧村が落としたマイクと隠したケースが見つかるが、事件とは無関係の機材事故だった。
+    reveal:
+      mode: conversation
+      condition: 牧村に今夜機材を傷つけていないか尋ね、否定を続けたら開示する。
+    sources:
+      - { type: character, id: makimura }
+    supports: [makimura-damaged-microphone]
+    contradicts: ["lie:makimura-no-damage"]
+
+solution:
+  culprit: manabe
+  summary: 犯人は真鍋伊織。未公開音源を外部へ渡していたことを冬木に見抜かれ、翌朝に制作会社へ報告され機材アクセス権を止められる予定だった。真鍋は22時46分に四十七秒の室内音をループ素材にし、22時50分から第2ブースの録音機へ繰り返し入力した。22時53分ごろ監視席を離れ、22時58分には牧村が編集室へ続く機材廊下で真鍋を目撃している。23時02分ごろ冬木を襲い、23時08分ごろ監視席へ戻った。二十分の収録は途切れていなかったが、空調音や小さな物音まで四十七秒ごとに完全一致しており、生の収録ではなかった。
+  method: 四十七秒の室内音を録音機へループ入力し、連続収録を在席証明に見せかけて監視席を離れ、編集室で冬木を襲った後に戻った
+  motive: 未公開音源の無断持ち出しが発覚し、翌朝の報告で機材アクセス権と仕事上の信用を失うことを恐れたため
+  requiredFacts: [manabe-copied-masters, fuyuki-planned-report, manabe-made-roomtone-loop, loop-routed-to-recorder, recording-repeats-identically, manabe-left-booth, makimura-saw-manabe, manabe-killed-fuyuki]
+  secretKeywords:
+    - 犯人は真鍋
+    - 真鍋が犯人
+    - 真鍋が冬木を襲
+    - 私が冬木を襲
+    - ループ音声でアリバイを偽装
+quality:
+  expectedQuestionCount:
+    min: 13
+    max: 26
+  requiredEvidence:
+    min: 3
+  redHerrings: [shirase-broke-embargo, takano-hid-contract-change, makimura-damaged-microphone]
+  notes: 「音が聞こえた」「録音が続いていた」という二重の客観性を、同じ四十七秒のループが同時に説明してしまう構造。波形の反復だけでなく牧村の目撃を合わせ、真鍋の実際の移動を確定させる。

@@ -54,9 +54,9 @@ const optionalString = z.preprocess(
  */
 const schema = z.object({
   // 役割ごとに使うプロバイダ。3社を混在させてよい。
-  LLM_ACTOR_PROVIDER: z.enum(['anthropic', 'openai', 'google']).default('anthropic'),
-  LLM_JUDGE_PROVIDER: z.enum(['anthropic', 'openai', 'google']).default('anthropic'),
-  LLM_AUTHOR_PROVIDER: z.enum(['anthropic', 'openai', 'google']).default('anthropic'),
+  LLM_ACTOR_PROVIDER: z.enum(['anthropic', 'openai', 'google']).default('openai'),
+  LLM_JUDGE_PROVIDER: z.enum(['anthropic', 'openai', 'google']).default('openai'),
+  LLM_AUTHOR_PROVIDER: z.enum(['anthropic', 'openai', 'google']).default('openai'),
 
   // 明示するとプロバイダ既定のモデルIDを上書きできる。
   LLM_ACTOR_MODEL: optionalString,

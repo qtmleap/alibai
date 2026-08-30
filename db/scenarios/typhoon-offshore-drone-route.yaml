@@ -1,0 +1,377 @@
+schemaVersion: 1
+id: typhoon-offshore-drone-route
+meta:
+  title: 台風圏の洋上基地、自律飛行の十八分
+  synopsis: 台風で船もヘリも近づけない洋上風力基地で安全責任者が死亡した。点検技師は「事件時刻は屋上でドローンを操縦していた」といい、十八分間の飛行軌跡と連続写真も残る。だが同じ経路を繰り返す点検飛行は、人が操縦し続けなければ成立しないのか。
+  category: クローズドサークル
+  difficulty: 5
+  estimatedMinutes: 18
+  tags: [洋上基地, 台風, ドローン, 自律飛行]
+briefing: |-
+  ——事件の記録を読み上げます。
+
+  午前一時二十九分、沖合風力発電基地の会議室で、安全責任者の芳賀俊介が死亡しているのが見つかりました。台風接近で保守船は午後十一時に退避し、ヘリポートも閉鎖。基地には芳賀を含め五人だけが残っています。
+
+  点検技師の柊木慧は「午前一時から一時十八分まで屋上の操縦席で点検ドローンを飛ばしていた」と話しています。ドローンには十八分間の飛行軌跡と、各設備を撮影した連続写真が残っています。
+
+  ほかにいたのは、電気主任の三枝千尋、気象担当の波木恵、資材担当の国分透。基地内の移動は限られています。飛んでいた機体と、それを操作していた人を同一視してよいのか確かめてください。
+floorPlan: null
+facts:
+  - id: hiiragi-inspector
+    statement: 柊木慧は風車設備の外観点検とドローン運用を担当する技師である
+    kind: other
+  - id: saegusa-electrician
+    statement: 三枝千尋は基地内の電気設備を担当する主任である
+    kind: other
+  - id: nami-weather
+    statement: 波木恵は風況と気象観測を担当している
+    kind: other
+  - id: kokubu-logistics
+    statement: 国分透は交換部品と資材の管理を担当している
+    kind: other
+  - id: hiiragi-falsified-inspections
+    statement: 柊木慧は実施していない一部の外観点検を過去データの転用で実施済みとして報告していた
+    kind: motive
+    secret: true
+  - id: haga-found-false-inspections
+    statement: 芳賀俊介は事件当日、柊木慧の点検写真に過去データの使い回しがあることを見抜いた
+    kind: motive
+    secret: true
+  - id: haga-planned-report
+    statement: 芳賀俊介は翌朝、柊木慧の点検不正を本社安全部へ報告し、ドローン運用資格を停止する予定だった
+    kind: motive
+    secret: true
+  - id: drone-repeat-route-capable
+    statement: 点検ドローンには事前登録した経路を自動で飛び、指定地点で自動撮影する反復点検機能がある
+    kind: physical
+  - id: hiiragi-loaded-auto-route
+    statement: 00時57分、柊木慧は十八分間の反復点検ルートをドローンへ読み込ませた
+    kind: physical
+    secret: true
+  - id: drone-flew-auto
+    statement: 01時00分から01時18分まで、点検ドローンは反復点検機能で自律飛行し、指定地点の写真を自動撮影した
+    kind: physical
+  - id: hiiragi-left-roof
+    statement: 01時02分ごろ、柊木慧は屋上の操縦席を離れた
+    kind: truth
+    secret: true
+  - id: saegusa-saw-hiiragi-0108
+    statement: 01時08分ごろ、三枝千尋は会議室へ続く連絡階段で柊木慧を見た
+    kind: observation
+  - id: hiiragi-killed-haga
+    statement: 01時12分ごろ、柊木慧は会議室で芳賀俊介を襲い死亡させた
+    kind: truth
+    secret: true
+  - id: hiiragi-returned-roof
+    statement: 01時17分ごろ、柊木慧は屋上の操縦席へ戻った
+    kind: truth
+    secret: true
+  - id: route-has-no-manual-input
+    statement: 01時00分から01時16分までの飛行記録には手動操縦入力がなく、自律飛行状態が続いていた
+    kind: physical
+  - id: saegusa-unauthorized-reset
+    statement: 三枝千尋は設備停止を避けるため、保護装置の警報を正式承認なく一度リセットしていた
+    kind: other
+    secret: true
+  - id: nami-edited-weather-note
+    statement: 波木恵は観測入力のミスを隠すため、風速の手書き記録を後から修正していた
+    kind: other
+    secret: true
+  - id: kokubu-hid-spare-parts
+    statement: 国分透は棚卸し不足を隠すため、別案件の予備部品を一時的に在庫へ付け替えていた
+    kind: other
+    secret: true
+  - id: body-found-0129
+    statement: 01時29分、国分透が会議室で芳賀俊介の死を発見した
+    kind: observation
+
+timeline:
+  - id: route-loaded
+    at: "00:57"
+    participants: [hiiragi]
+    facts: [drone-repeat-route-capable, hiiragi-loaded-auto-route]
+    description: 柊木が十八分間の反復点検ルートをドローンへ読み込ませる。
+  - id: drone-launch
+    at: "01:00"
+    participants: [hiiragi]
+    facts: [drone-flew-auto, route-has-no-manual-input]
+    description: 点検ドローンが自律飛行を開始し、指定地点の自動撮影を続ける。
+  - id: hiiragi-leaves-roof
+    at: "01:02"
+    participants: [hiiragi]
+    facts: [hiiragi-left-roof]
+    description: 柊木がドローンを飛ばしたまま屋上の操縦席を離れる。
+  - id: saegusa-sighting
+    at: "01:08"
+    participants: [hiiragi, saegusa]
+    facts: [saegusa-saw-hiiragi-0108]
+    description: 三枝が会議室へ続く連絡階段で柊木を目撃する。
+  - id: haga-death
+    at: "01:12"
+    participants: [hiiragi]
+    facts: [hiiragi-killed-haga]
+    description: 柊木が会議室で芳賀を襲い、芳賀は死亡する。
+  - id: hiiragi-return
+    at: "01:17"
+    participants: [hiiragi]
+    facts: [hiiragi-returned-roof]
+    description: 柊木が屋上の操縦席へ戻る。
+  - id: drone-lands
+    at: "01:18"
+    participants: [hiiragi]
+    facts: [drone-flew-auto]
+    description: 自律飛行を終えた点検ドローンが着陸する。
+  - id: discovery
+    at: "01:29"
+    participants: [kokubu, hiiragi, saegusa, nami]
+    facts: [body-found-0129]
+    description: 国分が会議室で芳賀の死を発見する。
+
+characters:
+  - id: hiiragi
+    name: 柊木慧
+    role: suspect
+    personality: 機器の性能を熟知し、点検記録を客観的な証拠として扱う技師。自分の作業効率に自信があり、不正を「現場の合理化」と言い換えがち。飛行軌跡と写真を自分の在席証明として押し出す。
+    goals:
+      - 過去写真を使った点検不正を隠したい
+      - 十八分間の飛行記録を、自分が屋上で操縦し続けた証拠として通したい
+    knowledge: [hiiragi-inspector, drone-repeat-route-capable, drone-flew-auto, route-has-no-manual-input, body-found-0129]
+    secrets:
+      - fact: hiiragi-falsified-inspections
+        disclosure: pressured
+      - fact: haga-found-false-inspections
+        disclosure: pressured
+      - fact: haga-planned-report
+        disclosure: pressured
+      - fact: hiiragi-loaded-auto-route
+        disclosure: pressured
+      - fact: hiiragi-left-roof
+        disclosure: never
+      - fact: hiiragi-killed-haga
+        disclosure: never
+      - fact: hiiragi-returned-roof
+        disclosure: never
+    lies:
+      - id: hiiragi-roof-alibi
+        about: hiiragi-left-roof
+        claim: 01時から18分まで屋上の操縦席を離れていません。飛行軌跡と連続写真が全部残っています
+        strategy: maintain-until-contradicted
+      - id: hiiragi-manual-flight
+        about: hiiragi-loaded-auto-route
+        claim: 今夜の点検飛行は最初から最後まで手動操縦で、反復点検機能は使っていません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: qualification-threat
+        about: haga-planned-report
+        detail: 芳賀に「朝には安全部へ出す。ドローン運用からも外す」と言われ、過去の点検まで全部洗われると思った。
+    relationships:
+      - character: saegusa
+        relation: 設備点検の同僚
+        attitude: 通路の移動をよく見ているので警戒している
+      - character: nami
+        relation: 気象判断の協力者
+        attitude: 風のデータに細かすぎて融通が利かないと思っている
+  - id: saegusa
+    name: 三枝千尋
+    role: witness
+    personality: 保護装置の理屈に厳しい電気主任。無断リセットを隠したいが、01時08分に連絡階段で柊木を見た記憶は明確。ドローンが自動運転できることも知っている。
+    goals:
+      - 保護装置を無断リセットしたことを隠したい
+      - 01時08分の柊木の目撃は正確に話したい
+    knowledge: [saegusa-electrician, saegusa-saw-hiiragi-0108, drone-repeat-route-capable, body-found-0129]
+    secrets:
+      - fact: saegusa-unauthorized-reset
+        disclosure: pressured
+    lies:
+      - id: saegusa-no-reset
+        about: saegusa-unauthorized-reset
+        claim: 保護装置を正式承認なしでリセットしたことはありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: stairs-hiiragi
+        about: saegusa-saw-hiiragi-0108
+        detail: 01時08分ごろ、屋上で操縦中のはずの柊木が会議室側の連絡階段を下りてきたので驚いた。
+    relationships: []
+  - id: nami
+    name: 波木恵
+    role: suspect
+    personality: 数字に慎重な気象担当。風速記録の書き直しを隠したいが、点検ドローンが事前経路を自律飛行する運用は日常的に見ている。
+    goals:
+      - 風速の手書き記録を後から修正したことを隠したい
+      - 自律飛行機能の存在は必要なら正確に説明する
+    knowledge: [nami-weather, drone-repeat-route-capable, route-has-no-manual-input, body-found-0129]
+    secrets:
+      - fact: nami-edited-weather-note
+        disclosure: pressured
+    lies:
+      - id: nami-no-edit
+        about: nami-edited-weather-note
+        claim: 今夜の風速記録を後から書き直したことはありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: repeat-route-memory
+        about: drone-repeat-route-capable
+        detail: 定型点検では一度経路を読み込めば自動で写真まで撮れるので、操縦者は常時スティックを触る必要がないと知っている。
+    relationships:
+      - character: hiiragi
+        relation: 点検業務の同僚
+        attitude: 悪天候でも無理に飛ばしたがるところを危険だと思っている
+  - id: kokubu
+    name: 国分透
+    role: suspect
+    personality: 在庫と数字に敏感な資材担当。棚卸し不足を隠すため部品の付け替えをしており、芳賀に追及されていた。事件を自分の不正と結びつけられたくない。
+    goals:
+      - 予備部品の在庫付け替えを隠したい
+      - 芳賀との在庫の口論を殺意と誤解されたくない
+    knowledge: [kokubu-logistics, body-found-0129]
+    secrets:
+      - fact: kokubu-hid-spare-parts
+        disclosure: pressured
+    lies:
+      - id: kokubu-no-stock-shift
+        about: kokubu-hid-spare-parts
+        claim: 別案件の部品を在庫へ付け替えたことはありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: drone-no-operator-sound
+        about: drone-flew-auto
+        detail: 01時すぎに屋上付近を通ったとき、機体の音は聞こえたが操縦席から人の声や無線応答は聞こえなかった。
+    relationships: []
+
+revelations:
+  - id: drone-flight-not-presence
+    title: 飛行軌跡は操縦者の在席証明ではない
+    text: 点検ドローンは登録済みの経路を自律飛行し、写真も自動撮影できる。十八分の飛行記録があっても柊木が屋上に居続けたことは証明しない。
+    category: alibi
+    subject: { type: character, id: hiiragi }
+    sources:
+      - type: character
+        id: nami
+        revealCondition: 波木に定型点検の飛行方式を尋ね、登録経路なら無人操作で写真まで撮れることを確認した。
+        requires:
+          revelations: []
+          evidences: [flight-mode-log]
+      - type: character
+        id: hiiragi
+        revealCondition: 柊木に飛行中の手動入力がないことと反復点検機能を突きつけ、手動操縦だという説明を崩した。
+        requires:
+          revelations: []
+          evidences: [flight-mode-log]
+    relatedFacts: [drone-repeat-route-capable, hiiragi-loaded-auto-route, drone-flew-auto, route-has-no-manual-input, hiiragi-left-roof]
+  - id: hiiragi-stairs-contradiction
+    title: 操縦中のはずの連絡階段
+    text: 01時08分ごろ、三枝は会議室へ続く連絡階段で柊木を目撃しており、屋上の操縦席に居続けたという説明と両立しない。
+    category: timeline
+    subject: { type: event, id: saegusa-sighting }
+    sources:
+      - type: character
+        id: saegusa
+        revealCondition: 三枝に01時前後の連絡階段で誰を見たか尋ね、柊木の目撃時刻を具体化した。
+        requires:
+          revelations: [drone-flight-not-presence]
+          evidences: [stairs-sighting]
+    relatedFacts: [hiiragi-left-roof, saegusa-saw-hiiragi-0108]
+  - id: hiiragi-inspection-motive
+    title: 停止されるドローン運用資格
+    text: 芳賀は柊木の点検写真使い回しを発見し、翌朝に本社安全部へ報告して柊木のドローン運用資格を停止する予定だった。
+    category: motive
+    subject: { type: character, id: hiiragi }
+    sources:
+      - type: character
+        id: hiiragi
+        revealCondition: 柊木に芳賀が照合していた点検写真と翌朝の資格停止予定を追及し、失職への恐れを明確にした。
+        requires:
+          revelations: [hiiragi-stairs-contradiction]
+          evidences: [inspection-photo-duplicate]
+      - type: character
+        id: saegusa
+        revealCondition: 三枝に芳賀が問題視していた点検報告を尋ね、過去写真との重複へ話をつなげた。
+        requires:
+          revelations: []
+          evidences: [inspection-photo-duplicate]
+    relatedFacts: [hiiragi-falsified-inspections, haga-found-false-inspections, haga-planned-report]
+
+evidences:
+  - id: flight-mode-log
+    label: 点検ドローンの飛行モード履歴
+    description: 00時57分に反復点検ルートが読み込まれ、01時00分から16分まで手動入力なしの自律飛行状態が続いている。
+    reveal:
+      mode: conversation
+      condition: 柊木か波木に十八分の飛行が手動だったか、自律飛行モードと操縦入力の履歴を含めて尋ねたら開示する。
+    sources:
+      - { type: character, id: hiiragi }
+      - { type: character, id: nami }
+    supports: [drone-repeat-route-capable, hiiragi-loaded-auto-route, drone-flew-auto, route-has-no-manual-input]
+    contradicts: ["lie:hiiragi-roof-alibi", "lie:hiiragi-manual-flight"]
+  - id: stairs-sighting
+    label: 一時八分の連絡階段目撃
+    description: 三枝は01時08分ごろ、会議室へ続く連絡階段で柊木を目撃している。
+    reveal:
+      mode: conversation
+      condition: 三枝に01時05分から10分ごろ連絡階段で誰を見たか尋ねたら開示する。
+    sources:
+      - { type: character, id: saegusa }
+    supports: [saegusa-saw-hiiragi-0108]
+    contradicts: ["lie:hiiragi-roof-alibi"]
+  - id: inspection-photo-duplicate
+    label: 過去点検写真との一致
+    description: 柊木が実施済みとした複数の点検写真が過去の画像と一致し、芳賀が翌朝の安全部報告と資格停止を記している。
+    reveal:
+      mode: conversation
+      condition: 柊木か三枝に芳賀が事件直前に確認していた点検写真について尋ね、過去画像との一致を追及したら開示する。
+    sources:
+      - { type: character, id: hiiragi }
+      - { type: character, id: saegusa }
+    supports: [hiiragi-falsified-inspections, haga-found-false-inspections, haga-planned-report]
+    contradicts: []
+  - id: protection-reset-log
+    label: 三枝の保護装置リセット履歴
+    description: 三枝が正式承認なく保護装置を一度リセットしていたことが分かるが、会議室の事件とは独立している。
+    reveal:
+      mode: conversation
+      condition: 三枝に保護装置を無断でリセットしていないか尋ね、否定を検証したら開示する。
+    sources:
+      - { type: character, id: saegusa }
+    supports: [saegusa-unauthorized-reset]
+    contradicts: ["lie:saegusa-no-reset"]
+  - id: weather-note-edit
+    label: 波木の風速記録修正跡
+    description: 波木が手書きの風速値を後から修正していたことが分かるが、事件とは無関係の入力ミスだった。
+    reveal:
+      mode: conversation
+      condition: 波木に風速記録を後から修正していないか尋ね、原票と照合したら開示する。
+    sources:
+      - { type: character, id: nami }
+    supports: [nami-edited-weather-note]
+    contradicts: ["lie:nami-no-edit"]
+  - id: stock-transfer-sheet
+    label: 国分の予備部品付け替え表
+    description: 国分が別案件の部品を棚卸し在庫へ一時付け替えていたことが分かるが、芳賀の死亡とは別件である。
+    reveal:
+      mode: conversation
+      condition: 国分に予備部品の棚卸し不足を隠していないか尋ね、在庫表を検証したら開示する。
+    sources:
+      - { type: character, id: kokubu }
+    supports: [kokubu-hid-spare-parts]
+    contradicts: ["lie:kokubu-no-stock-shift"]
+
+solution:
+  culprit: hiiragi
+  summary: 犯人は柊木慧。実施していない外観点検を過去写真の転用で済ませていたことを芳賀に見抜かれ、翌朝に本社安全部へ報告されドローン運用資格を停止される予定だった。柊木は00時57分に十八分間の反復点検ルートを機体へ読み込ませ、01時から自律飛行させた。飛行中は指定地点の写真も自動で撮影され、01時16分まで手動入力はない。柊木本人は01時02分ごろ屋上を離れ、01時08分には三枝が会議室側の連絡階段で目撃している。01時12分ごろ芳賀を襲い、01時17分ごろ操縦席へ戻った。
+  method: 点検ドローンを登録済み経路で自律飛行させ、飛行軌跡と自動撮影写真を在席証明に見せかけて会議室へ移動した
+  motive: 点検不正が発覚し、翌朝の報告でドローン運用資格と仕事上の信用を失うことを恐れたため
+  requiredFacts: [hiiragi-falsified-inspections, haga-planned-report, drone-repeat-route-capable, hiiragi-loaded-auto-route, drone-flew-auto, route-has-no-manual-input, hiiragi-left-roof, saegusa-saw-hiiragi-0108, hiiragi-killed-haga]
+  secretKeywords:
+    - 犯人は柊木
+    - 柊木が犯人
+    - 柊木が芳賀を襲
+    - 私が芳賀を襲
+    - 自律飛行でアリバイを偽装
+quality:
+  expectedQuestionCount:
+    min: 13
+    max: 26
+  requiredEvidence:
+    min: 3
+  redHerrings: [saegusa-unauthorized-reset, nami-edited-weather-note, kokubu-hid-spare-parts]
+  notes: 飛行軌跡と連続写真という二種類の客観記録を、一つの自律飛行機能で同時に無効化する。手動入力の欠如と三枝の独立目撃を合わせ、単に『自動操縦も可能』という可能性だけで終わらせない。
