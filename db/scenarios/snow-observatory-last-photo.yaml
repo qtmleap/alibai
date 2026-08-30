@@ -1,0 +1,311 @@
+schemaVersion: 1
+id: snow-observatory-last-photo
+meta:
+  title: 雪の天文台、最後の連続写真
+  synopsis: 山頂の天文台で所長・神崎遼が死亡した。外は吹雪で、道路は閉鎖。助手は「屋上で彗星を撮影し続けていた」と主張するが、カメラには人がいなくても写真を撮り続けられる機能がある。雪に閉ざされた三人の証言から、撮影記録が作る偽りのアリバイを崩せ。
+  category: クローズドサークル
+  difficulty: 3
+  estimatedMinutes: 10
+  tags: [天文台, 雪, 写真]
+briefing: |-
+  ——事件の記録を読み上げます。
+
+  午後十時十五分、北岳観測所の資料室で、所長の神崎遼が死亡しているのが見つかりました。外は激しい吹雪で、午後九時以降に天文台を出入りした者はいません。
+
+  その夜、所内に残っていたのは三人です。研究助手の日山澪、共同研究者の黒瀬俊介、施設管理員の室井邦彦。日山は「九時五十分から十時十分まで屋上で彗星を撮影していた」と言い、黒瀬は「自室で論文を読んでいた」、室井は「機械室の点検中だった」と話しています。
+
+  日山のカメラには、確かにその二十分間の写真が連続して残っています。写真があることと、その場に撮影者がいたことは同じなのか。研究上の秘密と事件の矛盾を切り分けて調べてください。
+floorPlan: null
+facts:
+  - id: hiyama-is-assistant
+    statement: 日山澪は神崎遼の研究室で観測データ解析を担当する助手である
+    kind: other
+  - id: kurose-is-collaborator
+    statement: 黒瀬俊介は別大学から滞在している共同研究者である
+    kind: other
+  - id: muroi-is-caretaker
+    statement: 室井邦彦は北岳観測所の設備と建物を管理する職員である
+    kind: other
+  - id: hiyama-fabricated-data
+    statement: 日山澪は論文の結論を強めるため、一部の観測データを不正に補正していた
+    kind: motive
+    secret: true
+  - id: kanzaki-found-fabrication
+    statement: 神崎遼は事件当日、日山澪による観測データの不正補正に気づいた
+    kind: motive
+    secret: true
+  - id: kanzaki-would-retract
+    statement: 21時40分ごろ、神崎遼は日山澪に翌朝論文を撤回し、大学へ不正を報告すると告げた
+    kind: motive
+    secret: true
+  - id: kurose-copied-data
+    statement: 黒瀬俊介は共同研究の未公開データを無断で複製し、自分の研究室へ持ち帰ろうとしていた
+    kind: other
+    secret: true
+  - id: camera-interval-started
+    statement: 21時50分、日山澪は屋上のカメラを三分間隔の自動撮影に設定した
+    kind: physical
+    secret: true
+  - id: hiyama-left-roof-2154
+    statement: 21時54分ごろ、日山澪は自動撮影中のカメラを屋上に残して建物内へ戻った
+    kind: truth
+    secret: true
+  - id: muroi-saw-hiyama-2157
+    statement: 21時57分ごろ、室井邦彦は資料室へ向かう廊下で日山澪とすれ違った
+    kind: observation
+  - id: hiyama-killed-kanzaki-2200
+    statement: 22時00分ごろ、日山澪は資料室で神崎遼を襲い死亡させた
+    kind: truth
+    secret: true
+  - id: hiyama-returned-roof-2206
+    statement: 22時06分ごろ、日山澪は屋上へ戻った
+    kind: truth
+    secret: true
+  - id: camera-kept-shooting
+    statement: 21時50分から22時11分まで、屋上のカメラは撮影者が触れなくても三分間隔で自動撮影を続けた
+    kind: physical
+  - id: kurose-entered-data-room
+    statement: 21時48分ごろ、黒瀬俊介は未公開データを複製するため解析室へ入った
+    kind: observation
+    secret: true
+  - id: muroi-broke-heater-rule
+    statement: 室井邦彦は規則に反して私物の電気ヒーターを機械室で使っていた
+    kind: other
+    secret: true
+  - id: body-found-2215
+    statement: 22時15分、黒瀬俊介が資料室で神崎遼の死を発見した
+    kind: observation
+timeline:
+  - id: kanzaki-warning
+    at: "21:40"
+    participants: [hiyama]
+    facts: [kanzaki-found-fabrication, kanzaki-would-retract]
+    description: 神崎が日山のデータ不正を指摘し、翌朝の論文撤回と報告を告げる。
+  - id: kurose-data-room
+    at: "21:48"
+    participants: [kurose]
+    facts: [kurose-entered-data-room, kurose-copied-data]
+    description: 黒瀬が解析室へ入り、未公開データを無断で複製する。
+  - id: interval-start
+    at: "21:50"
+    participants: [hiyama]
+    facts: [camera-interval-started, camera-kept-shooting]
+    description: 日山が屋上のカメラを三分間隔の自動撮影に設定する。
+  - id: hiyama-leaves-roof
+    at: "21:54"
+    participants: [hiyama]
+    facts: [hiyama-left-roof-2154]
+    description: 日山がカメラを残したまま屋上を離れ、建物内へ戻る。
+  - id: muroi-sighting
+    at: "21:57"
+    participants: [hiyama, muroi]
+    facts: [muroi-saw-hiyama-2157]
+    description: 室井が資料室へ向かう廊下で日山とすれ違う。
+  - id: kanzaki-death
+    at: "22:00"
+    participants: [hiyama]
+    facts: [hiyama-killed-kanzaki-2200]
+    description: 日山が資料室で神崎を襲い、神崎は死亡する。
+  - id: hiyama-returns
+    at: "22:06"
+    participants: [hiyama]
+    facts: [hiyama-returned-roof-2206]
+    description: 日山が屋上へ戻り、自動撮影中のカメラのそばへ戻る。
+  - id: discovery
+    at: "22:15"
+    participants: [kurose, hiyama, muroi]
+    facts: [body-found-2215]
+    description: 黒瀬が資料室で神崎の死を発見する。
+characters:
+  - id: hiyama
+    name: 日山澪
+    role: suspect
+    personality: 寡黙で観測に没頭する若い研究助手。数字には強い自信を持つが、研究成果を失うことへの恐怖が強い。神崎を師として尊敬していた分、見放されたと思うと感情が揺れる。
+    goals:
+      - 観測データの不正補正を隠したい
+      - 連続写真を、自分がずっと屋上にいた証拠として通したい
+    knowledge: [hiyama-is-assistant, camera-interval-started, camera-kept-shooting, body-found-2215]
+    secrets:
+      - fact: hiyama-fabricated-data
+        disclosure: pressured
+      - fact: kanzaki-found-fabrication
+        disclosure: pressured
+      - fact: kanzaki-would-retract
+        disclosure: pressured
+      - fact: hiyama-left-roof-2154
+        disclosure: never
+      - fact: hiyama-killed-kanzaki-2200
+        disclosure: never
+      - fact: hiyama-returned-roof-2206
+        disclosure: never
+    lies:
+      - id: hiyama-roof-alibi
+        about: hiyama-left-roof-2154
+        claim: 21時50分から22時10分すぎまで屋上でカメラの横にいた。三分おきの写真が全部残っているから、離れていないことは分かるはずです
+        strategy: maintain-until-contradicted
+    memories:
+      - id: retraction-threat
+        about: kanzaki-would-retract
+        detail: 神崎から「朝一番で撤回する。君の名前も含めて報告する」と言われたとき、何年分もの努力が消える感覚がした。
+    relationships:
+      - character: kurose
+        relation: 共同研究者
+        attitude: 成果だけを持っていこうとする人だと警戒している
+  - id: kurose
+    name: 黒瀬俊介
+    role: suspect
+    personality: 自信家で競争心の強い研究者。神崎とは研究方針でしばしば衝突する。未公開データを無断で持ち出そうとしたため、事件と無関係でも解析室への出入りを隠したい。
+    goals:
+      - 未公開データを無断コピーしたことを隠したい
+      - 神崎との研究上の対立が殺意と誤解されるのを避けたい
+    knowledge: [kurose-is-collaborator, camera-kept-shooting, body-found-2215]
+    secrets:
+      - fact: kurose-copied-data
+        disclosure: never
+      - fact: kurose-entered-data-room
+        disclosure: pressured
+    lies:
+      - id: kurose-stayed-room
+        about: kurose-entered-data-room
+        claim: 21時半から発見まで、ほとんど自室で論文を読んでいた。解析室には入っていない
+        strategy: maintain-until-contradicted
+    memories:
+      - id: copied-drive
+        about: kurose-copied-data
+        detail: 神崎が帰ったら消されるかもしれないと思い、未公開データを保存した小型ドライブをポケットに入れた感触を覚えている。
+    relationships:
+      - character: hiyama
+        relation: 共同研究者
+        attitude: 優秀だが神崎に依存しすぎていると思っている
+  - id: muroi
+    name: 室井邦彦
+    role: witness
+    personality: 無口で実務的な施設管理員。研究内容には疎いが、誰がどの廊下を通ったかはよく覚えている。規則違反の私物ヒーターを見つけられるのを恐れている。
+    goals:
+      - 私物ヒーターの使用を隠したい
+      - 廊下で見た人物については正確に話したい
+    knowledge: [muroi-is-caretaker, muroi-saw-hiyama-2157, body-found-2215]
+    secrets:
+      - fact: muroi-broke-heater-rule
+        disclosure: pressured
+    lies:
+      - id: muroi-no-private-heater
+        about: muroi-broke-heater-rule
+        claim: 機械室では規定外の電熱器なんて使っていない
+        strategy: maintain-until-contradicted
+    memories:
+      - id: corridor-hiyama
+        about: muroi-saw-hiyama-2157
+        detail: 21時57分ごろ、屋上にいるはずの日山が資料室側から歩いてきたので、少し不思議に思った。
+    relationships: []
+revelations:
+  - id: photos-were-automatic
+    title: 連続写真は在席証明ではない
+    text: 日山のカメラは三分間隔の自動撮影に設定されており、写真が残っていても撮影者が屋上に居続けたことは証明しない。
+    category: alibi
+    subject:
+      type: character
+      id: hiyama
+    sources:
+      - type: character
+        id: hiyama
+        revealCondition: 日山に連続写真の撮影方法を具体的に尋ね、シャッターが自動だったことを確認した。
+        requires:
+          revelations: []
+          evidences: [camera-metadata]
+    relatedFacts: [camera-interval-started, camera-kept-shooting, hiyama-left-roof-2154]
+  - id: retraction-motive
+    title: 翌朝に撤回される論文
+    text: 神崎は日山のデータ不正を発見し、翌朝に論文を撤回して大学へ報告すると本人へ告げていた。
+    category: motive
+    subject:
+      type: character
+      id: hiyama
+    sources:
+      - type: character
+        id: hiyama
+        revealCondition: 日山に神崎から指摘された観測データと翌朝の予定を追及し、論文撤回への恐れが明確になった。
+        requires:
+          revelations: [photos-were-automatic]
+          evidences: [correction-notes]
+    relatedFacts: [hiyama-fabricated-data, kanzaki-found-fabrication, kanzaki-would-retract]
+evidences:
+  - id: camera-metadata
+    label: カメラのインターバル撮影設定
+    description: 21時50分から三分ごとの自動撮影が設定され、撮影者がシャッターに触れた記録はない。
+    reveal:
+      mode: conversation
+      condition: 日山に撮影の操作方法を尋ねるか、黒瀬に写真が自動撮影だった可能性を確認したら開示する。
+    sources:
+      - type: character
+        id: hiyama
+      - type: character
+        id: kurose
+    supports: [camera-interval-started, camera-kept-shooting]
+    contradicts: ["lie:hiyama-roof-alibi"]
+  - id: corridor-sighting
+    label: 二十一時五十七分の廊下の目撃
+    description: 室井は資料室へ向かう廊下で日山とすれ違っている。
+    reveal:
+      mode: conversation
+      condition: 室井に21時50分から22時ごろの巡回中に誰と会ったか尋ねたら開示する。
+    sources:
+      - type: character
+        id: muroi
+    supports: [muroi-saw-hiyama-2157]
+    contradicts: ["lie:hiyama-roof-alibi"]
+  - id: correction-notes
+    label: 神崎の観測データ検証メモ
+    description: 日山の補正値だけが元データと合わず、翌朝の論文撤回を示す神崎の書き込みが残っている。
+    reveal:
+      mode: conversation
+      condition: 日山か黒瀬に神崎が直前まで調べていたデータについて尋ね、不正補正の可能性を追及したら開示する。
+    sources:
+      - type: character
+        id: hiyama
+      - type: character
+        id: kurose
+    supports: [hiyama-fabricated-data, kanzaki-found-fabrication, kanzaki-would-retract]
+    contradicts: []
+  - id: data-room-access
+    label: 解析室の入室記録
+    description: 21時48分に黒瀬のカードで解析室へ入室した記録があり、未公開データの無断コピーも確認できる。
+    reveal:
+      mode: conversation
+      condition: 黒瀬に21時台の居場所を細かく尋ね、解析室へ入っていないという説明を検証したら開示する。
+    sources:
+      - type: character
+        id: kurose
+    supports: [kurose-entered-data-room, kurose-copied-data]
+    contradicts: ["lie:kurose-stayed-room"]
+  - id: heater-record
+    label: 機械室の私物ヒーター
+    description: 室井の私物ヒーターが見つかるが、資料室での事件とは結びつかない。
+    reveal:
+      mode: conversation
+      condition: 室井に機械室で規則違反の機器を使っていなかったか尋ね、強く否定したら開示する。
+    sources:
+      - type: character
+        id: muroi
+    supports: [muroi-broke-heater-rule]
+    contradicts: ["lie:muroi-no-private-heater"]
+solution:
+  culprit: hiyama
+  summary: 犯人は日山澪。観測データの不正補正を神崎に見抜かれ、翌朝に論文を撤回して大学へ報告すると告げられた。日山は21時50分に屋上のカメラを三分間隔の自動撮影へ設定し、連続写真をアリバイに使う準備をした。21時54分ごろ屋上を離れ、21時57分には室井が資料室へ向かう廊下で日山を目撃している。22時ごろ資料室で神崎を襲った後、22時06分ごろ屋上へ戻った。その間もカメラは自動で写真を撮り続けていたため、一見すると日山がずっと撮影していたように見えた。黒瀬のデータ持ち出しと室井の規則違反は独立した隠し事である。
+  method: カメラの自動連続撮影を在席証明に見せかけ、屋上を離れて資料室で神崎を襲った後に屋上へ戻った
+  motive: 観測データの不正が発覚し、論文撤回と大学への報告で研究者としての立場を失うことを恐れたため
+  requiredFacts: [hiyama-fabricated-data, kanzaki-would-retract, camera-interval-started, hiyama-left-roof-2154, muroi-saw-hiyama-2157, hiyama-killed-kanzaki-2200, camera-kept-shooting]
+  secretKeywords:
+    - 犯人は日山
+    - 日山が犯人
+    - 日山が神崎を襲
+    - 私が神崎を襲
+    - 連続写真でアリバイを偽装
+quality:
+  expectedQuestionCount:
+    min: 8
+    max: 18
+  requiredEvidence:
+    min: 2
+  redHerrings: [kurose-copied-data, muroi-broke-heater-rule]
+  notes: 写真の存在と撮影者の在席を分離するのが中心。カメラ設定だけでは犯人を決めず、室井の廊下目撃を合わせて初めて日山のアリバイを崩す。

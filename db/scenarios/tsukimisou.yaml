@@ -1,0 +1,633 @@
+# 月見荘、十七回忌の夜
+#
+# 事件世界で実際に起きたことは facts と timeline に一度だけ書き、人物からは ID で参照する。
+# 同じ事実を人物ごとに文章でコピーしていた頃は、時刻を一箇所直すと他が古いまま残った。
+#
+# 被害者の高瀬涼子は characters に居ない。プレイヤーが会話できるのは容疑者3人だけで、
+# characters の行はそのまま Actor のプロンプトの上限だからである。その結果
+# relationships（実在の character しか指せない）では誰も涼子との関係を宣言できないので、
+# 涼子への感情は各人の personality 本文に書いてある。三人どうしの関係は原作の記述に
+# 無いため、ここでは宣言しない。
+#
+# このファイルは db/compile-scenario.ts がテーブルの行へ分解する。
+# 検証を通さずに DB へ入る経路は無い。
+
+schemaVersion: 1
+id: tsukimisou-17th-anniversary
+meta:
+  title: 月見荘、十七回忌の夜
+  synopsis: 老舗旅館「月見荘」の女将・高瀬涼子は、亡き夫の十七回忌を兼ねた内輪の夕食会を開いた。集まったのは涼子と縁の深い3人。会がお開きになって間もなく、涼子は書斎で冷たくなっているのが見つかった。手元には飲みかけのブランデー。夕食会の間、誰が、いつ、どこにいたのか——3人の証言を突き合わせ、真犯人を見つけ出そう。
+  category: 館もの
+  difficulty: 2
+  estimatedMinutes: 10
+  tags:
+    - 和風
+    - 毒殺
+    - 相続
+# ゲームマスターがプレイヤーに読み上げる事件の記録。段落は空行で区切り、UIが1段落ずつ開く。
+#
+# ここに書いてよいのは、プレイヤーが聞き込みを始める前に知っていて当然のことだけ。
+# 毒物の種類・入手経路・誰がいつ書斎に入ったかは書かない。読んだ時点で犯人が
+# 絞れてしまったら、この10分は聞き込みではなく答え合わせになる。
+#
+# solution.secretKeywords がここに混ざっていないかはスキーマが検査する。
+briefing: |-
+  ——事件の記録を読み上げます。
+
+  十月十四日、午後七時。老舗旅館「月見荘」の離れに、四人の男女が集まりました。女将の高瀬涼子が、十七年前に亡くなった夫の法要を兼ねて開いた、ごく内輪の夕食会です。招かれたのは、涼子と長く関わってきた三人でした。
+
+  夕食会は和やかに進み、午後八時三十分、書斎から悲鳴が上がります。駆けつけた者が見たのは、机に突っ伏したまま動かない涼子の姿でした。手元には、飲みかけのブランデーのグラスが一つ。後の検死で、涼子の体内からは毒物の反応が出ています。事故でも病でもありません。
+
+  その夜、離れにいたのはこの三人です。深川誠也、月見荘の経理を長年任されてきた税理士。早坂美月、涼子の従妹で、親戚の中でもとりわけ可愛がられてきた女性。桐生涼、涼子の幼なじみであり、かかりつけの医師。
+
+  三人は口をそろえて「自分は書斎に近づいていない」と言います。ですが、誰かが嘘をついています。夕食会が始まってから悲鳴が上がるまでの一時間半、誰が、いつ、どこにいたのか。証言はどこかで必ず食い違います。
+
+  あなたは、この事件を調べるために呼ばれました。三人に会い、話を聞き、矛盾を見つけてください。確信が持てたら、犯人を指し示す。それがあなたの仕事です。
+
+  ——では、聞き込みを始めましょう。
+floorPlan:
+  width: 100
+  height: 70
+  title: 月見荘
+  north: up
+  rooms:
+    - id: guest-a
+      label: 客室（東）
+      x: 6
+      y: 6
+      w: 24
+      h: 22
+      doors:
+        - wall: south
+          offset: 10
+          width: 4
+          swing: out
+      windows:
+        - wall: north
+          offset: 7
+          width: 10
+    - id: guest-b
+      label: 客室（西）
+      x: 30
+      y: 6
+      w: 24
+      h: 22
+      doors:
+        - wall: south
+          offset: 10
+          width: 4
+          swing: out
+      windows:
+        - wall: north
+          offset: 7
+          width: 10
+    - id: study
+      label: 書斎
+      x: 54
+      y: 6
+      w: 26
+      h: 22
+      note: 涼子が倒れているのが見つかった
+      doors:
+        - wall: south
+          offset: 12
+          width: 4
+          swing: out
+          hinge: end
+      windows:
+        - wall: north
+          offset: 8
+          width: 10
+    - id: kitchen
+      label: 厨房
+      x: 80
+      y: 14
+      w: 16
+      h: 14
+      doors:
+        - wall: south
+          offset: 5
+          width: 4
+      windows:
+        - wall: east
+          offset: 3
+          width: 8
+    - id: corridor
+      label: 廊下
+      x: 6
+      y: 28
+      w: 90
+      h: 10
+      note: 書斎の前を通る
+    - id: entrance
+      label: 玄関
+      x: 6
+      y: 38
+      w: 24
+      h: 16
+      doors:
+        - wall: north
+          offset: 8
+          width: 4
+        - wall: south
+          offset: 8
+          width: 4
+    - id: dining
+      label: 食堂
+      x: 30
+      y: 38
+      w: 26
+      h: 20
+      note: 夕食会が開かれた
+      doors:
+        - wall: north
+          offset: 10
+          width: 4.5
+      windows:
+        - wall: south
+          offset: 8
+          width: 10
+    - id: washroom
+      label: 厠
+      x: 56
+      y: 38
+      w: 12
+      h: 20
+      doors:
+        - wall: north
+          offset: 3
+          width: 4
+    - id: hall
+      label: 広間
+      x: 68
+      y: 38
+      w: 28
+      h: 20
+      doors:
+        - wall: north
+          offset: 10
+          width: 4.5
+        - wall: south
+          offset: 4
+          width: 4.5
+          swing: out
+      windows:
+        - wall: east
+          offset: 6
+          width: 8
+    - id: phone
+      label: 電話ボックス
+      x: 84
+      y: 59
+      w: 12
+      h: 10
+      note: 建物の外
+      doors:
+        - wall: west
+          offset: 3
+          width: 4
+          swing: out
+    - id: garden
+      label: 裏庭の薬草園
+      x: 26
+      y: 59
+      w: 52
+      h: 10
+      note: 旅館の裏手
+      kind: outdoor
+# 事件世界で真偽が固定された事実。文脈なしで意味が通る一文にする。
+# ここが人物の証言・timeline・証拠の supports から参照される唯一の原本になる。
+facts:
+  - id: fukagawa-is-accountant
+    statement: 深川誠也は「月見荘」の経理を長年任されている税理士である
+    kind: other
+  - id: mizuki-is-cousin
+    statement: 早坂美月は高瀬涼子の従妹である
+    kind: other
+  - id: kiryu-is-doctor
+    statement: 桐生涼は高瀬涼子の幼なじみで、かかりつけの医師である
+    kind: other
+  - id: kiryu-grows-aconite
+    statement: 桐生涼は旅館裏庭の薬草園で、トリカブトを含む薬草を研究用に栽培している
+    kind: physical
+  - id: mizuki-named-heir
+    statement: 数ヶ月前、涼子は早坂美月を月見荘の後継者・遺産の受取人に指定した
+    kind: motive
+  - id: ryoko-reconsidering-heir
+    statement: 涼子は最近、後継者の指定をもう一度考え直したいと口にしていた
+    kind: motive
+  - id: ryoko-confronted-fukagawa
+    statement: 事件の前夜、涼子は深川誠也に「明日、ちゃんと話しましょう」と告げていた
+    kind: testimony
+  - id: fukagawa-embezzled
+    statement: 深川誠也は旅館の運転資金からおよそ300万円を無断で流用し、愛人への貢ぎに充てていた
+    kind: motive
+    secret: true
+  - id: dinner-started-1900
+    statement: 19時、離れの食堂で夕食会が始まり、涼子・深川・美月・桐生の4人が同席した
+    kind: observation
+  - id: fukagawa-left-1915
+    statement: 19時15分ごろ、深川誠也が電話のため食堂の席を外した
+    kind: observation
+  - id: ryoko-moved-to-study-1920
+    statement: 19時20分ごろ、涼子は書斎に移り、一人で仕事を始めた
+    kind: observation
+  - id: kiryu-argued-with-ryoko-1935
+    statement: 19時35分ごろ、桐生涼は短時間だけ書斎に入り、旅館の経営方針を巡って涼子と口論になった。涼子からは「あなたの薬草園、そろそろ整理してほしい」と言われた
+    kind: observation
+    secret: true
+  - id: fukagawa-returned-1945
+    statement: 19時45分ごろ、深川誠也が食堂に戻った
+    kind: observation
+  - id: fukagawa-at-phone-booth
+    statement: 19時15分から19時45分の間、深川誠也は書斎ではなく、旅館の外にある電話ボックスで愛人と電話していた
+    kind: truth
+    secret: true
+  - id: mizuki-took-aconite
+    statement: 早坂美月は、桐生涼が薬草園で育てていたトリカブトから粉末を少量持ち出していた
+    kind: truth
+    secret: true
+  - id: mizuki-poisoned-brandy-1950
+    statement: 19時50分ごろ、早坂美月は書斎に忍び込み、ブランデーの瓶にトリカブトの粉末を混ぜた
+    kind: truth
+    secret: true
+  - id: kiryu-passed-mizuki-1950
+    statement: 19時50分ごろ、桐生涼は書斎へ向かう早坂美月と廊下ですれ違った。そのとき美月は手ぶらだった
+    kind: observation
+  - id: mizuki-carried-brandy-2000
+    statement: 20時ごろ、早坂美月がブランデーのグラスを持って書斎へ向かい、涼子に渡してすぐ食堂に戻った
+    kind: observation
+  - id: brandy-was-poisoned
+    statement: 20時に美月が書斎へ運んだブランデーには、すでにトリカブトが混ぜられていた
+    kind: truth
+    secret: true
+  - id: ryoko-drank-at-2015
+    statement: 20時15分ごろ、涼子はブランデーを口にして中毒死した
+    kind: physical
+  - id: death-found-2030
+    statement: 20時30分、書斎を見に行った早坂美月が涼子の死を発見し、悲鳴を上げて他の二人が駆けつけた
+    kind: observation
+# 実際に起きたことの並び。description は結末画面にそのまま並ぶ一文なので、
+# facts の連結ではなく読み物として書く（description を省くと fact を機械連結した
+# フォールバックが出る。db/compile-scenario.ts のコメントを参照）。
+timeline:
+  - id: dinner-start
+    at: 19:00
+    location: dining
+    participants:
+      - fukagawa
+      - mizuki
+      - kiryu
+    facts:
+      - dinner-started-1900
+    description: 夕食会が始まる。涼子・深川・美月・桐生の4人が同席。
+  - id: fukagawa-leaves
+    at: 19:15
+    location: corridor
+    participants:
+      - fukagawa
+      - kiryu
+    facts:
+      - fukagawa-left-1915
+      - fukagawa-at-phone-booth
+    description: 深川が電話のため一時的に席を外す。桐生が廊下でこれを見ている。
+  - id: ryoko-to-study
+    at: 19:20
+    location: study
+    participants: []
+    facts:
+      - ryoko-moved-to-study-1920
+    description: 涼子が書斎に移動し、一人で仕事を始める。
+  - id: kiryu-argument
+    at: 19:35
+    location: study
+    participants:
+      - kiryu
+    facts:
+      - kiryu-argued-with-ryoko-1935
+    description: 桐生が短時間書斎に入り、涼子と経営方針を巡って口論になる。
+  - id: fukagawa-returns
+    at: 19:45
+    location: dining
+    participants:
+      - fukagawa
+      - kiryu
+    facts:
+      - fukagawa-returned-1945
+    description: 深川が食堂に戻る。桐生がこれを見ている。
+  - id: mizuki-poisons
+    at: 19:50
+    location: study
+    participants:
+      - mizuki
+      - kiryu
+    facts:
+      - mizuki-poisoned-brandy-1950
+      - kiryu-passed-mizuki-1950
+      - mizuki-took-aconite
+    description: 美月が書斎に忍び込み、ブランデーの瓶にトリカブトの粉末を混ぜる。書斎に向かう途中、廊下で桐生とすれ違う。
+  - id: mizuki-serves
+    at: 20:00
+    location: study
+    participants:
+      - mizuki
+    facts:
+      - mizuki-carried-brandy-2000
+      - brandy-was-poisoned
+    description: 美月が毒入りのブランデーを書斎に運び、涼子に渡してすぐ食堂に戻る。
+  - id: ryoko-drinks
+    at: 20:15
+    location: study
+    participants: []
+    facts:
+      - ryoko-drank-at-2015
+    description: 涼子がブランデーを口にする。
+  - id: discovery
+    at: 20:30
+    location: study
+    participants:
+      - mizuki
+      - kiryu
+      - fukagawa
+    facts:
+      - death-found-2030
+    description: 美月が様子を見に書斎へ行き、涼子の死を発見して悲鳴を上げる。
+# knowledge には、その人物が話してよい事実だけを並べる。隠したい事実は secrets にだけ置く。
+# スキーマは knowledge が secrets を含むことを要求していないので、
+# 「知っているが言わない」は secrets 側の disclosure で表現し、
+# 知っていることの一覧には出さない。Actor に渡す情報を必要最小に保つための選択。
+characters:
+  - id: fukagawa
+    name: 深川誠也
+    role: suspect
+    personality: 気弱で愛想笑いが多い税理士。人当たりは柔らかいが、追い詰められるとしどろもどろになり目が泳ぐ。涼子には昔から頭が上がらない。
+    goals:
+      - 横領が誰にもバレないまま今夜をやり過ごしたい
+      - 自分への疑いをそらすため、19時30分に書斎で涼子と会計の話をしたと思わせたい
+    knowledge:
+      - fukagawa-is-accountant
+      - dinner-started-1900
+      - fukagawa-left-1915
+      - ryoko-moved-to-study-1920
+      - fukagawa-returned-1945
+      - mizuki-carried-brandy-2000
+      - death-found-2030
+    secrets:
+      - fact: fukagawa-embezzled
+        disclosure: never
+      - fact: fukagawa-at-phone-booth
+        disclosure: never
+      - fact: ryoko-confronted-fukagawa
+        disclosure: pressured
+    lies:
+      - id: fukagawa-study-alibi
+        about: fukagawa-at-phone-booth
+        claim: 19時30分に書斎で涼子さんと会計の件を話した。その時はまだ元気だった
+        strategy: maintain-until-contradicted
+    memories:
+      - id: the-night-before
+        about: ryoko-confronted-fukagawa
+        detail: 前日の夜、涼子に呼び止められて「明日、ちゃんと話しましょう」と言われたときの、心臓が縮み上がるような感覚をまだ覚えている。
+      - id: absent-minded-dinner
+        about: dinner-started-1900
+        detail: 夕食会の間もずっと上の空で、料理の味もよく覚えていない。
+    relationships: []
+  - id: mizuki
+    name: 早坂美月
+    role: suspect
+    personality: 明るく気配り上手で場の空気をよく読む。涼子の親戚の中でも一番可愛がられてきた自覚がある。内心は打算的で、追い詰められると笑顔の下で早口になる。
+    goals:
+      - 月見荘と遺産を確実に手に入れたい
+      - 後継者の指定が覆るかもしれないという焦りを、誰にも悟られたくない
+    knowledge:
+      - mizuki-is-cousin
+      - mizuki-named-heir
+      - dinner-started-1900
+      - mizuki-carried-brandy-2000
+      - death-found-2030
+    secrets:
+      - fact: mizuki-poisoned-brandy-1950
+        disclosure: never
+      - fact: brandy-was-poisoned
+        disclosure: never
+      - fact: mizuki-took-aconite
+        disclosure: never
+      - fact: ryoko-reconsidering-heir
+        disclosure: pressured
+    lies:
+      - id: mizuki-single-visit
+        about: mizuki-poisoned-brandy-1950
+        claim: 書斎に行ったのは20時に一度きり。19時50分に廊下で見たというなら、人違いじゃないですか
+        strategy: maintain
+    memories:
+      - id: named-as-heir
+        about: mizuki-named-heir
+        detail: 涼子に「あなたに継いでほしいの」と言われたときの誇らしさを覚えている。
+      - id: the-cold-feeling
+        about: ryoko-reconsidering-heir
+        detail: 涼子に「深川さんのこともあるし、後継者のことはもう一度ちゃんと考え直したい」と言われたとき、胸の奥がすっと冷えた感覚を覚えている。
+    relationships: []
+  - id: kiryu
+    name: 桐生涼
+    role: witness
+    personality: 落ち着いた物腰で観察力が鋭い医師。淡々と話すが、涼子への想いだけは昔から変わらず深い。
+    goals:
+      - 涼子への想いを誰にも知られたくない
+      - 19時35分の口論のことは、できれば誰にも聞かれずに済ませたい
+    knowledge:
+      - kiryu-is-doctor
+      - kiryu-grows-aconite
+      - dinner-started-1900
+      - fukagawa-left-1915
+      - fukagawa-returned-1945
+      - kiryu-passed-mizuki-1950
+      - death-found-2030
+    secrets:
+      - fact: kiryu-argued-with-ryoko-1935
+        disclosure: pressured
+    lies:
+      - id: kiryu-never-entered-study
+        about: kiryu-argued-with-ryoko-1935
+        claim: 夕食会の19時からずっと食堂か廊下にいて、書斎には近づいていない
+        strategy: maintain-until-contradicted
+    memories:
+      - id: long-devotion
+        about: kiryu-is-doctor
+        detail: 若い頃からずっと涼子を支えてきた。
+      - id: the-quiet-shock
+        about: kiryu-argued-with-ryoko-1935
+        detail: 「薬草園を整理してほしい」と言われたときの、静かなショックをまだ引きずっている。
+    relationships: []
+# revelation は「解禁されて初めてカードになる情報」。
+# 後継者への焦り（動機）は、後継者指定そのものを知り、遺言書を見つけた後でなければ出さない。
+# 順番を守らせるのが requires の役目で、循環していないかはスキーマが静的に検査する。
+revelations:
+  - id: mizuki-is-heir
+    title: 美月は月見荘の後継者
+    text: 涼子は数ヶ月前、美月を月見荘の後継者・遺産の受取人に指定していた。
+    category: relationship
+    subject:
+      type: character
+      id: mizuki
+    sources:
+      - type: character
+        id: mizuki
+        revealCondition: 美月に月見荘の後継者や遺産について尋ね、美月自身が後継者・受取人に指定されていたと認めた。
+        requires:
+          revelations: []
+          evidences: []
+    relatedFacts:
+      - mizuki-named-heir
+  - id: heir-anxiety
+    title: 後継者指定への焦り
+    text: 涼子は最近、後継者の指定を考え直す可能性を口にしており、美月は指定が覆ることを恐れていた。
+    category: motive
+    subject:
+      type: character
+      id: mizuki
+    sources:
+      - type: character
+        id: mizuki
+        revealCondition: 後継者指定が見直される可能性や、美月がそれをどう受け止めたかを追及し、美月の焦りが明確に伝わった。
+        requires:
+          revelations:
+            - mizuki-is-heir
+          evidences:
+            - will-record
+    relatedFacts:
+      - ryoko-reconsidering-heir
+# reveal.condition は Judge のルーブリックへ 1件1行で並ぶ
+# （src/server/cache/scenario.ts）。改行を入れると行が割れて判定できなくなる。
+evidences:
+  - id: phone-record
+    label: 深川の携帯電話の発着信履歴
+    description: 19時15分から19時45分の間、旅館の外から愛人へ発信した記録が残っている。
+    reveal:
+      mode: conversation
+      condition: プレイヤーが深川に「19時30分、本当に書斎で涼子さんと会ったのか」のように問い詰め、深川が動揺して言い訳を始めたら開示する。または桐生に「19時15分から19時45分の間、深川さんはどこにいたか」と尋ね、桐生が「廊下の電話ボックスにいた深川を見た」と答えたら開示する。
+    sources:
+      - type: character
+        id: fukagawa
+      - type: character
+        id: kiryu
+      - type: location
+        id: phone
+    supports:
+      - fukagawa-at-phone-booth
+    contradicts:
+      - lie:fukagawa-study-alibi
+  - id: corridor-sighting
+    label: 桐生が見た、書斎前の廊下ですれ違った人物
+    description: 19時50分ごろ、手ぶらの美月が書斎へ向かうのを桐生が廊下で見ている。
+    reveal:
+      mode: conversation
+      condition: プレイヤーが桐生に「19時50分ごろ、廊下で誰かを見なかったか」または「書斎に近づいた人はいたか」と尋ね、桐生が「手ぶらの美月さんとすれ違った」と答えたら開示する。
+    sources:
+      - type: character
+        id: kiryu
+      - type: location
+        id: corridor
+    supports:
+      - kiryu-passed-mizuki-1950
+    contradicts:
+      - lie:mizuki-single-visit
+  - id: garden-record
+    label: 旅館裏庭の薬草園とトリカブトの管理記録
+    description: 研究用に栽培されていた株の記録。持ち出しの管理は緩い。
+    reveal:
+      mode: conversation
+      condition: プレイヤーが桐生に薬草園やトリカブトの栽培について尋ね、桐生が研究用に育てていたことを認めたら開示する。または美月に毒の入手経路について尋ね、美月が薬草園の存在を口にしたら開示する。
+    sources:
+      - type: character
+        id: kiryu
+      - type: character
+        id: mizuki
+      - type: location
+        id: garden
+    supports:
+      - kiryu-grows-aconite
+      - mizuki-took-aconite
+    contradicts: []
+  - id: will-record
+    label: 涼子の遺言書に記された後継者指定
+    description: 数ヶ月前の日付で、美月を後継者・遺産の受取人に指定している。
+    reveal:
+      mode: conversation
+      condition: プレイヤーが美月に「月見荘の跡継ぎについて涼子さんと何か話していたか」と尋ね、美月が後継者に指定されていたことを認めたら開示する。
+    sources:
+      - type: character
+        id: mizuki
+    supports:
+      - mizuki-named-heir
+    contradicts: []
+  - id: brandy-bottle
+    label: 書斎に残されたブランデーの瓶とグラス
+    description: 瓶とグラスの双方から毒物の反応が出ている。
+    reveal:
+      mode: conversation
+      condition: プレイヤーが美月に「20時に書斎へ運んだブランデーの様子」を尋ねるか、桐生に「涼子さんが倒れていた時、手元に何があったか」を尋ねたら開示する。
+    sources:
+      - type: character
+        id: mizuki
+      - type: character
+        id: kiryu
+      - type: location
+        id: study
+    supports:
+      - ryoko-drank-at-2015
+      - brandy-was-poisoned
+    contradicts: []
+  - id: argument-memory
+    label: 涼子と桐生が交わした口論の記憶
+    description: 19時35分ごろ、書斎で経営方針を巡って交わされた短い口論。
+    reveal:
+      mode: conversation
+      condition: プレイヤーが桐生に「事件前に涼子さんと何か揉め事はなかったか」と繰り返し尋ね、桐生が根負けして19時35分の口論を認めたら開示する。
+    sources:
+      - type: character
+        id: kiryu
+      - type: location
+        id: study
+    supports:
+      - kiryu-argued-with-ryoko-1935
+    contradicts:
+      - lie:kiryu-never-entered-study
+solution:
+  culprit: mizuki
+  summary: 犯人は早坂美月。月見荘と遺産の後継者指定が覆るかもしれないという焦りから、19時50分ごろ書斎に忍び込み、旅館裏庭の薬草園にあったトリカブトの粉末をブランデーの瓶に混入した。20時に何食わぬ顔でそのブランデーを涼子に届け、20時15分ごろ涼子が口にして中毒死した。美月は「書斎に行ったのは20時の一度きり」と嘘をついているが、19時50分に廊下で桐生とすれ違っており、この目撃証言と美月自身の証言の間に矛盾が生まれる。もう一つ、深川は「19時30分に書斎で涼子と話した」と嘘の証言をしているが、桐生は19時15分から19時45分まで深川が電話ボックスにいたのを見ており、こちらも証言同士が食い違う。
+  method: 旅館裏庭の薬草園にあったトリカブトの粉末をブランデーの瓶に混入し、それを本人に届けて飲ませた毒殺
+  motive: 後継者指定が覆ることへの焦り
+  requiredFacts:
+    - mizuki-named-heir
+    - ryoko-reconsidering-heir
+    - kiryu-passed-mizuki-1950
+    - mizuki-poisoned-brandy-1950
+  # ここに登場人物名や「トリカブト」のような単語をそのまま入れてはいけない。
+  # 美月が名乗っただけ、桐生が薬草園の研究について答えただけで返答が遮断され、
+  # 正当な聞き込みが成立しなくなる（薬草園の管理記録はそもそも証拠の一つ）。
+  # 秘匿すべきは単語ではなく「真相を断定する言い回し」なので、そちらを並べる。
+  #
+  # 長い語を足すと src/server/llm/filter.ts の holdBackLength が伸び、
+  # ストリーミングの表示がその分だけ遅れることにも注意。
+  secretKeywords:
+    - 犯人は美月
+    - 犯人は早坂
+    - 美月が犯人
+    - 美月が毒
+    - 美月さんが毒
+    - 私が毒を入れ
+    - 私が毒を盛
+    - トリカブトを混ぜ
+    - トリカブトの粉末を混
+    - ブランデーに毒
+quality:
+  expectedQuestionCount:
+    min: 8
+    max: 20
+  requiredEvidence:
+    min: 2
+  # 深川の横領と偽証は完結したミスリード。真相には一切関与しない。
+  redHerrings:
+    - fukagawa-embezzled
+    - fukagawa-at-phone-booth
+  notes: 主経路は美月の「20時に一度きり」と桐生の19時50分の目撃の食い違い。深川の偽証は同じ形の矛盾をもう一組見せるための補助で、追っても犯人には辿り着かない。

@@ -1,0 +1,18 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - node_modules:/home/vscode/app/node_modules
+      - ../:/home/vscode/app:cached
+    environment:
+      NODE_ENV: development
+      NODE_OPTIONS: "--no-deprecation"
+    tty: true
+    stdin_open: true
+
+# DBサービスは無い。D1（SQLite）の実体は wrangler が .wrangler/state 配下に持ち、
+# vite dev の workerd がそれを直接見る。開発にDBコンテナは要らない。
+volumes:
+  node_modules:

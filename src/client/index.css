@@ -1,0 +1,101 @@
+@import "tailwindcss";
+
+/*
+ * 画面の下地。
+ *
+ * 遷移アニメーションは opacity 0 から始まるので、ここを塗っておかないと
+ * 切り替わりの一瞬だけ地の白が透ける。暗い画面から暗い画面へ移る作りなのに、
+ * 間に白が挟まると光って見えて、いちばん興を削ぐ。
+ *
+ * 横方向は切り落とす。画面の入り（.screen-enter）が scale(1.03) から始まるので、
+ * 端末幅いっぱいの箱はその間だけ画面より広くなり、指が横に滑る。
+ * hidden ではなく clip なのは、hidden だとスクロール枠が作られて
+ * position: sticky が効かなくなるため。縦は触らない。
+ */
+html,
+body {
+  background-color: #020617;
+  overflow-x: clip;
+}
+
+/*
+ * 事件の記録を下からせり上げる演出。
+ * 開始位置を枠の高さぶん下に置き、本文の高さぶん上まで流し切る。
+ * 100% は「この要素自身の高さ」なので、本文が長いほど移動距離も自然に伸びる。
+ */
+@keyframes briefing-crawl {
+  from {
+    transform: translateY(70dvh);
+  }
+  to {
+    transform: translateY(-100%);
+  }
+}
+
+/*
+ * 画面が切り替わるときの入り。
+ *
+ * わずかに寄りながら、ぼけた画面の焦点が合っていくように見せる。
+ * 事件の記録から聞き込みへ移る瞬間に「その場に入り込んだ」感じを出すのが狙い。
+ * 動きは短く、操作を待たせない範囲に収める。
+ */
+@keyframes screen-enter {
+  from {
+    opacity: 0;
+    transform: scale(1.03);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+.screen-enter {
+  animation: screen-enter 520ms ease-out both;
+}
+
+/* 動きが苦手な人には出さない。演出のために体調を崩させる理由はない。 */
+@media (prefers-reduced-motion: reduce) {
+  .screen-enter {
+    animation: none;
+  }
+}
+
+/*
+ * ターンの切り替わり。
+ *
+ * 中央でふっと現れて、少し沈みながら消える。時間が動いたことを示すのが役目なので、
+ * 派手に動かさず、短く終える。
+ */
+@keyframes turn-announce {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+    filter: blur(8px);
+  }
+  25% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+  75% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1) translateY(-12px);
+  }
+}
+
+.turn-announce {
+  animation: turn-announce 1600ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .turn-announce {
+    animation: none;
+  }
+}

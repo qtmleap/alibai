@@ -1,0 +1,322 @@
+schemaVersion: 1
+id: last-train-delay-certificate
+meta:
+  title: 終電後、遅延証明書はまだ白紙だった
+  synopsis: 終電が遅れた夜、駅長・藤崎正雄が駅務室で死亡しているのが見つかった。助役は「ホームで遅延証明書を配り続けていた」と話す。だが、その証明書が印刷されたのは列車が出た後だった。運行記録と駅員たちの目撃が、存在しなかった配布作業を暴く。
+  category: 駅ミステリ
+  difficulty: 3
+  estimatedMinutes: 10
+  tags: [駅, 終電, 運行記録]
+briefing: |-
+  ——事件の記録を読み上げます。
+
+  午後十時二十五分、郊外駅「夕凪駅」の駅務室で、駅長の藤崎正雄が死亡しているのが見つかりました。その夜は信号トラブルで終電が八分遅れ、ホームには普段より長く乗客が残っていました。
+
+  調査対象は三人です。助役の有馬結衣、駅売店の責任者・小森拓、設備点検員の沢田亮。有馬は「午後十時二分から終電が出るまで、ホームで遅延証明書を配っていた」と話します。小森は「駅務室側は見ていない」、沢田は「点検場所から離れていない」と答えています。
+
+  遅延証明書には時刻が印字されています。けれど、印字された時刻と、配ったと主張する時刻は同じでしょうか。終電が実際に出た時刻も含め、三人の話を順番に並べてください。
+floorPlan: null
+facts:
+  - id: arima-is-assistant-master
+    statement: 有馬結衣は夕凪駅の助役で、現金精算と遅延時の旅客対応を担当している
+    kind: other
+  - id: komori-runs-kiosk
+    statement: 小森拓は夕凪駅構内の売店責任者である
+    kind: other
+  - id: sawada-is-maintainer
+    statement: 沢田亮は鉄道設備会社の点検員で、その夜は夕凪駅の信号設備確認に来ていた
+    kind: other
+  - id: arima-skimmed-refunds
+    statement: 有馬結衣は自動券売機の返金処理を利用し、少額の現金を複数回抜き取っていた
+    kind: motive
+    secret: true
+  - id: fujisaki-found-refund-gap
+    statement: 藤崎正雄は事件当日、返金処理記録と現金残高の差から有馬結衣の不正に気づいた
+    kind: motive
+    secret: true
+  - id: fujisaki-warned-arima
+    statement: 21時55分ごろ、藤崎正雄は有馬結衣に、終電後すぐ本部へ不正を報告すると告げた
+    kind: motive
+    secret: true
+  - id: last-train-delayed
+    statement: 本来22時10分発の終電は信号トラブルのため遅れ、実際には22時18分に夕凪駅を出発した
+    kind: physical
+  - id: arima-entered-office-2205
+    statement: 22時05分ごろ、有馬結衣はホームではなく駅務室へ続く通路に入った
+    kind: truth
+    secret: true
+  - id: sawada-saw-arima-2205
+    statement: 22時05分ごろ、沢田亮は駅務室へ向かう有馬結衣を見た
+    kind: observation
+  - id: arima-killed-fujisaki-2208
+    statement: 22時08分ごろ、有馬結衣は駅務室で藤崎正雄を襲い死亡させた
+    kind: truth
+    secret: true
+  - id: arima-left-office-2212
+    statement: 22時12分ごろ、有馬結衣は駅務室側の通路からホーム方向へ戻った
+    kind: truth
+    secret: true
+  - id: komori-saw-arima-2212
+    statement: 22時12分ごろ、小森拓は売店前から、駅務室側の通路から戻る有馬結衣を見た
+    kind: observation
+  - id: certificates-printed-2220
+    statement: 遅延証明書は終電出発後の22時20分に駅務室の専用プリンターから一括印刷された
+    kind: physical
+    secret: true
+  - id: komori-resold-expired-goods
+    statement: 小森拓は廃棄扱いにした売店商品を帳簿外で知人へ安く売っていた
+    kind: other
+    secret: true
+  - id: sawada-entered-equipment-room
+    statement: 沢田亮は正式な作業指示を取らずに信号機器室へ入り、個人的に気になっていた旧部品を確認していた
+    kind: other
+    secret: true
+  - id: body-found-2225
+    statement: 22時25分、小森拓が駅務室で藤崎正雄の死を発見した
+    kind: observation
+timeline:
+  - id: refund-confrontation
+    at: "21:55"
+    participants: [arima]
+    facts: [arima-skimmed-refunds, fujisaki-found-refund-gap, fujisaki-warned-arima]
+    description: 藤崎が有馬の返金処理の不正を指摘し、終電後の本部報告を告げる。
+  - id: arima-office-corridor
+    at: "22:05"
+    participants: [arima, sawada]
+    facts: [arima-entered-office-2205, sawada-saw-arima-2205]
+    description: 沢田が駅務室へ向かう有馬を目撃する。
+  - id: fujisaki-death
+    at: "22:08"
+    participants: [arima]
+    facts: [arima-killed-fujisaki-2208]
+    description: 有馬が駅務室で藤崎を襲い、藤崎は死亡する。
+  - id: arima-returns-platform
+    at: "22:12"
+    participants: [arima, komori]
+    facts: [arima-left-office-2212, komori-saw-arima-2212]
+    description: 小森が駅務室側からホームへ戻る有馬を目撃する。
+  - id: last-train-departs
+    at: "22:18"
+    participants: [arima, sawada, komori]
+    facts: [last-train-delayed]
+    description: 八分遅れの終電が夕凪駅を出発する。
+  - id: certificates-print
+    at: "22:20"
+    participants: [arima]
+    facts: [certificates-printed-2220]
+    description: 終電出発後、有馬が駅務室の専用プリンターで遅延証明書を一括印刷する。
+  - id: discovery
+    at: "22:25"
+    participants: [komori, arima, sawada]
+    facts: [body-found-2225]
+    description: 小森が駅務室で藤崎の死を発見する。
+characters:
+  - id: arima
+    name: 有馬結衣
+    role: suspect
+    personality: 接客が丁寧で、遅延時にも落ち着いて対応できる助役。記録と手順を重視する一方、少額の現金差なら見過ごされるという甘さがあった。藤崎には仕事を評価されていたため、不正を見抜かれたことへの動揺が大きい。
+    goals:
+      - 返金処理を利用した現金抜き取りを隠したい
+      - 22時02分から終電出発までホームで遅延証明書を配っていたと思わせたい
+    knowledge: [arima-is-assistant-master, last-train-delayed, body-found-2225]
+    secrets:
+      - fact: arima-skimmed-refunds
+        disclosure: pressured
+      - fact: fujisaki-found-refund-gap
+        disclosure: pressured
+      - fact: fujisaki-warned-arima
+        disclosure: pressured
+      - fact: arima-entered-office-2205
+        disclosure: never
+      - fact: arima-killed-fujisaki-2208
+        disclosure: never
+      - fact: arima-left-office-2212
+        disclosure: never
+      - fact: certificates-printed-2220
+        disclosure: never
+    lies:
+      - id: arima-platform-alibi
+        about: arima-entered-office-2205
+        claim: 22時02分から22時18分に終電が出るまで、ずっとホームで遅延証明書を配っていた。駅務室へ戻ったのは列車が出た後です
+        strategy: maintain-until-contradicted
+    memories:
+      - id: refund-warning
+        about: fujisaki-warned-arima
+        detail: 藤崎に返金処理の一覧を見せられ「終電が出たら本部に報告する」と言われ、時間が残っていないと思った。
+    relationships:
+      - character: komori
+        relation: 駅構内の仕事仲間
+        attitude: 売店から駅員の動きをよく見ているので少し警戒している
+  - id: komori
+    name: 小森拓
+    role: witness
+    personality: 話好きな売店責任者で、ホームや改札の様子をよく見ている。廃棄商品の横流しが会社へ知られるのを恐れており、帳簿の話を向けられると急に口数が減る。
+    goals:
+      - 廃棄商品の帳簿外販売を隠したい
+      - 22時12分に見た有馬の行動は正確に伝えたい
+    knowledge: [komori-runs-kiosk, komori-saw-arima-2212, last-train-delayed, body-found-2225]
+    secrets:
+      - fact: komori-resold-expired-goods
+        disclosure: pressured
+    lies:
+      - id: komori-clean-disposal
+        about: komori-resold-expired-goods
+        claim: 廃棄扱いの商品を外へ回したことはない。売店の帳簿に問題はない
+        strategy: maintain-until-contradicted
+    memories:
+      - id: arima-returning
+        about: komori-saw-arima-2212
+        detail: 終電待ちの客がまだ多い22時12分ごろ、有馬が駅務室側から早足で戻ってきたので、今までどこにいたのかと思った。
+    relationships:
+      - character: arima
+        relation: 駅構内の仕事仲間
+        attitude: 普段は几帳面な人だと思っている
+  - id: sawada
+    name: 沢田亮
+    role: witness
+    personality: 機械好きで、古い鉄道設備を見ると仕事の範囲を越えて確認したくなる点検員。無許可で機器室へ入ったことを隠したいが、通路で会った人の時刻は点検時計と結びつけて覚えている。
+    goals:
+      - 正式な指示なしに機器室へ入ったことを隠したい
+      - 22時05分の目撃は正確に伝えたい
+    knowledge: [sawada-is-maintainer, sawada-saw-arima-2205, last-train-delayed, body-found-2225]
+    secrets:
+      - fact: sawada-entered-equipment-room
+        disclosure: pressured
+    lies:
+      - id: sawada-stayed-assigned-area
+        about: sawada-entered-equipment-room
+        claim: 指示された信号点検場所以外へは入っていない
+        strategy: maintain-until-contradicted
+    memories:
+      - id: office-corridor-sighting
+        about: sawada-saw-arima-2205
+        detail: 点検時計で22時05分を確認した直後、ホームにいるはずの有馬が駅務室へ向かうのを見た。
+    relationships: []
+revelations:
+  - id: certificates-did-not-exist
+    title: 配っていたはずの証明書はまだ存在しない
+    text: 有馬が22時02分から配っていたと主張する遅延証明書は、実際には終電出発後の22時20分に初めて一括印刷されている。少なくともその紙を22時台前半に配ることはできない。
+    category: alibi
+    subject:
+      type: character
+      id: arima
+    sources:
+      - type: character
+        id: arima
+        revealCondition: 有馬に遅延証明書をいつ印刷し、何枚配ったか具体的に尋ね、専用プリンターの履歴と比較した。
+        requires:
+          revelations: []
+          evidences: [certificate-printer-log]
+      - type: character
+        id: komori
+        revealCondition: 小森に終電前に乗客が紙の遅延証明書を受け取っていたか尋ね、印刷時刻も確認した。
+        requires:
+          revelations: []
+          evidences: [certificate-printer-log]
+    relatedFacts: [last-train-delayed, certificates-printed-2220, arima-entered-office-2205]
+  - id: refund-motive
+    title: 終電後に報告される返金不正
+    text: 藤崎は返金処理記録と現金残高の差から有馬の抜き取りを見抜き、終電後すぐ本部へ報告すると本人へ告げていた。
+    category: motive
+    subject:
+      type: character
+      id: arima
+    sources:
+      - type: character
+        id: arima
+        revealCondition: 有馬に券売機の返金差額と藤崎から21時55分に告げられた内容を追及し、本部報告への恐れが明確になった。
+        requires:
+          revelations: [certificates-did-not-exist]
+          evidences: [refund-ledger]
+    relatedFacts: [arima-skimmed-refunds, fujisaki-found-refund-gap, fujisaki-warned-arima]
+evidences:
+  - id: certificate-printer-log
+    label: 遅延証明書プリンターの履歴
+    description: 遅延証明書は22時20分に一括印刷されており、22時02分から22時18分の間にはまだ紙として存在していない。
+    reveal:
+      mode: conversation
+      condition: 有馬に遅延証明書を配った時刻と印刷方法を尋ねるか、小森に終電前の配布状況を確認したら開示する。
+    sources:
+      - type: character
+        id: arima
+      - type: character
+        id: komori
+    supports: [certificates-printed-2220, last-train-delayed]
+    contradicts: ["lie:arima-platform-alibi"]
+  - id: sawada-sighting
+    label: 二十二時五分の駅務室通路の目撃
+    description: 沢田は22時05分ごろ、駅務室へ向かう有馬を見ている。
+    reveal:
+      mode: conversation
+      condition: 沢田に22時前後の点検中、駅務室側の通路で誰を見たか尋ねたら開示する。
+    sources:
+      - type: character
+        id: sawada
+    supports: [sawada-saw-arima-2205, arima-entered-office-2205]
+    contradicts: ["lie:arima-platform-alibi"]
+  - id: komori-sighting
+    label: 二十二時十二分の売店前の目撃
+    description: 小森は22時12分ごろ、駅務室側からホームへ戻る有馬を見ている。
+    reveal:
+      mode: conversation
+      condition: 小森に終電待ちの間、駅務室側から戻ってきた駅員がいなかったか尋ねたら開示する。
+    sources:
+      - type: character
+        id: komori
+    supports: [komori-saw-arima-2212, arima-left-office-2212]
+    contradicts: ["lie:arima-platform-alibi"]
+  - id: refund-ledger
+    label: 券売機返金処理と現金残高の差
+    description: 少額返金が繰り返された日時と現金不足が一致し、有馬の担当時間帯へ集中している。
+    reveal:
+      mode: conversation
+      condition: 有馬に藤崎が事件前に確認していた返金処理について尋ねるか、小森に駅長が帳簿を調べていた理由を尋ねたら開示する。
+    sources:
+      - type: character
+        id: arima
+      - type: character
+        id: komori
+    supports: [arima-skimmed-refunds, fujisaki-found-refund-gap, fujisaki-warned-arima]
+    contradicts: []
+  - id: kiosk-disposal-record
+    label: 売店の廃棄記録と帳簿外販売
+    description: 小森が廃棄扱いの商品を知人へ売っていたことは分かるが、駅務室の事件時刻とは結びつかない。
+    reveal:
+      mode: conversation
+      condition: 小森に廃棄商品の扱いを尋ね、帳簿に問題はないと否定したら開示する。
+    sources:
+      - type: character
+        id: komori
+    supports: [komori-resold-expired-goods]
+    contradicts: ["lie:komori-clean-disposal"]
+  - id: equipment-room-entry
+    label: 信号機器室の入室記録
+    description: 沢田が正式な指示なしに機器室へ入っていたことが分かるが、22時05分の有馬の目撃とは矛盾しない。
+    reveal:
+      mode: conversation
+      condition: 沢田に指示区域以外へ入っていないか尋ね、否定したため入室記録を確認したら開示する。
+    sources:
+      - type: character
+        id: sawada
+    supports: [sawada-entered-equipment-room]
+    contradicts: ["lie:sawada-stayed-assigned-area"]
+solution:
+  culprit: arima
+  summary: 犯人は有馬結衣。券売機の返金処理を利用した現金抜き取りを藤崎に見抜かれ、終電後すぐ本部へ報告すると告げられた。有馬は「22時02分から終電が出る22時18分までホームで遅延証明書を配っていた」と話すが、その証明書は22時20分になって初めて印刷されており、主張した時間帯には存在していない。さらに22時05分には沢田が駅務室へ向かう有馬を、22時12分には小森が駅務室側から戻る有馬を見ている。有馬は22時08分ごろ駅務室で藤崎を襲い、終電後に証明書を印刷して配布作業をアリバイへ利用しようとした。小森の帳簿外販売と沢田の無許可入室は独立した隠し事である。
+  method: ホームで遅延証明書を配っていたという偽の作業アリバイを作り、駅務室で藤崎を襲った後、終電出発後に証明書を印刷した
+  motive: 返金処理を利用した現金抜き取りが本部へ報告され、職と信用を失うことを恐れたため
+  requiredFacts: [arima-skimmed-refunds, fujisaki-warned-arima, arima-entered-office-2205, sawada-saw-arima-2205, arima-killed-fujisaki-2208, komori-saw-arima-2212, certificates-printed-2220]
+  secretKeywords:
+    - 犯人は有馬
+    - 有馬が犯人
+    - 有馬が藤崎を襲
+    - 私が藤崎を襲
+    - 遅延証明書をアリバイに殺
+quality:
+  expectedQuestionCount:
+    min: 8
+    max: 18
+  requiredEvidence:
+    min: 2
+  redHerrings: [komori-resold-expired-goods, sawada-entered-equipment-room]
+  notes: 紙の存在時刻を確認することで「配布していた」という作業アリバイを崩す。沢田と小森の二方向の目撃があるため、どちらか一人への質問を逃しても有馬が駅務室へ出入りしたことへ到達できる。

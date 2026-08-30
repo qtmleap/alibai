@@ -1,0 +1,298 @@
+import { count, eq } from 'drizzle-orm'
+import type { Db } from '@/server/db/client'
+import type { HintItem } from '@/server/game/hints'
+import {
+  eligibleRevelationCandidates,
+  type RevelationCandidate,
+  type RevelationEligibilityContext,
+  type RevelationRule,
+} from '@/server/game/revelations'
+import { characters, evidences, revelations, scenarios } from '~/db/schema'
+
+/**
+ * 読み主体で、数秒古くても誰も困らないものだけを KV に置く。
+ *
+ * ここに scenario_truths を持ち込まないこと。あのテーブルを分離してあるのは
+ * クライアント向けのクエリで誤って真相を JOIN する事故を構造的に防ぐためで、
+ * キャッシュ層で並べ直したらその防御が無意味になる。
+ * この層が触ってよいのは scenarios / characters まで。
+ */
+
+const CHARACTER_TTL_SECONDS = 3600
+const SCENARIO_LIST_TTL_SECONDS = 60
+const JUDGE_RUBRIC_TTL_SECONDS = 3600
+
+const characterKey = (characterId: string) => `character:${characterId}`
+const judgeRubricKey = (scenarioId: string) => `judge-rubric:${scenarioId}`
+const judgeRevelationsKey = (scenarioId: string) => `judge-revelations:${scenarioId}`
+const hintSubjectsKey = (scenarioId: string) => `hint-subjects:${scenarioId}`
+const SCENARIO_LIST_KEY = 'scenarios:published'
+
+/**
+ * NPCのプロンプトになる上限。characters の行がそのまま境界。
+ */
+const buildSheet = (row: typeof characters.$inferSelect) =>
+  `# ${row.name}
+
+## 人物像
+${row.personality}
+
+## 知っていること
+${row.knowledge}
+
+## 秘密
+${row.secrets}
+
+## 目的
+${row.goals}
+
+## つく嘘
+${row.lies}
+
+## 記憶
+${row.memories}`
+
+/**
+ * キャラクターシートは会話中まったく変化しない。毎ターンDBを叩くのは無駄なのでKVに置く。
+ * 見つからなければ undefined を返す。呼び出し側が 404 を出す判断をする。
+ */
+export const loadCharacterSheet = async (
+  kv: KVNamespace,
+  db: Db,
+  characterId: string,
+): Promise<string | undefined> => {
+  const cached = await kv.get(characterKey(characterId))
+
+  if (cached !== null) {
+    return cached
+  }
+
+  const rows = await db.select().from(characters).where(eq(characters.id, characterId)).limit(1)
+  const row = rows[0]
+
+  if (row === undefined) {
+    return undefined
+  }
+
+  const sheet = buildSheet(row)
+  await kv.put(characterKey(characterId), sheet, { expirationTtl: CHARACTER_TTL_SECONDS })
+
+  return sheet
+}
+
+/**
+ * 一覧に出す最小限。あらすじは載せない。
+ *
+ * 選ぶ画面に長文が並ぶと、プレイヤーは遊び始める前に読み疲れる。
+ * 何の話かを掴むための文章は、シナリオを選んだ後の「事件の記録」が引き受ける。
+ */
+export type PublishedScenario = {
+  id: string
+  title: string
+  category: string
+  /** 何人に聞き込めるか。規模感が一目で分かる。 */
+  characterCount: number
+  difficulty: number
+  estimatedMinutes: number
+}
+
+/**
+ * 公開シナリオの一覧。読みは多いが書き換わることは滅多にない、KV向きの代表。
+ */
+export const loadPublishedScenarios = async (
+  kv: KVNamespace,
+  db: Db,
+): Promise<PublishedScenario[]> => {
+  const cached = await kv.get<PublishedScenario[]>(SCENARIO_LIST_KEY, 'json')
+
+  if (cached !== null) {
+    return cached
+  }
+
+  // 登場人物数は毎回数え直すのではなく、一覧と一緒に1クエリで取って
+  // そのままKVに焼く。一覧が書き換わるのはシナリオを編集したときだけなので、
+  // 人数だけが古くなるということが起きない。
+  const rows = await db
+    .select({
+      id: scenarios.id,
+      title: scenarios.title,
+      category: scenarios.category,
+      characterCount: count(characters.id),
+      difficulty: scenarios.difficulty,
+      estimatedMinutes: scenarios.estimatedMinutes,
+    })
+    .from(scenarios)
+    .leftJoin(characters, eq(characters.scenarioId, scenarios.id))
+    .where(eq(scenarios.isPublished, true))
+    .groupBy(scenarios.id)
+
+  await kv.put(SCENARIO_LIST_KEY, JSON.stringify(rows), {
+    expirationTtl: SCENARIO_LIST_TTL_SECONDS,
+  })
+
+  return rows
+}
+
+/**
+ * Judgeに渡す判定ルール。証拠の開示条件（id + reveal_condition）だけを含む。
+ *
+ * scenario_truths はここで絶対に読まない。犯人・真相・秘匿キーワードが無くても
+ * 「この条件を満たしたらこの証拠IDを開示」という判定はできる設計になっている
+ * （証拠の開示条件そのものに真相が要約されないよう、シナリオ側で書く責務）。
+ * Judgeのプロンプトは4,096トークン未満になりがちでキャッシュの恩恵は薄いが、
+ * 1プレイ内で同じシナリオへ何度も聞き直す構造なのでKVに置く価値はある。
+ */
+export const loadJudgeRubric = async (
+  kv: KVNamespace,
+  db: Db,
+  scenarioId: string,
+): Promise<string> => {
+  const cached = await kv.get(judgeRubricKey(scenarioId))
+
+  if (cached !== null) {
+    return cached
+  }
+
+  const rows = await db
+    .select({ id: evidences.id, revealCondition: evidences.revealCondition })
+    .from(evidences)
+    .where(eq(evidences.scenarioId, scenarioId))
+
+  const evidenceList = rows.map((row) => `- ${row.id}: ${row.revealCondition}`).join('\n')
+
+  const rubric = `あなたはマーダーミステリーの進行審判である。プレイヤーが指定した話題と、それを受けて探偵がNPCと交わしたやり取りを読み、以下を判定する。やり取りは同じ話題について複数の往復にわたることがあり、その全体をまとめて1回として判定する。
+
+- revealedEvidenceIds: 今回のやり取りで開示条件を満たした証拠のIDを列挙する。満たしていなければ空配列。
+- revealedRevelationIds: ユーザーメッセージ末尾の「今回判定可能なRevelation」に列挙された候補のうち、今回の会話で条件を満たしたIDだけを列挙する。候補外のIDを推測してはいけない。満たしていなければ空配列。
+- contradictionPointedOut: 探偵が過去の発言との矛盾を指摘できていたら true。
+- npcLied: NPCの返答が、その場しのぎの嘘や誤誘導を含んでいたら true。
+- suggestedQuestions: 会話の流れから次に指定するとよい話題を最大3件、プレイヤーが探偵へ渡す短い指示の形で提案する。
+
+証拠の開示条件は以下の通り。与えられているのはIDと条件文だけで、それ以外の情報（真相・犯人など）は渡されていない。条件に明確に合致しない証拠は開示したと判定しないこと。
+
+${evidenceList}`
+
+  await kv.put(judgeRubricKey(scenarioId), rubric, { expirationTtl: JUDGE_RUBRIC_TTL_SECONDS })
+
+  return rubric
+}
+
+const loadRevelationRules = async (
+  kv: KVNamespace,
+  db: Db,
+  scenarioId: string,
+): Promise<RevelationRule[]> => {
+  const key = judgeRevelationsKey(scenarioId)
+  const cached = await kv.get<RevelationRule[]>(key, 'json')
+
+  if (cached !== null) {
+    return cached
+  }
+
+  const rows = await db
+    .select({ id: revelations.id, sources: revelations.sources })
+    .from(revelations)
+    .where(eq(revelations.scenarioId, scenarioId))
+
+  await kv.put(key, JSON.stringify(rows), { expirationTtl: JUDGE_RUBRIC_TTL_SECONDS })
+
+  return rows
+}
+
+/**
+ * 現在の会話でJudgeが判定してよいRevelationだけを返す。
+ * 前提未達・別NPC由来・既に解禁済みのカードは、この時点でモデルから隠す。
+ */
+export const loadEligibleRevelationCandidates = async (
+  kv: KVNamespace,
+  db: Db,
+  scenarioId: string,
+  context: RevelationEligibilityContext,
+): Promise<RevelationCandidate[]> =>
+  eligibleRevelationCandidates(await loadRevelationRules(kv, db, scenarioId), context)
+
+/**
+ * 難易度モードの「あと何件」を数えるための材料。
+ *
+ * 解禁され得るもの（revelation と evidence）を同じ形に均したものと、
+ * 数を並べる先である全部屋・全人物。セッション状態の取得は5秒ごとに叩かれるので、
+ * そのたびに3本引かずに済むよう1つにまとめてKVへ置く。
+ *
+ * 未発見のものの中身（名前や条件文）はここには入れない。数えるのに要らないし、
+ * 万一そのまま応答へ流れてもネタバレにならない形にしておきたい。
+ */
+export type HintSubjects = {
+  items: HintItem[]
+  /** 見取り図に並ぶ順のままの部屋ID。 */
+  roomIds: string[]
+  characterIds: string[]
+}
+
+export const loadHintSubjects = async (
+  kv: KVNamespace,
+  db: Db,
+  scenarioId: string,
+): Promise<HintSubjects> => {
+  const key = hintSubjectsKey(scenarioId)
+  const cached = await kv.get<HintSubjects>(key, 'json')
+
+  if (cached !== null) {
+    return cached
+  }
+
+  const [revelationRows, evidenceRows, scenarioRows, characterRows] = await Promise.all([
+    db
+      .select({ id: revelations.id, sources: revelations.sources })
+      .from(revelations)
+      .where(eq(revelations.scenarioId, scenarioId)),
+    db
+      .select({ id: evidences.id, sources: evidences.sources })
+      .from(evidences)
+      .where(eq(evidences.scenarioId, scenarioId)),
+    db
+      .select({ floorPlan: scenarios.floorPlan })
+      .from(scenarios)
+      .where(eq(scenarios.id, scenarioId))
+      .limit(1),
+    db.select({ id: characters.id }).from(characters).where(eq(characters.scenarioId, scenarioId)),
+  ])
+
+  const plan = scenarioRows[0]
+  const subjects: HintSubjects = {
+    // revelation の source は解禁条件と前提条件も持っているが、数えるのに要るのは行き先だけ。
+    items: [
+      ...revelationRows.map((row) => ({
+        id: row.id,
+        sources: row.sources.map((source) => ({ type: source.type, id: source.id })),
+      })),
+      ...evidenceRows.map((row) => ({ id: row.id, sources: row.sources })),
+    ],
+    roomIds:
+      plan === undefined || plan.floorPlan === null
+        ? []
+        : plan.floorPlan.rooms.map((room) => room.id),
+    characterIds: characterRows.map((row) => row.id),
+  }
+
+  await kv.put(key, JSON.stringify(subjects), { expirationTtl: JUDGE_RUBRIC_TTL_SECONDS })
+
+  return subjects
+}
+
+/**
+ * シナリオを編集したら明示的に消す。TTL任せにすると、
+ * 直したはずの誤字が最大1分残り続ける。
+ */
+export const invalidateScenario = async (
+  kv: KVNamespace,
+  scenarioId: string,
+  characterIds: string[],
+) => {
+  await Promise.all([
+    kv.delete(SCENARIO_LIST_KEY),
+    kv.delete(judgeRubricKey(scenarioId)),
+    kv.delete(judgeRevelationsKey(scenarioId)),
+    kv.delete(hintSubjectsKey(scenarioId)),
+    ...characterIds.map((id) => kv.delete(characterKey(id))),
+  ])
+}

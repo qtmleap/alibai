@@ -1,0 +1,86 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "alibai",
+  // dev もビルドも @cloudflare/vite-plugin がこのファイルを読む。
+  // `vite build` が dist/<name>/ に成果物と deploy 用の設定を出し、
+  // `wrangler deploy` はそちらへリダイレクトされる。
+  "main": "src/server.ts",
+  "compatibility_date": "2026-08-29",
+  // compatibility_flags は空。nodejs_compat は postgres.js が TCP を張るためだけに
+  // 付いていたもので、D1 へ移った時点で不要になった。SSR・SSEストリーミング・
+  // AI SDK・DO のいずれも、これ無しで動くことを確認済み。
+  "observability": {
+    "enabled": true
+  },
+
+  // シナリオと真相、会話ログ、リザルトの正典。IDは `wrangler d1 create alibai` で発行される。
+  //
+  // ローカルには接続先を書かない。wrangler が .wrangler/state 配下に SQLite の実体を
+  // 持ち、vite dev の workerd はそれを見る。つまり開発にDBコンテナは要らない。
+  //
+  // migrations_dir は drizzle-kit の出力先（db/migrations）をそのまま指している。
+  // drizzle が併置する meta/ は wrangler が無視するので、生成は drizzle-kit、
+  // 適用は wrangler、という分担のまま1つのディレクトリを共用できる。
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "alibai",
+      "database_id": "65055857-1d3c-45c9-ae44-fabcb3e8c74a",
+      "migrations_dir": "db/migrations"
+    }
+  ],
+
+  // 公開シナリオとキャラクターシートの読みキャッシュ。真相は絶対に入れない。
+  //   wrangler kv namespace create SCENARIO_CACHE
+  "kv_namespaces": [
+    {
+      "binding": "SCENARIO_CACHE",
+      "id": "3d3c7ee7c04b4d729b8ee307eb358e3f"
+    }
+  ],
+
+  // クライアント（React）の配信。directory を書かないのは、vite プラグインが
+  // client ビルドの出力先を自分で入れてくれるため。
+  // ここで固定パスを書くと、プラグインの出力先が変わった日に静かに壊れる。
+  //
+  // not_found_handling は要らない。アセットに無いパスは Worker に落ち、
+  // TanStack Start が SSR で応答する（SPA フォールバックではない）。
+  "assets": {
+    "binding": "ASSETS"
+  },
+
+  "durable_objects": {
+    "bindings": [
+      { "name": "PLAY_SESSION", "class_name": "PlaySession" },
+      { "name": "RATE_LIMITER", "class_name": "RateLimiter" }
+    ]
+  },
+
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["PlaySession", "RateLimiter"]
+    }
+  ],
+
+  // 保持期間を過ぎたプレイセッションの掃除。worker.ts の scheduled が受ける。
+  // Cloudflare の cron は必ず UTC 解釈で、ローカル時刻にはならない。
+  // 4:17 にしてあるのは、毎時0分は世の中のCronが最も混む時刻だから。
+  "triggers": {
+    "crons": ["17 4 * * *"]
+  },
+
+  // APIキーは vars ではなく secret に入れる。
+  //   wrangler secret put ANTHROPIC_API_KEY
+  "vars": {
+    "LLM_ACTOR_PROVIDER": "anthropic",
+    "LLM_JUDGE_PROVIDER": "anthropic",
+    "LLM_AUTHOR_PROVIDER": "anthropic",
+    "MAX_TURNS": "5",
+    "QUESTIONS_PER_TURN": "1",
+    "RATE_LIMIT_MAX_CALLS": "60",
+    "RATE_LIMIT_WINDOW_SECONDS": "3600",
+    // 会話ログの保持日数。llm_usages はこの対象外で残り続ける。
+    "RETENTION_DAYS": "90"
+  }
+}
