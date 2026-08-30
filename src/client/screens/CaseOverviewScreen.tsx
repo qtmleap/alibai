@@ -1,5 +1,16 @@
 import { useState } from 'react'
 import { FloorPlanMap } from '@/client/components/FloorPlan'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/client/components/ui/alert-dialog'
 import { Button } from '@/client/components/ui/button'
 import { ToggleGroup, ToggleGroupItem } from '@/client/components/ui/toggle-group'
 import { createSession, describeError } from '@/client/lib/api'
@@ -72,10 +83,31 @@ export const CaseOverviewScreen = ({
     <div className="screen-enter mx-auto flex min-h-dvh max-w-md flex-col gap-6 bg-slate-950 px-5 py-6 text-slate-100">
       <header className="flex items-start justify-between gap-3">
         <h1 className="text-xl font-bold">{scenario.title}</h1>
-        {/* 降りる口。事件を眺める場所と同じ画面に置いて、聞き込みの最中には出さない。 */}
-        <Button variant="link" size="sm" className="shrink-0 px-0" onClick={onGiveUp}>
-          諦める
-        </Button>
+        {/*
+          降りる口。押した瞬間に落ちると事故になるので、必ず一度確かめる。
+          AlertDialog は「×で閉じる」を持たないので、続けるか諦めるかを必ず選ばせられる。
+        */}
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="link" size="sm" className="shrink-0 px-0">
+              諦める
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>この事件を諦めますか</AlertDialogTitle>
+              <AlertDialogDescription>
+                {inProgress
+                  ? 'ここまでの聞き込みには戻れなくなります。使ったターンも戻りません。'
+                  : 'まだ何も始めていないので、いつでもここから挑み直せます。'}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>続ける</AlertDialogCancel>
+              <AlertDialogAction onClick={onGiveUp}>諦める</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </header>
 
       {/*
