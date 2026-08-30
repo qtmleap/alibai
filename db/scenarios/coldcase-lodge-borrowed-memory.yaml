@@ -1,0 +1,308 @@
+schemaVersion: 1
+id: coldcase-lodge-borrowed-memory
+meta:
+  title: 1979年、雪山荘の借り物の記憶
+  synopsis: 2026年、47年前に未解決となった雪山荘の死亡事件が再調査される。当時の生存者三人は「午後十時半、被害者が暖炉前にいた」と揃って語る。しかし事件直後の聴取記録では、その目撃をした人物は一人しかいなかった。長い年月で混ざった記憶から、元の事件を再構成せよ。
+  category: 未解決事件再調査
+  difficulty: 5
+  estimatedMinutes: 20
+  tags: [1979年, 2026年, コールドケース, 回想]
+briefing: |-
+  2026年。47年前、雪崩で孤立した山荘「白樺館」で起きた未解決事件を再調査します。
+
+  1979年2月17日の夜、山荘主・野上修一が書斎で死亡しました。当時館内にいた若者三人——現在は六十代となった高瀬真紀、藤村達也、倉田恵——はいま揃って「22時30分ごろ、野上が暖炉前で新聞を読んでいた」と記憶しています。
+
+  ところが整理された旧捜査資料には、事件翌朝に取られた三人それぞれの供述調書も残っていました。47年間繰り返された話と、最初の一日だけに存在した記憶。どちらが誰自身の体験だったのかを確かめてください。
+floorPlan: null
+facts:
+  - id: maki-former-guest
+    statement: 高瀬真紀は1979年当時、白樺館に滞在していた大学生だった
+    kind: other
+  - id: tatsuya-former-guest
+    statement: 藤村達也は1979年当時、白樺館に滞在していた大学生だった
+    kind: other
+  - id: megumi-former-staff
+    statement: 倉田恵は1979年当時、白樺館で住み込みの手伝いをしていた
+    kind: other
+  - id: current-all-remember-2230
+    statement: 2026年の再聴取では三人全員が22時30分ごろ暖炉前に野上修一がいたと記憶している
+    kind: testimony
+  - id: original-only-maki-claimed-sighting
+    statement: 1979年2月18日の最初の供述で、22時30分ごろ野上を暖炉前で見たと述べたのは高瀬真紀だけだった
+    kind: testimony
+  - id: tatsuya-originally-heard-from-maki
+    statement: 藤村達也の最初の供述には、22時30分の野上について「真紀が見たと言っていた」と記録されている
+    kind: testimony
+  - id: megumi-originally-asleep-2215
+    statement: 倉田恵の最初の供述には、22時15分ごろ自室へ入りその後は眠っていたと記録されている
+    kind: testimony
+  - id: newspaper-published-fireplace-story
+    statement: 事件の一週間後の新聞記事は「三人が22時30分ごろ野上を見た」と誤って要約して報じた
+    kind: other
+  - id: maki-stole-cash
+    statement: 高瀬真紀は1979年当時、山荘の現金箱から金を盗んでいた
+    kind: other
+    secret: true
+  - id: tatsuya-secret-affair
+    statement: 藤村達也は1979年当時、被害者の家族に知られたくない交際関係を隠していた
+    kind: other
+    secret: true
+  - id: megumi-forged-expenses
+    statement: 倉田恵は山荘の仕入れ代を水増しして差額を取っていた
+    kind: motive
+    secret: true
+  - id: nogami-found-megumi-fraud
+    statement: 21時50分ごろ、野上修一は倉田恵の仕入れ代水増しに気づき翌朝警察へ相談すると告げた
+    kind: motive
+    secret: true
+  - id: maki-saw-megumi-study
+    statement: 22時08分ごろ、高瀬真紀は書斎側の廊下から出てくる倉田恵を見た
+    kind: observation
+  - id: megumi-killed-nogami
+    statement: 22時05分ごろ、倉田恵は書斎で野上修一を襲い死亡させた
+    kind: truth
+    secret: true
+  - id: maki-lied-fireplace
+    statement: 高瀬真紀は自分の現金窃盗の時間を隠すため、22時30分に野上を暖炉前で見たという嘘をついた
+    kind: truth
+    secret: true
+  - id: body-found-2310
+    statement: 23時10分、藤村達也が書斎で野上修一の死を発見した
+    kind: observation
+timeline:
+  - id: fraud-confrontation
+    at: "21:50"
+    participants: [megumi]
+    facts: [megumi-forged-expenses, nogami-found-megumi-fraud]
+    description: 野上が倉田の仕入れ代水増しを見抜き、翌朝警察へ相談すると告げる。
+  - id: nogami-death
+    at: "22:05"
+    participants: [megumi]
+    facts: [megumi-killed-nogami]
+    description: 倉田が書斎で野上を襲う。
+  - id: maki-sees-megumi
+    at: "22:08"
+    participants: [maki, megumi]
+    facts: [maki-saw-megumi-study]
+    description: 真紀が書斎側の廊下から出てくる倉田を見かける。
+  - id: megumi-goes-room
+    at: "22:15"
+    participants: [megumi]
+    facts: [megumi-originally-asleep-2215]
+    description: 倉田が自室へ入り、その後は眠っていたと翌朝の供述で話す。
+  - id: false-fireplace-sighting
+    at: "22:30"
+    participants: [maki]
+    facts: [maki-lied-fireplace, original-only-maki-claimed-sighting]
+    description: 真紀が自分の窃盗時間を隠すため、野上を暖炉前で見たという架空の目撃を後に申告する。
+  - id: discovery
+    at: "23:10"
+    participants: [maki, tatsuya, megumi]
+    facts: [body-found-2310]
+    description: 藤村が書斎で野上の死を発見する。
+characters:
+  - id: maki
+    name: 高瀬真紀
+    role: suspect
+    personality: 2026年現在は穏やかな元教師。47年間「22時30分に暖炉前で野上を見た」と繰り返してきたため、本人にもそれが固い記憶になっている。だが事件当時の現金窃盗は今でも恥じている。
+    goals:
+      - 1979年の現金窃盗を隠したい
+      - 暖炉前の目撃が自分の直接体験だったという説明を守りたい
+    knowledge: [maki-former-guest, current-all-remember-2230, original-only-maki-claimed-sighting, newspaper-published-fireplace-story, maki-saw-megumi-study, body-found-2310]
+    secrets:
+      - fact: maki-stole-cash
+        disclosure: pressured
+      - fact: maki-lied-fireplace
+        disclosure: pressured
+    lies:
+      - id: maki-real-sighting
+        about: maki-lied-fireplace
+        claim: 22時30分ごろ、私は確かに自分の目で野上さんが暖炉前にいるのを見ました
+        strategy: maintain-until-contradicted
+      - id: maki-no-theft
+        about: maki-stole-cash
+        claim: 山荘の現金箱からお金を取ったことはありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: maki-memory-hardened
+        about: current-all-remember-2230
+        detail: 何十年も暖炉前の場面を思い出してきたせいで、新聞で見た写真まで自分の視界だったような感覚がある。
+    relationships:
+      - character: tatsuya
+        relation: 1979年の友人
+        attitude: 昔から自分の話を信じてくれた人だと思っている
+      - character: megumi
+        relation: 当時の山荘スタッフ
+        attitude: 書斎側で見たことだけは今も気になっている
+  - id: tatsuya
+    name: 藤村達也
+    role: witness
+    personality: 2026年現在は慎重な会社員OB。今は自分も暖炉前の野上を見た気がしているが、古い供述を読むと自信を失う。若いころの秘密の交際だけは話したくない。
+    goals:
+      - 当時の秘密の交際を隠したい
+      - 自分自身の記憶と真紀から聞いた話を区別したい
+    knowledge: [tatsuya-former-guest, current-all-remember-2230, tatsuya-originally-heard-from-maki, newspaper-published-fireplace-story, body-found-2310]
+    secrets:
+      - fact: tatsuya-secret-affair
+        disclosure: pressured
+    lies:
+      - id: tatsuya-no-affair
+        about: tatsuya-secret-affair
+        claim: 当時、山荘で隠していた交際関係はありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: tatsuya-source-confusion
+        about: tatsuya-originally-heard-from-maki
+        detail: 暖炉前の野上の姿を思い浮かべられるが、自分が見たのか真紀の話を何度も聞いたからなのか分からなくなっている。
+    relationships:
+      - character: maki
+        relation: 1979年の友人
+        attitude: 記憶の多くを彼女との昔話で補ってきた
+      - character: megumi
+        relation: 当時の山荘スタッフ
+        attitude: 事件の夜は早く寝た人だと長年思っていた
+  - id: megumi
+    name: 倉田恵
+    role: suspect
+    personality: 2026年現在は物静かな元経理職。事件当夜は22時15分から眠っていたという最初の供述を強調する。仕入れ代の水増しを問われると防御的になる。
+    goals:
+      - 仕入れ代の水増しを隠したい
+      - 22時15分以降の睡眠を中心に、自分が事件と無関係だと思わせたい
+    knowledge: [megumi-former-staff, current-all-remember-2230, megumi-originally-asleep-2215, newspaper-published-fireplace-story, body-found-2310]
+    secrets:
+      - fact: megumi-forged-expenses
+        disclosure: pressured
+      - fact: nogami-found-megumi-fraud
+        disclosure: pressured
+      - fact: megumi-killed-nogami
+        disclosure: never
+    lies:
+      - id: megumi-no-fraud
+        about: megumi-forged-expenses
+        claim: 仕入れ代を水増ししたことはありません
+        strategy: maintain-until-contradicted
+      - id: megumi-never-study
+        about: maki-saw-megumi-study
+        claim: 22時前後に書斎側の廊下へ行った記憶はありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: megumi-police-threat
+        about: nogami-found-megumi-fraud
+        detail: 野上から「朝になったら警察に帳簿を見せる」と言われた瞬間だけは、47年たっても鮮明に覚えている。
+    relationships:
+      - character: maki
+        relation: 当時の宿泊客
+        attitude: 書斎側で自分を見たと言い出すことを恐れている
+      - character: tatsuya
+        relation: 当時の宿泊客
+        attitude: 自分について直接見たことは少ない相手だと思っている
+revelations:
+  - id: memory-was-not-independent
+    title: 三人の記憶は独立していない
+    text: 2026年には三人とも22時30分の目撃を記憶しているが、事件翌朝に直接目撃を主張したのは真紀だけだった。藤村は真紀から聞いた話として記録され、倉田はその時刻には眠っていたと述べていた。
+    category: background
+    subject: { type: event, id: false-fireplace-sighting }
+    sources:
+      - type: character
+        id: tatsuya
+        revealCondition: 藤村に1979年最初の供述と現在の記憶の違いを尋ね、当時は真紀から聞いたとしか話していなかったと確認した。
+        requires:
+          revelations: []
+          evidences: [original-statements]
+    relatedFacts: [current-all-remember-2230, original-only-maki-claimed-sighting, tatsuya-originally-heard-from-maki, megumi-originally-asleep-2215]
+  - id: fireplace-sighting-was-false
+    title: 最初の目撃そのものが嘘だった
+    text: 暖炉前の生存証明の唯一の源だった真紀の目撃は、自身の現金窃盗を隠すために作られたものだった。
+    category: alibi
+    subject: { type: character, id: maki }
+    sources:
+      - type: character
+        id: maki
+        revealCondition: 真紀に22時台の自分の行動と現金箱の件を旧資料と合わせて追及し、暖炉前の目撃を作った理由を認めさせた。
+        requires:
+          revelations: [memory-was-not-independent]
+          evidences: [cashbox-note]
+    relatedFacts: [maki-stole-cash, maki-lied-fireplace]
+  - id: megumi-study-window
+    title: 本当の事件時刻へ戻る
+    text: 22時30分の生存証明が消えると、22時08分に書斎側から出てきた倉田の目撃と、21時50分の帳簿トラブルが事件の中心に残る。
+    category: timeline
+    subject: { type: character, id: megumi }
+    sources:
+      - type: character
+        id: maki
+        revealCondition: 暖炉前の目撃が崩れた後、真紀にそれ以前に書斎側で誰を見たか改めて尋ねた。
+        requires:
+          revelations: [fireplace-sighting-was-false]
+          evidences: [first-night-sketch]
+    relatedFacts: [maki-saw-megumi-study, nogami-found-megumi-fraud]
+evidences:
+  - id: original-statements
+    label: 1979年2月18日の三人の供述調書
+    description: 真紀だけが22時30分の直接目撃を主張し、藤村は真紀から聞いたと述べ、倉田は22時15分から眠っていたとしている。
+    reveal:
+      mode: conversation
+      condition: 誰かに現在の記憶と事件翌朝の供述の違いを尋ね、旧捜査資料を確認したら開示する。
+    sources:
+      - { type: character, id: maki }
+      - { type: character, id: tatsuya }
+      - { type: character, id: megumi }
+    supports: [original-only-maki-claimed-sighting, tatsuya-originally-heard-from-maki, megumi-originally-asleep-2215]
+    contradicts: []
+  - id: newspaper-clipping
+    label: 一週間後の新聞記事
+    description: 「三人が暖炉前の野上を見た」と誤って要約した記事が、その後何度も事件紹介で引用されている。
+    reveal:
+      mode: conversation
+      condition: 藤村か真紀に三人の記憶がいつから一致するようになったのか尋ねたら開示する。
+    sources:
+      - { type: character, id: maki }
+      - { type: character, id: tatsuya }
+    supports: [newspaper-published-fireplace-story, current-all-remember-2230]
+    contradicts: []
+  - id: cashbox-note
+    label: 現金箱の不足メモ
+    description: 事件翌日の帳簿には少額の現金不足があり、真紀の最初の供述では22時台の行動が不自然に曖昧になっている。
+    reveal:
+      mode: conversation
+      condition: 真紀に事件当夜の自分の隠し事を追及し、現金不足の旧メモを示したら開示する。
+    sources:
+      - { type: character, id: maki }
+    supports: [maki-stole-cash, maki-lied-fireplace]
+    contradicts: ["lie:maki-real-sighting", "lie:maki-no-theft"]
+  - id: first-night-sketch
+    label: 真紀の最初の館内スケッチ
+    description: 事件翌朝に真紀が描いた簡単な館内図には、22時08分ごろ書斎側で倉田とすれ違った印が残っている。
+    reveal:
+      mode: conversation
+      condition: 真紀に暖炉前より前の時間帯で気になった人物を尋ね、旧捜査資料の館内スケッチを確認したら開示する。
+    sources:
+      - { type: character, id: maki }
+    supports: [maki-saw-megumi-study]
+    contradicts: ["lie:megumi-never-study"]
+  - id: expense-ledger
+    label: 仕入れ帳の水増し
+    description: 倉田の担当欄で仕入れ額が実際より増やされ、野上が事件当日に再確認の印を付けている。
+    reveal:
+      mode: conversation
+      condition: 倉田に野上と事件直前に揉めた帳簿の内容を追及したら開示する。
+    sources:
+      - { type: character, id: megumi }
+    supports: [megumi-forged-expenses, nogami-found-megumi-fraud]
+    contradicts: ["lie:megumi-no-fraud"]
+solution:
+  culprit: megumi
+  summary: 犯人は倉田恵。1979年、仕入れ代の水増しを野上に見抜かれ、22時05分ごろ書斎で野上を襲った。22時30分に野上が暖炉前で生きていたという長年の定説は、真紀が自分の現金窃盗を隠すために作った虚偽の目撃が源だった。事件後の新聞がそれを「三人の目撃」と誤って報じ、47年間の回想で藤村と倉田の記憶にも混ざった。最初の供述へ戻ると、真紀は22時08分に書斎側から出てくる倉田を見ており、倉田には帳簿不正が発覚する動機もあった。
+  method: 事件後に別人が作った虚偽の生存目撃が長年の共通記憶へ変化したことを利用し、実際の事件時刻を遅く見せ続けた
+  motive: 仕入れ代の水増しが発覚し、翌朝警察へ相談されるのを防ぐため
+  requiredFacts: [original-only-maki-claimed-sighting, tatsuya-originally-heard-from-maki, newspaper-published-fireplace-story, maki-lied-fireplace, maki-saw-megumi-study, megumi-forged-expenses, nogami-found-megumi-fraud, megumi-killed-nogami]
+  secretKeywords:
+    - 犯人は倉田
+    - 倉田が野上を襲
+    - 真紀の目撃は嘘
+    - 暖炉前の目撃は嘘
+quality:
+  expectedQuestionCount: { min: 12, max: 26 }
+  requiredEvidence: { min: 4 }
+  redHerrings: [maki-stole-cash, tatsuya-secret-affair]
+  notes: 現在の証言ではなく事件翌朝の一次資料へ戻るコールドケース型。誤報と反復で記憶が収束した構造を崩した後、当時の目撃と動機へ戻る。
