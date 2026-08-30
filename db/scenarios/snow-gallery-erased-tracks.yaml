@@ -1,0 +1,321 @@
+schemaVersion: 1
+id: snow-gallery-erased-tracks
+meta:
+  title: 雪の彫刻館、消されたはずのない足跡
+  synopsis: 山道が閉鎖された彫刻館の離れで館長が死亡した。降雪後、母屋と離れを結ぶ一本道には新しい足跡がなく、容疑者は「誰も離れへ行けなかった」と主張する。だが、発見時の雪面が犯行時からずっと同じ状態だったとは限らない。
+  category: クローズドサークル
+  difficulty: 4
+  estimatedMinutes: 15
+  tags: [雪, 美術館, 足跡, 時系列]
+briefing: |-
+  ——事件の記録を読み上げます。
+
+  午後八時五十分、吹雪で山道が閉ざされた白庭彫刻館の離れ展示室で、館長の青沼卓が死亡しているのが見つかりました。館内に残っていたのは学芸員の倉田真帆、施設員の安西雄、彫刻家の江波涼の三人だけです。
+
+  母屋と離れを結ぶ屋外通路には、発見時点で新しい足跡がありませんでした。倉田は「雪が降り始めた午後八時十分以降、誰も離れへ渡っていないはずだ」と話しています。
+
+  しかし施設員の安西は、降雪中に一度だけ通路へ出て作業をしています。足跡がないという事実が、どの時間帯まで遡って人の通行を否定できるのか調べてください。
+floorPlan: null
+facts:
+  - id: kurata-curator
+    statement: 倉田真帆は展示管理と作品来歴の記録を担当する学芸員である
+    kind: other
+  - id: anzai-facility
+    statement: 安西雄は雪対策と建物設備を担当する施設員である
+    kind: other
+  - id: enami-sculptor
+    statement: 江波涼は翌日の展示替えのため館内に滞在していた彫刻家である
+    kind: other
+  - id: snow-started-2010
+    statement: 20時10分ごろから母屋と離れの間に雪が積もり始めた
+    kind: physical
+  - id: kurata-crossed-2017
+    statement: 20時17分ごろ、倉田真帆は母屋から離れ展示室へ向かった
+    kind: truth
+    secret: true
+  - id: aoonuma-death-2020
+    statement: 20時20分ごろ、青沼卓は離れ展示室で襲われ死亡した
+    kind: truth
+    secret: true
+  - id: kurata-killed-aoonuma
+    statement: 倉田真帆は20時20分ごろ離れ展示室で青沼卓を襲い死亡させた
+    kind: truth
+    secret: true
+  - id: anzai-cleared-path-2026
+    statement: 20時26分ごろ、安西雄は排水口確認のため屋外通路の積雪を入口から離れまで一度掃き直した
+    kind: observation
+  - id: snow-covered-after-clearing
+    statement: 20時26分の除雪後も降雪が続き、発見時には除雪後の通路にも新しい雪が積もっていた
+    kind: physical
+  - id: no-tracks-at-discovery
+    statement: 20時50分の発見時、母屋と離れを結ぶ通路には判別できる足跡が残っていなかった
+    kind: physical
+  - id: anzai-saw-kurata-2031
+    statement: 20時31分ごろ、安西雄は母屋の裏口付近で倉田真帆を見た
+    kind: observation
+  - id: provenance-forgery-found
+    statement: 青沼卓は倉田真帆が一部作品の来歴記録を都合よく書き換えていたことに気づいた
+    kind: motive
+    secret: true
+  - id: board-report-next-day
+    statement: 青沼卓は翌日の理事会で倉田真帆による来歴記録の書き換えを報告する予定だった
+    kind: motive
+    secret: true
+  - id: anzai-broke-sensor
+    statement: 安西雄は作業中に雪害センサーを壊し、自然故障として処理しようとしていた
+    kind: other
+    secret: true
+  - id: enami-damaged-model
+    statement: 江波涼は展示前の試作品を誤って破損し、青沼に報告していなかった
+    kind: other
+    secret: true
+  - id: body-found-2050
+    statement: 20時50分、江波涼が離れ展示室で青沼卓の死を発見した
+    kind: observation
+timeline:
+  - id: snowfall-begins
+    at: "20:10"
+    participants: []
+    facts: [snow-started-2010]
+    description: 母屋と離れの間の通路に雪が積もり始める。
+  - id: kurata-crosses
+    at: "20:17"
+    participants: [kurata]
+    facts: [kurata-crossed-2017]
+    description: 倉田が母屋から離れ展示室へ向かう。
+  - id: aoonuma-death
+    at: "20:20"
+    participants: [kurata]
+    facts: [aoonuma-death-2020, kurata-killed-aoonuma]
+    description: 倉田が離れ展示室で青沼を襲い、青沼は死亡する。
+  - id: path-cleared
+    at: "20:26"
+    participants: [anzai]
+    facts: [anzai-cleared-path-2026, snow-covered-after-clearing]
+    description: 安西が排水口確認のため屋外通路を一度掃き直し、それ以前の足跡も雪面ごと崩れる。
+  - id: kurata-back-main
+    at: "20:31"
+    participants: [kurata, anzai]
+    facts: [anzai-saw-kurata-2031]
+    description: 安西が母屋裏口付近にいる倉田を目撃する。
+  - id: discovery
+    at: "20:50"
+    participants: [enami, kurata, anzai]
+    facts: [body-found-2050, no-tracks-at-discovery]
+    description: 江波が離れで青沼の死を発見し、通路には判別できる足跡が残っていない。
+characters:
+  - id: kurata
+    name: 倉田真帆
+    role: suspect
+    personality: 落ち着いた学芸員で、展示記録や時系列を細かく説明する。雪面の状態を物理的証拠として強調する一方、来歴記録の問題を青沼に見つけられていた。
+    goals:
+      - 発見時に足跡がないことを、20時10分以降誰も離れへ行っていない証拠として通したい
+      - 来歴記録を書き換えていたことを隠したい
+    knowledge: [kurata-curator, snow-started-2010, no-tracks-at-discovery, body-found-2050]
+    secrets:
+      - fact: kurata-crossed-2017
+        disclosure: never
+      - fact: provenance-forgery-found
+        disclosure: pressured
+      - fact: board-report-next-day
+        disclosure: pressured
+      - fact: kurata-killed-aoonuma
+        disclosure: never
+    lies:
+      - id: kurata-no-tracks-alibi
+        about: kurata-crossed-2017
+        claim: 20時10分からずっと雪が積もっていました。発見時に足跡がない以上、その後に離れへ渡った人はいません。私も母屋から出ていません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: clearing-saw-from-window
+        about: anzai-cleared-path-2026
+        detail: 安西が通路の雪を掃いているのを母屋の窓越しに見て、自分の足跡が残らないと気づいた。
+      - id: board-fear
+        about: board-report-next-day
+        detail: 青沼から「明日の理事会には修正履歴も全部出す」と告げられ、職を失うと感じた。
+    relationships:
+      - character: anzai
+        relation: 施設員
+        attitude: 除雪作業の正確な時刻を話されることを警戒している
+      - character: enami
+        relation: 展示作家
+        attitude: 作品以外には無頓着だと思っている
+  - id: anzai
+    name: 安西雄
+    role: witness
+    personality: 無愛想だが作業時刻には几帳面な施設員。雪害センサーを壊した失敗を隠したい。通路を掃いたことで、発見時の雪面が犯行時の雪面ではないことを知っている。
+    goals:
+      - 雪害センサーの破損を隠したい
+      - 20時26分の除雪と20時31分の倉田目撃は正確に伝えたい
+    knowledge: [anzai-facility, snow-started-2010, anzai-cleared-path-2026, snow-covered-after-clearing, anzai-saw-kurata-2031, no-tracks-at-discovery, body-found-2050]
+    secrets:
+      - fact: anzai-broke-sensor
+        disclosure: pressured
+    lies:
+      - id: anzai-sensor-natural
+        about: anzai-broke-sensor
+        claim: 雪害センサーは吹雪で自然に故障しただけです
+        strategy: maintain-until-contradicted
+    memories:
+      - id: clearing-time
+        about: anzai-cleared-path-2026
+        detail: 排水口が詰まりかけたので20時26分から数分、通路の積雪を掃いた。その後すぐ新しい雪が積もり始めた。
+      - id: kurata-back-door
+        about: anzai-saw-kurata-2031
+        detail: 除雪を終えて戻った直後、母屋裏口に倉田がいたので「外に出ていたのか」と思った。
+    relationships:
+      - character: kurata
+        relation: 同僚
+        attitude: 雪のことを知ったように断言するのが気になる
+  - id: enami
+    name: 江波涼
+    role: witness
+    personality: 感覚派の彫刻家。時刻には曖昧だが展示室の状態にはよく気づく。試作品の破損を隠しているため、青沼との口論を知られたくない。
+    goals:
+      - 試作品を壊したことを隠したい
+      - 自分が発見者であることで疑われたくない
+    knowledge: [enami-sculptor, no-tracks-at-discovery, body-found-2050]
+    secrets:
+      - fact: enami-damaged-model
+        disclosure: pressured
+    lies:
+      - id: enami-model-intact
+        about: enami-damaged-model
+        claim: 展示予定の試作品に破損はありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: discovery-snow
+        about: no-tracks-at-discovery
+        detail: 離れへ向かったとき雪面がきれいだったので、最初は本当に誰も来ていないと思った。
+    relationships:
+      - character: kurata
+        relation: 担当学芸員
+        attitude: 作品の由来を細かく確認しすぎると感じている
+revelations:
+  - id: footprints-erased-later
+    title: 発見時の雪面は犯行時の雪面ではない
+    text: 20時26分に安西が通路の積雪を一度掃き直しており、それ以前についた足跡は保存されていない。その後も雪が積もったため、20時50分の無傷の雪面から否定できるのは除雪後の通行だけである。
+    category: timeline
+    subject:
+      type: event
+      id: path-cleared
+    sources:
+      - type: character
+        id: anzai
+        revealCondition: 安西に降雪中の屋外作業と通路を掃いた時刻を具体的に尋ね、20時26分に雪面が作り直されたと確認した。
+        requires:
+          revelations: []
+          evidences: [snow-clearing-log]
+      - type: character
+        id: enami
+        revealCondition: 江波に発見時の雪面がいつからその状態だったと考えたのか尋ね、除雪作業を考慮していなかったと確認した。
+        requires:
+          revelations: []
+          evidences: [snow-clearing-log]
+    relatedFacts: [anzai-cleared-path-2026, snow-covered-after-clearing, no-tracks-at-discovery, kurata-crossed-2017]
+  - id: provenance-report-motive
+    title: 理事会で公になる来歴修正
+    text: 青沼は倉田による作品来歴記録の書き換えを見つけ、翌日の理事会で修正履歴ごと報告する予定だった。
+    category: motive
+    subject:
+      type: character
+      id: kurata
+    sources:
+      - type: character
+        id: kurata
+        revealCondition: 倉田に青沼が確認していた来歴記録と翌日の理事会について追及し、書き換えを認めさせた。
+        requires:
+          revelations: [footprints-erased-later]
+          evidences: [provenance-history]
+    relatedFacts: [provenance-forgery-found, board-report-next-day]
+evidences:
+  - id: snow-clearing-log
+    label: 二十時二十六分の除雪作業記録
+    description: 安西が排水口確認のため母屋から離れまで通路の雪を一度掃き直したことが記録されている。
+    reveal:
+      mode: conversation
+      condition: 安西に20時台の屋外作業と排水口確認について尋ねたら開示する。
+    sources:
+      - type: character
+        id: anzai
+    supports: [anzai-cleared-path-2026, snow-covered-after-clearing]
+    contradicts: ["lie:kurata-no-tracks-alibi"]
+  - id: backdoor-sighting
+    label: 二十時三十一分の裏口目撃
+    description: 安西は除雪を終えた直後、母屋の裏口付近にいる倉田を見ている。
+    reveal:
+      mode: conversation
+      condition: 安西に除雪作業を終えて母屋へ戻ったとき誰を見たか尋ねたら開示する。
+    sources:
+      - type: character
+        id: anzai
+    supports: [anzai-saw-kurata-2031]
+    contradicts: ["lie:kurata-no-tracks-alibi"]
+  - id: snow-layer-note
+    label: 通路の積雪層メモ
+    description: 発見時の表面は20時26分の除雪後に積もった雪で、それ以前の足跡を保存していないことが分かる。
+    reveal:
+      mode: conversation
+      condition: 安西か江波に発見時の雪面と20時26分の除雪の前後関係を確認したら開示する。
+    sources:
+      - type: character
+        id: anzai
+      - type: character
+        id: enami
+    supports: [snow-covered-after-clearing, no-tracks-at-discovery]
+    contradicts: ["lie:kurata-no-tracks-alibi"]
+  - id: provenance-history
+    label: 来歴記録の修正履歴
+    description: 倉田が担当した複数作品で、根拠資料と合わない来歴修正が行われ、青沼が翌日理事会へ報告する印を付けている。
+    reveal:
+      mode: conversation
+      condition: 倉田か江波に青沼が直前まで確認していた作品来歴について尋ねたら開示する。
+    sources:
+      - type: character
+        id: kurata
+      - type: character
+        id: enami
+    supports: [provenance-forgery-found, board-report-next-day]
+    contradicts: []
+  - id: broken-snow-sensor
+    label: 破損した雪害センサー
+    description: 安西の作業ミスでセンサーが壊れたことが分かるが、青沼の死とは独立した隠し事である。
+    reveal:
+      mode: conversation
+      condition: 安西に雪害センサーの故障原因を追及したら開示する。
+    sources:
+      - type: character
+        id: anzai
+    supports: [anzai-broke-sensor]
+    contradicts: ["lie:anzai-sensor-natural"]
+  - id: damaged-model
+    label: 破損した試作品
+    description: 江波が展示前の試作品を壊して隠していたことが分かるが、離れ展示室の事件とは無関係である。
+    reveal:
+      mode: conversation
+      condition: 江波に展示前の試作品の破損について尋ねたら開示する。
+    sources:
+      - type: character
+        id: enami
+    supports: [enami-damaged-model]
+    contradicts: ["lie:enami-model-intact"]
+solution:
+  culprit: kurata
+  summary: 犯人は倉田真帆。発見時に足跡がなかったことは、20時10分の降雪開始以降ずっと誰も離れへ渡っていない証明ではない。倉田は20時17分ごろ離れへ渡り、20時20分ごろ青沼を襲った。その後20時26分、安西が排水口確認のため通路の雪を一度掃き直したため、それ以前の足跡は雪面ごと消えた。さらに降雪が続き、発見時には除雪後の通路にも新しい雪が積もっていた。20時31分には安西が母屋裏口で倉田を目撃している。青沼は倉田による作品来歴記録の書き換えを翌日の理事会で報告する予定だった。無足跡という証拠の「保存開始時刻」を見誤らないことが核心である。
+  method: 降雪中に離れへ渡った後、施設員の除雪作業によってそれ以前の足跡が失われたことを利用し、発見時の無傷の雪面を自分の不在証明として主張した
+  motive: 作品来歴記録の不適切な書き換えを翌日の理事会で公にされ、学芸員としての信用と職を失うことを恐れたため
+  requiredFacts: [kurata-crossed-2017, anzai-cleared-path-2026, snow-covered-after-clearing, anzai-saw-kurata-2031, provenance-forgery-found, board-report-next-day, kurata-killed-aoonuma]
+  secretKeywords:
+    - 犯人は倉田
+    - 倉田が犯人
+    - 倉田が青沼を襲
+    - 私が青沼を襲
+    - 除雪で足跡が消え
+quality:
+  expectedQuestionCount:
+    min: 11
+    max: 22
+  requiredEvidence:
+    min: 3
+  redHerrings: [anzai-broke-sensor, enami-damaged-model]
+  notes: 古典的な無足跡問題を、特殊な移動手段ではなく証拠保存の時間窓で解く。発見時の状態が犯行時から連続していたという思い込みを崩す。

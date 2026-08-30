@@ -1,0 +1,322 @@
+schemaVersion: 1
+id: polar-station-shared-clock
+meta:
+  title: 極夜基地、四つの時計が示した同じ嘘
+  synopsis: 吹雪で孤立した極地観測基地で主任研究員が死亡した。容疑者のアリバイは、通信端末・入室履歴・観測ログ・壁時計という複数の時刻記録に支えられている。四つの証拠が一致しているなら確実に見える。だが、それらが本当に四つの独立した時計とは限らない。
+  category: クローズドサークル
+  difficulty: 5
+  estimatedMinutes: 15
+  tags: [極地基地, 時計, 時刻, 相関した証拠]
+briefing: |-
+  ——事件の記録を読み上げます。
+
+  午後十一時十分、吹雪で完全に孤立した白夜第六観測基地の解析室で、主任研究員の牧瀬航が死亡しているのが見つかりました。基地内にいたのは観測員の篠宮怜、通信担当の樋口海、整備担当の沢渡直人の三人だけです。
+
+  篠宮は午後十時二十分から四十分まで通信区画にいたと主張しています。通信端末の操作履歴、区画の入室履歴、観測ログ、廊下の壁時計はいずれも篠宮の説明と矛盾しない時刻を示しています。
+
+  一方で吹雪の直前、基地の時刻同期系には障害が起きていました。複数の記録が一致することと、複数の独立した証拠があることは同じでしょうか。
+floorPlan: null
+facts:
+  - id: shinomiya-observer
+    statement: 篠宮怜は気象観測とデータ解析を担当する研究員である
+    kind: other
+  - id: higuchi-comms
+    statement: 樋口海は基地の通信設備と時刻同期系を担当している
+    kind: other
+  - id: sawatari-maintenance
+    statement: 沢渡直人は発電設備と居住区設備を担当する整備員である
+    kind: other
+  - id: central-clock-offset
+    statement: 21時50分の同期障害以降、基地の中央時刻系は実際の時刻より七分進んだ状態で固定されていた
+    kind: physical
+    secret: true
+  - id: terminal-uses-central-clock
+    statement: 通信端末の操作履歴は基地の中央時刻系を参照している
+    kind: physical
+  - id: access-uses-central-clock
+    statement: 通信区画の入室履歴は基地の中央時刻系を参照している
+    kind: physical
+  - id: observation-log-central-clock
+    statement: 自動観測ログの時刻表示は基地の中央時刻系を参照している
+    kind: physical
+  - id: wall-clock-synced
+    statement: 通信区画前の壁時計は中央時刻系から自動補正を受ける型である
+    kind: physical
+  - id: four-times-not-independent
+    statement: 通信端末・入室履歴・自動観測ログ・通信区画前の壁時計は、すべて同じ中央時刻系の七分のずれを共有していた
+    kind: truth
+  - id: handheld-clock-correct
+    statement: 沢渡直人の整備用携帯時計は中央時刻系と同期せず、実際の時刻を示していた
+    kind: physical
+  - id: sawatari-saw-shinomiya-real-2220
+    statement: 実際の22時20分ごろ、沢渡直人は解析室側の通路で篠宮怜を見た
+    kind: observation
+  - id: displayed-time-was-2227
+    statement: 沢渡直人が篠宮怜を見た実際の22時20分、中央時刻系では22時27分と表示されていた
+    kind: truth
+  - id: makise-death-real-2223
+    statement: 実際の22時23分ごろ、牧瀬航は解析室で襲われ死亡した
+    kind: truth
+    secret: true
+  - id: shinomiya-killed-makise
+    statement: 篠宮怜は実際の22時23分ごろ解析室で牧瀬航を襲い死亡させた
+    kind: truth
+    secret: true
+  - id: data-manipulation-found
+    statement: 牧瀬航は篠宮怜が観測結果の一部を恣意的に除外していたことに気づいた
+    kind: motive
+    secret: true
+  - id: disclosure-next-morning
+    statement: 牧瀬航は翌朝の研究会議で篠宮怜の不適切なデータ除外を報告する予定だった
+    kind: motive
+    secret: true
+  - id: higuchi-hid-sync-failure
+    statement: 樋口海は同期障害の初動対応が遅れたことを責められるのを恐れ、障害発生時刻をすぐ共有しなかった
+    kind: other
+    secret: true
+  - id: sawatari-used-extra-power
+    statement: 沢渡直人は許可なく私物機器を基地電源へ接続していた
+    kind: other
+    secret: true
+  - id: body-found-2310
+    statement: 23時10分、樋口海が解析室で牧瀬航の死を発見した
+    kind: observation
+timeline:
+  - id: sync-failure
+    at: "21:50"
+    participants: [higuchi]
+    facts: [central-clock-offset, higuchi-hid-sync-failure]
+    description: 時刻同期系に障害が起き、基地の中央時刻系が実際より七分進んだ状態になる。
+  - id: false-alibi-window
+    at: "22:13"
+    participants: [shinomiya]
+    facts: [terminal-uses-central-clock, access-uses-central-clock, observation-log-central-clock, wall-clock-synced, four-times-not-independent]
+    description: 中央時刻系のずれを共有する複数の記録が、篠宮の通信区画滞在を実際より七分遅い時刻として残す。
+  - id: real-corridor-sighting
+    at: "22:20"
+    participants: [shinomiya, sawatari]
+    facts: [handheld-clock-correct, sawatari-saw-shinomiya-real-2220, displayed-time-was-2227]
+    description: 沢渡が独立した携帯時計で22時20分を確認し、解析室側の通路にいる篠宮を目撃する。
+  - id: makise-death
+    at: "22:23"
+    participants: [shinomiya]
+    facts: [makise-death-real-2223, shinomiya-killed-makise]
+    description: 篠宮が解析室で牧瀬を襲い、牧瀬は死亡する。
+  - id: discovery
+    at: "23:10"
+    participants: [higuchi, shinomiya, sawatari]
+    facts: [body-found-2310]
+    description: 樋口が解析室で牧瀬の死を発見する。
+characters:
+  - id: shinomiya
+    name: 篠宮怜
+    role: suspect
+    personality: 理詰めで話す観測員。記録が複数一致していることを強く主張し、個人の目撃よりシステムログを信用すべきだと言う。研究成果を失うことへの焦りが強い。
+    goals:
+      - 四種類の時刻記録を独立したアリバイ証拠に見せたい
+      - 観測データを恣意的に除外していたことを隠したい
+    knowledge: [shinomiya-observer, terminal-uses-central-clock, access-uses-central-clock, observation-log-central-clock, wall-clock-synced, body-found-2310]
+    secrets:
+      - fact: data-manipulation-found
+        disclosure: pressured
+      - fact: disclosure-next-morning
+        disclosure: pressured
+      - fact: shinomiya-killed-makise
+        disclosure: never
+    lies:
+      - id: shinomiya-four-clock-alibi
+        about: sawatari-saw-shinomiya-real-2220
+        claim: 22時20分から40分の間は通信区画にいました。端末、入室履歴、観測ログ、壁時計の四つが一致している以上、沢渡さんの目撃時刻のほうが間違っています
+        strategy: maintain-until-contradicted
+    memories:
+      - id: knew-clock-dependence
+        about: four-times-not-independent
+        detail: 通信区画の端末も入室履歴も観測表示も壁時計も、同じ中央時刻系を参照していることは日常業務で知っている。
+      - id: research-meeting-fear
+        about: disclosure-next-morning
+        detail: 牧瀬から「明日の会議で除外処理の理由を全員に説明してもらう」と告げられ、これまでの研究が崩れると感じた。
+    relationships:
+      - character: higuchi
+        relation: 通信担当
+        attitude: 同期障害の詳細を話されることを恐れている
+      - character: sawatari
+        relation: 整備員
+        attitude: 携帯時計で時刻を確認する癖を軽視していた
+  - id: higuchi
+    name: 樋口海
+    role: witness
+    personality: 神経質な通信担当。システム障害を自分の失態と考え、最初は同期ずれを小さく見せようとする。技術仕様については正確に説明できる。
+    goals:
+      - 同期障害の共有が遅れたことを隠したい
+      - 四種類の記録が同じ時刻源を使っていたことは正確に伝えたい
+    knowledge: [higuchi-comms, terminal-uses-central-clock, access-uses-central-clock, observation-log-central-clock, wall-clock-synced, four-times-not-independent, body-found-2310]
+    secrets:
+      - fact: central-clock-offset
+        disclosure: pressured
+      - fact: higuchi-hid-sync-failure
+        disclosure: pressured
+    lies:
+      - id: higuchi-no-serious-offset
+        about: central-clock-offset
+        claim: 同期系には小さな警告が出ただけで、事件に影響するほどの時刻ずれはありませんでした
+        strategy: maintain-until-contradicted
+    memories:
+      - id: seven-minute-offset
+        about: central-clock-offset
+        detail: 障害確認時に中央時計が七分進んでいるのを見つけたが、対応の遅れを知られたくなくて全員への連絡を後回しにした。
+    relationships:
+      - character: shinomiya
+        relation: 同僚
+        attitude: システムに詳しい篠宮なら四記録が独立していないことを知っているはずだと思っている
+  - id: sawatari
+    name: 沢渡直人
+    role: witness
+    personality: 現場感覚を重視する整備員。基地システムとは別の携帯時計を使う習慣があり、自分の見た時刻に自信がある。私物機器の無断使用だけは隠したい。
+    goals:
+      - 私物機器の無断使用を隠したい
+      - 22時20分の篠宮の目撃時刻が独立した時計によるものだと説明したい
+    knowledge: [sawatari-maintenance, handheld-clock-correct, sawatari-saw-shinomiya-real-2220, displayed-time-was-2227, body-found-2310]
+    secrets:
+      - fact: sawatari-used-extra-power
+        disclosure: pressured
+    lies:
+      - id: sawatari-no-extra-power
+        about: sawatari-used-extra-power
+        claim: 基地電源に許可のない私物機器をつないだことはありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: independent-watch
+        about: sawatari-saw-shinomiya-real-2220
+        detail: 発電設備の点検時刻を記録するため携帯時計を見た直後、解析室側から来る篠宮とすれ違ったので22時20分だったと断言できる。
+    relationships:
+      - character: shinomiya
+        relation: 同僚
+        attitude: ログを過信していると感じている
+revelations:
+  - id: four-clocks-one-source
+    title: 四つの記録、ひとつの時計
+    text: 篠宮のアリバイを支える通信端末・入室履歴・観測ログ・壁時計はすべて同じ中央時刻系を参照していた。中央時計が七分進んでいたため、四つの一致は独立した確認ではなく、一つの誤差を四回見ているだけだった。
+    category: timeline
+    subject:
+      type: event
+      id: sync-failure
+    sources:
+      - type: character
+        id: higuchi
+        revealCondition: 樋口に四種類の時刻記録がそれぞれ何を時刻源にしているかと、同期障害のずれ幅を追及した。
+        requires:
+          revelations: []
+          evidences: [clock-source-diagram]
+      - type: character
+        id: sawatari
+        revealCondition: 沢渡に携帯時計が基地時刻と同期しているか尋ね、22時20分の目撃が独立した時計に基づくと確認した。
+        requires:
+          revelations: []
+          evidences: [handheld-watch-note]
+    relatedFacts: [central-clock-offset, four-times-not-independent, handheld-clock-correct, sawatari-saw-shinomiya-real-2220]
+  - id: research-disclosure-motive
+    title: 翌朝の研究会議
+    text: 牧瀬は篠宮による恣意的なデータ除外を見つけ、翌朝の研究会議で説明させる予定だった。篠宮には研究成果と立場を失う恐れがあった。
+    category: motive
+    subject:
+      type: character
+      id: shinomiya
+    sources:
+      - type: character
+        id: shinomiya
+        revealCondition: 篠宮に除外した観測データと翌朝の研究会議について追及し、牧瀬から説明を求められていたことを認めさせた。
+        requires:
+          revelations: [four-clocks-one-source]
+          evidences: [meeting-agenda]
+    relatedFacts: [data-manipulation-found, disclosure-next-morning]
+evidences:
+  - id: clock-source-diagram
+    label: 基地時刻系の接続図
+    description: 通信端末、入室履歴、観測ログ、通信区画前の壁時計がすべて同じ中央時刻系を参照していることが分かる。
+    reveal:
+      mode: conversation
+      condition: 樋口か篠宮に四種類の時刻記録がどの時計を参照しているか具体的に尋ねたら開示する。
+    sources:
+      - type: character
+        id: higuchi
+      - type: character
+        id: shinomiya
+    supports: [terminal-uses-central-clock, access-uses-central-clock, observation-log-central-clock, wall-clock-synced, four-times-not-independent]
+    contradicts: ["lie:shinomiya-four-clock-alibi"]
+  - id: sync-error-record
+    label: 七分の同期ずれ記録
+    description: 21時50分以降、中央時刻系が実際より七分進んだ状態だったことが保守記録から確認できる。
+    reveal:
+      mode: conversation
+      condition: 樋口に同期障害の実際のずれ幅と発生時刻を追及したら開示する。
+    sources:
+      - type: character
+        id: higuchi
+    supports: [central-clock-offset]
+    contradicts: ["lie:higuchi-no-serious-offset", "lie:shinomiya-four-clock-alibi"]
+  - id: handheld-watch-note
+    label: 沢渡の整備時刻メモ
+    description: 基地時刻系と同期しない携帯時計で、沢渡は22時20分に解析室側の通路で篠宮を見たと記録している。
+    reveal:
+      mode: conversation
+      condition: 沢渡に22時20分の目撃時刻を何で確認したか尋ねたら開示する。
+    sources:
+      - type: character
+        id: sawatari
+    supports: [handheld-clock-correct, sawatari-saw-shinomiya-real-2220, displayed-time-was-2227]
+    contradicts: ["lie:shinomiya-four-clock-alibi"]
+  - id: meeting-agenda
+    label: 翌朝の研究会議議題
+    description: 牧瀬の会議メモに、篠宮によるデータ除外の妥当性を全員の前で確認する予定が記されている。
+    reveal:
+      mode: conversation
+      condition: 篠宮か樋口に翌朝の研究会議で牧瀬が扱う予定だった議題を尋ねたら開示する。
+    sources:
+      - type: character
+        id: shinomiya
+      - type: character
+        id: higuchi
+    supports: [data-manipulation-found, disclosure-next-morning]
+    contradicts: []
+  - id: hidden-sync-delay
+    label: 障害共有の遅延
+    description: 樋口が同期障害の共有を遅らせていたことが分かるが、牧瀬の死とは独立した隠し事である。
+    reveal:
+      mode: conversation
+      condition: 樋口に同期障害をいつ全員へ共有したか追及したら開示する。
+    sources:
+      - type: character
+        id: higuchi
+    supports: [higuchi-hid-sync-failure]
+    contradicts: []
+  - id: unauthorized-power
+    label: 私物機器の電源使用
+    description: 沢渡が許可なく私物機器を基地電源へ接続していたことが分かるが、解析室の事件とは無関係である。
+    reveal:
+      mode: conversation
+      condition: 沢渡に基地電源へ私物機器を接続していなかったか尋ねたら開示する。
+    sources:
+      - type: character
+        id: sawatari
+    supports: [sawatari-used-extra-power]
+    contradicts: ["lie:sawatari-no-extra-power"]
+solution:
+  culprit: shinomiya
+  summary: 犯人は篠宮怜。篠宮のアリバイを支える四つの時刻記録は独立していなかった。通信端末、入室履歴、自動観測ログ、壁時計はいずれも同じ中央時刻系を参照し、その中央時計は21時50分以降、実際より七分進んでいた。したがって四記録の一致は一つの誤差を共有した結果にすぎない。基地時刻と同期しない携帯時計を使う沢渡は、実際の22時20分に解析室側の通路で篠宮を目撃している。篠宮は22時23分ごろ解析室で牧瀬を襲った。牧瀬は篠宮による恣意的なデータ除外を翌朝の研究会議で取り上げる予定だった。複数証拠の数ではなく、それらの独立性を確かめることが解決の鍵となる。
+  method: 同じ中央時計を参照する複数の記録を独立した時刻証拠のように見せ、七分の同期ずれによって実際の行動時刻をずらして説明した
+  motive: 恣意的なデータ除外を翌朝の研究会議で公にされ、研究成果と立場を失うことを恐れたため
+  requiredFacts: [central-clock-offset, four-times-not-independent, handheld-clock-correct, sawatari-saw-shinomiya-real-2220, makise-death-real-2223, disclosure-next-morning, shinomiya-killed-makise]
+  secretKeywords:
+    - 犯人は篠宮
+    - 篠宮が犯人
+    - 篠宮が牧瀬を襲
+    - 私が牧瀬を襲
+    - 四つの時計は同じ時刻源
+quality:
+  expectedQuestionCount:
+    min: 12
+    max: 24
+  requiredEvidence:
+    min: 3
+  redHerrings: [higuchi-hid-sync-failure, sawatari-used-extra-power]
+  notes: 複数時計で補強されたアリバイという古典的発想を、「証拠の相関」に置き換えたもの。四つの一致より一本の独立時計のほうが強い、という推理を要求する。
