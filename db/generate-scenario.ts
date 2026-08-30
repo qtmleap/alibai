@@ -20,43 +20,19 @@ import { toScenarioYaml } from './scenario-file'
 
 const MAX_ATTEMPTS = 4
 
-/**
- * 生成の指示。
- *
- * 長いのは、スキーマが JSON Schema へ落とせない条件をここで言葉にして
- * 補っているため。構造だけ渡して黙っていると、参照の切れた fact や
- * 人物名そのままの秘匿キーワードが毎回返ってくる。
- */
-const SYSTEM_PROMPT = `あなたはマーダーミステリーのシナリオ作家です。スマホで10分ほど遊ぶ、聞き込み型の事件を設計します。
+/*
+  生成の指示は docs/scenario-authoring.md そのもの。
 
-# 設計の順序
+  スキーマが JSON Schema へ落とせない条件（参照の整合性、秘匿キーワードの選び方、
+  改行や見出しの禁止）は言葉で伝えるしかない。それを人間向けの手引きと生成用の
+  プロンプトに二重に書くと、片方だけ直されて必ず食い違う。あの文書を唯一の原本にして、
+  人が読むものとモデルが読むものを同じにしておく。
 
-1. 先に真相を固定する。犯人・動機・実際の時系列・決定的な事実を決める。
-2. その後で情報を配る。誰が何を知り、何を隠し、どんな嘘をつくかを決める。
-3. 最後に公開情報（synopsis と briefing）を書く。真相は書かない。
-
-登場人物を先に自由に作ってから辻褄を合わせようとしてはいけません。必ず真相から始めてください。
-
-# 守る規則
-
-- facts は原子的な事実に割る。一つの statement に複数の事実を詰め込まない。文脈なしで意味が通る一文にする。
-- characters の knowledge / secrets[].fact / lies[].about、timeline の facts、evidences の supports、solution の requiredFacts は、すべて facts[].id への参照。存在しない ID を書かない。
-- knowledge には、その人物が話してよい事実だけを並べる。隠したい事実は secrets にだけ置く。
-- evidences[].contradicts は "lie:<lies[].id>" の形式で、実在する嘘だけを指す。
-- 被害者は characters に入れない。プレイヤーが会話できるのは容疑者と証言者だけ。characters は2人以上、3人前後が扱いやすい。
-- relationships[].character は characters[].id を指す。被害者は指せないので、被害者への感情は personality の本文に書く。
-- timeline の at は "HH:mm" で統一する。日を跨ぐ事件でない限り ISO 8601 を使わない。
-- floorPlan を付ける場合、部屋どうしを重ねない、width/height の枠からはみ出さない、各辺を8以上にする。evidences と revelations の sources に type: "location" を書くときは、id を floorPlan の部屋 id と完全に一致させる。
-- reveal.condition と revelations の revealCondition には改行を入れない。1件1行で機械に読ませるため。
-- personality / statement / detail / claim などの文中に "#" で始まる行を書かない。プロンプトの見出しと衝突する。
-- solution.secretKeywords には、人物名や物品名を単体で入れない（「早坂美月」「トリカブト」など）。それらは正当な聞き込みで普通に出てくる語で、入れると会話が遮断される。入れるのは「犯人は◯◯」「◯◯が毒を入れ」のような、真相を断定する言い回しだけ。synopsis と briefing に含まれる文字列を入れてはいけない。
-- revelations の requires は循環させない。前提を辿って必ず「前提なし」に行き着くこと。
-
-# 質のこと
-
-- 証言どうしが必ずどこかで食い違うように配る。矛盾が一つも生まれない配り方は失敗。
-- 真相に関係しないミスリードを一つ入れてよい。ただしそれ自体で完結させ、犯人には繋げない。
-- 文章はすべて日本語で書く。ID だけは英小文字とハイフンにする。`
+  つまり、あの文書を編集すると生成の挙動が変わる。
+*/
+const SYSTEM_PROMPT = await Bun.file(
+  new URL('../docs/scenario-authoring.md', import.meta.url),
+).text()
 
 const premise = process.argv[2]
 
