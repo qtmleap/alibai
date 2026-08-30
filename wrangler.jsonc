@@ -25,7 +25,7 @@
     {
       "binding": "DB",
       "database_name": "alibai",
-      "database_id": "REPLACE_WITH_D1_DATABASE_ID",
+      "database_id": "65055857-1d3c-45c9-ae44-fabcb3e8c74a",
       "migrations_dir": "db/migrations"
     }
   ],
@@ -35,7 +35,7 @@
   "kv_namespaces": [
     {
       "binding": "SCENARIO_CACHE",
-      "id": "REPLACE_WITH_KV_NAMESPACE_ID"
+      "id": "3d3c7ee7c04b4d729b8ee307eb358e3f"
     }
   ],
 
