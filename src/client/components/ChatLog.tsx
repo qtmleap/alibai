@@ -1,6 +1,5 @@
-import { CharacterAvatar } from '@/client/components/CharacterAvatar'
+import { edgeOf, inkOf } from '@/client/components/CharacterAvatar'
 import type { ChatTurn } from '@/client/hooks/useInterrogation'
-import { formatClock } from '@/client/lib/format'
 
 type Props = {
   turns: ChatTurn[]
@@ -11,28 +10,72 @@ type Props = {
 }
 
 /**
- * 会話の見た目。LINE や Discord のトークルームに寄せてある。
+ * 会話の見た目。
  *
- * NPCの発言は左でアイコン付き、探偵の質問は右でアイコン無し。時刻は吹き出しの
- * 外側の下寄せに小さく置く。中に入れると本文と競って読みづらくなる。
+ * 吹き出しもアイコンも置かない。ひとりとのやり取りしか載らない画面なので、
+ * 誰が喋ったかは名前と、塊の左に立つ縦罫の色だけで足りる。
  *
- * プレイヤーが投げた話題は発言ではないので、吹き出しではなく区切りの罫線にする。
- * 1つの話題から探偵の質問が何度か続くので、どこで話題が変わったかが要る。
+ * 発言は交互とは限らない。ひとりが続けて喋るあいだは名前を一度しか出さず、
+ * 縦罫だけが最後まで伸びる——どこまでが一人の言葉かを、線が示す。
  *
- * 同じ話者が続くときはアイコンを繰り返さない。1往復ずつ交互に並ぶ会話では
- * ほとんど効かないが、相手が続けて話した場合に列が揃う。
+ * 時刻は出さない。等幅で書かれた時刻は「盤面の時刻」だと決めたので、
+ * 発言した現実の時刻をそこへ混ぜると、規則がその場で壊れる。
+ *
+ * プレイヤーが投げた話題は発言ではないので、塊にはせず区切りの罫線にする。
  */
+
+type Line = { id: string; text: string }
+
+type Item =
+  | { kind: 'topic'; id: string; text: string }
+  | { kind: 'block'; id: string; role: 'user' | 'assistant'; lines: Line[] }
+
+/**
+ * 続けて喋った分をひと塊にまとめる。
+ *
+ * 表示のための純関数なので、ここに通信も状態も持たせない。
+ */
+export const groupTurns = (turns: ChatTurn[]): Item[] => {
+  const items: Item[] = []
+
+  for (const turn of turns) {
+    if (turn.role === 'topic') {
+      items.push({ kind: 'topic', id: turn.id, text: turn.text })
+      continue
+    }
+
+    // 返答待ちのあいだ積まれている空の行は、中身が届くまで置かない。
+    if (turn.role === 'assistant' && turn.text.length === 0) {
+      continue
+    }
+
+    const last = items[items.length - 1]
+
+    if (last !== undefined && last.kind === 'block' && last.role === turn.role) {
+      last.lines.push({ id: turn.id, text: turn.text })
+      continue
+    }
+
+    items.push({
+      kind: 'block',
+      id: turn.id,
+      role: turn.role,
+      lines: [{ id: turn.id, text: turn.text }],
+    })
+  }
+
+  return items
+}
+
 export const ChatLog = ({ turns, speakerName, speakerIndex, awaiting }: Props) => {
   /*
    * 点を出すのは「送ったが、まだ一文字も返ってきていない」あいだだけ。
    *
    * 返答中ずっと出すと、本文が流れているのに下で点が跳ね続けることになる。
-   * 送信の直後に置かれる空の吹き出しが、そのまま待ち状態の目印になる。
+   * 話題を投げた直後は探偵が質問を組み立てる無音の区間があり、1つの話題で
+   * 一番長く待たされるのがそこなので、そちらにも出す。
    */
   const last = turns[turns.length - 1]
-  // 話題を投げた直後は、探偵が質問を組み立てているあいだ何も無い時間ができる。
-  // そこにも点を出す。1つの話題で一番長く待たされるのがこの区間で、
-  // 空のまま置くと送信できなかったように見える。
   const showTyping =
     awaiting &&
     last !== undefined &&
@@ -40,81 +83,58 @@ export const ChatLog = ({ turns, speakerName, speakerIndex, awaiting }: Props) =
 
   return (
     <>
-      {turns.map((turn, index) => {
-        if (turn.role === 'topic') {
+      {groupTurns(turns).map((item) => {
+        if (item.kind === 'topic') {
           return (
-            // 話題はプレイヤーが探偵へ渡した指示で、会話の発言ではない。
-            // 吹き出しにすると誰かの台詞に見えるので、区切りの罫線として置く。
-            <div key={turn.id} className="flex items-center gap-2 pt-2 text-[11px] text-slate-500">
-              <span aria-hidden="true" className="h-px flex-1 bg-slate-800" />
-              <span className="max-w-[70%] text-center break-words">話題: {turn.text}</span>
-              <span aria-hidden="true" className="h-px flex-1 bg-slate-800" />
+            <div key={item.id} className="flex items-center gap-2 pt-2 text-[11px] text-nezumi-dim">
+              <span aria-hidden="true" className="h-px flex-1 bg-keisen" />
+              <span className="max-w-[70%] break-words text-center">話題: {item.text}</span>
+              <span aria-hidden="true" className="h-px flex-1 bg-keisen" />
             </div>
           )
         }
 
-        const isUser = turn.role === 'user'
-        const previous = turns[index - 1]
-        const sameSpeakerAsPrevious = previous !== undefined && previous.role === turn.role
-        // 返答待ちの間は空の吹き出しが積まれている。中身が届くまでは出さない。
-        const isPlaceholder = !isUser && turn.text.length === 0
-
-        if (isPlaceholder) {
-          return null
-        }
+        const mine = item.role === 'user'
 
         return (
           <div
-            key={turn.id}
-            className={isUser ? 'flex items-end justify-end gap-1.5' : 'flex items-end gap-2'}
+            key={item.id}
+            className={`flex flex-col gap-[7px] border-l pl-2.5 ${
+              mine ? 'border-keisen' : edgeOf(speakerIndex)
+            }`}
           >
-            {!isUser &&
-              (sameSpeakerAsPrevious ? (
-                // 列を揃えるための場所取り。アイコンは繰り返さない。
-                <span aria-hidden="true" className="size-7 shrink-0" />
-              ) : (
-                <CharacterAvatar name={speakerName} index={speakerIndex} size="sm" />
-              ))}
-
-            {isUser && (
-              <time className="shrink-0 pb-0.5 text-[10px] text-slate-600 tabular-nums">
-                {formatClock(turn.askedAt)}
-              </time>
-            )}
-
             <span
-              className={
-                isUser
-                  ? 'max-w-[78%] rounded-2xl rounded-br-sm bg-indigo-600 px-3 py-2 text-left text-sm break-words whitespace-pre-wrap text-white'
-                  : 'max-w-[72%] rounded-2xl rounded-bl-sm bg-slate-800 px-3 py-2 text-left text-sm break-words whitespace-pre-wrap text-slate-100'
-              }
+              className={`text-[10px] tracking-[0.1em] ${
+                mine ? 'text-nezumi-dim' : inkOf(speakerIndex)
+              }`}
             >
-              {turn.text}
+              {mine ? '探偵' : speakerName}
             </span>
 
-            {!isUser && (
-              <time className="shrink-0 pb-0.5 text-[10px] text-slate-600 tabular-nums">
-                {formatClock(turn.askedAt)}
-              </time>
-            )}
+            {item.lines.map((line) => (
+              <p
+                key={line.id}
+                className={`whitespace-pre-wrap break-words text-[12.5px] leading-[1.95] ${
+                  mine ? 'text-nezumi' : 'text-kinari'
+                }`}
+              >
+                {line.text}
+              </p>
+            ))}
           </div>
         )
       })}
 
       {showTyping && (
-        <div className="flex items-end gap-2">
-          <CharacterAvatar name={speakerName} index={speakerIndex} size="sm" />
+        <div className={`flex flex-col gap-[7px] border-l pl-2.5 ${edgeOf(speakerIndex)}`}>
+          <span className={`text-[10px] tracking-[0.1em] ${inkOf(speakerIndex)}`}>
+            {speakerName}
+          </span>
           {/* role="status" は暗黙に aria-live="polite" なので、待ち状態が読み上げにも伝わる */}
-          <span
-            role="status"
-            aria-label="返答を待っています"
-            className="rounded-2xl rounded-bl-sm bg-slate-800 px-4 py-3"
-          >
-            <span className="flex gap-1">
-              <span className="size-1.5 animate-bounce rounded-full bg-slate-500 [animation-delay:0ms]" />
-              <span className="size-1.5 animate-bounce rounded-full bg-slate-500 [animation-delay:150ms]" />
-              <span className="size-1.5 animate-bounce rounded-full bg-slate-500 [animation-delay:300ms]" />
-            </span>
+          <span role="status" aria-label="返答を待っています" className="flex gap-1 py-1">
+            <span className="size-1.5 animate-bounce rounded-full bg-nezumi-dim [animation-delay:0ms]" />
+            <span className="size-1.5 animate-bounce rounded-full bg-nezumi-dim [animation-delay:150ms]" />
+            <span className="size-1.5 animate-bounce rounded-full bg-nezumi-dim [animation-delay:300ms]" />
           </span>
         </div>
       )}

@@ -10,10 +10,10 @@ const badgeVariants = cva(
     variants: {
       variant: {
         /** 見つけたもの。増えていくのが分かるよう、この色だけ画面から浮かせる。 */
-        default: 'bg-emerald-900 text-emerald-200',
+        default: 'bg-byakuroku/15 text-byakuroku',
         /** 数や残量のような、添えるだけの情報。 */
-        muted: 'text-amber-400/90 tabular-nums',
-        outline: 'border border-slate-700 text-slate-400',
+        muted: 'text-nezumi tabular-nums',
+        outline: 'border border-keisen text-nezumi',
       },
     },
     defaultVariants: {

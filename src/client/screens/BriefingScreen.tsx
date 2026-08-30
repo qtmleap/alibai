@@ -48,14 +48,16 @@ export const BriefingScreen = ({ scenario, onRead }: Props) => {
   }
 
   return (
-    <div className="screen-enter mx-auto flex min-h-dvh max-w-md flex-col gap-5 bg-slate-950 px-5 py-6 text-slate-100">
+    <div className="screen-enter mx-auto flex min-h-dvh max-w-md flex-col gap-5 bg-sumi px-5 py-6 text-kinari">
       {/*
         演出の邪魔をしないよう、見出しと切り替えは隅に小さく置く。
         z を上げるのは、読み上げの当たり判定が画面いっぱいに敷かれているため。
         ここが下に潜ると、見せ方の切り替えも打鍵音の入切も押せなくなる。
       */}
       <header className="relative z-10 flex items-baseline justify-between">
-        <h1 className="text-sm tracking-widest text-slate-500">{scenario.title}</h1>
+        <h1 className="font-mono text-[9.5px] text-nezumi-dim tracking-[0.24em]">
+          {scenario.title}
+        </h1>
 
         {/*
           h-auto を足すのは、見出しと同じ行に収めるため。ボタンの既定の高さが入ると
@@ -68,8 +70,8 @@ export const BriefingScreen = ({ scenario, onRead }: Props) => {
             onClick={() => switchMode('typewriter')}
             className={
               mode === 'typewriter'
-                ? 'h-auto px-0 text-slate-300'
-                : 'h-auto px-0 text-slate-600 no-underline'
+                ? 'h-auto px-0 text-nezumi'
+                : 'h-auto px-0 text-nezumi-dim no-underline'
             }
           >
             読み上げ
@@ -80,8 +82,8 @@ export const BriefingScreen = ({ scenario, onRead }: Props) => {
             onClick={() => switchMode('crawl')}
             className={
               mode === 'crawl'
-                ? 'h-auto px-0 text-slate-300'
-                : 'h-auto px-0 text-slate-600 no-underline'
+                ? 'h-auto px-0 text-nezumi'
+                : 'h-auto px-0 text-nezumi-dim no-underline'
             }
           >
             流し読み
@@ -94,9 +96,7 @@ export const BriefingScreen = ({ scenario, onRead }: Props) => {
               size="sm"
               onClick={toggleSound}
               aria-label={sound === 'on' ? '打鍵音を消す' : '打鍵音を鳴らす'}
-              className={
-                sound === 'on' ? 'h-auto px-0 text-slate-300' : 'h-auto px-0 text-slate-600'
-              }
+              className={sound === 'on' ? 'h-auto px-0 text-nezumi' : 'h-auto px-0 text-nezumi-dim'}
             >
               {sound === 'on' ? '♪' : '♪̸'}
             </Button>
@@ -104,22 +104,32 @@ export const BriefingScreen = ({ scenario, onRead }: Props) => {
         </div>
       </header>
 
-      {/* key にモードを入れて、切り替えたら演出コンポーネントを作り直す */}
-      {mode === 'typewriter' ? (
-        <TypewriterBriefing
-          key="typewriter"
-          paragraphs={paragraphs}
-          soundOn={sound === 'on'}
-          onFinished={handleFinished}
-        />
-      ) : (
-        <CrawlBriefing
-          key="crawl"
-          briefing={scenario.briefing}
-          paragraphs={paragraphs}
-          onFinished={handleFinished}
-        />
-      )}
+      {/*
+        語りの組みはここで一度だけ決める。読み上げと流し読みで字面が変われば、
+        同じ記録が別の作品に見えてしまう。書体も字送りも継承するので、
+        子が持つのは色と余白だけでよい。
+
+        本格ミステリの文庫はゴシックで組まない。地の文だけを明朝にして、
+        会話とUIのゴシックから切り離す。
+      */}
+      <div className="flex flex-col font-mincho text-[14.5px] leading-[2.5] tracking-[0.04em]">
+        {/* key にモードを入れて、切り替えたら演出コンポーネントを作り直す */}
+        {mode === 'typewriter' ? (
+          <TypewriterBriefing
+            key="typewriter"
+            paragraphs={paragraphs}
+            soundOn={sound === 'on'}
+            onFinished={handleFinished}
+          />
+        ) : (
+          <CrawlBriefing
+            key="crawl"
+            briefing={scenario.briefing}
+            paragraphs={paragraphs}
+            onFinished={handleFinished}
+          />
+        )}
+      </div>
 
       {readThrough && (
         // z を上げるのは、読み上げの当たり判定が画面いっぱいに敷かれているため。
@@ -138,7 +148,7 @@ export const BriefingScreen = ({ scenario, onRead }: Props) => {
           variant="ghost"
           size="sm"
           onClick={onRead}
-          className="fixed right-5 bottom-5 z-20 h-auto px-0 tracking-widest text-slate-500"
+          className="fixed right-5 bottom-5 z-20 h-auto px-0 tracking-widest text-nezumi-dim"
         >
           スキップ ▸
         </Button>

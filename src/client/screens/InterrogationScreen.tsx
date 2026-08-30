@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { CaseNoteButton } from '@/client/components/CaseNote'
-import { CharacterAvatar } from '@/client/components/CharacterAvatar'
+import { CharacterAvatar, inkOf } from '@/client/components/CharacterAvatar'
 import { ChatLog } from '@/client/components/ChatLog'
 import { FloorPlanMap } from '@/client/components/FloorPlan'
 import { TurnAnnounce } from '@/client/components/TurnAnnounce'
@@ -141,7 +141,7 @@ export const InterrogationScreen = ({
       : undefined
 
   return (
-    <div className="screen-enter mx-auto flex h-dvh max-w-md bg-slate-950 text-slate-100">
+    <div className="screen-enter mx-auto flex h-dvh max-w-md bg-sumi text-kinari">
       {/*
         会話相手は画面の左端に縦へ並べる。Discord のサーバー列と同じ形。
         横に並べると、登場人物が増えたぶんだけ右へ押し出されて隠れてしまう。
@@ -149,7 +149,7 @@ export const InterrogationScreen = ({
       */}
       <nav
         aria-label="話す相手"
-        className="flex w-16 shrink-0 flex-col items-center border-r border-slate-800 py-3"
+        className="flex w-16 shrink-0 flex-col items-center border-r border-keisen py-3"
       >
         {/*
           相手が増えたらここだけが伸びてスクロールする。
@@ -179,14 +179,14 @@ export const InterrogationScreen = ({
                 <CharacterAvatar name={character.name} index={index} active={isActive} />
                 {/* まだ一度も聞いていない相手の目印。ターンが限られているので選ぶ手がかりになる */}
                 {asked === 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-amber-400 ring-2 ring-slate-950" />
+                  <span className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-nezumi ring-2 ring-sumi" />
                 )}
                 {/*
                   easy でだけ出す「この人からあと何件」。0の相手にも出す——
                   出さないと「もう聞くことがない」と「最初から何も無い」の区別が付かない。
                 */}
                 {remainingFrom(character.id) !== undefined && (
-                  <span className="absolute -right-1 -bottom-1 flex min-w-4 items-center justify-center rounded-full bg-slate-800 px-1 text-[10px] text-amber-300 ring-2 ring-slate-950 tabular-nums">
+                  <span className="absolute -right-1 -bottom-1 flex min-w-4 items-center justify-center rounded-full bg-sumi-3 px-1 text-[10px] text-nezumi ring-2 ring-sumi tabular-nums">
                     {remainingFrom(character.id)}
                   </span>
                 )}
@@ -204,14 +204,14 @@ export const InterrogationScreen = ({
           指がよく通る場所には置かない。ターンを使い切ったときだけ、
           入力欄のあった場所に大きく出す。
         */}
-        <div className="mt-3 flex flex-col items-center gap-3 border-t border-slate-800 pt-3">
+        <div className="mt-3 flex flex-col items-center gap-3 border-t border-keisen pt-3">
           {/* 戻る口はここ。片手で持ったとき親指が自然に届くのは画面の下側。 */}
           <Button
             variant="icon"
             size="icon"
             onClick={onLeave}
             aria-label="事件の一覧へ戻る"
-            className="border-slate-800 text-slate-500"
+            className="border-keisen text-nezumi-dim"
           >
             ←
           </Button>
@@ -226,33 +226,31 @@ export const InterrogationScreen = ({
               図
             </Button>
           )}
-          <Button
-            variant="icon"
-            size="icon"
-            onClick={onAccuse}
-            aria-label="犯人を推理する"
-            className="border-amber-700 text-amber-500 hover:border-amber-500 hover:text-amber-300"
-          >
+          <Button variant="icon" size="icon" onClick={onAccuse} aria-label="犯人を推理する">
             推
           </Button>
         </div>
       </nav>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-10 border-b border-slate-800 bg-slate-950 p-3">
-          <div className="flex items-center justify-between gap-2 text-xs text-slate-400">
-            <span className="truncate">{scenario.title}</span>
-            <span className="shrink-0 tabular-nums">
-              {turn === undefined ? '' : `ターン ${turn.turn}/${turn.maxTurns}　`}
-              {displayedElapsed === undefined ? '' : displayedElapsed}
+        <header className="sticky top-0 z-10 border-b border-keisen bg-sumi p-3">
+          <div className="flex items-center justify-between gap-2 text-[10.5px] text-nezumi-dim">
+            <span className="truncate font-mincho">{scenario.title}</span>
+            {/*
+              ターン数は回数なので地の書体のまま。等幅にしてよいのは経過時間のほうで、
+              「等幅ならそれは時計が刻んだもの」という規則をここでも守る。
+            */}
+            <span className="shrink-0">
+              {turn === undefined ? '' : `${turn.turn}/${turn.maxTurns}　`}
+              {displayedElapsed === undefined ? '' : <span className="at">{displayedElapsed}</span>}
             </span>
           </div>
 
           <div className="mt-1 min-w-0">
-            <span className="block text-sm font-semibold">
+            <span className={`block text-sm ${inkOf(activeCharacterIndex)}`}>
               {activeCharacter === undefined ? '' : activeCharacter.name}
             </span>
-            <span className="block truncate text-[11px] text-slate-500">
+            <span className="block truncate text-[10.5px] text-nezumi-dim">
               {activeCharacter === undefined ? '' : activeCharacter.personality}
             </span>
           </div>
@@ -264,7 +262,7 @@ export const InterrogationScreen = ({
         )}
 
         {(discoveries.length > 0 || hintSummary !== undefined) && (
-          <div className="flex flex-wrap items-center gap-1 border-b border-slate-800 bg-slate-900 p-2">
+          <div className="flex flex-wrap items-center gap-1 border-b border-keisen bg-sumi-2 p-2">
             {hintSummary !== undefined && (
               <Badge variant="muted" className="mr-1">
                 {hintSummary}
@@ -277,23 +275,23 @@ export const InterrogationScreen = ({
         )}
 
         {revelations.length > 0 && (
-          <section aria-label="捜査メモ" className="border-b border-slate-800 bg-slate-900/70 p-2">
-            <div className="mb-1 text-[10px] font-semibold tracking-[0.16em] text-amber-500">
+          <section aria-label="捜査メモ" className="border-b border-keisen bg-sumi-2/70 p-2">
+            <div className="mb-1 text-[10px] font-semibold tracking-[0.16em] text-asagi-fg">
               捜査メモ
             </div>
             <div className="flex gap-2 overflow-x-auto pb-1">
               {revelations.map((revelation) => (
                 <article
                   key={revelation.id}
-                  className="w-56 shrink-0 rounded-lg border border-amber-900/70 bg-slate-950 px-3 py-2"
+                  className="w-56 shrink-0 rounded-lg border border-keisen bg-sumi px-3 py-2"
                 >
                   <div className="mb-1 flex items-start justify-between gap-2">
-                    <h3 className="text-xs font-semibold text-amber-200">{revelation.title}</h3>
-                    <span className="shrink-0 text-[9px] uppercase tracking-wide text-slate-500">
+                    <h3 className="text-xs font-semibold text-asagi-fg">{revelation.title}</h3>
+                    <span className="shrink-0 text-[9px] uppercase tracking-wide text-nezumi-dim">
                       {revelation.category}
                     </span>
                   </div>
-                  <p className="text-[11px] leading-relaxed text-slate-300">{revelation.text}</p>
+                  <p className="text-[11px] leading-relaxed text-nezumi">{revelation.text}</p>
                 </article>
               ))}
             </div>
@@ -302,7 +300,7 @@ export const InterrogationScreen = ({
 
         <main className="flex flex-1 flex-col gap-3 overflow-y-auto p-3">
           {turnsToShow.length === 0 && (
-            <p className="text-center text-sm leading-relaxed text-slate-500">
+            <p className="text-center text-sm leading-relaxed text-nezumi-dim">
               話題を投げると、探偵が代わりに聞き込みます。
             </p>
           )}
@@ -317,9 +315,9 @@ export const InterrogationScreen = ({
           )}
         </main>
 
-        {error !== undefined && <p className="px-3 text-sm text-red-400">{error}</p>}
+        {error !== undefined && <p className="px-3 text-sm text-nezumi">{error}</p>}
 
-        <footer className="sticky bottom-0 border-t border-slate-800 bg-slate-950 p-3">
+        <footer className="sticky bottom-0 border-t border-keisen bg-sumi p-3">
           {!exhausted && suggestionsToShow.length > 0 && (
             <div className="mb-2 flex flex-wrap gap-1">
               {suggestionsToShow.map((suggestion) => (
@@ -328,7 +326,7 @@ export const InterrogationScreen = ({
                   variant="outline"
                   onClick={() => setInputText(suggestion)}
                   // 候補は2行になることがある。高さを固定すると折り返しで文字が切れる。
-                  className="h-auto whitespace-normal border-slate-700 px-2.5 py-1.5 text-left text-xs leading-relaxed text-slate-300"
+                  className="h-auto whitespace-normal border-keisen px-2.5 py-1.5 text-left text-xs leading-relaxed text-nezumi"
                 >
                   {suggestion}
                 </Button>
@@ -340,15 +338,11 @@ export const InterrogationScreen = ({
             // 聞ける回数を使い切ったら入力欄ごと畳む。押せないボタンを残すより、
             // 次にやることが1つだけ見えているほうが迷わない。
             <div className="flex flex-col gap-2 py-1">
-              <p className="text-center text-sm text-amber-400">
+              <p className="text-center text-nezumi text-sm">
                 聞き込みの時間は終わりました。犯人を指し示してください。
               </p>
               {/* 使い切ったここでだけ大きく出す。通常時に置くと送信と間違えて押される */}
-              <Button
-                size="block"
-                onClick={onAccuse}
-                className="border-amber-600 text-amber-400 hover:border-amber-400"
-              >
+              <Button size="block" variant="destructive" onClick={onAccuse}>
                 犯人を推理する
               </Button>
             </div>

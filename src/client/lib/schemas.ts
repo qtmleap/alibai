@@ -113,6 +113,25 @@ export const judgementSchema = z.object({
   turn: turnStateSchema,
 })
 
+/**
+ * 真相の時系列1行。
+ *
+ * 保存されているのは `$type` の無い jsonb で、サーバ側の検証がひとつも無い
+ * （`db/schema.ts` の scenario_truths.timeline）。読めるかどうかを判断できるのは
+ * 受け取ったこちら側だけなので、ここが実質の関所になる。
+ *
+ * 執筆時の形は `{id, at, participants, facts, description}` だが、
+ * `db/compile-scenario.ts` が保存前に `{time, event}` へ畳んでいる。
+ * 届くのはそちらなので、こちらの名前で受ける。
+ */
+export const truthTimelineEntrySchema = z.object({
+  /** "HH:mm" か ISO 8601。作中の時計なので、実時刻へ変換してはいけない。 */
+  time: z.string().nonempty(),
+  event: z.string().nonempty(),
+})
+
+export type TruthTimelineEntry = z.infer<typeof truthTimelineEntrySchema>
+
 export const accuseResultSchema = z.object({
   correct: z.boolean(),
   result: z.object({

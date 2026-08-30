@@ -227,30 +227,43 @@ export const TypewriterBriefing = ({ paragraphs, soundOn, onFinished }: Props) =
         className="fixed inset-0 z-0 h-auto cursor-default"
       />
 
-      <div
-        ref={windowRef}
-        className="pointer-events-none relative z-10 flex h-[46dvh] w-full flex-col gap-6 overflow-hidden px-1"
-      >
-        {/*
-          読み返し用の当たり判定は段落の本文そのもの。Button は中身を一行に詰めて
-          中央へ寄せる組み方をするので、ここは素のボタンのまま置く。
-        */}
-        {done.map((paragraph, index) => (
-          <button
-            // biome-ignore lint/suspicious/noArrayIndexKey: 本文から作る静的な配列で、末尾に足す以外の並び替え・削除が無い
-            key={index}
-            type="button"
-            onClick={(event) => scrollToParagraph(event.currentTarget)}
-            className="pointer-events-auto text-left text-sm leading-loose whitespace-pre-wrap text-slate-600"
-          >
-            {paragraph}
-          </button>
-        ))}
+      <div className="relative z-10">
+        {/* relative を外さない。段落の offsetTop はこの窓を基準に測っており
+            （stickToTail / scrollToParagraph）、基準が親へ移ると送り先がずれる。 */}
+        <div
+          ref={windowRef}
+          className="pointer-events-none relative flex h-[46dvh] w-full flex-col gap-5 overflow-hidden px-1"
+        >
+          {/*
+            読み返し用の当たり判定は段落の本文そのもの。Button は中身を一行に詰めて
+            中央へ寄せる組み方をするので、ここは素のボタンのまま置く。
+          */}
+          {done.map((paragraph, index) => (
+            <button
+              // biome-ignore lint/suspicious/noArrayIndexKey: 本文から作る静的な配列で、末尾に足す以外の並び替え・削除が無い
+              key={index}
+              type="button"
+              onClick={(event) => scrollToParagraph(event.currentTarget)}
+              className="pointer-events-auto whitespace-pre-wrap text-left text-nezumi-dim"
+            >
+              {paragraph}
+            </button>
+          ))}
 
-        <p ref={tailRef} className="text-base leading-loose whitespace-pre-wrap text-slate-100">
-          {typing}
-          {isTyping && <span className="ml-0.5 inline-block animate-pulse text-slate-400">▌</span>}
-        </p>
+          <p ref={tailRef} className="whitespace-pre-wrap text-kinari">
+            {typing}
+            {isTyping && <span className="ml-0.5 inline-block animate-pulse text-nezumi">▌</span>}
+          </p>
+        </div>
+
+        {/*
+          上へ送られた段落を地に溶かす。窓の縁で字が水平に切れると、そこが紙の端に見えて
+          「背景に文字が浮いている」状態が壊れる。
+
+          下端には掛けない。書かれている行は窓の下端に貼り付いているので（stickToTail）、
+          そこを霞ませると、いま読んでいる場所がいちばん読めなくなる。
+        */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-[90px] bg-gradient-to-b from-sumi to-transparent" />
       </div>
 
       {/*
@@ -267,8 +280,8 @@ export const TypewriterBriefing = ({ paragraphs, soundOn, onFinished }: Props) =
         そのときだけは戻り口を出しておかないと、帰り道が無くなる。
       */}
       {(!readThrough || reviewing) && (
-        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-10 flex flex-col items-center gap-1 pb-5 text-xs text-slate-600">
-          {waitingForNext && <span className="animate-bounce text-slate-500">▼</span>}
+        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-10 flex flex-col items-center gap-1 pb-5 text-xs text-nezumi-dim">
+          {waitingForNext && <span className="animate-bounce text-nezumi-dim">▼</span>}
 
           {reviewing ? (
             /*
@@ -280,7 +293,7 @@ export const TypewriterBriefing = ({ paragraphs, soundOn, onFinished }: Props) =
               variant="outline"
               size="sm"
               onClick={returnToTail}
-              className="pointer-events-auto border-slate-700 px-3 text-slate-300"
+              className="pointer-events-auto border-keisen px-3 text-nezumi"
             >
               続きへ戻る
             </Button>

@@ -5,13 +5,19 @@ import type * as React from 'react'
 import { cn } from '@/client/lib/utils'
 
 const toggleVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm outline-none transition-colors focus-visible:ring-1 focus-visible:ring-slate-400 disabled:pointer-events-none disabled:opacity-40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm outline-none transition-colors focus-visible:ring-1 focus-visible:ring-nezumi disabled:pointer-events-none disabled:opacity-40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
         default: 'bg-transparent',
         outline:
-          'border border-slate-800 bg-transparent text-slate-500 data-[state=on]:border-slate-500 data-[state=on]:text-slate-100',
+          'border border-sumi-3 bg-transparent text-nezumi-dim data-[state=on]:border-nezumi-dim data-[state=on]:text-kinari',
+        /**
+         * 横に並べて等分する目盛り。選んだものだけ罫線と字を起こし、塗り潰さない。
+         * 段階が順に並ぶもの（難易度）はこちら。囲うと選択肢が箱になる。
+         */
+        segment:
+          'flex-1 border-keisen border-b bg-transparent text-nezumi-dim data-[state=on]:border-kinari data-[state=on]:text-kinari',
       },
       size: {
         default: 'h-9 min-w-9 px-2',

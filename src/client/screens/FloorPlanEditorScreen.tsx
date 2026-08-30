@@ -21,7 +21,7 @@ const startingPlan = (): FloorPlan => {
   return parsed === undefined ? BLANK : parsed
 }
 
-const LEGEND = 'text-[10px] tracking-[0.3em] text-slate-600'
+const LEGEND = 'text-[10px] tracking-[0.3em] text-nezumi-dim'
 
 /**
  * 見取り図を作るための道具。
@@ -60,17 +60,17 @@ export const FloorPlanEditorScreen = () => {
   }
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-5xl flex-col gap-6 bg-slate-950 px-5 py-6 text-slate-100">
-      <header className="flex items-baseline justify-between border-b border-slate-800 pb-3">
+    <div className="mx-auto flex min-h-dvh max-w-5xl flex-col gap-6 bg-sumi px-5 py-6 text-kinari">
+      <header className="flex items-baseline justify-between border-b border-keisen pb-3">
         <h1 className="text-xl font-bold">見取り図エディタ</h1>
-        <p className="text-xs text-slate-600">制作用。ここでの編集は保存されません</p>
+        <p className="text-xs text-nezumi-dim">制作用。ここでの編集は保存されません</p>
       </header>
 
       <div className="grid gap-6 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="flex flex-col gap-3">
           <FloorPlanEditorCanvas state={state} issues={issues} dispatch={dispatch} />
 
-          <div className="flex items-center justify-between text-xs text-slate-500">
+          <div className="flex items-center justify-between text-xs text-nezumi-dim">
             <span>部屋 {state.plan.rooms.length}</span>
             <Button
               variant="link"
@@ -86,17 +86,17 @@ export const FloorPlanEditorScreen = () => {
         <FloorPlanInspector state={state} dispatch={dispatch} />
       </div>
 
-      <section className="flex flex-col gap-2 border-t border-slate-800 pt-4">
+      <section className="flex flex-col gap-2 border-t border-keisen pt-4">
         <h2 className={LEGEND}>図面の検査</h2>
 
         {issues.length === 0 ? (
-          <p className="text-sm text-slate-400">問題はありません。</p>
+          <p className="text-sm text-nezumi">問題はありません。</p>
         ) : (
           <ul className="flex flex-col">
             {issues.map((issue) => (
               <li
                 key={`${issue.kind}-${issue.roomIds.join('-')}-${issue.message}`}
-                className="border-b border-slate-800 py-2 text-sm text-red-400"
+                className="border-b border-keisen py-2 text-sm text-nezumi"
               >
                 {issue.message}
               </li>
@@ -105,13 +105,13 @@ export const FloorPlanEditorScreen = () => {
         )}
       </section>
 
-      <section className="flex flex-col gap-2 border-t border-slate-800 pt-4">
+      <section className="flex flex-col gap-2 border-t border-keisen pt-4">
         <div className="flex items-center justify-between">
           <h2 className={LEGEND}>書き出し</h2>
           <Button
             variant="link"
             size="sm"
-            className="px-0 text-slate-400"
+            className="px-0 text-nezumi"
             onClick={() => {
               navigator.clipboard
                 .writeText(json)
@@ -127,20 +127,20 @@ export const FloorPlanEditorScreen = () => {
           readOnly
           value={json}
           rows={10}
-          className="field-sizing-fixed font-mono text-xs text-slate-300"
+          className="field-sizing-fixed font-mono text-xs text-nezumi"
         />
       </section>
 
-      <section className="flex flex-col gap-2 border-t border-slate-800 pt-4 pb-10">
+      <section className="flex flex-col gap-2 border-t border-keisen pt-4 pb-10">
         <h2 className={LEGEND}>読み込み</h2>
         <Textarea
           value={pasted}
           rows={4}
           placeholder="図面の JSON を貼り付けて読み込みます"
-          className="field-sizing-fixed font-mono text-xs text-slate-300"
+          className="field-sizing-fixed font-mono text-xs text-nezumi"
           onChange={(event) => setPasted(event.target.value)}
         />
-        {pasteError !== undefined && <p className="text-sm text-red-400">{pasteError}</p>}
+        {pasteError !== undefined && <p className="text-sm text-nezumi">{pasteError}</p>}
         <Button size="block" disabled={pasted === ''} onClick={load}>
           この図面を読み込む
         </Button>

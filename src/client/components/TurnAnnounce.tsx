@@ -42,8 +42,8 @@ export const TurnAnnounce = ({ turn, maxTurns }: Props) => {
       className="pointer-events-none fixed inset-0 z-30 flex items-center justify-center"
     >
       <div className="turn-announce flex flex-col items-center gap-2">
-        <span className="text-5xl font-bold tracking-widest text-slate-100">{turn}</span>
-        <span className="text-xs tracking-[0.4em] text-slate-400">
+        <span className="text-5xl font-bold tracking-widest text-kinari">{turn}</span>
+        <span className="text-xs tracking-[0.4em] text-nezumi">
           {turn >= maxTurns ? '最終ターン' : `ターン目 / 全${maxTurns}`}
         </span>
       </div>

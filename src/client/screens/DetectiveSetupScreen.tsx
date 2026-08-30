@@ -95,7 +95,7 @@ export const DetectiveSetupScreen = ({ scenario, onDecided, onBack }: Props) => 
     const canSave = draft.name.trim().length > 0
 
     return (
-      <div className="screen-enter mx-auto flex min-h-dvh max-w-md flex-col gap-6 bg-slate-950 px-5 py-6 text-slate-100">
+      <div className="screen-enter mx-auto flex min-h-dvh max-w-md flex-col gap-6 bg-sumi px-5 py-6 text-kinari">
         <header className="pt-2">
           <h1 className="text-xl font-bold">
             {draft.id === undefined ? '探偵をつくる' : '探偵を編集する'}
@@ -105,7 +105,7 @@ export const DetectiveSetupScreen = ({ scenario, onDecided, onBack }: Props) => 
         {/* 入力欄は枠で囲わず下線だけで受ける（Input が持っている）。書く場所が分かれば充分。 */}
         <section className="flex flex-col gap-5">
           <label className="flex flex-col gap-1" htmlFor={nameId}>
-            <span className="text-[10px] tracking-[0.3em] text-slate-600">名前</span>
+            <span className="text-[10px] tracking-[0.3em] text-nezumi-dim">名前</span>
             <Input
               id={nameId}
               type="text"
@@ -122,7 +122,7 @@ export const DetectiveSetupScreen = ({ scenario, onDecided, onBack }: Props) => 
             老人が十代の少女に「お嬢さん」と話しかけるところまで確実に効く。
           */}
           <fieldset className="flex flex-col gap-2">
-            <legend className="text-[10px] tracking-[0.3em] text-slate-600">年ごろ</legend>
+            <legend className="text-[10px] tracking-[0.3em] text-nezumi-dim">年ごろ</legend>
             <ToggleGroup
               type="single"
               variant="outline"
@@ -142,7 +142,7 @@ export const DetectiveSetupScreen = ({ scenario, onDecided, onBack }: Props) => 
               {AGE_GROUPS.map((ageGroup) => (
                 <ToggleGroupItem key={ageGroup} value={ageGroup} className="h-auto px-3 py-2">
                   {AGE_GROUP_LABELS[ageGroup]}
-                  <span className="ml-1 text-[10px] text-slate-600">
+                  <span className="ml-1 text-[10px] text-nezumi-dim">
                     {AGE_GROUP_NOTES[ageGroup]}
                   </span>
                 </ToggleGroupItem>
@@ -151,7 +151,7 @@ export const DetectiveSetupScreen = ({ scenario, onDecided, onBack }: Props) => 
           </fieldset>
 
           <fieldset className="flex flex-col gap-2">
-            <legend className="text-[10px] tracking-[0.3em] text-slate-600">性別</legend>
+            <legend className="text-[10px] tracking-[0.3em] text-nezumi-dim">性別</legend>
             <ToggleGroup
               type="single"
               variant="outline"
@@ -175,7 +175,7 @@ export const DetectiveSetupScreen = ({ scenario, onDecided, onBack }: Props) => 
           </fieldset>
 
           <label className="flex flex-col gap-1" htmlFor={appearanceId}>
-            <span className="text-[10px] tracking-[0.3em] text-slate-600">容姿</span>
+            <span className="text-[10px] tracking-[0.3em] text-nezumi-dim">容姿</span>
             {/* rows で決めた高さのまま置く。書くほどに欄が伸びると、下のボタンが逃げていく。 */}
             <Textarea
               id={appearanceId}
@@ -196,7 +196,7 @@ export const DetectiveSetupScreen = ({ scenario, onDecided, onBack }: Props) => 
         <Button
           variant="link"
           size="sm"
-          className="text-slate-600"
+          className="text-nezumi-dim"
           onClick={() => setDraft(undefined)}
         >
           やめる
@@ -206,10 +206,10 @@ export const DetectiveSetupScreen = ({ scenario, onDecided, onBack }: Props) => 
   }
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 bg-slate-950 px-5 py-6 text-slate-100">
+    <div className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 bg-sumi px-5 py-6 text-kinari">
       <header className="pt-2">
         <h1 className="text-xl font-bold">{scenario.title}</h1>
-        <p className="mt-3 text-sm text-slate-300">
+        <p className="mt-3 text-sm text-nezumi">
           誰として、この事件を調べますか。
           <br />
           選んだ人物像は聞き込みの相手にも伝わり、呼びかけ方や態度が変わります。
@@ -217,7 +217,7 @@ export const DetectiveSetupScreen = ({ scenario, onDecided, onBack }: Props) => 
       </header>
 
       {store.profiles.length === 0 && (
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-nezumi-dim">
           まだ探偵がいません。作るか、名乗らずに始めることもできます。
         </p>
       )}
@@ -226,7 +226,7 @@ export const DetectiveSetupScreen = ({ scenario, onDecided, onBack }: Props) => 
         探偵は箱に入れず行として並べる。選ばれている一人は左の罫と文字の明るさで示す。
         「選択中」の札を貼るより、並びの中で一人だけ明るいほうが早く見つかる。
       */}
-      <ul className="flex flex-col border-t border-slate-800">
+      <ul className="flex flex-col border-t border-keisen">
         {store.profiles.map((profile) => {
           const isActive = profile.id === store.activeId
 
@@ -235,8 +235,8 @@ export const DetectiveSetupScreen = ({ scenario, onDecided, onBack }: Props) => 
               key={profile.id}
               className={
                 isActive
-                  ? 'border-b border-slate-800 border-l-2 border-l-indigo-500 py-3 pl-3'
-                  : 'border-b border-slate-800 py-3 pl-3'
+                  ? 'border-b border-keisen border-l-2 border-l-kinari py-3 pl-3'
+                  : 'border-b border-keisen py-3 pl-3'
               }
             >
               {/*
@@ -249,17 +249,15 @@ export const DetectiveSetupScreen = ({ scenario, onDecided, onBack }: Props) => 
                 className="w-full text-left"
               >
                 <span
-                  className={
-                    isActive ? 'font-semibold text-slate-100' : 'font-semibold text-slate-400'
-                  }
+                  className={isActive ? 'font-semibold text-kinari' : 'font-semibold text-nezumi'}
                 >
                   {profile.name}
                 </span>
-                <span className="mt-1 block text-xs text-slate-500">
+                <span className="mt-1 block text-xs text-nezumi-dim">
                   {describeDetective(profile)}
                 </span>
                 {profile.appearance.length > 0 && (
-                  <span className="mt-1 block text-xs text-slate-600">{profile.appearance}</span>
+                  <span className="mt-1 block text-xs text-nezumi-dim">{profile.appearance}</span>
                 )}
               </button>
 
@@ -276,7 +274,7 @@ export const DetectiveSetupScreen = ({ scenario, onDecided, onBack }: Props) => 
                 <Button
                   variant="link"
                   size="sm"
-                  className="px-0 text-slate-600"
+                  className="px-0 text-nezumi-dim"
                   onClick={() => update(removeDetective(store, profile.id))}
                 >
                   削除
@@ -317,7 +315,7 @@ export const DetectiveSetupScreen = ({ scenario, onDecided, onBack }: Props) => 
       </Button>
 
       {/* 前の画面へ戻るだけの口なので、名乗らずに始めるよりさらに沈める。 */}
-      <Button variant="link" size="sm" className="text-slate-600" onClick={onBack}>
+      <Button variant="link" size="sm" className="text-nezumi-dim" onClick={onBack}>
         シナリオを選び直す
       </Button>
     </div>

@@ -57,43 +57,49 @@ export const ScenarioSelectScreen = ({ scenarios, onSelect }: Props) => {
   }
 
   return (
-    <div className="screen-enter mx-auto flex min-h-dvh max-w-md flex-col bg-slate-950 px-5 text-slate-100">
-      <header className="flex flex-col items-center gap-3 pt-24 pb-16">
-        <h1 className="text-4xl font-bold tracking-[0.4em] text-slate-100">AlibAI</h1>
-        <p className="text-[11px] tracking-[0.3em] text-slate-500">聞き込みで、犯人を指し示す</p>
+    <div className="screen-enter mx-auto flex min-h-dvh max-w-md flex-col bg-sumi px-5 text-kinari">
+      <header className="flex flex-col items-center gap-2.5 pt-24 pb-16">
+        <h1 className="font-bold font-mincho text-4xl tracking-[0.18em]">AlibAI</h1>
+        <p className="text-[11px] text-nezumi-dim tracking-[0.3em]">聞き込みで、犯人を指し示す</p>
       </header>
 
       {scenarios.length === 0 && (
-        <p className="text-center text-xs tracking-widest text-slate-600">
+        <p className="text-center text-nezumi-dim text-xs tracking-widest">
           遊べる事件がまだありません
         </p>
       )}
 
       {scenarios.length > 0 && (
-        <p className="pb-2 text-[10px] tracking-[0.3em] text-slate-600">事件を選ぶ</p>
+        <p className="pb-2 font-mono text-[9.5px] text-nezumi-dim tracking-[0.24em]">
+          {scenarios.length}件
+        </p>
       )}
 
-      <ul className="flex flex-col border-t border-slate-800">
+      {/*
+        種別・題字・簡易情報を縦に積む。題字が全幅を使えるので、多くは一行で収まる。
+        一覧は読み物ではないので、行ごとに行間を締める。
+      */}
+      <ul className="flex flex-col border-keisen border-t">
         {scenarios.map((scenario) => (
-          <li key={scenario.id} className="border-b border-slate-800">
+          <li key={scenario.id} className="border-keisen border-b">
             <button
               type="button"
               onClick={() => setPending(scenario)}
               disabled={loadingId !== undefined}
-              className="w-full py-4 text-left disabled:opacity-40"
+              className="flex w-full flex-col gap-[3px] py-[9px] text-left disabled:opacity-40"
             >
-              <span className="flex items-baseline gap-2">
-                {scenario.category.length > 0 && (
-                  <span className="shrink-0 text-[10px] tracking-widest text-slate-500">
-                    {scenario.category}
-                  </span>
-                )}
-                <span className="text-lg font-semibold">{scenario.title}</span>
+              {scenario.category.length > 0 && (
+                <span className="text-[10px] text-nezumi-dim leading-[1.4] tracking-[0.16em]">
+                  {scenario.category}
+                </span>
+              )}
+              <span className="font-medium font-mincho text-base leading-[1.5] tracking-[0.03em]">
+                {scenario.title}
               </span>
-              <span className="mt-1 block text-xs text-slate-500 tabular-nums">
+              <span className="text-[11px] text-nezumi-dim leading-[1.45]">
                 {loadingId === scenario.id
                   ? '読み込み中…'
-                  : `登場人物 ${scenario.characterCount}人　${difficultyLabel(scenario.difficulty)}　約${scenario.estimatedMinutes}分`}
+                  : `${scenario.characterCount}人　${difficultyLabel(scenario.difficulty)}　約${scenario.estimatedMinutes}分`}
               </span>
             </button>
           </li>
@@ -108,39 +114,33 @@ export const ScenarioSelectScreen = ({ scenarios, onSelect }: Props) => {
         open={pending !== undefined}
         onOpenChange={(open) => setPending(open ? pending : undefined)}
       >
-        <DialogContent className="border-slate-700 bg-slate-900 text-slate-100">
+        <DialogContent>
           <DialogHeader className="text-left">
-            <DialogTitle className="text-sm font-semibold tracking-widest text-slate-200">
-              どの難易度で挑みますか
+            <DialogTitle className="font-mono text-[9.5px] text-nezumi-dim tracking-[0.24em]">
+              手がかりの見え方
             </DialogTitle>
-            <DialogDescription className="text-sm text-slate-300">
+            <DialogDescription className="font-mincho text-base text-kinari">
               {pending === undefined ? '' : pending.title}
             </DialogDescription>
           </DialogHeader>
 
-          <ul className="flex flex-col border-t border-slate-800">
+          <ul className="flex flex-col border-keisen border-t">
             {GAME_MODES.map((option) => (
-              <li key={option} className="border-b border-slate-800">
+              <li key={option} className="border-keisen border-b">
                 <button
                   type="button"
                   onClick={() => setMode(option)}
                   aria-pressed={option === mode}
                   className="w-full py-3 text-left"
                 >
-                  <span
-                    className={
-                      option === mode
-                        ? 'text-sm font-semibold text-slate-100'
-                        : 'text-sm text-slate-500'
-                    }
-                  >
+                  <span className={option === mode ? 'text-sm' : 'text-nezumi-dim text-sm'}>
                     {GAME_MODE_LABELS[option]}
                   </span>
                   <span
                     className={
                       option === mode
-                        ? 'mt-0.5 block text-xs text-slate-400'
-                        : 'mt-0.5 block text-xs text-slate-600'
+                        ? 'mt-0.5 block text-nezumi text-xs'
+                        : 'mt-0.5 block text-nezumi-dim text-xs'
                     }
                   >
                     {GAME_MODE_NOTES[option]}

@@ -29,7 +29,7 @@ function SelectTrigger({
       data-slot="select-trigger"
       data-size={size}
       className={cn(
-        "flex w-full items-center justify-between gap-2 whitespace-nowrap border-slate-700 border-b bg-transparent px-1 text-sm text-slate-100 outline-none transition-colors focus:border-slate-400 disabled:pointer-events-none disabled:opacity-40 data-[placeholder]:text-slate-600 data-[size=default]:h-8 data-[size=sm]:h-7 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-slate-500 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2",
+        "flex w-full items-center justify-between gap-2 whitespace-nowrap border-keisen border-b bg-transparent px-1 text-sm text-kinari outline-none transition-colors focus:border-nezumi disabled:pointer-events-none disabled:opacity-40 data-[placeholder]:text-nezumi-dim data-[size=default]:h-8 data-[size=sm]:h-7 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-nezumi-dim *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2",
         className,
       )}
       {...props}
@@ -54,7 +54,7 @@ function SelectContent({
       <SelectPrimitive.Content
         data-slot="select-content"
         className={cn(
-          'relative z-50 max-h-(--radix-select-content-available-height) min-w-[8rem] origin-(--radix-select-content-transform-origin) overflow-x-hidden overflow-y-auto border border-slate-700 bg-slate-900 text-slate-100 shadow-xl data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0',
+          'relative z-50 max-h-(--radix-select-content-available-height) min-w-[8rem] origin-(--radix-select-content-transform-origin) overflow-x-hidden overflow-y-auto border border-keisen bg-sumi-2 text-kinari shadow-xl data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0',
           position === 'popper' &&
             'data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1',
           className,
@@ -83,7 +83,7 @@ function SelectLabel({ className, ...props }: React.ComponentProps<typeof Select
   return (
     <SelectPrimitive.Label
       data-slot="select-label"
-      className={cn('px-2 py-1.5 text-[10px] tracking-[0.3em] text-slate-600', className)}
+      className={cn('px-2 py-1.5 text-[10px] tracking-[0.3em] text-nezumi-dim', className)}
       {...props}
     />
   )
@@ -98,7 +98,7 @@ function SelectItem({
     <SelectPrimitive.Item
       data-slot="select-item"
       className={cn(
-        "relative flex w-full cursor-default select-none items-center gap-2 py-1.5 pr-8 pl-2 text-sm text-slate-300 outline-hidden focus:bg-slate-800 focus:text-slate-100 data-[disabled]:pointer-events-none data-[disabled]:opacity-40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2",
+        "relative flex w-full cursor-default select-none items-center gap-2 py-1.5 pr-8 pl-2 text-sm text-nezumi outline-hidden focus:bg-sumi-3 focus:text-kinari data-[disabled]:pointer-events-none data-[disabled]:opacity-40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2",
         className,
       )}
       {...props}
@@ -123,7 +123,7 @@ function SelectSeparator({
   return (
     <SelectPrimitive.Separator
       data-slot="select-separator"
-      className={cn('pointer-events-none -mx-1 my-1 h-px bg-slate-800', className)}
+      className={cn('pointer-events-none -mx-1 my-1 h-px bg-sumi-3', className)}
       {...props}
     />
   )

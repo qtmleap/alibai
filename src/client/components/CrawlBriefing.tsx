@@ -43,12 +43,14 @@ export const CrawlBriefing = ({ briefing, paragraphs, onFinished }: Props) => {
   // 「ゲームの導入」から「説明文の載ったページ」に見え方が変わってしまう。
   if (stopped) {
     return (
-      <div className="flex flex-col gap-4 py-2">
+      // 止めたあとは読み物として組む。中央寄せをやめるのは、行頭が揃っていないと
+      // 何行も続く本文で目が次の行の頭を探すことになるため。段落間は 20px。
+      <div className="flex flex-col gap-5 py-2">
         {paragraphs.map((paragraph, index) => (
           <p
             // biome-ignore lint/suspicious/noArrayIndexKey: 本文から作る静的な配列で、並び替え・削除が無い
             key={index}
-            className="text-center text-sm leading-relaxed whitespace-pre-wrap text-slate-300"
+            className="whitespace-pre-wrap text-kinari"
           >
             {paragraph}
           </p>
@@ -73,23 +75,24 @@ export const CrawlBriefing = ({ briefing, paragraphs, onFinished }: Props) => {
             <p
               // biome-ignore lint/suspicious/noArrayIndexKey: 本文から作る静的な配列で、並び替え・削除が無い
               key={index}
-              className="text-center leading-loose whitespace-pre-wrap text-slate-200"
+              className="whitespace-pre-wrap text-kinari"
             >
               {paragraph}
             </p>
           ))}
         </div>
 
-        {/* 上下を背景色に溶かして、文字が闇から現れて闇へ消えるように見せる */}
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-slate-950 via-slate-950/80 to-transparent" />
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent" />
+        {/* 上下を地に溶かして、文字が闇から現れて闇へ消えるように見せる。
+            切れ目を作らないのが役目なので、途中に濃度の段は置かない。 */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-[90px] bg-gradient-to-b from-sumi to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[90px] bg-gradient-to-t from-sumi to-transparent" />
       </div>
 
       <Button
         variant="ghost"
         size="sm"
         onClick={handleSkip}
-        className="self-center tracking-widest text-slate-600"
+        className="self-center tracking-widest text-nezumi-dim"
       >
         全文を表示
       </Button>

@@ -1,6 +1,50 @@
 @import "tailwindcss";
 
 /*
+ * 「時刻軸」案の語彙。
+ *
+ * 地は青みの灰（slate）ではなく墨に寄せる。同じ暗さでも、青い暗がりは
+ * 「ダークモード」に、温かい暗がりは「インク」に見える。
+ *
+ * 強調色は持たない。容疑者はそれぞれ自分の顔料を持ち、明度も彩度も揃えてあるので、
+ * 画面がプレイヤーより先に誰かを怪しむことが起こらない。例外は朱ひとつで、
+ * これは取り消せない一手（告発）だけに使う。
+ */
+@theme {
+  --color-sumi: #141317;
+  --color-sumi-2: #1c1a21;
+  --color-sumi-3: #232028;
+  /* 区切りはこの一色だけ。箱を作らず、罫線で分ける。 */
+  --color-keisen: #302c39;
+  --color-kinari: #e9e4d9;
+  --color-nezumi: #8e8896;
+  --color-nezumi-dim: #625d6c;
+
+  /*
+   * 容疑者の顔料。面（罫線・目盛り）と字で明度を変える。
+   * 暗いほうをそのまま文字に使うと、墨の上で読めなくなる。
+   */
+  --color-asagi: #5e8b8c;
+  --color-asagi-fg: #8ab5b5;
+  --color-fuji: #8079a6;
+  --color-fuji-fg: #ada6cf;
+  --color-suou: #96556a;
+  --color-suou-fg: #c68698;
+  --color-karashi: #b49a55;
+  --color-karashi-fg: #d6bd77;
+
+  /** 告発だけ。全画面を通してここ以外には置かない。 */
+  --color-shu: #d2452e;
+  /** 解決。外れには使わない（外れに赤を出すと、責められている画面になる）。 */
+  --color-byakuroku: #7fa88a;
+
+  /* 語りは明朝、会話とUIはゴシック、時刻だけが等幅。 */
+  --font-mincho: "Shippori Mincho B1", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  --font-gothic: "Zen Kaku Gothic New", "Hiragino Sans", "Noto Sans JP", sans-serif;
+  --font-mono: "Roboto Mono", ui-monospace, monospace;
+}
+
+/*
  * 画面の下地。
  *
  * 遷移アニメーションは opacity 0 から始まるので、ここを塗っておかないと
@@ -14,8 +58,25 @@
  */
 html,
 body {
-  background-color: #020617;
+  background-color: var(--color-sumi);
   overflow-x: clip;
+}
+
+body {
+  font-family: var(--font-gothic);
+}
+
+/*
+ * 時刻は等幅で、桁を揃える。
+ *
+ * 「等幅で書かれていたら、それは盤面の時刻」という規則をアプリ全体で守るので、
+ * ターン数・件数・正誤には使わない。会話の中に出てくる時刻も地の文のまま
+ * ——喋っている途中で書体が変わると、読みがそこで切れる。
+ */
+.at {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
 }
 
 /*

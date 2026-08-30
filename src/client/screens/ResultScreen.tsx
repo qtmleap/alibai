@@ -1,7 +1,11 @@
-import { z } from 'zod'
+import type { ReactNode } from 'react'
 import { Button } from '@/client/components/ui/button'
 import { formatSeconds } from '@/client/lib/format'
-import type { AccuseResult } from '@/client/lib/schemas'
+import {
+  type AccuseResult,
+  type TruthTimelineEntry,
+  truthTimelineEntrySchema,
+} from '@/client/lib/schemas'
 
 type Props = {
   accuseResult: AccuseResult
@@ -9,104 +13,147 @@ type Props = {
 }
 
 /**
- * タイムラインは jsonb なので、サーバから来る形が確定していない。
- * 時刻と出来事に分かれていれば2列に組み、そうでなければ書かれたまま出す。
+ * 答え合わせの画面。
+ *
+ * 当たっていたか（判定）と、どう辿り着いたか（記録）を節として分ける。混ぜると、
+ * 評価が推理の甘さのせいか回り道のせいか分からなくなる。
+ *
+ * 外れに赤を出さない。責める画面にすると、次の事件を開く気が失せる。
  */
-const timelineEntrySchema = z.object({
-  time: z.string().nonempty(),
-  event: z.string().nonempty(),
-})
 
-const TimelineEntry = ({ entry }: { entry: unknown }) => {
-  const parsed = timelineEntrySchema.safeParse(entry)
+/** 節の見出し。等幅なのは書式であって時刻ではないので、値には持ち込まない。 */
+const LEGEND = 'font-mono text-[9.5px] tracking-[0.24em] text-nezumi-dim'
 
-  if (!parsed.success) {
-    return <span>{typeof entry === 'string' ? entry : JSON.stringify(entry)}</span>
+/** 盤面の時刻。等幅で書かれていたらそれは時刻、という規則をここでも守る。 */
+const AT = 'font-mono tabular-nums'
+
+const CLOCK = /(?:^|T)([01]\d|2[0-3]):([0-5]\d)/
+
+/**
+ * 作中の時刻を hh:mm で読む。
+ *
+ * ISO 8601 で書かれたシナリオがある（日をまたぐ事件）。Date に通すと閲覧者の
+ * タイムゾーンへ引き寄せられて、作中の時計が狂う。書かれた字をそのまま拾う。
+ */
+const clockOf = (value: string): string => {
+  const found = CLOCK.exec(value)
+
+  if (found === null) {
+    return value
   }
 
-  return (
-    <>
-      <span className="shrink-0 tabular-nums text-slate-600">{parsed.data.time}</span>
-      <span>{parsed.data.event}</span>
-    </>
-  )
+  const hour = found[1]
+  const minute = found[2]
+
+  return hour === undefined || minute === undefined ? value : `${hour}:${minute}`
 }
 
-/** 記録の1行。項目名と値を線で区切って並べるだけにする（枠は持たせない）。 */
-const ResultRow = ({ label, value }: { label: string; value: string }) => (
-  <div className="flex items-baseline justify-between border-b border-slate-800 py-2.5">
-    <dt className="text-slate-500">{label}</dt>
-    <dd className="tabular-nums">{value}</dd>
+/**
+ * 読める行だけを拾う。
+ *
+ * 並べ替えはしない。日をまたぐ事件があるので hh:mm で並べると 05:35 が先頭へ来る。
+ * 保存されている順が執筆時の時系列なので、その順を信じる。
+ */
+const readableTimeline = (timeline: unknown[]): TruthTimelineEntry[] =>
+  timeline.flatMap((entry) => {
+    const parsed = truthTimelineEntrySchema.safeParse(entry)
+
+    return parsed.success ? [parsed.data] : []
+  })
+
+/** 判定・記録の1行。項目名と値を罫線で区切って並べるだけにする。 */
+const Row = ({ label, children }: { label: string; children: ReactNode }) => (
+  <div className="flex items-baseline justify-between gap-3 border-keisen border-b py-[7px] text-[12.5px]">
+    <span className="text-nezumi">{label}</span>
+    <span className="text-right">{children}</span>
   </div>
+)
+
+/** 正誤。正解だけが色を持ち、外れは本文の濃さのまま沈む。 */
+const Mark = ({ correct }: { correct: boolean }) => (
+  <span className={correct ? 'text-byakuroku' : 'text-nezumi'}>{correct ? '正解' : 'はずれ'}</span>
 )
 
 /**
  * 推理1つぶんの答え合わせ。自分が書いた文・採点者の短評・真相を上から並べる。
- * 正誤は見出しの色で示し、記号を足さない（記録側に○×が既に出ている）。
+ * 正誤は判定の節に既に出ているので、ここでは記号を足さない。
  */
 const DeductionReview = ({
   label,
-  correct,
   answer,
   comment,
   truth,
 }: {
   label: string
-  correct: boolean
   answer: string
   comment: string
   truth: string | null
 }) => (
-  <div className="flex flex-col gap-1.5 border-b border-slate-800 py-3">
-    <p className={correct ? 'text-sm text-emerald-400' : 'text-sm text-red-400'}>{label}</p>
-    <p className="text-sm leading-relaxed whitespace-pre-wrap text-slate-200">{answer}</p>
-    <p className="text-sm leading-relaxed text-slate-400">{comment}</p>
-    {truth !== null && <p className="text-sm leading-relaxed text-slate-500">真相　{truth}</p>}
+  <div className="flex flex-col gap-1.5 border-keisen border-b py-3">
+    <p className={LEGEND}>{label}</p>
+    <p className="whitespace-pre-wrap text-[12.5px] text-kinari leading-[1.9]">{answer}</p>
+    <p className="text-[12.5px] text-nezumi leading-[1.9]">{comment}</p>
+    {truth !== null && <p className="text-[12.5px] text-nezumi-dim leading-[1.9]">真相　{truth}</p>}
   </div>
 )
 
 export const ResultScreen = ({ accuseResult, onRestart }: Props) => {
   const { correct, result, truth, deduction } = accuseResult
+  const timeline = readableTimeline(truth.timeline)
 
   return (
-    <div className="screen-enter mx-auto flex min-h-dvh max-w-md flex-col gap-8 bg-slate-950 px-5 py-6 text-slate-100">
-      <header className="pt-10 pb-2 text-center">
+    <div className="screen-enter mx-auto flex min-h-dvh max-w-md flex-col gap-6 bg-sumi px-5 py-6 text-kinari">
+      <header className="pt-8 pb-2">
         <p
-          className={
-            correct ? 'text-3xl font-bold text-emerald-400' : 'text-3xl font-bold text-red-400'
-          }
+          className={`text-center font-bold font-mincho text-[27px] tracking-[0.16em] ${
+            correct ? 'text-byakuroku' : 'text-nezumi'
+          }`}
         >
-          {correct ? '事件解決！' : '推理はずれ…'}
+          {correct ? '事件解決' : '未解決'}
         </p>
       </header>
 
-      <section className="flex flex-col">
-        <h2 className="pb-2 text-[10px] tracking-[0.3em] text-slate-600">記録</h2>
-        <dl className="flex flex-col border-t border-slate-800 text-sm">
-          <ResultRow label="解決タイム" value={formatSeconds(result.solvedSeconds)} />
-          <ResultRow label="質問回数" value={`${result.questionCount}回`} />
-          <ResultRow label="発見した証拠" value={`${result.evidenceFound}個`} />
-          <ResultRow label="矛盾の指摘" value={`${result.contradictionCount}回`} />
-          <ResultRow label="殺害方法" value={result.methodCorrect ? '正解' : '不正解'} />
-          <ResultRow label="動機" value={result.motiveCorrect ? '正解' : '不正解'} />
-          <ResultRow label="正答率" value={`${result.accuracyPercent}%`} />
-        </dl>
+      <section className="flex flex-col gap-1.5">
+        <h2 className={LEGEND}>判定</h2>
+        <div className="flex flex-col border-keisen border-t">
+          <Row label="犯人">
+            {truth.culpritName}　<Mark correct={correct} />
+          </Row>
+          <Row label="殺害方法">
+            <Mark correct={result.methodCorrect} />
+          </Row>
+          <Row label="動機">
+            <Mark correct={result.motiveCorrect} />
+          </Row>
+          <Row label="正答率">{result.accuracyPercent}%</Row>
+        </div>
+      </section>
+
+      <section className="flex flex-col gap-1.5">
+        <h2 className={LEGEND}>記録</h2>
+        <div className="flex flex-col border-keisen border-t">
+          {/* 解決タイムだけが盤面の時刻。回数や個数は等幅にしない。 */}
+          <Row label="解決タイム">
+            <span className={AT}>{formatSeconds(result.solvedSeconds)}</span>
+          </Row>
+          <Row label="質問回数">{result.questionCount}回</Row>
+          <Row label="発見した証拠">{result.evidenceFound}個</Row>
+          <Row label="矛盾の指摘">{result.contradictionCount}回</Row>
+        </div>
       </section>
 
       {deduction !== null && (
-        <section className="flex flex-col">
-          <h2 className="pb-2 text-[10px] tracking-[0.3em] text-slate-600">答え合わせ</h2>
-          <div className="flex flex-col border-t border-slate-800">
+        <section className="flex flex-col gap-1.5">
+          <h2 className={LEGEND}>答え合わせ</h2>
+          <div className="flex flex-col border-keisen border-t">
             <DeductionReview
               label="殺害方法"
-              correct={result.methodCorrect}
               answer={deduction.method}
               comment={deduction.methodComment}
               truth={truth.method}
             />
             <DeductionReview
               label="動機"
-              correct={result.motiveCorrect}
               answer={deduction.motive}
               comment={deduction.motiveComment}
               truth={truth.motive}
@@ -115,25 +162,24 @@ export const ResultScreen = ({ accuseResult, onRestart }: Props) => {
         </section>
       )}
 
-      <section className="flex flex-col gap-2">
-        <h2 className="text-[10px] tracking-[0.3em] text-slate-600">真相</h2>
-        <p className="text-sm text-slate-500">犯人　{truth.culpritName}</p>
-        <p className="text-sm leading-relaxed whitespace-pre-wrap text-slate-200">{truth.truth}</p>
-      </section>
+      <section className="flex flex-col gap-1.5">
+        <h2 className={LEGEND}>真相</h2>
+        <p className="whitespace-pre-wrap text-[12.5px] text-kinari leading-[1.9]">{truth.truth}</p>
 
-      {truth.timeline.length > 0 && (
-        <section className="flex flex-col">
-          <h2 className="pb-2 text-[10px] tracking-[0.3em] text-slate-600">タイムライン</h2>
-          <ol className="flex flex-col border-t border-slate-800 text-sm text-slate-400">
-            {truth.timeline.map((entry, index) => (
-              // biome-ignore lint/suspicious/noArrayIndexKey: サーバから返る一度限りの静的な配列で並び替え・削除が無い
-              <li key={index} className="flex gap-3 border-b border-slate-800 py-2.5">
-                <TimelineEntry entry={entry} />
+        {timeline.length > 0 && (
+          <ol className="mt-2 flex flex-col border-keisen border-t">
+            {timeline.map((entry) => (
+              <li
+                key={`${entry.time}-${entry.event}`}
+                className="flex gap-3 border-keisen border-b py-[7px] text-xs"
+              >
+                <span className={`${AT} shrink-0 text-nezumi-dim`}>{clockOf(entry.time)}</span>
+                <span className="text-nezumi leading-[1.7]">{entry.event}</span>
               </li>
             ))}
           </ol>
-        </section>
-      )}
+        )}
+      </section>
 
       <Button size="block" className="mt-auto" onClick={onRestart}>
         もう一度あそぶ

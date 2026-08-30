@@ -1,10 +1,14 @@
 import { useId, useState } from 'react'
+import { surfaceOf } from '@/client/components/CharacterAvatar'
 import { SessionReference } from '@/client/components/SessionReference'
 import { Button } from '@/client/components/ui/button'
 import { Textarea } from '@/client/components/ui/textarea'
 import type { UseInterrogation } from '@/client/hooks/useInterrogation'
 import { describeError, submitAccusation } from '@/client/lib/api'
 import type { AccuseResult, ScenarioDetail } from '@/client/lib/schemas'
+
+/** 節の見出し。等幅なのは書式であって時刻ではないので、値には使わない。 */
+const LEGEND = 'font-mono text-[9.5px] tracking-[0.24em] text-nezumi-dim'
 
 type Props = {
   scenario: ScenarioDetail
@@ -63,17 +67,17 @@ export const AccusationScreen = ({
   }
 
   return (
-    <div className="screen-enter mx-auto flex min-h-dvh max-w-md flex-col gap-6 bg-slate-950 px-5 py-6 text-slate-100">
+    <div className="screen-enter mx-auto flex min-h-dvh max-w-md flex-col gap-6 bg-sumi px-5 py-6 text-kinari">
       <SessionReference scenario={scenario} interrogation={interrogation} />
 
       <header className="pt-2">
-        <Button variant="ghost" size="sm" onClick={onBack} className="h-auto px-0 text-slate-500">
+        <Button variant="ghost" size="sm" onClick={onBack} className="h-auto px-0 text-nezumi-dim">
           ← 聞き込みに戻る
         </Button>
-        <h1 className="mt-3 text-xl font-bold">犯人を推理する</h1>
-        <p className="mt-1 text-sm text-slate-400">
-          誰が犯人か選んで、どうやって・なぜ殺したのかを書いてね。
-        </p>
+        <h1 className="mt-3 font-medium font-mincho text-[21px] tracking-[0.08em]">
+          犯人を指し示す
+        </h1>
+        <p className="mt-1 text-nezumi text-xs">誰が、どうやって、なぜ。</p>
       </header>
 
       {/*
@@ -81,15 +85,15 @@ export const AccusationScreen = ({
         名前そのものを押せる範囲にしたほうが、箱を1つずつ狙うより早い。
       */}
       <fieldset className="flex flex-col">
-        <legend className="pb-2 text-[10px] tracking-[0.3em] text-slate-600">犯人</legend>
-        <div className="flex flex-col border-t border-slate-800">
-          {scenario.characters.map((character) => (
+        <legend className={`pb-2 ${LEGEND}`}>犯人</legend>
+        <div className="flex flex-col border-keisen border-t">
+          {scenario.characters.map((character, index) => (
             <label
               key={character.id}
               className={
                 character.id === culpritCharacterId
-                  ? 'flex items-center gap-3 border-b border-slate-800 py-3 text-amber-400'
-                  : 'flex items-center gap-3 border-b border-slate-800 py-3 text-slate-300'
+                  ? 'flex items-center gap-2.5 border-keisen border-b py-2.5 text-shu'
+                  : 'flex items-center gap-2.5 border-keisen border-b py-2.5 text-nezumi'
               }
             >
               {/* ラジオは shadcn の Input（一行入力の見た目）とは別物なので素のまま置く。 */}
@@ -98,9 +102,16 @@ export const AccusationScreen = ({
                 name="culprit"
                 checked={character.id === culpritCharacterId}
                 onChange={() => setCulpritCharacterId(character.id)}
-                className="accent-amber-500"
+                className="accent-shu"
               />
-              <span className="text-sm">{character.name}</span>
+              {/* 顔料の点。指した相手だけ朱に変わるので、選択がどこにあるか一目で分かる。 */}
+              <span
+                aria-hidden="true"
+                className={`size-2 shrink-0 rounded-full ${
+                  character.id === culpritCharacterId ? 'bg-shu' : surfaceOf(index)
+                }`}
+              />
+              <span className="text-[13px]">{character.name}</span>
             </label>
           ))}
         </div>
@@ -112,7 +123,7 @@ export const AccusationScreen = ({
         書くほどに欄が伸びると提出ボタンが下へ逃げていくため。
       */}
       <label className="flex flex-col gap-2" htmlFor={methodId}>
-        <span className="text-[10px] tracking-[0.3em] text-slate-600">殺害方法</span>
+        <span className={LEGEND}>殺害方法</span>
         <Textarea
           id={methodId}
           value={method}
@@ -124,7 +135,7 @@ export const AccusationScreen = ({
       </label>
 
       <label className="flex flex-col gap-2" htmlFor={motiveId}>
-        <span className="text-[10px] tracking-[0.3em] text-slate-600">動機</span>
+        <span className={LEGEND}>動機</span>
         <Textarea
           id={motiveId}
           value={motive}
@@ -136,7 +147,7 @@ export const AccusationScreen = ({
       </label>
 
       <label className="flex flex-col gap-2" htmlFor={reasoningId}>
-        <span className="text-[10px] tracking-[0.3em] text-slate-600">理由</span>
+        <span className={LEGEND}>理由</span>
         <Textarea
           id={reasoningId}
           value={reasoning}
@@ -147,14 +158,15 @@ export const AccusationScreen = ({
         />
       </label>
 
-      {error !== undefined && <p className="text-sm text-red-400">{error}</p>}
+      {error !== undefined && <p className="text-sm text-nezumi">{error}</p>}
 
-      {/* 取り消せない一手なので、この画面でだけ琥珀を使って他のボタンと見分けさせる。 */}
+      {/* 取り消せない一手。朱が出るのは全画面を通してここと、ここへ向かう入口だけ。 */}
       <Button
         size="block"
+        variant="destructive"
         onClick={handleSubmit}
         disabled={!canSubmit}
-        className="mt-auto border-amber-700 text-amber-400 hover:border-amber-500"
+        className="mt-auto"
       >
         {submitting ? '送信中…' : 'この推理を提出する'}
       </Button>

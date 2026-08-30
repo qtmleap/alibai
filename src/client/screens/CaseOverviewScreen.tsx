@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { CharacterAvatar, inkOf } from '@/client/components/CharacterAvatar'
 import { FloorPlanMap } from '@/client/components/FloorPlan'
 import {
   AlertDialog,
@@ -18,6 +19,9 @@ import { activeDetective, loadDetectiveStore, toDetective } from '@/client/lib/d
 import { loadGameMode, saveGameMode } from '@/client/lib/game-mode-store'
 import type { CreateSessionResponse, GameMode, ScenarioDetail } from '@/client/lib/schemas'
 import { GAME_MODE_LABELS, GAME_MODE_NOTES, GAME_MODES } from '~/db/game-mode'
+
+/** 節の見出し。等幅なのは書式であって時刻ではないので、値には使わない。 */
+const LEGEND = 'font-mono text-[9.5px] tracking-[0.24em] text-nezumi-dim'
 
 type Props = {
   scenario: ScenarioDetail
@@ -80,9 +84,11 @@ export const CaseOverviewScreen = ({
   }
 
   return (
-    <div className="screen-enter mx-auto flex min-h-dvh max-w-md flex-col gap-6 bg-slate-950 px-5 py-6 text-slate-100">
+    <div className="screen-enter mx-auto flex min-h-dvh max-w-md flex-col gap-6 bg-sumi px-5 py-6 text-kinari">
       <header className="flex items-start justify-between gap-3">
-        <h1 className="text-xl font-bold">{scenario.title}</h1>
+        <h1 className="font-bold font-mincho text-[19px] leading-[1.55] tracking-[0.05em]">
+          {scenario.title}
+        </h1>
         {/*
           降りる口。押した瞬間に落ちると事故になるので、必ず一度確かめる。
           AlertDialog は「×で閉じる」を持たないので、続けるか諦めるかを必ず選ばせられる。
@@ -117,17 +123,34 @@ export const CaseOverviewScreen = ({
       */}
       {scenario.floorPlan !== null && (
         <section className="flex flex-col gap-2">
-          <h2 className="text-xs tracking-widest text-slate-500">事件現場</h2>
+          <h2 className={LEGEND}>事件現場</h2>
           <FloorPlanMap plan={scenario.floorPlan} interactive />
         </section>
       )}
 
+      {/*
+        名前を並べるだけだと、誰に会うのかは分かっても、どんな相手かが分からない。
+        顔料と一言を添えて、聞き込みの相手として頭に入る形にする。
+      */}
       {scenario.characters.length > 0 && (
         <section className="flex flex-col gap-2">
-          <h2 className="text-xs tracking-widest text-slate-500">この夜、居合わせた者</h2>
-          <p className="text-sm text-slate-300">
-            {scenario.characters.map((character) => character.name).join('　')}
-          </p>
+          <h2 className={LEGEND}>この夜、居合わせた者</h2>
+          <ul className="flex flex-col border-keisen border-t">
+            {scenario.characters.map((character, index) => (
+              <li
+                key={character.id}
+                className="flex items-center gap-2.5 border-keisen border-b py-[7px]"
+              >
+                <CharacterAvatar name={character.name} index={index} size="sm" />
+                <span className="flex min-w-0 flex-col gap-px">
+                  <span className={`text-[13px] ${inkOf(index)}`}>{character.name}</span>
+                  <span className="text-[10.5px] text-nezumi-dim leading-[1.6]">
+                    {character.personality}
+                  </span>
+                </span>
+              </li>
+            ))}
+          </ul>
         </section>
       )}
 
@@ -136,13 +159,13 @@ export const CaseOverviewScreen = ({
         始めたら変えられないので、聞き込みに入る直前のここで決める。
       */}
       <fieldset className="mt-auto flex flex-col gap-2" disabled={inProgress}>
-        <legend className="text-[10px] tracking-[0.3em] text-slate-600">
+        <legend className={LEGEND}>
           手がかりの見え方{inProgress ? '（この事件では変えられません）' : ''}
         </legend>
+        {/* 四段階は順に並ぶものなので、横に等分して選んだものだけ起こす。 */}
         <ToggleGroup
           type="single"
-          variant="outline"
-          spacing={2}
+          variant="segment"
           value={mode}
           onValueChange={(value) => {
             const picked = GAME_MODES.find((option) => option === value)
@@ -151,18 +174,17 @@ export const CaseOverviewScreen = ({
               chooseMode(picked)
             }
           }}
-          className="flex-wrap"
         >
           {GAME_MODES.map((option) => (
-            <ToggleGroupItem key={option} value={option} className="h-auto px-3 py-2">
+            <ToggleGroupItem key={option} value={option}>
               {GAME_MODE_LABELS[option]}
             </ToggleGroupItem>
           ))}
         </ToggleGroup>
-        <p className="text-xs text-slate-500">{GAME_MODE_NOTES[mode]}</p>
+        <p className="text-[10.5px] text-nezumi-dim">{GAME_MODE_NOTES[mode]}</p>
       </fieldset>
 
-      {error !== undefined && <p className="text-sm text-red-400">{error}</p>}
+      {error !== undefined && <p className="text-sm text-nezumi">{error}</p>}
 
       <Button size="block" onClick={inProgress ? onResume : handleStart} disabled={starting}>
         {inProgress ? '聞き込みに戻る' : starting ? '準備中…' : '聞き込みを始める'}
