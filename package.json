@@ -12,10 +12,12 @@
     "format": "bunx --bun biome check --write",
     "test": "bun test",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
+    "db:migrate": "wrangler d1 migrations apply alibai --local",
+    "db:migrate:remote": "wrangler d1 migrations apply alibai --remote",
     "db:seed": "bun run db/seed.ts",
+    "db:seed:apply": "wrangler d1 execute alibai --local --file=db/seed.sql",
+    "db:seed:apply:remote": "wrangler d1 execute alibai --remote --file=db/seed.sql",
     "db:author": "bun run db/generate-scenario.ts",
-    "db:studio": "drizzle-kit studio",
     "deploy": "vite build && wrangler deploy"
   },
   "dependencies": {
@@ -35,7 +37,6 @@
     "drizzle-orm": "^0.44",
     "hono": "^4",
     "lucide-react": "^1.37.0",
-    "postgres": "^3",
     "radix-ui": "^1.6.7",
     "react": "^19",
     "react-dom": "^19",

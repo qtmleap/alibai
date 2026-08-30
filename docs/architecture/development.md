@@ -8,7 +8,7 @@
 .devcontainer/
 ├── devcontainer.json        # features、マウント、拡張機能、環境変数の受け渡し
 ├── Dockerfile               # ベースイメージ (oven/bun:1)
-├── compose.yaml             # app + PostgreSQL
+├── compose.yaml             # app のみ
 ├── postCreateCommand.sh     # .env生成、bun install、マイグレーション
 └── postAttachCommand.sh     # git設定、マージ済みブランチの掃除、direnv
 ```
@@ -18,11 +18,8 @@
 | サービス | 内容 | ポート |
 | --- | --- | --- |
 | `app` | 開発コンテナ本体 | 5173 |
-| `db` | PostgreSQL 18 (alpine) | 5432 |
 
-`app` は `db` のヘルスチェック（`pg_isready`）通過を待ってから起動します。起動直後のマイグレーションが「接続できません」で落ちるのを防ぐためです。
-
-PostgreSQL 18 のボリュームは `/var/lib/postgresql` にマウントします（配下に `18/docker` が作られるため、従来の `/var/lib/postgresql/data` ではありません）。
+データベースのコンテナはありません。D1 の実体は wrangler が `.wrangler/state` に持つファイルなので、待ち合わせるヘルスチェックも接続文字列も要りません。
 
 `node_modules` は名前付きボリュームに載せ、ホストとのバインドマウントから切り離しています。
 
@@ -39,7 +36,7 @@ PostgreSQL 18 のボリュームは `/var/lib/postgresql` にマウントしま�
 | docker-outside-of-docker | ホストの Docker を利用 |
 | act | GitHub Actions のローカル実行 |
 | direnv | ディレクトリ単位の環境変数 |
-| apt-packages | `git-filter-repo`, `postgresql-client` |
+| apt-packages | `git-filter-repo` |
 
 ### APIキーの受け渡し
 
@@ -156,9 +153,10 @@ bun run lint         # Biome check
 bun run format       # Biome check --write
 bun test             # テスト
 
-bun run db:generate  # マイグレーション生成
-bun run db:migrate   # マイグレーション適用
-bun run db:studio    # Drizzle Studio
+bun run db:generate   # マイグレーション生成（drizzle-kit）
+bun run db:migrate    # ローカルのD1へ適用（wrangler）
+bun run db:seed       # db/scenarios/*.yaml から投入用SQLを生成
+bun run db:seed:apply # 生成したSQLをローカルのD1へ流す
 ```
 
 ## 観測（未実装）

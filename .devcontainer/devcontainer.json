@@ -5,10 +5,9 @@
   "workspaceFolder": "/home/vscode/app",
   "shutdownAction": "stopCompose",
   "remoteUser": "vscode",
-  "forwardPorts": [5173, 5432],
+  "forwardPorts": [5173],
   "portsAttributes": {
-    "5173": { "label": "AlibAI (Vite + Hono)", "onAutoForward": "notify" },
-    "5432": { "label": "PostgreSQL", "onAutoForward": "silent" }
+    "5173": { "label": "AlibAI (Vite + Hono)", "onAutoForward": "notify" }
   },
   "remoteEnv": {
     "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}",
@@ -46,7 +45,7 @@
     "ghcr.io/dhoeric/features/act:1": {},
     "ghcr.io/devcontainers-community/features/direnv:1": {},
     "ghcr.io/rocker-org/devcontainer-features/apt-packages:1": {
-      "packages": "git-filter-repo,postgresql-client"
+      "packages": "git-filter-repo"
     }
   },
   "postAttachCommand": "/bin/sh .devcontainer/postAttachCommand.sh",

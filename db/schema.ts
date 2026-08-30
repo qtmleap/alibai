@@ -1,15 +1,5 @@
-import {
-  boolean,
-  index,
-  integer,
-  jsonb,
-  pgTable,
-  primaryKey,
-  smallint,
-  text,
-  timestamp,
-  uuid,
-} from 'drizzle-orm/pg-core'
+import { sql } from 'drizzle-orm'
+import { index, integer, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 import type { Detective } from './detective'
 import type { FloorPlanInput } from './floor-plan'
 import type { ScenarioEvidenceSource, ScenarioRevelationSource } from './scenario-definition'
@@ -26,10 +16,37 @@ export type { Detective } from './detective'
 export type { FloorPlan, FloorPlanInput, Room } from './floor-plan'
 
 /**
+ * D1（SQLite）には uuid 型も gen_random_uuid() も無いので、主キーは text で持ち、
+ * 採番はアプリ側で行う。値の形は今までどおり UUID v4。
+ *
+ * 生成関数をここに集約しているのは、列ごとに書くと片方だけ別の採番へ差し替わっても
+ * 気づけないため。seed のように行を自分で組み立てる経路は明示的に id を渡すので、
+ * この既定値は「渡されなかったとき」だけ効く。
+ */
+const uuidPrimaryKey = (name: string) =>
+  text(name)
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID())
+
+/**
+ * 時刻列。SQLite に timestamptz は無いので epoch 秒の整数で持つ。
+ *
+ * `mode: 'timestamp'` は秒。JS 側では今までどおり Date で入出力できる。
+ * 既定値を JS ではなく SQL 側の unixepoch() に置いているのは、保持期間の削除
+ * （src/server/db/retention.ts）が SQL で境界を比較し、seed も SQL 文を吐くから。
+ * 両方から同じ既定値が見える必要がある。
+ *
+ * 秒精度なので、ミリ秒を要する計時には使えない。プレイ時間の計測は DO 側が持っており
+ * この列を見ていないので、そちらには影響しない。
+ */
+const createdTimestamp = (name: string) =>
+  integer(name, { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`)
+
+/**
  * 公開されるシナリオのメタ情報。クライアントに返してよい範囲。
  */
-export const scenarios = pgTable('scenarios', {
-  id: uuid('id').primaryKey().defaultRandom(),
+export const scenarios = sqliteTable('scenarios', {
+  id: uuidPrimaryKey('id'),
   title: text('title').notNull(),
   synopsis: text('synopsis').notNull(),
   /** ゲームマスターがプレイヤーに読み上げる事件の記録。真相は絶対に書かない。 */
@@ -41,15 +58,15 @@ export const scenarios = pgTable('scenarios', {
    * 入力側の型を当てるのは、既に保存されている行に扉や部屋の種別が無いから。
    * 描く前に parseFloorPlan を通して既定値を埋める（src/server/read/scenarios.ts）。
    */
-  floorPlan: jsonb('floor_plan').$type<FloorPlanInput>(),
+  floorPlan: text('floor_plan', { mode: 'json' }).$type<FloorPlanInput>(),
   /** シナリオの傾向。一覧でタイトルの横に出す短いラベル。 */
   category: text('category').notNull().default(''),
-  authorId: uuid('author_id'),
-  isPublished: boolean('is_published').notNull().default(false),
-  difficulty: smallint('difficulty').notNull().default(3),
-  estimatedMinutes: smallint('estimated_minutes').notNull().default(10),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  authorId: text('author_id'),
+  isPublished: integer('is_published', { mode: 'boolean' }).notNull().default(false),
+  difficulty: integer('difficulty').notNull().default(3),
+  estimatedMinutes: integer('estimated_minutes').notNull().default(10),
+  createdAt: createdTimestamp('created_at'),
+  updatedAt: createdTimestamp('updated_at'),
 })
 
 /**
@@ -59,11 +76,11 @@ export const scenarios = pgTable('scenarios', {
  * クライアント向けのクエリで誤って真相をJOINする事故を構造的に防げる。
  * このテーブルはActor向けのプロンプト組み立てでも参照しないこと。
  */
-export const scenarioTruths = pgTable('scenario_truths', {
-  scenarioId: uuid('scenario_id')
+export const scenarioTruths = sqliteTable('scenario_truths', {
+  scenarioId: text('scenario_id')
     .primaryKey()
     .references(() => scenarios.id, { onDelete: 'cascade' }),
-  culpritCharacterId: uuid('culprit_character_id'),
+  culpritCharacterId: text('culprit_character_id'),
   truth: text('truth').notNull(),
   /**
    * 殺害方法と動機。プレイヤーの推理を採点する的。
@@ -74,20 +91,20 @@ export const scenarioTruths = pgTable('scenario_truths', {
    */
   method: text('method'),
   motive: text('motive'),
-  timeline: jsonb('timeline').notNull(),
+  timeline: text('timeline', { mode: 'json' }).notNull(),
   /** 出力フィルタが漏洩検知に使う秘匿キーワード */
-  secretKeywords: text('secret_keywords').array().notNull(),
+  secretKeywords: text('secret_keywords', { mode: 'json' }).$type<string[]>().notNull(),
 })
 
 /**
  * 登場人物。ここに入る情報が、そのNPCのプロンプトになる上限。
  * 他人物の秘密や真相は絶対に入れない。
  */
-export const characters = pgTable(
+export const characters = sqliteTable(
   'characters',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
-    scenarioId: uuid('scenario_id')
+    id: uuidPrimaryKey('id'),
+    scenarioId: text('scenario_id')
       .notNull()
       .references(() => scenarios.id, { onDelete: 'cascade' }),
     name: text('name').notNull(),
@@ -101,11 +118,11 @@ export const characters = pgTable(
   (table) => [index('characters_scenario_id_idx').on(table.scenarioId)],
 )
 
-export const evidences = pgTable(
+export const evidences = sqliteTable(
   'evidences',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
-    scenarioId: uuid('scenario_id')
+    id: uuidPrimaryKey('id'),
+    scenarioId: text('scenario_id')
       .notNull()
       .references(() => scenarios.id, { onDelete: 'cascade' }),
     label: text('label').notNull(),
@@ -115,16 +132,19 @@ export const evidences = pgTable(
      * どこから／誰から得られるか。難易度モードの「あと N 件」を数えるのに使う。
      * 空の証拠は内訳には出ないが、残りの総数には数える。
      */
-    sources: jsonb('sources').$type<ScenarioEvidenceSource[]>().notNull().default([]),
+    sources: text('sources', { mode: 'json' })
+      .$type<ScenarioEvidenceSource[]>()
+      .notNull()
+      .default([]),
   },
   (table) => [index('evidences_scenario_id_idx').on(table.scenarioId)],
 )
 
-export const revelations = pgTable(
+export const revelations = sqliteTable(
   'revelations',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
-    scenarioId: uuid('scenario_id')
+    id: uuidPrimaryKey('id'),
+    scenarioId: text('scenario_id')
       .notNull()
       .references(() => scenarios.id, { onDelete: 'cascade' }),
     title: text('title').notNull(),
@@ -136,27 +156,27 @@ export const revelations = pgTable(
      * 解禁経路。character / location のどちらから到達できるか、前提情報と条件文を持つ。
      * Authoring時のローカルIDはコンパイル時にランタイムIDへ置換して保存する。
      */
-    sources: jsonb('sources').$type<ScenarioRevelationSource[]>().notNull(),
+    sources: text('sources', { mode: 'json' }).$type<ScenarioRevelationSource[]>().notNull(),
     /** Authoring / 検証用。ランタイムのカード表示には使わないが、再編集時に失わない。 */
-    relatedFacts: text('related_facts').array().notNull(),
+    relatedFacts: text('related_facts', { mode: 'json' }).$type<string[]>().notNull(),
   },
   (table) => [index('revelations_scenario_id_idx').on(table.scenarioId)],
 )
 
-export const playSessions = pgTable(
+export const playSessions = sqliteTable(
   'play_sessions',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
-    scenarioId: uuid('scenario_id')
+    id: uuidPrimaryKey('id'),
+    scenarioId: text('scenario_id')
       .notNull()
       .references(() => scenarios.id, { onDelete: 'cascade' }),
     /** 匿名プレイを一級市民として扱うため nullable */
-    userId: uuid('user_id'),
+    userId: text('user_id'),
     /**
      * プレイヤーが演じる探偵。NPCのプロンプトに渡るので、
      * セッション開始時に決まったら以降は変えない。名乗らずに始めた場合は null。
      */
-    detective: jsonb('detective').$type<Detective>(),
+    detective: text('detective', { mode: 'json' }).$type<Detective>(),
     /**
      * 難易度モード。未発見の情報をどこまで教えるかだけを決める（db/game-mode.ts が正典）。
      *
@@ -165,8 +185,8 @@ export const playSessions = pgTable(
      * 既定値で埋めると、進行中のセッションに突然ヒントが生えることになる。
      */
     mode: text('mode'),
-    startedAt: timestamp('started_at', { withTimezone: true }).notNull().defaultNow(),
-    finishedAt: timestamp('finished_at', { withTimezone: true }),
+    startedAt: createdTimestamp('started_at'),
+    finishedAt: integer('finished_at', { mode: 'timestamp' }),
   },
   (table) => [
     index('play_sessions_scenario_id_idx').on(table.scenarioId),
@@ -181,19 +201,19 @@ export const playSessions = pgTable(
  * コストは持たない。ここは保持期間を過ぎたら消す前提のテーブルで、
  * 消した瞬間に集計元まで消えては困るため llm_usages を正典にしている。
  */
-export const messages = pgTable(
+export const messages = sqliteTable(
   'messages',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
-    sessionId: uuid('session_id')
+    id: uuidPrimaryKey('id'),
+    sessionId: text('session_id')
       .notNull()
       .references(() => playSessions.id, { onDelete: 'cascade' }),
-    characterId: uuid('character_id')
+    characterId: text('character_id')
       .notNull()
       .references(() => characters.id, { onDelete: 'cascade' }),
     role: text('role').notNull(),
     content: text('content').notNull(),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: createdTimestamp('created_at'),
   },
   // 外部キーは子側に索引を作らない。張らないまま親を消すと、1行ごとにこの表を全走査する。
   (table) => [
@@ -202,16 +222,16 @@ export const messages = pgTable(
   ],
 )
 
-export const discoveries = pgTable(
+export const discoveries = sqliteTable(
   'discoveries',
   {
-    sessionId: uuid('session_id')
+    sessionId: text('session_id')
       .notNull()
       .references(() => playSessions.id, { onDelete: 'cascade' }),
-    evidenceId: uuid('evidence_id')
+    evidenceId: text('evidence_id')
       .notNull()
       .references(() => evidences.id, { onDelete: 'cascade' }),
-    discoveredAt: timestamp('discovered_at', { withTimezone: true }).notNull().defaultNow(),
+    discoveredAt: createdTimestamp('discovered_at'),
   },
   (table) => [
     primaryKey({ columns: [table.sessionId, table.evidenceId] }),
@@ -220,16 +240,16 @@ export const discoveries = pgTable(
   ],
 )
 
-export const revelationDiscoveries = pgTable(
+export const revelationDiscoveries = sqliteTable(
   'revelation_discoveries',
   {
-    sessionId: uuid('session_id')
+    sessionId: text('session_id')
       .notNull()
       .references(() => playSessions.id, { onDelete: 'cascade' }),
-    revelationId: uuid('revelation_id')
+    revelationId: text('revelation_id')
       .notNull()
       .references(() => revelations.id, { onDelete: 'cascade' }),
-    discoveredAt: timestamp('discovered_at', { withTimezone: true }).notNull().defaultNow(),
+    discoveredAt: createdTimestamp('discovered_at'),
   },
   (table) => [
     primaryKey({ columns: [table.sessionId, table.revelationId] }),
@@ -249,30 +269,30 @@ export type DeductionRecord = {
   motiveComment: string
 }
 
-export const results = pgTable('results', {
-  sessionId: uuid('session_id')
+export const results = sqliteTable('results', {
+  sessionId: text('session_id')
     .primaryKey()
     .references(() => playSessions.id, { onDelete: 'cascade' }),
   solvedSeconds: integer('solved_seconds').notNull(),
   questionCount: integer('question_count').notNull(),
   evidenceFound: integer('evidence_found').notNull(),
   contradictionCount: integer('contradiction_count').notNull(),
-  accuracyPercent: smallint('accuracy_percent').notNull(),
+  accuracyPercent: integer('accuracy_percent').notNull(),
   /** 推理採点。3列とも nullable なのは、採点を入れる前に終わったセッション行があるため。 */
-  methodCorrect: boolean('method_correct'),
-  motiveCorrect: boolean('motive_correct'),
-  deduction: jsonb('deduction').$type<DeductionRecord>(),
+  methodCorrect: integer('method_correct', { mode: 'boolean' }),
+  motiveCorrect: integer('motive_correct', { mode: 'boolean' }),
+  deduction: text('deduction', { mode: 'json' }).$type<DeductionRecord>(),
 })
 
-export const reports = pgTable(
+export const reports = sqliteTable(
   'reports',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
-    scenarioId: uuid('scenario_id')
+    id: uuidPrimaryKey('id'),
+    scenarioId: text('scenario_id')
       .notNull()
       .references(() => scenarios.id, { onDelete: 'cascade' }),
     reason: text('reason').notNull(),
-    reportedAt: timestamp('reported_at', { withTimezone: true }).notNull().defaultNow(),
+    reportedAt: createdTimestamp('reported_at'),
   },
   (table) => [index('reports_scenario_id_idx').on(table.scenarioId)],
 )
@@ -286,17 +306,17 @@ export const reports = pgTable(
  * したがって session_id / scenario_id は参照の切れた履歴上の値であり、
  * JOIN できることを前提にしてはいけない。
  *
- * トークン数を jsonb ではなく列に開いてあるのは、この表の用途が集計だから。
+ * トークン数をJSON列ではなく列に開いてあるのは、この表の用途が集計だから。
  * とくに cache_creation_input_tokens は AI SDK の usage には含まれず
  * providerMetadata 側にあるので、取りに行かないと黙って 0 になる
  * （Anthropicではキャッシュ書き込みが通常入力より高い。落とすと請求額が読めない）。
  */
-export const llmUsages = pgTable(
+export const llmUsages = sqliteTable(
   'llm_usages',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
-    sessionId: uuid('session_id'),
-    scenarioId: uuid('scenario_id'),
+    id: uuidPrimaryKey('id'),
+    sessionId: text('session_id'),
+    scenarioId: text('scenario_id'),
     /** provider.ts の LlmRole。actor / judge / author。 */
     role: text('role').notNull(),
     provider: text('provider').notNull(),
@@ -308,7 +328,7 @@ export const llmUsages = pgTable(
     /** キャッシュ書き込み。providerMetadata.anthropic 由来。 */
     cacheCreationInputTokens: integer('cache_creation_input_tokens').notNull().default(0),
     reasoningTokens: integer('reasoning_tokens').notNull().default(0),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: createdTimestamp('created_at'),
   },
   (table) => [
     /** 日次ロールアップはこの索引で引く。 */

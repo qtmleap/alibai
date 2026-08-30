@@ -9,29 +9,10 @@ services:
     environment:
       NODE_ENV: development
       NODE_OPTIONS: "--no-deprecation"
-      DATABASE_URL: postgres://alibai:alibai@db:5432/alibai
-    depends_on:
-      db:
-        condition: service_healthy
     tty: true
     stdin_open: true
 
-  db:
-    image: postgres:18-alpine
-    environment:
-      POSTGRES_USER: alibai
-      POSTGRES_PASSWORD: alibai
-      POSTGRES_DB: alibai
-    volumes:
-      # postgres:18+ は /var/lib/postgresql にマウントする（配下に 18/docker が作られる）
-      - postgres_data:/var/lib/postgresql
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U alibai -d alibai"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-
-
+# DBサービスは無い。D1（SQLite）の実体は wrangler が .wrangler/state 配下に持ち、
+# vite dev の workerd がそれを直接見る。開発にDBコンテナは要らない。
 volumes:
   node_modules:
-  postgres_data:

@@ -153,7 +153,7 @@ sessionRoutes.post('/api/sessions', async (c) => {
     return c.json({ error: 'invalid request', detail: z.treeifyError(parsed.error) }, 400)
   }
 
-  const db = createDb(c.env.HYPERDRIVE)
+  const db = createDb(c.env.DB)
 
   // /api/scenarios/:id と同じ理由で、非公開シナリオへは直接IDを叩いても入れない。
   const scenarioRows = await db
@@ -237,7 +237,7 @@ const validateSessionId = createMiddleware<{
 
 sessionRoutes.get('/api/sessions/:id', validateSessionId, withEnv, async (c) => {
   const sessionId = c.get('sessionId')
-  const db = createDb(c.env.HYPERDRIVE)
+  const db = createDb(c.env.DB)
   const meta = await loadSessionMeta(db, sessionId)
 
   if (meta === undefined) {
@@ -460,7 +460,7 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
     return c.json({ error: 'rate limit exceeded', resetAt: verdict.resetAt }, 429)
   }
 
-  const db = createDb(c.env.HYPERDRIVE)
+  const db = createDb(c.env.DB)
   const meta = await loadSessionMeta(db, sessionId)
 
   if (meta === undefined) {
@@ -849,7 +849,7 @@ sessionRoutes.post('/api/sessions/:id/accuse', validateAccuse, withEnv, async (c
     return c.json({ error: 'rate limit exceeded', resetAt: verdict.resetAt }, 429)
   }
 
-  const db = createDb(c.env.HYPERDRIVE)
+  const db = createDb(c.env.DB)
   const meta = await loadSessionMeta(db, sessionId)
 
   if (meta === undefined) {
@@ -947,7 +947,7 @@ sessionRoutes.post('/api/sessions/:id/accuse', validateAccuse, withEnv, async (c
       .onConflictDoNothing()
     await db
       .update(playSessions)
-      .set({ finishedAt: sql`now()` })
+      .set({ finishedAt: sql`(unixepoch())` })
       .where(eq(playSessions.id, sessionId))
   } catch (error) {
     console.error('[accuse] failed to persist result', error)
@@ -984,7 +984,7 @@ sessionRoutes.post('/api/sessions/:id/accuse', validateAccuse, withEnv, async (c
  */
 sessionRoutes.get('/api/sessions/:id/history', validateSessionId, async (c) => {
   const sessionId = c.get('sessionId')
-  const db = createDb(c.env.HYPERDRIVE)
+  const db = createDb(c.env.DB)
   const meta = await loadSessionMeta(db, sessionId)
 
   if (meta === undefined) {
@@ -1018,7 +1018,7 @@ sessionRoutes.get('/api/sessions/:id/history', validateSessionId, async (c) => {
  */
 sessionRoutes.get('/api/sessions/:id/result', validateSessionId, async (c) => {
   const sessionId = c.get('sessionId')
-  const db = createDb(c.env.HYPERDRIVE)
+  const db = createDb(c.env.DB)
   const meta = await loadSessionMeta(db, sessionId)
 
   if (meta === undefined) {

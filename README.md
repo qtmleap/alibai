@@ -202,7 +202,7 @@ Aは「18:10にBを廊下で見た」としか知らないので、追及され�
 
 ベースは [qtmleap/devcontainers](https://github.com/qtmleap/devcontainers) の
 `examples/hono-vite-react-node/` です。
-Hono + Vite + React を Bun/Node で動かす構成に、PostgreSQL と Redis を足しています。
+Hono + Vite + React を Cloudflare Workers 上で動かし、状態は D1 / Durable Objects / KV に置いています。
 
 ### LLM
 
@@ -350,7 +350,7 @@ Zodの `safeParse` を強制します。最初は窮屈ですが、
 | 項目 | 採用 | 備考 |
 | --- | --- | --- |
 | APIフレームワーク | Hono | `streamSSE` が素直。ゲームロジックとLLM呼び出しは全てサーバー側 |
-| DB | PostgreSQL 18 | シナリオ、セッション、プレイ結果、統計 |
+| DB | Cloudflare D1 | シナリオ、セッション、プレイ結果、統計 |
 | ORM | Drizzle ORM | 型安全。マイグレーションが素直 |
 | KV / キャッシュ | Redis 8 | 進行中セッション、レートリミット、ランキング集計 |
 | 認証 | 匿名プレイ優先 | 遊ぶのにログイン不要。投稿者だけアカウントを持つ |
@@ -456,7 +456,7 @@ Anthropicで漏れなかったプロンプトがGeminiで漏れることは普�
 .devcontainer/
 ├── devcontainer.json        # features、マウント、拡張機能、環境変数の受け渡し
 ├── Dockerfile               # ベースイメージ (devcontainers/base:dev-ubuntu24.04)
-├── compose.yaml             # app + PostgreSQL + Redis
+├── compose.yaml             # app のみ
 ├── postCreateCommand.sh     # .env生成、bun install、マイグレーション
 └── postAttachCommand.sh     # git設定、マージ済みブランチの掃除、direnv
 ```
@@ -466,7 +466,6 @@ Anthropicで漏れなかったプロンプトがGeminiで漏れることは普�
 | サービス | 内容 | ポート |
 | --- | --- | --- |
 | `app` | 開発コンテナ本体（Bun / Node / Claude Code / gh / act） | 5173 |
-| `db` | PostgreSQL 18 | 5432 |
 | `cache` | Redis 8 | 6379 |
 
 `app` は `db` と `cache` のヘルスチェック通過を待ってから起動します。

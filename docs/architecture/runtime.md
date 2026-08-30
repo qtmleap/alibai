@@ -2,7 +2,7 @@
 
 ## Cloudflare Workers
 
-本番は Cloudflare Workers 上で動きます。エッジで実行されるため、スマホから10分遊ぶ体験に必要な低レイテンシが得られます。Durable Objects・KV・Hyperdrive といった状態管理の道具が同じプラットフォーム内で揃うことも選定理由です。
+本番は Cloudflare Workers 上で動きます。エッジで実行されるため、スマホから10分遊ぶ体験に必要な低レイテンシが得られます。Durable Objects・KV・D1 といった状態管理の道具が同じプラットフォーム内で揃うことも選定理由です。
 
 設定は `wrangler.jsonc` に集約されています。
 
@@ -14,7 +14,7 @@
 }
 ```
 
-`nodejs_compat` は省略できません。postgres.js が TCP 接続を張るために必要で、これが無いと Postgres に到達できません。
+`nodejs_compat` は元々 postgres.js が TCP 接続を張るために付けたものです。D1 へ移った時点でその理由は消えましたが、TanStack Start の SSR 側が要求する可能性が残るため、外す前に実際に動かして確かめること。
 
 ### エントリの二層構造
 
@@ -93,7 +93,7 @@ return streamSSE(c, async (stream) => {
     chunks.push(chunk)
     await stream.writeSSE({ event: 'delta', data: chunk })
   }
-  // ストリーム完了後に DO と Postgres へ永続化
+  // ストリーム完了後に DO と D1 へ永続化
   await stream.writeSSE({ event: 'done', data: '' })
 })
 ```
@@ -110,7 +110,7 @@ return streamSSE(c, async (stream) => {
 | 本番ビルド | `tsc --noEmit` + Vite | `bun run build` |
 | デプロイ | Vite + wrangler | `bun run deploy` |
 
-このプラグインは Vite の Environment API を使い、Worker のコードを Node ではなく **workerd の上で** 実行します。そのため dev サーバでも Durable Object・Hyperdrive・KV が本番と同じ形で解決され、`wrangler dev` を別に立てる必要がありません。エントリ（`main`）もバインディングも `wrangler.jsonc` をそのまま読むので、設定を二重に持つ場所はありません。
+このプラグインは Vite の Environment API を使い、Worker のコードを Node ではなく **workerd の上で** 実行します。そのため dev サーバでも Durable Object・D1・KV が本番と同じ形で解決され、`wrangler dev` を別に立てる必要がありません。エントリ（`main`）もバインディングも `wrangler.jsonc` をそのまま読むので、設定を二重に持つ場所はありません。
 
 `vite build` は `dist/alibai/` に Worker バンドルと deploy 用の `wrangler.json` を出力します。`wrangler deploy` は `.wrangler/deploy/config.json` のリダイレクトを辿ってそちらを使うため、`src/server.ts` が re-export している DO クラスもそのまま載ります。
 

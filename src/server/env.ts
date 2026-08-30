@@ -10,8 +10,8 @@ import type { RateLimiter } from '@/server/do/rate-limiter'
  * 「起動時に一度だけ検証する」から「リクエストに入った時点で検証する」へ移した理由がこれ。
  */
 export type Bindings = {
-  /** Neon への接続をプールする。使うのは connectionString だけ。 */
-  HYPERDRIVE: Hyperdrive
+  /** シナリオと真相、会話ログ、リザルトの正典。 */
+  DB: D1Database
   /** 1プレイセッション = 1インスタンス。進行中の状態はここが持つ。 */
   PLAY_SESSION: DurableObjectNamespace<PlaySession>
   /** ユーザー（未認証ならIP）ごとのLLM使用量。 */

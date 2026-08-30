@@ -11,7 +11,7 @@ AlibAI のシナリオを、人間・LLM・ゲームエンジンのどれから�
 - 人間が読む・Git でレビューする形式: **YAML**
 - Author LLM が生成する形式: **JSON / Structured Output**
 - 厳密な構造検証: **Zod を正典にし、必要に応じて JSON Schema を生成**
-- 実行時: 検証済みデータを PostgreSQL の `scenarios` / `scenario_truths` / `characters` / `evidences` に分解して保存
+- 実行時: 検証済みデータを D1 の `scenarios` / `scenario_truths` / `characters` / `evidences` に分解して保存
 
 YAML 自体はスキーマではなく、あくまでシリアライズ形式です。YAML の見た目だけを仕様にすると、必須項目・参照整合性・列挙値などを厳密に保証できません。
 

@@ -19,7 +19,7 @@ import { findScenarioDetail, listScenarios } from '@/server/read/scenarios'
  */
 
 export const listScenariosFn = createServerFn().handler(
-  async () => await listScenarios(env.SCENARIO_CACHE, createDb(env.HYPERDRIVE)),
+  async () => await listScenarios(env.SCENARIO_CACHE, createDb(env.DB)),
 )
 
 export const scenarioDetailFn = createServerFn()
@@ -35,7 +35,7 @@ export const scenarioDetailFn = createServerFn()
     return parsed.data
   })
   .handler(async ({ data }) => {
-    const scenario = await findScenarioDetail(createDb(env.HYPERDRIVE), data)
+    const scenario = await findScenarioDetail(createDb(env.DB), data)
 
     // 未公開と存在しないを区別せずに返す（read/scenarios.ts のコメント参照）。
     if (scenario === undefined) {

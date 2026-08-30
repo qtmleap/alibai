@@ -14,8 +14,9 @@ import { playSessions } from '~/db/schema'
 
 /**
  * 1回のDELETEで消す行数。
- * cascade は子テーブルまで巻き込むので、刻まずに流すと親を掴んだままの
- * 長いトランザクションになり、その間ふつうのプレイが書き込みを待たされる。
+ * D1 は文ごとに自動コミットするので、長いトランザクションが他の書き込みを
+ * 待たせることは無い。刻む理由は、cascade が子テーブルまで巻き込む分も含めて
+ * 1文あたりの処理行数と実行時間の上限に当てないため。
  */
 const BATCH_SIZE = 500
 
@@ -42,7 +43,7 @@ const deleteBatch = async (db: Db, retentionDays: number): Promise<number> => {
         db
           .select({ id: playSessions.id })
           .from(playSessions)
-          .where(lt(playSessions.startedAt, sql`now() - make_interval(days => ${retentionDays})`))
+          .where(lt(playSessions.startedAt, sql`(unixepoch() - ${retentionDays} * 86400)`))
           .limit(BATCH_SIZE),
       ),
     )

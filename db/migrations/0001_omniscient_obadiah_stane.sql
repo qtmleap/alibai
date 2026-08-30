@@ -1,1 +1,0 @@
-ALTER TABLE "scenarios" ADD COLUMN "briefing" text DEFAULT '' NOT NULL;

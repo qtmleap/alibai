@@ -250,6 +250,8 @@ vite.config.*.timestamp-*
 # シナリオ真相のローカルダンプ（誤コミット防止）
 /db/*.dump
 /db/seeds/*.local.*
+# db:seed が生成する投入用SQL。中身は db/scenarios/*.yaml から再生成できる。
+/db/seed.sql
 
 ### Cloudflare Workers ###
 # wrangler のローカル状態（DO/KVのエミュレーションデータなど）

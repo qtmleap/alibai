@@ -7,7 +7,7 @@ const app = new Hono<{ Bindings: Bindings }>()
 
 app.get('/api/health', (c) => c.json({ status: 'ok' }))
 
-// バインディング（HYPERDRIVE / SCENARIO_CACHE / PLAY_SESSION / RATE_LIMITER）は
+// バインディング（DB / SCENARIO_CACHE / PLAY_SESSION / RATE_LIMITER）は
 // Workers ランタイムなら常に存在するので検証不要。検証が要るのは env の「値」
 // （LLM_ACTOR_PROVIDER などZodでcoerceする設定値）で、これを使うのは ask だけ。
 // そのため withEnv はここで全ルート一括に掛けず、必要な ask ルート自身が

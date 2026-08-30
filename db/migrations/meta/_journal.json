@@ -1,61 +1,12 @@
 {
   "version": "7",
-  "dialect": "postgresql",
+  "dialect": "sqlite",
   "entries": [
     {
       "idx": 0,
-      "version": "7",
-      "when": 1787977157784,
-      "tag": "0000_clean_living_mummy",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1787978155469,
-      "tag": "0001_omniscient_obadiah_stane",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1787978250039,
-      "tag": "0002_romantic_power_pack",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1787978402208,
-      "tag": "0003_calm_kang",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1788020036365,
-      "tag": "0004_stale_sprite",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1788037776721,
-      "tag": "0005_careful_jigsaw",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1788043546288,
-      "tag": "0006_adorable_mystique",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1788068191111,
-      "tag": "0007_funny_namorita",
+      "version": "6",
+      "when": 1788070090766,
+      "tag": "0000_rapid_shinko_yamashiro",
       "breakpoints": true
     }
   ]

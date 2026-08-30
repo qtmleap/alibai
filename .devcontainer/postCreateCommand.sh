@@ -29,7 +29,9 @@ if [ -f package.json ]; then
   fi
 fi
 
-# Apply database migrations once Drizzle is configured and migrations exist.
-if [ -f drizzle.config.ts ] && [ -n "$(ls -A db/migrations 2>/dev/null)" ]; then
-  bun run db:migrate || echo "[postCreate] db:migrate failed — run it manually once the DB is reachable"
+# Apply migrations and load the scenarios into the local D1 database.
+# Both run against .wrangler/state, so no network and no database container.
+if [ -n "$(ls -A db/migrations 2>/dev/null)" ]; then
+  bun run db:migrate || echo "[postCreate] db:migrate failed — run it manually"
+  bun run db:seed && bun run db:seed:apply || echo "[postCreate] seeding failed — run db:seed && db:seed:apply manually"
 fi
