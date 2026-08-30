@@ -80,37 +80,37 @@ facts:
     kind: observation
 timeline:
   - id: shortage-discovered
-    at: "21:35"
+    at: "2026-01-15T21:35:00+09:00"
     participants: [fuyuki, nozomi]
     facts: [audit-shortage-found]
     description: 佐久間が夜の帳簿確認で出荷代金の不足に気づく。
   - id: confrontation
-    at: "21:50"
+    at: "2026-01-15T21:50:00+09:00"
     participants: [fuyuki]
     facts: [sakuma-confronted-fuyuki, fuyuki-diverted-sales]
     description: 佐久間が冬木に不足分を問い、翌朝に帳簿を再確認すると告げる。
   - id: corridor-sighting
-    at: "22:06"
+    at: "2026-01-15T22:06:00+09:00"
     participants: [fuyuki, kuze]
     facts: [kuze-saw-fuyuki-office-side]
     description: 久世が事務室側の廊下から戻ってくる冬木を見かける。
   - id: sakuma-death
-    at: "22:10"
+    at: "2026-01-15T22:10:00+09:00"
     participants: [fuyuki]
     facts: [fuyuki-killed-sakuma, fuyuki-left-victim-coat]
     description: 冬木が事務室で佐久間を襲い、その後に朝まで生きていたように見せる準備をする。
   - id: staged-chores
-    at: "05:35"
+    at: "2026-01-16T05:35:00+09:00"
     participants: [fuyuki]
     facts: [fuyuki-did-morning-chores, feed-board-magnet-moved, fuyuki-boots-wet-straw]
     description: 冬木が普段は佐久間が行う朝の家畜の世話を代わりに済ませる。
   - id: kitchen-light-seen
-    at: "05:48"
+    at: "2026-01-16T05:48:00+09:00"
     participants: [nozomi]
     facts: [kitchen-light-on, nozomi-assumed-uncle-awake]
     description: 希が台所の灯りを見て、叔父がいつも通り起きていると思い込む。
   - id: discovery
-    at: "07:10"
+    at: "2026-01-16T07:10:00+09:00"
     participants: [nozomi, fuyuki, kuze]
     facts: [body-found-0710]
     description: 希が事務室で佐久間の死を発見する。

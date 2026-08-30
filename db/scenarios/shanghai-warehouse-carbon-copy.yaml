@@ -1,0 +1,273 @@
+schemaVersion: 1
+id: shanghai-warehouse-carbon-copy
+meta:
+  title: 上海埠頭、複写伝票の夜
+  synopsis: 1928年の上海。暴風雨で閉鎖された河岸倉庫で貿易商が死亡した。事件後にも被害者の署名入り搬出伝票が作られているが、三枚綴りの複写紙には奇妙な差がある。港の帳簿と証言から、紙が作った偽の生存証明を崩せ。
+  category: 歴史クローズドサークル
+  difficulty: 5
+  estimatedMinutes: 15
+  tags: [1928年, 上海, 倉庫, 複写伝票]
+briefing: |-
+  1928年、上海。暴風雨で河岸の道路が封鎖された夜、輸出倉庫の事務室で貿易商・周文海が死亡しているのが見つかりました。
+
+  倉庫内に残っていたのは三人。番頭の林雪梅、通関書記の陳伯安、荷役監督の王世傑です。
+
+  22時05分作成と記された搬出伝票には周の署名があり、事件後も周が仕事をしていたように見えます。ただし伝票は三枚綴りの複写式です。三枚が本当に同時に書かれたのか、紙そのものを証言と同じように疑ってください。
+floorPlan: null
+facts:
+  - id: lin-manager
+    statement: 林雪梅は倉庫の番頭として帳簿と顧客対応を取り仕切っている
+    kind: other
+  - id: chen-customs-clerk
+    statement: 陳伯安は通関書類と搬出伝票を作成する書記である
+    kind: other
+  - id: wang-loading-chief
+    statement: 王世傑は荷役作業と倉庫扉の管理を担当している
+    kind: other
+  - id: three-part-carbon-form
+    statement: 搬出伝票は上紙に書いた筆圧が複写紙を通じて二枚の控えへ同時に写る三枚綴りである
+    kind: physical
+  - id: top-sheet-time-added-later
+    statement: 22時05分という時刻は伝票の上紙にだけあり、二枚の控えには複写されていない
+    kind: physical
+  - id: signature-on-all-three
+    statement: 周文海の署名は三枚すべてに同じ筆圧で複写されている
+    kind: physical
+  - id: lin-smuggled-silk
+    statement: 林雪梅は帳簿外の絹荷を倉庫から流していた
+    kind: motive
+    secret: true
+  - id: zhou-found-smuggling
+    statement: 周文海は事件当日、林雪梅による帳簿外取引に気づいた
+    kind: motive
+    secret: true
+  - id: zhou-signed-blank-form
+    statement: 21時35分ごろ、周文海は翌朝搬出予定の荷のため時刻欄が空白の伝票へ先に署名した
+    kind: truth
+    secret: true
+  - id: chen-saw-blank-time
+    statement: 陳伯安は21時40分ごろ、周の署名済み伝票の時刻欄が空白だったことを見ている
+    kind: observation
+  - id: lin-killed-zhou
+    statement: 21時52分ごろ、林雪梅は事務室で周文海を襲い死亡させた
+    kind: truth
+    secret: true
+  - id: lin-added-2205
+    statement: 22時05分ごろ、林雪梅は署名済み伝票の上紙にだけ時刻を書き足した
+    kind: truth
+    secret: true
+  - id: chen-bribed-inspector
+    statement: 陳伯安は別件の通関を早めるため役人へ不正な謝礼を渡していた
+    kind: other
+    secret: true
+  - id: wang-stole-cargo
+    statement: 王世傑は破損扱いにした輸入品を少量持ち出していた
+    kind: other
+    secret: true
+  - id: body-found-2220
+    statement: 22時20分、王世傑が事務室で周文海の死を発見した
+    kind: observation
+timeline:
+  - id: blank-form-signed
+    at: "21:35"
+    participants: [lin, chen]
+    facts: [zhou-signed-blank-form]
+    description: 周が翌朝の搬出用に、時刻欄が空白の伝票へ先に署名する。
+  - id: chen-sees-form
+    at: "21:40"
+    participants: [chen]
+    facts: [chen-saw-blank-time]
+    description: 陳が署名済み伝票を確認し、時刻欄がまだ空白なのを見る。
+  - id: zhou-death
+    at: "21:52"
+    participants: [lin]
+    facts: [lin-killed-zhou, lin-smuggled-silk, zhou-found-smuggling]
+    description: 林が帳簿外取引の発覚を恐れ、事務室で周を襲う。
+  - id: time-added
+    at: "22:05"
+    participants: [lin]
+    facts: [lin-added-2205, top-sheet-time-added-later]
+    description: 林が署名済み伝票の上紙だけに22時05分と書き足す。
+  - id: discovery
+    at: "22:20"
+    participants: [lin, chen, wang]
+    facts: [body-found-2220]
+    description: 王が事務室で周の死を発見する。
+characters:
+  - id: lin
+    name: 林雪梅
+    role: suspect
+    personality: 冷静で計算高い番頭。書類の扱いに慣れており、署名入り伝票を強い生存証明として押し出そうとする。帳簿外の荷について問われると警戒する。
+    goals:
+      - 帳簿外の絹荷を隠したい
+      - 22時05分に周が伝票を書いたと思わせたい
+    knowledge: [lin-manager, three-part-carbon-form, signature-on-all-three, body-found-2220]
+    secrets:
+      - fact: lin-smuggled-silk
+        disclosure: pressured
+      - fact: zhou-found-smuggling
+        disclosure: pressured
+      - fact: lin-killed-zhou
+        disclosure: never
+      - fact: lin-added-2205
+        disclosure: never
+    lies:
+      - id: lin-zhou-alive-2205
+        about: lin-added-2205
+        claim: 22時05分ごろ、周さん本人が搬出伝票に時刻を書き、私は横で確認しました
+        strategy: maintain-until-contradicted
+      - id: lin-no-smuggling
+        about: lin-smuggled-silk
+        claim: 帳簿に載っていない絹荷など扱っていません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: lin-caught
+        about: zhou-found-smuggling
+        detail: 周に帳簿を閉じられ「明朝、全部数え直す」と言われたとき、終わったと思った。
+    relationships:
+      - character: chen
+        relation: 同僚
+        attitude: 伝票の空欄を見ていた可能性があり警戒している
+      - character: wang
+        relation: 部下
+        attitude: 荷の出入りを知りすぎているので信用していない
+  - id: chen
+    name: 陳伯安
+    role: suspect
+    personality: 細部に強い通関書記。紙の筆圧や控えの違いに敏感だが、自分の不正な謝礼については口を濁す。
+    goals:
+      - 役人への不正な謝礼を隠したい
+      - 署名済み伝票が21時40分時点で空欄だったことを伝えたい
+    knowledge: [chen-customs-clerk, three-part-carbon-form, signature-on-all-three, chen-saw-blank-time, body-found-2220]
+    secrets:
+      - fact: chen-bribed-inspector
+        disclosure: pressured
+    lies:
+      - id: chen-no-bribe
+        about: chen-bribed-inspector
+        claim: 通関を早めるため役人へ謝礼を渡したことはありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: chen-blank-box
+        about: chen-saw-blank-time
+        detail: 周の署名はあったのに、時刻の四角だけ白いままだったのが妙に印象に残っている。
+    relationships:
+      - character: lin
+        relation: 上司
+        attitude: 書類に強い人だが、都合の悪い荷だけ説明が曖昧だと思っている
+      - character: wang
+        relation: 同僚
+        attitude: 荷の扱いは荒いが目撃は率直だと思っている
+  - id: wang
+    name: 王世傑
+    role: witness
+    personality: 豪胆な荷役監督。細かな帳簿は苦手だが、物品の状態には目が利く。破損品の持ち出しだけは隠したい。
+    goals:
+      - 破損品の持ち出しを隠したい
+      - 伝票の三枚を見比べた違和感を話したい
+    knowledge: [wang-loading-chief, three-part-carbon-form, top-sheet-time-added-later, body-found-2220]
+    secrets:
+      - fact: wang-stole-cargo
+        disclosure: pressured
+    lies:
+      - id: wang-no-cargo-theft
+        about: wang-stole-cargo
+        claim: 破損扱いの荷を自分のために持ち出したことはない
+        strategy: maintain-until-contradicted
+    memories:
+      - id: wang-carbon-difference
+        about: top-sheet-time-added-later
+        detail: 三枚を揃えたとき、時刻だけ下の控えに写っていないのが変だと思った。
+    relationships:
+      - character: lin
+        relation: 上司
+        attitude: 荷の数を合わすときだけ妙に神経質になる人だと思っている
+      - character: chen
+        relation: 同僚
+        attitude: 紙のことなら自分より信用できる
+revelations:
+  - id: timestamp-not-contemporaneous
+    title: 時刻だけ後から書かれた
+    text: 署名は三枚へ同時に複写されているのに、22時05分という時刻は上紙にしかない。時刻は署名後に別途書き足された。
+    category: timeline
+    subject: { type: event, id: time-added }
+    sources:
+      - type: character
+        id: chen
+        revealCondition: 陳に三枚の伝票で筆跡や複写のされ方が違う部分を尋ね、時刻だけ控えに写っていないと確認した。
+        requires:
+          revelations: []
+          evidences: [three-copy-form]
+    relatedFacts: [three-part-carbon-form, top-sheet-time-added-later, signature-on-all-three]
+  - id: form-was-pre-signed
+    title: 署名は事件前に存在した
+    text: 周は21時35分ごろ時刻欄が空白の伝票へ先に署名しており、22時05分の時刻は周の生存を示さない。
+    category: alibi
+    subject: { type: character, id: lin }
+    sources:
+      - type: character
+        id: chen
+        revealCondition: 陳に21時40分に見た伝票の状態を詳しく尋ね、署名済みで時刻欄が空白だったと確認した。
+        requires:
+          revelations: [timestamp-not-contemporaneous]
+          evidences: [chen-note]
+    relatedFacts: [zhou-signed-blank-form, chen-saw-blank-time]
+evidences:
+  - id: three-copy-form
+    label: 三枚綴りの搬出伝票
+    description: 署名は三枚すべてに複写されているが、22時05分という時刻は上紙にしか存在しない。
+    reveal:
+      mode: conversation
+      condition: 陳か王に搬出伝票の三枚を比較した違いを尋ねたら開示する。
+    sources:
+      - { type: character, id: chen }
+      - { type: character, id: wang }
+    supports: [three-part-carbon-form, top-sheet-time-added-later, signature-on-all-three]
+    contradicts: ["lie:lin-zhou-alive-2205"]
+  - id: chen-note
+    label: 21時40分の書記メモ
+    description: 陳の作業メモには署名済み伝票の番号と「時刻未記入」と残っている。
+    reveal:
+      mode: conversation
+      condition: 陳に署名済み伝票をいつ確認したか尋ね、作業メモを確認したら開示する。
+    sources:
+      - { type: character, id: chen }
+    supports: [zhou-signed-blank-form, chen-saw-blank-time]
+    contradicts: ["lie:lin-zhou-alive-2205"]
+  - id: silk-shortage-ledger
+    label: 絹荷の不一致
+    description: 倉庫の実数と帳簿が合わず、周が林の担当欄に翌朝再検査の印を付けている。
+    reveal:
+      mode: conversation
+      condition: 林か陳に周が事件前に調べていた荷の不一致を尋ねたら開示する。
+    sources:
+      - { type: character, id: lin }
+      - { type: character, id: chen }
+    supports: [lin-smuggled-silk, zhou-found-smuggling]
+    contradicts: ["lie:lin-no-smuggling"]
+  - id: broken-cargo-cache
+    label: 隠された破損品
+    description: 王が持ち出そうとしていた破損品が見つかるが、事務室の事件とは独立している。
+    reveal:
+      mode: conversation
+      condition: 王に破損扱いの荷が帳簿と合わない理由を追及したら開示する。
+    sources:
+      - { type: character, id: wang }
+    supports: [wang-stole-cargo]
+    contradicts: ["lie:wang-no-cargo-theft"]
+solution:
+  culprit: lin
+  summary: 犯人は林雪梅。帳簿外の絹荷を周に見抜かれ、21時52分ごろ事務室で周を襲った。周はその前に翌朝の搬出用として時刻欄が空白の伝票へ署名していたため、林は22時05分になって上紙へ時刻だけを書き足し、周がその時刻まで生きていたように見せた。だが三枚綴りの複写伝票では、同時に書かれた文字なら控えにも写る。署名は三枚にあるのに時刻は上紙だけで、陳も21時40分に時刻欄が空白だったと記録している。
+  method: 事件前に署名された複写伝票の上紙へ後から時刻だけを書き足し、被害者の生存時刻を偽装した
+  motive: 帳簿外の絹荷取引が発覚するのを防ぐため
+  requiredFacts: [three-part-carbon-form, top-sheet-time-added-later, signature-on-all-three, lin-smuggled-silk, zhou-signed-blank-form, chen-saw-blank-time, lin-killed-zhou, lin-added-2205]
+  secretKeywords:
+    - 犯人は林
+    - 林が周を襲
+    - 林が時刻を書き足
+    - 私が時刻を書き足
+quality:
+  expectedQuestionCount: { min: 10, max: 22 }
+  requiredEvidence: { min: 3 }
+  redHerrings: [chen-bribed-inspector, wang-stole-cargo]
+  notes: 署名と時刻が同時に書かれたという前提を、複写の物理と書記メモの二方向から崩す。

@@ -1,0 +1,277 @@
+schemaVersion: 1
+id: venetian-lazaretto-sunset-bell
+meta:
+  title: 検疫島、日没の鐘
+  synopsis: 1796年、ヴェネツィア潟の検疫島。嵐で舟が出せない夜、監督医が死亡した。三人の滞在者は皆「日没の鐘が鳴った後」の行動を語るが、その鐘は時計ではない。隔離島に残された記録と証言から、時刻の思い込みを崩せ。
+  category: 歴史クローズドサークル
+  difficulty: 5
+  estimatedMinutes: 15
+  tags: [1796年, ヴェネツィア, 検疫島, 鐘]
+briefing: |-
+  1796年、ヴェネツィア潟。感染症を警戒する検疫島ラッザレットで、監督医ロレンツォ・ヴァーレが記録室で死亡しているのが見つかりました。
+
+  嵐で渡し舟は係留され、夜間に島を出入りした者はいません。残っていたのは薬剤係マルタ・ベッリーニ、書記ニコロ・フェッリ、舟番ピエトロ・サルヴィの三人です。
+
+  三人の証言には何度も「日没の鐘の後」という表現が出てきます。鐘が鳴った時刻を現代の時計のように扱ってよいのか。島の当直帳と鐘の運用を確かめながら聞き込みをしてください。
+floorPlan: null
+facts:
+  - id: marta-apothecary
+    statement: マルタ・ベッリーニは検疫島の薬剤と備品を管理している
+    kind: other
+  - id: nicolo-clerk
+    statement: ニコロ・フェッリは入島者と物資の記録を付ける書記である
+    kind: other
+  - id: pietro-boatman
+    statement: ピエトロ・サルヴィは検疫島の渡し舟と係留設備を管理している
+    kind: other
+  - id: sunset-bell-not-fixed-hour
+    statement: 島の日没の鐘は暦と天候に応じて当直者が夕暮れを確認して鳴らすため、毎日同じ時計時刻には鳴らない
+    kind: physical
+  - id: bell-rang-1847
+    statement: 事件当日の日没の鐘は18時47分に鳴らされた
+    kind: observation
+  - id: marta-diverted-medicine
+    statement: マルタ・ベッリーニは高価な薬剤を帳簿外で売却していた
+    kind: motive
+    secret: true
+  - id: lorenzo-found-shortage
+    statement: ロレンツォ・ヴァーレは事件当日、薬剤の不足と帳簿の不一致に気づいた
+    kind: motive
+    secret: true
+  - id: lorenzo-confronted-marta
+    statement: 18時35分、ロレンツォ・ヴァーレはマルタに翌朝本島へ不正を報告すると告げた
+    kind: motive
+    secret: true
+  - id: nicolo-saw-marta-before-bell
+    statement: 18時41分ごろ、ニコロ・フェッリは記録室へ向かう廊下でマルタを見た
+    kind: observation
+  - id: marta-killed-lorenzo
+    statement: 18時44分ごろ、マルタ・ベッリーニは記録室でロレンツォを襲い死亡させた
+    kind: truth
+    secret: true
+  - id: marta-returned-after-bell
+    statement: 日没の鐘が鳴った直後、マルタ・ベッリーニは薬剤庫へ戻った
+    kind: truth
+    secret: true
+  - id: nicolo-altered-ration-ledger
+    statement: ニコロ・フェッリは自分の親族へ余分な食料を回すため配給帳の数字を書き換えていた
+    kind: other
+    secret: true
+  - id: pietro-smuggled-letter
+    statement: ピエトロ・サルヴィは検疫規則に反して本島への私信を舟に載せていた
+    kind: other
+    secret: true
+  - id: body-found-1910
+    statement: 19時10分、ニコロ・フェッリが記録室でロレンツォの死を発見した
+    kind: observation
+timeline:
+  - id: lorenzo-audit
+    at: "18:35"
+    participants: [marta]
+    facts: [marta-diverted-medicine, lorenzo-found-shortage, lorenzo-confronted-marta]
+    description: ロレンツォが薬剤の不足をマルタへ突きつけ、翌朝の報告を告げる。
+  - id: corridor-sighting
+    at: "18:41"
+    participants: [marta, nicolo]
+    facts: [nicolo-saw-marta-before-bell]
+    description: ニコロが記録室へ向かう廊下でマルタを見かける。
+  - id: lorenzo-death
+    at: "18:44"
+    participants: [marta]
+    facts: [marta-killed-lorenzo]
+    description: マルタが記録室でロレンツォを襲う。
+  - id: sunset-bell
+    at: "18:47"
+    participants: [pietro]
+    facts: [bell-rang-1847, sunset-bell-not-fixed-hour]
+    description: 当直のピエトロが夕暮れを確認し、日没の鐘を鳴らす。
+  - id: marta-returns
+    at: "18:49"
+    participants: [marta]
+    facts: [marta-returned-after-bell]
+    description: マルタが薬剤庫へ戻り、鐘の後はずっとそこにいたように振る舞う。
+  - id: discovery
+    at: "19:10"
+    participants: [marta, nicolo, pietro]
+    facts: [body-found-1910]
+    description: ニコロが記録室でロレンツォの死を発見する。
+characters:
+  - id: marta
+    name: マルタ・ベッリーニ
+    role: suspect
+    personality: 実務に強く落ち着いた薬剤係。時刻を尋ねられると時計ではなく鐘を基準に話す癖がある。不足した薬剤の話題では急に言葉が硬くなる。
+    goals:
+      - 薬剤の横流しを隠したい
+      - 日没の鐘より前は薬剤庫にいたと思わせたい
+    knowledge: [marta-apothecary, sunset-bell-not-fixed-hour, bell-rang-1847, body-found-1910]
+    secrets:
+      - fact: marta-diverted-medicine
+        disclosure: pressured
+      - fact: lorenzo-found-shortage
+        disclosure: pressured
+      - fact: lorenzo-confronted-marta
+        disclosure: pressured
+      - fact: marta-killed-lorenzo
+        disclosure: never
+      - fact: marta-returned-after-bell
+        disclosure: never
+    lies:
+      - id: marta-before-bell-alibi
+        about: marta-returned-after-bell
+        claim: 日没の鐘が鳴る前から薬剤庫にいました。鐘の後は一歩も出ていません
+        strategy: maintain-until-contradicted
+      - id: marta-no-shortage
+        about: marta-diverted-medicine
+        claim: 薬剤の不足をロレンツォさんから指摘されたことはありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: report-threat
+        about: lorenzo-confronted-marta
+        detail: ロレンツォに「朝の舟で本島へ報告する」と言われた瞬間、すべて失うと思った。
+    relationships:
+      - character: nicolo
+        relation: 同僚
+        attitude: 帳簿に細かいので苦手としている
+      - character: pietro
+        relation: 同僚
+        attitude: 鐘を鳴らす役目のため、その日の時刻を覚えていることを警戒している
+  - id: nicolo
+    name: ニコロ・フェッリ
+    role: suspect
+    personality: 几帳面な書記。紙の記録を重視し、人の記憶には懐疑的。配給帳を書き換えていたため帳簿全体を調べられるのは困るが、廊下で見たマルタについては正確に話す。
+    goals:
+      - 配給帳の改ざんを隠したい
+      - 18時41分の目撃を正確に伝えたい
+    knowledge: [nicolo-clerk, bell-rang-1847, nicolo-saw-marta-before-bell, body-found-1910]
+    secrets:
+      - fact: nicolo-altered-ration-ledger
+        disclosure: pressured
+    lies:
+      - id: nicolo-clean-ledger
+        about: nicolo-altered-ration-ledger
+        claim: 配給帳の数字を私的な都合で変えたことはありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: corridor-marta
+        about: nicolo-saw-marta-before-bell
+        detail: 鐘が鳴る少し前、記録室側へ急ぐマルタと廊下ですれ違った。
+    relationships:
+      - character: marta
+        relation: 同僚
+        attitude: 薬剤の数字を確認すると嫌な顔をするのが気になっていた
+      - character: pietro
+        relation: 同僚
+        attitude: 規則には大雑把だが鐘の当直は正確だと思っている
+  - id: pietro
+    name: ピエトロ・サルヴィ
+    role: witness
+    personality: 潟の天候と潮を読むことに長けた舟番。時計より空の明るさや鐘で時間を捉える。私信を運んだ規則違反だけは隠したい。
+    goals:
+      - 私信を密かに舟へ載せたことを隠したい
+      - 事件当日の鐘を鳴らした時刻を正確に説明したい
+    knowledge: [pietro-boatman, sunset-bell-not-fixed-hour, bell-rang-1847, body-found-1910]
+    secrets:
+      - fact: pietro-smuggled-letter
+        disclosure: pressured
+    lies:
+      - id: pietro-no-private-letter
+        about: pietro-smuggled-letter
+        claim: 検疫規則に反して私信を舟へ載せたことはない
+        strategy: maintain-until-contradicted
+    memories:
+      - id: late-sunset
+        about: bell-rang-1847
+        detail: 雲が厚く、いつもより早く暗く感じたが、当直帳を見て18時47分に鐘を鳴らした。
+    relationships:
+      - character: marta
+        relation: 同僚
+        attitude: 鐘の直後に薬剤庫へ戻る姿を見たことを覚えている
+      - character: nicolo
+        relation: 同僚
+        attitude: 紙の時刻ばかり気にする堅い人だと思っている
+revelations:
+  - id: bell-is-not-clock
+    title: 日没の鐘は固定時刻ではない
+    text: 日没の鐘は毎日同じ時刻に鳴る時計ではなく、その日の夕暮れを当直者が確認して鳴らす合図だった。
+    category: timeline
+    subject: { type: event, id: sunset-bell }
+    sources:
+      - type: character
+        id: pietro
+        revealCondition: ピエトロに日没の鐘が毎日何時に鳴るのか具体的に尋ね、固定時刻ではないと確認した。
+        requires:
+          revelations: []
+          evidences: [bell-duty-ledger]
+    relatedFacts: [sunset-bell-not-fixed-hour, bell-rang-1847]
+  - id: marta-before-bell-exposed
+    title: 鐘の前の廊下
+    text: マルタは日没の鐘より前から薬剤庫にいたのではなく、18時41分には記録室側の廊下にいた。
+    category: alibi
+    subject: { type: character, id: marta }
+    sources:
+      - type: character
+        id: nicolo
+        revealCondition: ニコロに鐘が鳴る直前の廊下で誰を見たか尋ね、マルタを見たと確認した。
+        requires:
+          revelations: [bell-is-not-clock]
+          evidences: [nicolo-first-note]
+    relatedFacts: [nicolo-saw-marta-before-bell]
+evidences:
+  - id: bell-duty-ledger
+    label: 鐘の当直帳
+    description: 事件当日は日没の鐘を18時47分に鳴らした記録があり、別の日には異なる時刻が並んでいる。
+    reveal:
+      mode: conversation
+      condition: ピエトロに鐘の運用と事件当日の時刻を尋ねるか、ニコロに当直帳について尋ねたら開示する。
+    sources:
+      - { type: character, id: pietro }
+      - { type: character, id: nicolo }
+    supports: [sunset-bell-not-fixed-hour, bell-rang-1847]
+    contradicts: []
+  - id: nicolo-first-note
+    label: ニコロの廊下メモ
+    description: ニコロの業務メモには「鐘前、記録室側でマルタ」と書かれ、当直帳との照合で18時41分ごろと分かる。
+    reveal:
+      mode: conversation
+      condition: ニコロに日没の鐘の直前に誰を見たか尋ね、業務メモを確認したら開示する。
+    sources:
+      - { type: character, id: nicolo }
+    supports: [nicolo-saw-marta-before-bell]
+    contradicts: ["lie:marta-before-bell-alibi"]
+  - id: missing-medicine-ledger
+    label: 不足した薬剤の帳簿
+    description: 高価な薬剤の実数と帳簿が合わず、ロレンツォが翌朝の報告を示す書き込みを残している。
+    reveal:
+      mode: conversation
+      condition: マルタかニコロに薬剤の不足とロレンツォの直前の調査を尋ねたら開示する。
+    sources:
+      - { type: character, id: marta }
+      - { type: character, id: nicolo }
+    supports: [marta-diverted-medicine, lorenzo-found-shortage, lorenzo-confronted-marta]
+    contradicts: ["lie:marta-no-shortage"]
+  - id: private-letter
+    label: 舟に隠された私信
+    description: ピエトロの規則違反を示す私信が見つかるが、記録室の事件とは結びつかない。
+    reveal:
+      mode: conversation
+      condition: ピエトロに係留舟へ規則外の物を載せていないか追及したら開示する。
+    sources:
+      - { type: character, id: pietro }
+    supports: [pietro-smuggled-letter]
+    contradicts: ["lie:pietro-no-private-letter"]
+solution:
+  culprit: marta
+  summary: 犯人はマルタ・ベッリーニ。薬剤の横流しをロレンツォに見抜かれ、翌朝本島へ報告されるのを恐れた。マルタは18時44分ごろ記録室でロレンツォを襲い、18時47分の日没の鐘の直後に薬剤庫へ戻った。その後「鐘が鳴る前から薬剤庫にいた」と語り、鐘を曖昧な時間の境界として利用した。しかし当直帳から鐘の実時刻は18時47分と分かり、ニコロは18時41分に記録室側でマルタを目撃している。鐘は毎日同じ時刻を示す時計ではないため、鐘だけを基準にした証言はアリバイにならない。
+  method: 日没の鐘を固定時刻のように語って時間関係を曖昧にし、記録室へ行った事実を隠した
+  motive: 薬剤の横流しが翌朝本島へ報告されるのを防ぐため
+  requiredFacts: [sunset-bell-not-fixed-hour, bell-rang-1847, marta-diverted-medicine, lorenzo-confronted-marta, nicolo-saw-marta-before-bell, marta-killed-lorenzo]
+  secretKeywords:
+    - 犯人はマルタ
+    - マルタがロレンツォを襲
+    - 私がロレンツォを襲
+    - 鐘を利用してアリバイ
+quality:
+  expectedQuestionCount: { min: 10, max: 22 }
+  requiredEvidence: { min: 3 }
+  redHerrings: [nicolo-altered-ration-ledger, pietro-smuggled-letter]
+  notes: 現代の時計感覚を持ち込むと誤る構造。鐘の運用、当日の実時刻、ニコロの目撃を組み合わせて解く。
