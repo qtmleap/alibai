@@ -1,0 +1,345 @@
+schemaVersion: 1
+id: snowbound-farm-morning-chores
+meta:
+  title: 雪籠り農園、朝支度の痕跡
+  synopsis: 猛吹雪で孤立した高原農園で、経営者・佐久間隆志が事務室で死亡しているのが見つかった。朝には台所の灯りがつき、家畜の世話も済んでいたため、皆は佐久間が夜を越して生きていたと思っている。だが「朝の仕事が済んでいる」ことと「佐久間が朝まで生きていた」ことは同じではない。
+  category: クローズドサークル
+  difficulty: 5
+  estimatedMinutes: 15
+  tags: [雪, 農園, 時系列, 生活痕]
+briefing: |-
+  ——事件の記録を読み上げます。
+
+  午前七時十分、雪に閉ざされた高原農園の事務室で、経営者の佐久間隆志が死亡しているのが発見されました。夜半から猛吹雪となり、農園へ通じる一本道は完全に塞がれています。
+
+  農園にいたのは三人。農場主任の冬木紬、佐久間の姪で経理を手伝う佐久間希、設備担当の久世圭太です。
+
+  奇妙なのは朝の痕跡です。六時前には台所の灯りがつき、家畜の朝飼いも終わっていました。佐久間は毎朝誰より早く起きてその作業をする人物でした。三人はそのため、少なくとも明け方までは佐久間が生きていたと考えています。
+
+  ただし、誰もその朝に佐久間本人と会話をしてはいません。誰が何を見て、何を勝手に補ったのかを切り分けてください。
+floorPlan: null
+facts:
+  - id: fuyuki-manager
+    statement: 冬木紬は農園の現場管理と出荷を任されている農場主任である
+    kind: other
+  - id: nozomi-accounting
+    statement: 佐久間希は被害者の姪で、農園の帳簿整理を手伝っている
+    kind: other
+  - id: kuze-maintenance
+    statement: 久世圭太は農機具と暖房設備の保守を担当している
+    kind: other
+  - id: audit-shortage-found
+    statement: 佐久間隆志は事件当日の夜、出荷代金の一部が帳簿と合わないことに気づいた
+    kind: motive
+    secret: true
+  - id: fuyuki-diverted-sales
+    statement: 冬木紬は数か月前から少額の出荷代金を私的に流用していた
+    kind: motive
+    secret: true
+  - id: sakuma-confronted-fuyuki
+    statement: 21時50分ごろ、佐久間隆志は冬木紬に帳簿の不足について翌朝もう一度確認すると告げた
+    kind: motive
+    secret: true
+  - id: kuze-saw-fuyuki-office-side
+    statement: 22時06分ごろ、久世圭太は事務室側の廊下から戻ってくる冬木紬を見た
+    kind: observation
+  - id: fuyuki-killed-sakuma
+    statement: 22時10分ごろ、冬木紬は事務室で佐久間隆志を襲い死亡させた
+    kind: truth
+    secret: true
+  - id: fuyuki-left-victim-coat
+    statement: 冬木紬は犯行後、佐久間隆志の防寒上着を台所脇へ移した
+    kind: truth
+    secret: true
+  - id: fuyuki-did-morning-chores
+    statement: 05時35分ごろ、冬木紬は佐久間隆志が普段行う朝の家畜の世話を代わりに済ませた
+    kind: truth
+    secret: true
+  - id: kitchen-light-on
+    statement: 05時48分ごろ、佐久間希は廊下から台所の灯りがついているのを見た
+    kind: observation
+  - id: nozomi-assumed-uncle-awake
+    statement: 佐久間希は台所の灯りを見て、佐久間隆志が起きているのだと思い込んだ
+    kind: testimony
+  - id: feed-board-magnet-moved
+    statement: 朝飼いの作業板では完了を示す磁石だけが移動され、佐久間隆志が毎朝書く時刻の記入がなかった
+    kind: physical
+  - id: fuyuki-boots-wet-straw
+    statement: 06時05分ごろ、冬木紬の長靴には新しい雪解け水と飼料庫の藁が付いていた
+    kind: physical
+  - id: kuze-generator-secret
+    statement: 久世圭太は許可なく予備発電機から自分の作業小屋へ電源を引いていた
+    kind: other
+    secret: true
+  - id: nozomi-hid-debt
+    statement: 佐久間希は被害者から個人的に借りた金の返済期限を延ばしてもらっていた
+    kind: other
+    secret: true
+  - id: body-found-0710
+    statement: 07時10分、佐久間希が事務室で佐久間隆志の死を発見した
+    kind: observation
+timeline:
+  - id: shortage-discovered
+    at: "21:35"
+    participants: [fuyuki, nozomi]
+    facts: [audit-shortage-found]
+    description: 佐久間が夜の帳簿確認で出荷代金の不足に気づく。
+  - id: confrontation
+    at: "21:50"
+    participants: [fuyuki]
+    facts: [sakuma-confronted-fuyuki, fuyuki-diverted-sales]
+    description: 佐久間が冬木に不足分を問い、翌朝に帳簿を再確認すると告げる。
+  - id: corridor-sighting
+    at: "22:06"
+    participants: [fuyuki, kuze]
+    facts: [kuze-saw-fuyuki-office-side]
+    description: 久世が事務室側の廊下から戻ってくる冬木を見かける。
+  - id: sakuma-death
+    at: "22:10"
+    participants: [fuyuki]
+    facts: [fuyuki-killed-sakuma, fuyuki-left-victim-coat]
+    description: 冬木が事務室で佐久間を襲い、その後に朝まで生きていたように見せる準備をする。
+  - id: staged-chores
+    at: "05:35"
+    participants: [fuyuki]
+    facts: [fuyuki-did-morning-chores, feed-board-magnet-moved, fuyuki-boots-wet-straw]
+    description: 冬木が普段は佐久間が行う朝の家畜の世話を代わりに済ませる。
+  - id: kitchen-light-seen
+    at: "05:48"
+    participants: [nozomi]
+    facts: [kitchen-light-on, nozomi-assumed-uncle-awake]
+    description: 希が台所の灯りを見て、叔父がいつも通り起きていると思い込む。
+  - id: discovery
+    at: "07:10"
+    participants: [nozomi, fuyuki, kuze]
+    facts: [body-found-0710]
+    description: 希が事務室で佐久間の死を発見する。
+characters:
+  - id: fuyuki
+    name: 冬木紬
+    role: suspect
+    personality: 実務に強く、農園の細かな段取りを誰より把握している主任。佐久間への恩義を語る一方、経営の数字を突かれると急に防御的になる。朝の作業は佐久間本人がしたという前提を崩されたくない。
+    goals:
+      - 出荷代金の流用を隠したい
+      - 朝の家畜の世話を佐久間本人が行ったと思わせたい
+    knowledge: [fuyuki-manager, kitchen-light-on, feed-board-magnet-moved, body-found-0710]
+    secrets:
+      - fact: fuyuki-diverted-sales
+        disclosure: pressured
+      - fact: sakuma-confronted-fuyuki
+        disclosure: pressured
+      - fact: fuyuki-did-morning-chores
+        disclosure: never
+      - fact: fuyuki-killed-sakuma
+        disclosure: never
+      - fact: fuyuki-left-victim-coat
+        disclosure: never
+    lies:
+      - id: fuyuki-slept-through-night
+        about: fuyuki-did-morning-chores
+        claim: 22時すぎに自室へ戻ってから、朝六時すぎまで外には出ていません
+        strategy: maintain-until-contradicted
+      - id: fuyuki-no-account-problem
+        about: fuyuki-diverted-sales
+        claim: 帳簿の不足について佐久間さんから疑われた覚えはありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: morning-audit-threat
+        about: sakuma-confronted-fuyuki
+        detail: 佐久間に「朝になったら出荷伝票を全部並べよう」と静かに言われた瞬間、逃げ道がなくなったと感じた。
+    relationships:
+      - character: nozomi
+        relation: 経理を手伝う親族
+        attitude: 数字に細かく、帳簿を見られるのを嫌がっている
+      - character: kuze
+        relation: 同僚
+        attitude: 口数は少ないが廊下や設備の動きをよく見ているので警戒している
+  - id: nozomi
+    name: 佐久間希
+    role: suspect
+    personality: 被害者の姪。几帳面で数字に強いが、個人的な借金を抱えていることを恥じている。朝に台所の灯りを見たため、叔父はその時点で生きていたと強く思い込んでいる。
+    goals:
+      - 叔父から金を借りていたことを隠したい
+      - 自分が見た灯りの意味を正確に説明したい
+    knowledge: [nozomi-accounting, audit-shortage-found, kitchen-light-on, nozomi-assumed-uncle-awake, body-found-0710]
+    secrets:
+      - fact: nozomi-hid-debt
+        disclosure: pressured
+    lies:
+      - id: nozomi-no-debt
+        about: nozomi-hid-debt
+        claim: 叔父との間に金銭の貸し借りはありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: kitchen-glow
+        about: kitchen-light-on
+        detail: 五時台に廊下へ出たとき、台所の磨りガラス越しに灯りが見え、いつもの朝だと思って部屋へ戻った。
+    relationships:
+      - character: fuyuki
+        relation: 農場主任
+        attitude: 現場は頼りにしているが帳簿を見せたがらない点を気にしている
+      - character: kuze
+        relation: 設備担当
+        attitude: 無愛想だが嘘をつくのが下手な人だと思っている
+  - id: kuze
+    name: 久世圭太
+    role: witness
+    personality: 設備の状態を数字で覚える寡黙な技術者。予備発電機を私用した規則違反を隠しているが、人の動線については余計な推測をせず見たまま話す。
+    goals:
+      - 予備発電機の私的利用を隠したい
+      - 22時台に見た冬木の位置は正確に伝えたい
+    knowledge: [kuze-maintenance, kuze-saw-fuyuki-office-side, fuyuki-boots-wet-straw, body-found-0710]
+    secrets:
+      - fact: kuze-generator-secret
+        disclosure: pressured
+    lies:
+      - id: kuze-no-private-power
+        about: kuze-generator-secret
+        claim: 予備発電機は規定どおり農園設備にしか使っていません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: late-corridor
+        about: kuze-saw-fuyuki-office-side
+        detail: 22時すぎ、工具を取りに出たとき、冬木が事務室側から早足で戻ってきたのを覚えている。
+    relationships:
+      - character: fuyuki
+        relation: 同僚
+        attitude: 仕事は速いが帳簿の話になると妙に神経質だと思っている
+      - character: nozomi
+        relation: 経理担当
+        attitude: 設備費の細かい質問が多く少し苦手
+revelations:
+  - id: chores-do-not-prove-survival
+    title: 朝の作業は生存証明ではない
+    text: 家畜の世話と台所の灯りは、佐久間本人でなくても再現できる。朝に本人を見た者も声を聞いた者もいない。
+    category: timeline
+    subject:
+      type: event
+      id: staged-chores
+    sources:
+      - type: character
+        id: nozomi
+        revealCondition: 希に朝に実際に見たものを一つずつ確認し、佐久間本人を見ても話してもいないと整理したら開示する。
+        requires:
+          revelations: []
+          evidences: [morning-board]
+      - type: character
+        id: kuze
+        revealCondition: 久世に朝飼いの作業板の通常運用を尋ね、完了磁石だけでは作業者を特定できないと確認したら開示する。
+        requires:
+          revelations: []
+          evidences: [morning-board]
+    relatedFacts: [fuyuki-did-morning-chores, kitchen-light-on, nozomi-assumed-uncle-awake, feed-board-magnet-moved]
+  - id: shortage-motive
+    title: 翌朝の帳簿再確認
+    text: 佐久間は出荷代金の不足を見つけ、冬木に翌朝の帳簿確認を告げていた。冬木には不足分を隠したい理由があった。
+    category: motive
+    subject:
+      type: character
+      id: fuyuki
+    sources:
+      - type: character
+        id: nozomi
+        revealCondition: 希に前夜の帳簿確認について尋ね、出荷代金の不足を佐久間が問題視していたと確認したら開示する。
+        requires:
+          revelations: [chores-do-not-prove-survival]
+          evidences: [shortage-notes]
+      - type: character
+        id: fuyuki
+        revealCondition: 冬木に不足伝票と翌朝の再確認について具体的に示し、佐久間から追及されたことを認めさせたら開示する。
+        requires:
+          revelations: [chores-do-not-prove-survival]
+          evidences: [shortage-notes]
+    relatedFacts: [audit-shortage-found, fuyuki-diverted-sales, sakuma-confronted-fuyuki]
+evidences:
+  - id: morning-board
+    label: 朝飼い作業板
+    description: 完了磁石は移動しているが、佐久間が毎朝必ず書く作業時刻の記入がない。作業者を示す仕組みでもない。
+    reveal:
+      mode: conversation
+      condition: 希か久世に朝飼いの通常手順と作業板の使い方を具体的に尋ねたら開示する。
+    sources:
+      - type: character
+        id: nozomi
+      - type: character
+        id: kuze
+    supports: [feed-board-magnet-moved]
+    contradicts: []
+  - id: wet-straw-boots
+    label: 冬木の長靴の雪解け水と藁
+    description: 六時すぎの冬木の長靴には、外へ出た直後と分かる雪解け水と飼料庫の藁が付いていた。
+    reveal:
+      mode: conversation
+      condition: 久世に朝六時前後の冬木の様子や長靴について尋ねるか、冬木の就寝中という主張を検証したら開示する。
+    sources:
+      - type: character
+        id: kuze
+      - type: character
+        id: fuyuki
+    supports: [fuyuki-boots-wet-straw, fuyuki-did-morning-chores]
+    contradicts: ["lie:fuyuki-slept-through-night"]
+  - id: corridor-sighting
+    label: 二十二時六分の廊下目撃
+    description: 久世は事務室側から戻ってくる冬木を22時06分ごろに見ている。
+    reveal:
+      mode: conversation
+      condition: 久世に22時前後に廊下で誰を見たか尋ねたら開示する。
+    sources:
+      - type: character
+        id: kuze
+    supports: [kuze-saw-fuyuki-office-side]
+    contradicts: []
+  - id: shortage-notes
+    label: 出荷伝票の不足メモ
+    description: 佐久間の手元には不足額と冬木担当分の伝票番号、翌朝再確認する旨のメモが残っている。
+    reveal:
+      mode: conversation
+      condition: 希か冬木に前夜の帳簿確認と不足伝票について尋ね、経理上の問題を追及したら開示する。
+    sources:
+      - type: character
+        id: nozomi
+      - type: character
+        id: fuyuki
+    supports: [audit-shortage-found, fuyuki-diverted-sales, sakuma-confronted-fuyuki]
+    contradicts: ["lie:fuyuki-no-account-problem"]
+  - id: debt-note
+    label: 希への貸付メモ
+    description: 佐久間が希への個人的な貸付と返済猶予を書き留めた紙。事件の時系列とは結びつかない。
+    reveal:
+      mode: conversation
+      condition: 希に叔父との金銭関係を詳しく尋ね、貸し借りを否定したら開示する。
+    sources:
+      - type: character
+        id: nozomi
+    supports: [nozomi-hid-debt]
+    contradicts: ["lie:nozomi-no-debt"]
+  - id: generator-cable
+    label: 予備発電機の私設配線
+    description: 久世が作業小屋へ無断で電源を引いていたことが分かるが、佐久間の死とは直接結びつかない。
+    reveal:
+      mode: conversation
+      condition: 久世に予備発電機の使用先を詳しく尋ね、私用を否定したら開示する。
+    sources:
+      - type: character
+        id: kuze
+    supports: [kuze-generator-secret]
+    contradicts: ["lie:kuze-no-private-power"]
+solution:
+  culprit: fuyuki
+  summary: 冬木紬は出荷代金の流用を佐久間に見抜かれ、翌朝に帳簿を再確認されることを恐れた。前夜22時台に事務室へ向かい佐久間を襲った後、明け方に佐久間が毎朝行っていた家畜の世話を代わりに済ませ、台所にも人が起きているような痕跡を残した。希は灯りを見ただけで佐久間本人を確認しておらず、朝飼いの作業板にも佐久間が毎朝残す時刻の記入がない。さらに六時すぎの冬木の長靴には外へ出た直後の雪解け水と飼料庫の藁が付いており、「朝まで部屋にいた」という説明と矛盾する。朝の生活痕は佐久間の生存証明ではなく、犯行時刻を遅く見せるための偽装だった。
+  method: 前夜に事務室で佐久間を襲った後、明け方に本人の朝の習慣を代行して生活痕を残し、死亡時刻を朝方だと思わせた
+  motive: 出荷代金の流用が発覚し、翌朝の帳簿再確認で不正が確定することを恐れたため
+  requiredFacts: [fuyuki-diverted-sales, sakuma-confronted-fuyuki, kuze-saw-fuyuki-office-side, fuyuki-killed-sakuma, fuyuki-did-morning-chores, feed-board-magnet-moved, fuyuki-boots-wet-straw]
+  secretKeywords:
+    - 犯人は冬木
+    - 冬木が佐久間を襲
+    - 冬木が朝の世話を代行
+    - 朝支度で死亡時刻を偽装
+quality:
+  expectedQuestionCount:
+    min: 10
+    max: 22
+  requiredEvidence:
+    min: 3
+  redHerrings: [nozomi-hid-debt, kuze-generator-secret]
+  notes: 朝の生活痕を生存証明とみなす思い込みを崩す事件。朝の痕跡だけでは冬木を特定できず、22時台の目撃、長靴、帳簿の動機を合わせて犯人を絞る。
