@@ -175,22 +175,34 @@ const duplicateIndexes = (ids: string[]): number[] => {
   })
 }
 
-export const ScenarioDefinitionSchema = z
-  .object({
-    schemaVersion: z.literal(1),
-    id: scenarioIdSchema,
-    meta: scenarioMetaSchema,
-    briefing: nonemptyTextSchema,
-    floorPlan: floorPlanSchema.nullable(),
-    facts: z.array(scenarioFactSchema).min(1),
-    timeline: z.array(scenarioTimelineEventSchema).min(1),
-    characters: z.array(scenarioCharacterSchema).min(2),
-    revelations: z.array(scenarioRevelationSchema).default([]),
-    evidences: z.array(scenarioEvidenceSchema),
-    solution: scenarioSolutionSchema,
-    quality: scenarioQualitySchema.default({ redHerrings: [] }),
-  })
-  .superRefine((scenario, ctx) => {
+/**
+ * 参照整合性を見ない、構造だけのスキーマ。
+ *
+ * Author LLM の Structured Output に渡すのはこちら。superRefine が見ている
+ * 「存在しない fact を指していないか」といった条件は JSON Schema に落ちないので、
+ * 生成を拘束する役には立たない。生成は構造で縛り、意味の検査は生成後に
+ * ScenarioDefinitionSchema で行って、出た issues をモデルへ差し戻す。
+ *
+ * 手書きの定義を読むときは常に ScenarioDefinitionSchema を使うこと。
+ * こちらを直接使うと、参照が壊れたシナリオが素通りする。
+ */
+export const scenarioDefinitionShapeSchema = z.object({
+  schemaVersion: z.literal(1),
+  id: scenarioIdSchema,
+  meta: scenarioMetaSchema,
+  briefing: nonemptyTextSchema,
+  floorPlan: floorPlanSchema.nullable(),
+  facts: z.array(scenarioFactSchema).min(1),
+  timeline: z.array(scenarioTimelineEventSchema).min(1),
+  characters: z.array(scenarioCharacterSchema).min(2),
+  revelations: z.array(scenarioRevelationSchema).default([]),
+  evidences: z.array(scenarioEvidenceSchema),
+  solution: scenarioSolutionSchema,
+  quality: scenarioQualitySchema.default({ redHerrings: [] }),
+})
+
+export const ScenarioDefinitionSchema = scenarioDefinitionShapeSchema.superRefine(
+  (scenario, ctx) => {
     const factIds = new Set(scenario.facts.map((fact) => fact.id))
     const timelineIds = new Set(scenario.timeline.map((event) => event.id))
     const characterIds = new Set(scenario.characters.map((character) => character.id))
@@ -560,7 +572,8 @@ export const ScenarioDefinitionSchema = z
         message: 'expectedQuestionCount.min は max 以下でなければなりません。',
       })
     }
-  })
+  },
+)
 
 export type ScenarioEvidenceSource = z.infer<typeof scenarioEvidenceSourceSchema>
 export type ScenarioRevelationSource = z.infer<typeof scenarioRevelationSourceSchema>

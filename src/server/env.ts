@@ -68,6 +68,21 @@ const schema = z.object({
   OPENAI_API_KEY: optionalString,
   GOOGLE_GENERATIVE_AI_API_KEY: optionalString,
 
+  /*
+    自前のゲートウェイを挟むときの向き先。未設定なら各社の本番エンドポイント。
+
+    ここを env として明示的に持つ必要がある。AI SDK は baseURL を渡さないと
+    process.env の同名変数を見にいくが、Workers の isolate に process.env は無い。
+    .env に置いただけではローカルでしか効かず、デプロイした瞬間に本家へ向き直る——
+    しかも例外は出ないので、請求とレイテンシが変わるまで誰も気づかない。
+
+    各社ともパスの接頭辞まで含めた値を入れること
+    （OpenAI 互換なら末尾は /v1、Google は /v1beta）。
+  */
+  ANTHROPIC_BASE_URL: optionalString,
+  OPENAI_BASE_URL: optionalString,
+  GOOGLE_GENERATIVE_AI_BASE_URL: optionalString,
+
   /** 1プレイで使えるターン数。使い切ると質問できなくなり、推理に進む。 */
   MAX_TURNS: z.coerce.number().int().positive().default(5),
   /** 1ターンに投げられる質問数。 */
