@@ -30,7 +30,7 @@
   │     ├─► RATE_LIMITER (DO)    使用量カウンタ          │
   │     ├─► SCENARIO_CACHE (KV)  キャラシート／一覧      │
   │     ├─► PLAY_SESSION (DO)    会話履歴・発見済み証拠   │
-  │     └─► HYPERDRIVE ──► Neon (PostgreSQL 18)         │
+  │     └─► DB (D1)              シナリオ・真相・ログ    │
   │                                                     │
   │   Vercel AI SDK                                     │
   │     ├─ Actor  streamText     NPCを演じる            │
@@ -49,7 +49,7 @@
 | ビルド | Vite（開発）/ wrangler（本番） | `^8` / `^4` |
 | 言語 | TypeScript | `^7` |
 | パッケージ管理・テスト | Bun | `^1` |
-| DB | PostgreSQL (Neon) + Hyperdrive | 18 |
+| DB | Cloudflare D1 (SQLite) | — |
 | ORM | Drizzle ORM / drizzle-kit | `^0.44` / `^0.31` |
 | セッション状態・レート制限 | Durable Objects (SQLite backend) | — |
 | 読みキャッシュ | Workers KV | — |
@@ -89,6 +89,6 @@ Workers の isolate はグローバルスコープにシークレットを持ち
 | KV / キャッシュ | Redis 8 | Workers KV + Durable Objects（compose に Redis なし） |
 | 本番ビルド | `@hono/vite-build` | `@cloudflare/vite-plugin`（`vite build` → `dist/alibai/`） |
 | Vite の役割 | サーバ・クライアント両方のビルド | 同じ（dev も workerd 上で動く） |
-| Dev Container | app + PostgreSQL + Redis | app + PostgreSQL のみ |
+| Dev Container | app + PostgreSQL + Redis | app のみ（D1 は .wrangler/state のファイル） |
 
 Sentry / Langfuse / PostHog / Satori / Playwright は README に構想として挙げられていますが、まだ依存にも実装にも入っていません。

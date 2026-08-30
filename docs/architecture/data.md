@@ -4,29 +4,31 @@ AlibAI は3つのストレージを使い分けます。どこに置くかは**�
 
 | ストレージ | 置くもの | 理由 |
 | --- | --- | --- |
-| PostgreSQL (Neon) | シナリオ、真相、会話ログ、リザルト | 正典。失われてはいけないもの |
+| Cloudflare D1 | シナリオ、真相、会話ログ、リザルト | 正典。失われてはいけないもの |
 | Durable Objects | 進行中セッション、レート制限カウンタ | read-modify-write が直列化される必要がある |
 | Workers KV | 公開シナリオ一覧、キャラクターシート | 読み主体で、数秒古くても誰も困らない |
 
-## PostgreSQL + Hyperdrive + Drizzle
+## D1 + Drizzle
 
-### なぜ Hyperdrive が要るか
+### なぜ D1 か
 
-Workers は世界中のエッジでリクエストごとに起動します。素で Postgres に繋ぐと `max_connections` を一瞬で使い切ります。Hyperdrive が手前でコネクションプールを持ち、Worker からは1本のバインディングだけを見る形にしています。
+正典を Cloudflare の外に置かないためです。以前は Neon (PostgreSQL) を Hyperdrive 経由で見ていましたが、それだと接続プールのためのバインディングと、postgres.js が TCP を張るための `nodejs_compat`、そして Cloudflare の外にある課金対象が付いてきます。D1 はランタイムに同居する SQLite で、バインディングを1本受け取るだけで読み書きできます。
 
 ```typescript
-export const createDb = (hyperdrive: Hyperdrive) => {
-  const sql = postgres(hyperdrive.connectionString, {
-    max: 5,
-    fetch_types: false,
-    prepare: false,
-  })
-
-  return drizzle(sql, { schema })
-}
+export const createDb = (d1: D1Database) => drizzle(d1, { schema })
 ```
 
-`fetch_types: false` は省略できません。postgres.js は既定で起動時に型カタログを引きにいきますが、その往復が Workers 上では失敗します。`prepare: false` は Hyperdrive のプーリングを経由するために必要です。
+ここでは接続を張りません。D1 のバインディングはランタイムが用意した RPC のハンドルなので、プールも起動時の型カタログ取得も存在せず、リクエストごとに呼んでも実費はかかりません。それでも関数の形を残しているのは、`read/` や `cache/` の層がバインディングを知らないまま `Db` だけを引数で受け取れるようにするためです。
+
+### SQLite であることの帰結
+
+Postgres から移るにあたって、型の対応は `db/schema.ts` の中で吸収しています。TypeScript 側の型は移行前と同じままです。
+
+- 主キーは `text` + `crypto.randomUUID()`。SQLite に `uuid` 型も `gen_random_uuid()` もありません
+- `jsonb` と配列列は `text({ mode: 'json' })`。`secret_keywords` は物理的には JSON テキストですが、読み書きは今までどおり `string[]` です
+- 時刻は `integer({ mode: 'timestamp' })` で epoch **秒**。既定値は SQL 側の `(unixepoch())` に置いています。保持期間の削除が SQL で境界を比較し、seed も SQL 文を吐くので、両方から同じ既定値が見える必要があるためです
+
+**トランザクションはありません。** D1 は文ごとに自動コミットで、対話的トランザクションを提供しません。複数文をまとめたいときは `batch()` を使います。seed が SQL ファイルを書き出す形になっているのも、元をたどればこの制約です。
 
 ### Drizzle ORM
 
@@ -34,11 +36,12 @@ export const createDb = (hyperdrive: Hyperdrive) => {
 
 ```bash
 bun run db:generate   # スキーマ差分からマイグレーションSQLを生成
-bun run db:migrate    # 適用
-bun run db:studio     # GUI でテーブルを覗く
+bun run db:migrate    # ローカルのD1へ適用
+bun run db:seed       # db/scenarios/*.yaml から投入用SQLを生成
+bun run db:seed:apply # 生成したSQLをローカルのD1へ流す
 ```
 
-`drizzle.config.ts` は独立プロセスで動くため、Workers のバインディングではなく `DATABASE_URL` を読みます。ここでも Zod で検証します。
+生成は drizzle-kit、適用は wrangler、という分担です。`drizzle.config.ts` は接続先を持たず、資格情報も知りません。`wrangler.jsonc` の `migrations_dir` が drizzle の出力先を指しているので、ディレクトリは1つを共用します（drizzle が併置する `meta/` は wrangler が無視します）。
 
 ### テーブル構成
 
@@ -86,7 +89,7 @@ const historyKey = (characterId: string) => `history:${characterId}`
 
 `finish()` は冪等です。すでに終了済みなら `finished: true` をそのまま返すため、リトライや二重送信でリザルトが重複しません。
 
-DO はあくまで**進行中の作業領域**であり、正典は Postgres です。DO が失われても復元できるよう、DB への書き出しは Worker 側が担当します。書き出しが済んだセッションは `dispose()` で明示的に捨てます（DO のストレージは消さない限り残り続けます）。
+DO はあくまで**進行中の作業領域**であり、正典は D1 です。DO が失われても復元できるよう、DB への書き出しは Worker 側が担当します。書き出しが済んだセッションは `dispose()` で明示的に捨てます（DO のストレージは消さない限り残り続けます）。
 
 ### RateLimiter
 
@@ -119,11 +122,13 @@ DO は1インスタンスへの操作が直列化されるため、この競合�
 
 ## ローカル開発時の接続
 
-Dev Container の PostgreSQL 18 に繋ぎます。
+**接続先はありません。** wrangler が `.wrangler/state` 配下に SQLite の実体を持ち、`bun run dev`（vite dev の workerd）も `bun run db:*`（wrangler CLI）も同じファイルを見ます。データベースのコンテナも接続文字列も要りません。
 
-- `bun run dev`（Worker）: `wrangler.jsonc` の `localConnectionString`（`db:5432`）を Hyperdrive のローカル接続先として使う
-- `bun run db:*`（drizzle-kit）: `.env` の `DATABASE_URL=postgres://alibai:alibai@db:5432/alibai`
+初回に遊べる状態を作るには:
 
-どちらも compose のサービス名 `db` で引きます。Dev Container の app と PostgreSQL は別コンテナなので `localhost` では届きません。
+```bash
+bun run db:migrate                    # .wrangler/state にテーブルを作る
+bun run db:seed && bun run db:seed:apply
+```
 
-Hyperdrive のバインディング ID は `wrangler hyperdrive create alibai --connection-string="postgres://..."` で発行し、`wrangler.jsonc` の `REPLACE_WITH_HYPERDRIVE_ID` を置き換えます。KV も同様に `wrangler kv namespace create SCENARIO_CACHE` で発行します。
+本番用のIDは `wrangler d1 create alibai` で発行し、`wrangler.jsonc` の `REPLACE_WITH_D1_DATABASE_ID` を置き換えます。KV も同様に `wrangler kv namespace create SCENARIO_CACHE` で発行します。リモートへ流すときは `db:migrate:remote` / `db:seed:apply:remote` を使います。

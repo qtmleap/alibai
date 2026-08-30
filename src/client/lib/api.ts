@@ -129,6 +129,8 @@ export const submitAccusation = (params: {
   sessionId: string
   culpritCharacterId: string
   reasoning: string
+  method: string
+  motive: string
 }): Promise<AccuseResult> =>
   requestJson(
     `/api/sessions/${params.sessionId}/accuse`,
@@ -137,18 +139,26 @@ export const submitAccusation = (params: {
   )
 
 export type AskCallbacks = {
-  /** NPCの返答の断片。届くたびに会話ログへ継ぎ足す。 */
+  /**
+   * 探偵がNPCへ投げた質問。1つの話題で何度か届く（探偵が答えを受けて掘り下げるため）。
+   * 届くたびに新しい往復が始まる。
+   */
+  onQuestion: (question: string) => void
+  /** NPCの返答の断片。直前の `onQuestion` で始まった往復の答えとして継ぎ足す。 */
   onDelta: (chunk: string) => void
   onJudgement: (judgement: Judgement) => void
   onDone: () => void
 }
 
 /**
- * NPCへの質問。SSEで逐次届くので、丸ごと待たずに `onDelta` を都度呼ぶ。
+ * 話題を投げる。実際の質問は探偵役がサーバ側で組み立てるので、ここで送るのは
+ * 「何について訊いてほしいか」だけ。
+ *
+ * 質問と返答はSSEで逐次届くので、丸ごと待たずに `onQuestion` / `onDelta` を都度呼ぶ。
  * `EventSource` は使えない（POSTのため）ので、レスポンスボディを自前でパースする。
  */
-export const askQuestion = async (
-  params: { sessionId: string; characterId: string; utterance: string },
+export const askTopic = async (
+  params: { sessionId: string; characterId: string; topic: string },
   callbacks: AskCallbacks,
 ): Promise<void> => {
   const res = await fetch(`/api/sessions/${params.sessionId}/ask`, jsonInit('POST', params))
@@ -169,6 +179,10 @@ export const askQuestion = async (
   }
 
   for await (const event of parseSseStream(res.body)) {
+    if (event.event === 'question') {
+      callbacks.onQuestion(event.data)
+    }
+
     if (event.event === 'delta') {
       callbacks.onDelta(event.data)
     }

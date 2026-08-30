@@ -24,12 +24,21 @@ export const AccusationScreen = ({
   onBack,
 }: Props) => {
   const reasoningId = useId()
+  const methodId = useId()
+  const motiveId = useId()
   const [culpritCharacterId, setCulpritCharacterId] = useState<string | undefined>(undefined)
   const [reasoning, setReasoning] = useState('')
+  const [method, setMethod] = useState('')
+  const [motive, setMotive] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | undefined>(undefined)
 
-  const canSubmit = culpritCharacterId !== undefined && reasoning.trim().length > 0 && !submitting
+  const canSubmit =
+    culpritCharacterId !== undefined &&
+    reasoning.trim().length > 0 &&
+    method.trim().length > 0 &&
+    motive.trim().length > 0 &&
+    !submitting
 
   const handleSubmit = () => {
     if (culpritCharacterId === undefined) {
@@ -43,6 +52,8 @@ export const AccusationScreen = ({
       sessionId,
       culpritCharacterId,
       reasoning: reasoning.trim(),
+      method: method.trim(),
+      motive: motive.trim(),
     })
       .then(onResult)
       .catch((err: unknown) => {
@@ -60,7 +71,9 @@ export const AccusationScreen = ({
           ← 聞き込みに戻る
         </Button>
         <h1 className="mt-3 text-xl font-bold">犯人を推理する</h1>
-        <p className="mt-1 text-sm text-slate-400">誰が犯人か選んで、理由を書いてね。</p>
+        <p className="mt-1 text-sm text-slate-400">
+          誰が犯人か選んで、どうやって・なぜ殺したのかを書いてね。
+        </p>
       </header>
 
       {/*
@@ -93,9 +106,37 @@ export const AccusationScreen = ({
         </div>
       </fieldset>
 
+      {/*
+        殺害方法・動機・理由の3つは提出後にまとめて採点される。欄ごとに箱で囲わず、
+        小見出しだけで区切って縦に積む。rows で決めた高さのまま置くのは、
+        書くほどに欄が伸びると提出ボタンが下へ逃げていくため。
+      */}
+      <label className="flex flex-col gap-2" htmlFor={methodId}>
+        <span className="text-[10px] tracking-[0.3em] text-slate-600">殺害方法</span>
+        <Textarea
+          id={methodId}
+          value={method}
+          onChange={(event) => setMethod(event.target.value)}
+          rows={3}
+          placeholder="どうやって殺したのか"
+          className="field-sizing-fixed leading-relaxed"
+        />
+      </label>
+
+      <label className="flex flex-col gap-2" htmlFor={motiveId}>
+        <span className="text-[10px] tracking-[0.3em] text-slate-600">動機</span>
+        <Textarea
+          id={motiveId}
+          value={motive}
+          onChange={(event) => setMotive(event.target.value)}
+          rows={3}
+          placeholder="なぜ殺したのか"
+          className="field-sizing-fixed leading-relaxed"
+        />
+      </label>
+
       <label className="flex flex-col gap-2" htmlFor={reasoningId}>
         <span className="text-[10px] tracking-[0.3em] text-slate-600">理由</span>
-        {/* rows で決めた高さのまま置く。書くほどに欄が伸びると、提出ボタンが下へ逃げていく。 */}
         <Textarea
           id={reasoningId}
           value={reasoning}

@@ -2,12 +2,16 @@
 
 AlibAI のシナリオを、人間・LLM・ゲームエンジンのどれから見ても曖昧にならない形で定義するための仕様です。
 
+> この文書は**なぜこの形式なのか**を説明する設計文書です。
+> 実際に一本書くための手順と規則は [`../scenario-authoring.md`](../scenario-authoring.md) にあります。
+> あちらは Author LLM のシステムプロンプトとしてそのまま読み込まれます。
+
 この文書では **シナリオの編集形式** と **実行時データ** を分けて考えます。
 
 - 人間が読む・Git でレビューする形式: **YAML**
 - Author LLM が生成する形式: **JSON / Structured Output**
 - 厳密な構造検証: **Zod を正典にし、必要に応じて JSON Schema を生成**
-- 実行時: 検証済みデータを PostgreSQL の `scenarios` / `scenario_truths` / `characters` / `evidences` に分解して保存
+- 実行時: 検証済みデータを D1 の `scenarios` / `scenario_truths` / `characters` / `evidences` に分解して保存
 
 YAML 自体はスキーマではなく、あくまでシリアライズ形式です。YAML の見た目だけを仕様にすると、必須項目・参照整合性・列挙値などを厳密に保証できません。
 

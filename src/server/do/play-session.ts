@@ -80,6 +80,17 @@ const historyKey = (characterId: string) => `history:${characterId}`
 const askedAtKey = (characterId: string) => `asked-at:${characterId}`
 
 /**
+ * 往復ごとの「プレイヤーが指定した話題」。history と同じ順・同じ長さで積む。
+ *
+ * 1つの話題から複数の往復が生まれるので、話題を持つのはその先頭の往復だけで、
+ * 続きは null になる。全部に持たせると、画面に同じ見出しが何度も並ぶ。
+ *
+ * askedAt と同じく history には混ぜない。あちらは actor.ts へそのまま渡す
+ * ModelMessage[] で、話題を差し込むとモデルへの入力が変わってしまう。
+ */
+const topicsKey = (characterId: string) => `topics:${characterId}`
+
+/**
  * ModelMessage の content は文字列とは限らない（パーツの配列にもなる）。
  * このDOが積むのは自分で組み立てた文字列だけだが、型の上では両方あり得るので
  * 復元して返すときにここで均しておく。
@@ -97,6 +108,11 @@ export type HistoryExchange = {
   question: string
   answer: string
   askedAt: number
+  /**
+   * この往復から始まる話題。続きの往復と、話題という考え方より前に始まった
+   * セッションでは null になる。
+   */
+  topic: string | null
 }
 
 export type CharacterHistory = {
@@ -205,23 +221,44 @@ export class PlaySession extends DurableObject<SessionBindings> {
   }
 
   /**
-   * 1往復を履歴に積む。プレイヤーの発話は必ず user ロールに閉じ込める。
+   * 1つの話題ぶんのやり取りを、まとめて履歴に積む。
+   *
+   * 質問回数は往復の数ではなく1だけ増やす。プレイヤーが投げたのは話題1つで、
+   * そこから何往復するかは探偵が決めるため。往復で数えると、探偵がどこまで
+   * 食い下がったかでターンの減りが変わる（`src/shared/turns.ts`）。
+   *
+   * 時刻は往復ごとに取り直さず、この話題ぜんぶで同じ値を共有する。1つの話題は
+   * 一続きのやり取りなので、記録を並べ直したときにも塊のまま残ってほしい。
    */
-  async appendTurn(characterId: string, utterance: string, reply: string): Promise<number> {
+  async appendTopic(
+    characterId: string,
+    topic: string,
+    exchanges: { question: string; answer: string }[],
+  ): Promise<number> {
     const current = await this.getHistory(characterId)
     const next: ModelMessage[] = [
       ...current,
-      { role: 'user', content: utterance },
-      { role: 'assistant', content: reply },
+      ...exchanges.flatMap((exchange): ModelMessage[] => [
+        { role: 'user', content: exchange.question },
+        { role: 'assistant', content: exchange.answer },
+      ]),
     ]
 
     const meta = await this.meta()
     const updated: Meta = { ...meta, questionCount: meta.questionCount + 1 }
-    const askedAt = await this.askedAtList(characterId)
+    const [askedAt, topics] = await Promise.all([
+      this.askedAtList(characterId),
+      this.topicList(characterId),
+    ])
+    const askedAtNow = Date.now()
 
     await this.ctx.storage.put({
       [historyKey(characterId)]: next,
-      [askedAtKey(characterId)]: [...askedAt, Date.now()],
+      [askedAtKey(characterId)]: [...askedAt, ...exchanges.map(() => askedAtNow)],
+      [topicsKey(characterId)]: [
+        ...topics,
+        ...exchanges.map((_exchange, index) => (index === 0 ? topic : null)),
+      ],
       [META_KEY]: updated,
     })
 
@@ -231,6 +268,13 @@ export class PlaySession extends DurableObject<SessionBindings> {
   /** 往復ごとの質問時刻。この機能より前に始まったセッションでは空になる。 */
   private async askedAtList(characterId: string): Promise<number[]> {
     const stored = await this.ctx.storage.get<number[]>(askedAtKey(characterId))
+
+    return stored === undefined ? [] : stored
+  }
+
+  /** 往復ごとの話題。話題という考え方より前に始まったセッションでは空になる。 */
+  private async topicList(characterId: string): Promise<(string | null)[]> {
+    const stored = await this.ctx.storage.get<(string | null)[]>(topicsKey(characterId))
 
     return stored === undefined ? [] : stored
   }
@@ -251,7 +295,10 @@ export class PlaySession extends DurableObject<SessionBindings> {
     return await Promise.all(
       characterIds.map(async (characterId) => {
         const messages = await this.getHistory(characterId)
-        const times = await this.askedAtList(characterId)
+        const [times, topics] = await Promise.all([
+          this.askedAtList(characterId),
+          this.topicList(characterId),
+        ])
         const exchanges = messages.flatMap((message, index) => {
           if (message.role !== 'user') {
             return []
@@ -260,12 +307,14 @@ export class PlaySession extends DurableObject<SessionBindings> {
           const answer = messages[index + 1]
           const round = index / 2
           const recorded = times[round]
+          const topic = topics[round]
 
           return [
             {
               question: textOf(message.content),
               answer: answer === undefined ? '' : textOf(answer.content),
               askedAt: recorded === undefined ? meta.startedAt + round * 1000 : recorded,
+              topic: topic === undefined ? null : topic,
             },
           ]
         })

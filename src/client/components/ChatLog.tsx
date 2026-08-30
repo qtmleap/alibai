@@ -13,8 +13,11 @@ type Props = {
 /**
  * 会話の見た目。LINE や Discord のトークルームに寄せてある。
  *
- * 相手の発言は左でアイコン付き、自分の発言は右でアイコン無し。時刻は吹き出しの
+ * NPCの発言は左でアイコン付き、探偵の質問は右でアイコン無し。時刻は吹き出しの
  * 外側の下寄せに小さく置く。中に入れると本文と競って読みづらくなる。
+ *
+ * プレイヤーが投げた話題は発言ではないので、吹き出しではなく区切りの罫線にする。
+ * 1つの話題から探偵の質問が何度か続くので、どこで話題が変わったかが要る。
  *
  * 同じ話者が続くときはアイコンを繰り返さない。1往復ずつ交互に並ぶ会話では
  * ほとんど効かないが、相手が続けて話した場合に列が揃う。
@@ -27,12 +30,29 @@ export const ChatLog = ({ turns, speakerName, speakerIndex, awaiting }: Props) =
    * 送信の直後に置かれる空の吹き出しが、そのまま待ち状態の目印になる。
    */
   const last = turns[turns.length - 1]
+  // 話題を投げた直後は、探偵が質問を組み立てているあいだ何も無い時間ができる。
+  // そこにも点を出す。1つの話題で一番長く待たされるのがこの区間で、
+  // 空のまま置くと送信できなかったように見える。
   const showTyping =
-    awaiting && last !== undefined && last.role === 'assistant' && last.text.length === 0
+    awaiting &&
+    last !== undefined &&
+    (last.role === 'topic' || (last.role === 'assistant' && last.text.length === 0))
 
   return (
     <>
       {turns.map((turn, index) => {
+        if (turn.role === 'topic') {
+          return (
+            // 話題はプレイヤーが探偵へ渡した指示で、会話の発言ではない。
+            // 吹き出しにすると誰かの台詞に見えるので、区切りの罫線として置く。
+            <div key={turn.id} className="flex items-center gap-2 pt-2 text-[11px] text-slate-500">
+              <span aria-hidden="true" className="h-px flex-1 bg-slate-800" />
+              <span className="max-w-[70%] text-center break-words">話題: {turn.text}</span>
+              <span aria-hidden="true" className="h-px flex-1 bg-slate-800" />
+            </div>
+          )
+        }
+
         const isUser = turn.role === 'user'
         const previous = turns[index - 1]
         const sameSpeakerAsPrevious = previous !== undefined && previous.role === turn.role
@@ -45,7 +65,7 @@ export const ChatLog = ({ turns, speakerName, speakerIndex, awaiting }: Props) =
 
         return (
           <div
-            key={`${turn.askedAt}-${turn.role}`}
+            key={turn.id}
             className={isUser ? 'flex items-end justify-end gap-1.5' : 'flex items-end gap-2'}
           >
             {!isUser &&

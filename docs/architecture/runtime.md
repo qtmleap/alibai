@@ -2,19 +2,18 @@
 
 ## Cloudflare Workers
 
-本番は Cloudflare Workers 上で動きます。エッジで実行されるため、スマホから10分遊ぶ体験に必要な低レイテンシが得られます。Durable Objects・KV・Hyperdrive といった状態管理の道具が同じプラットフォーム内で揃うことも選定理由です。
+本番は Cloudflare Workers 上で動きます。エッジで実行されるため、スマホから10分遊ぶ体験に必要な低レイテンシが得られます。Durable Objects・KV・D1 といった状態管理の道具が同じプラットフォーム内で揃うことも選定理由です。
 
 設定は `wrangler.jsonc` に集約されています。
 
 ```jsonc
 {
   "main": "src/server.ts",
-  "compatibility_date": "2026-08-29",
-  "compatibility_flags": ["nodejs_compat"]
+  "compatibility_date": "2026-08-29"
 }
 ```
 
-`nodejs_compat` は省略できません。postgres.js が TCP 接続を張るために必要で、これが無いと Postgres に到達できません。
+`compatibility_flags` は空です。以前は `nodejs_compat` を付けていましたが、あれは postgres.js が TCP 接続を張るために必要だったもので、D1 へ移った時点で理由が消えました。SSR・SSE ストリーミング・AI SDK・Durable Objects のいずれもフラグ無しで動くことを確認しています。
 
 ### エントリの二層構造
 
@@ -62,7 +61,7 @@ const app = new Hono<{ Bindings: Bindings; Variables: { env: Env } }>()
 | `GET /api/scenarios/:id` | 詳細。事件の記録・見取り図・登場人物（`personality` のみ） |
 | `POST /api/sessions` | セッション開始。探偵の設定を受け取る。**ここで計時が始まる** |
 | `GET /api/sessions/:id` | 進行状況。発見済みの証拠だけをラベル付きで返す |
-| `POST /api/sessions/:id/ask` | NPCへの質問。SSE で `delta` → `judgement` → `done` |
+| `POST /api/sessions/:id/ask` | 話題を1つ投げる。SSE で（`question` → `delta`）×N → `judgement` → `done` |
 | `POST /api/sessions/:id/accuse` | 犯人当て。**真相を返してよいのはここだけ** |
 
 `/api/scenarios/:id` が返す登場人物は `personality` までです。`knowledge` / `secrets` / `lies` / `memories` はNPCのプロンプトの材料であって、プレイヤーに見せるものではありません。証拠の一覧も返しません。未発見の証拠名それ自体がネタバレになるためです。
@@ -93,7 +92,7 @@ return streamSSE(c, async (stream) => {
     chunks.push(chunk)
     await stream.writeSSE({ event: 'delta', data: chunk })
   }
-  // ストリーム完了後に DO と Postgres へ永続化
+  // ストリーム完了後に DO と D1 へ永続化
   await stream.writeSSE({ event: 'done', data: '' })
 })
 ```
@@ -110,7 +109,7 @@ return streamSSE(c, async (stream) => {
 | 本番ビルド | `tsc --noEmit` + Vite | `bun run build` |
 | デプロイ | Vite + wrangler | `bun run deploy` |
 
-このプラグインは Vite の Environment API を使い、Worker のコードを Node ではなく **workerd の上で** 実行します。そのため dev サーバでも Durable Object・Hyperdrive・KV が本番と同じ形で解決され、`wrangler dev` を別に立てる必要がありません。エントリ（`main`）もバインディングも `wrangler.jsonc` をそのまま読むので、設定を二重に持つ場所はありません。
+このプラグインは Vite の Environment API を使い、Worker のコードを Node ではなく **workerd の上で** 実行します。そのため dev サーバでも Durable Object・D1・KV が本番と同じ形で解決され、`wrangler dev` を別に立てる必要がありません。エントリ（`main`）もバインディングも `wrangler.jsonc` をそのまま読むので、設定を二重に持つ場所はありません。
 
 `vite build` は `dist/alibai/` に Worker バンドルと deploy 用の `wrangler.json` を出力します。`wrangler deploy` は `.wrangler/deploy/config.json` のリダイレクトを辿ってそちらを使うため、`src/server.ts` が re-export している DO クラスもそのまま載ります。
 

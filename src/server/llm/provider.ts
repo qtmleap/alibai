@@ -65,20 +65,37 @@ const configOf = (env: Env, role: LlmRole): { provider: LlmProvider; model?: str
 export const providerOf = (env: Env, role: LlmRole): LlmProvider => configOf(env, role).provider
 
 /**
+ * ゲートウェイを挟む場合の向き先。未設定なら undefined を返し、各SDKの既定に任せる。
+ */
+const baseUrlOf = (env: Env, provider: LlmProvider): string | undefined => {
+  switch (provider) {
+    case 'anthropic':
+      return env.ANTHROPIC_BASE_URL
+    case 'openai':
+      return env.OPENAI_BASE_URL
+    case 'google':
+      return env.GOOGLE_GENERATIVE_AI_BASE_URL
+  }
+}
+
+/**
  * プロバイダのクライアントはただのファクトリなので、リクエストごとに作っても実質コストはない。
  * isolate をまたいで使い回そうとするより、毎回作るほうが安全で読みやすい。
  */
 export const resolveModel = (env: Env, role: LlmRole): LanguageModel => {
   const config = configOf(env, role)
   const modelId = config.model === undefined ? DEFAULT_MODELS[config.provider][role] : config.model
+  const baseURL = baseUrlOf(env, config.provider)
 
   switch (config.provider) {
     case 'anthropic':
-      return createAnthropic({ apiKey: env.ANTHROPIC_API_KEY })(modelId)
+      return createAnthropic({ apiKey: env.ANTHROPIC_API_KEY, baseURL })(modelId)
     case 'openai':
-      return createOpenAI({ apiKey: env.OPENAI_API_KEY })(modelId)
+      return createOpenAI({ apiKey: env.OPENAI_API_KEY, baseURL })(modelId)
     case 'google':
-      return createGoogleGenerativeAI({ apiKey: env.GOOGLE_GENERATIVE_AI_API_KEY })(modelId)
+      return createGoogleGenerativeAI({ apiKey: env.GOOGLE_GENERATIVE_AI_API_KEY, baseURL })(
+        modelId,
+      )
   }
 }
 

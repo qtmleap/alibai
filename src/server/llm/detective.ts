@@ -79,6 +79,24 @@ const ADDRESS: Record<AgeGroup, Record<Tone, AddressHint>> = {
  */
 const UNKNOWN_AGE_RULE = '- 年ごろが読めない相手なので、年齢を決めつけた呼びかけは避ける。'
 
+/**
+ * 探偵本人に渡す人物像。
+ *
+ * buildDetectiveBlock がNPC向けに「目の前にいる相手」として三人称で書くのに対し、
+ * こちらは本人が読むので二人称で書く。呼びかけの候補は載せない——相手をどう呼ぶかは
+ * NPC側の都合であって、探偵が自分の質問を組み立てるのに要る情報ではない。
+ *
+ * ここにも「探偵が何を掴んでいるか」は書かない。発見済みの証拠を渡すと、
+ * 探偵が知っている前提で詰め始めて、プレイヤーが指定した話題から離れていく。
+ */
+export const buildDetectiveSelfBlock = (detective: Detective): string =>
+  [
+    `あなたの名前は${detective.name}。`,
+    `年ごろは${AGE_GROUP_LABELS[detective.ageGroup]}、性別は${GENDER_LABELS[detective.gender]}。`,
+    ...(detective.appearance.length > 0 ? [`外見: ${detective.appearance}`] : []),
+    'この人物像に合った口調で話す。',
+  ].join('\n')
+
 export const buildDetectiveBlock = (detective: Detective): string => {
   const hint = ADDRESS[detective.ageGroup][TONE_OF[detective.gender]]
   const ageLine = `${AGE_GROUP_LABELS[detective.ageGroup]}（${AGE_GROUP_NOTES[detective.ageGroup]}）`

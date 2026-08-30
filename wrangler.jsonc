@@ -6,20 +6,27 @@
   // `wrangler deploy` はそちらへリダイレクトされる。
   "main": "src/server.ts",
   "compatibility_date": "2026-08-29",
-  // postgres.js が TCP を張るために必要。これが無いと Postgres に到達できない。
-  "compatibility_flags": ["nodejs_compat"],
+  // compatibility_flags は空。nodejs_compat は postgres.js が TCP を張るためだけに
+  // 付いていたもので、D1 へ移った時点で不要になった。SSR・SSEストリーミング・
+  // AI SDK・DO のいずれも、これ無しで動くことを確認済み。
   "observability": {
     "enabled": true
   },
 
-  // Neon への接続をプールする。IDは `wrangler hyperdrive create` で発行される。
-  //   wrangler hyperdrive create alibai --connection-string="postgres://..."
-  "hyperdrive": [
+  // シナリオと真相、会話ログ、リザルトの正典。IDは `wrangler d1 create alibai` で発行される。
+  //
+  // ローカルには接続先を書かない。wrangler が .wrangler/state 配下に SQLite の実体を
+  // 持ち、vite dev の workerd はそれを見る。つまり開発にDBコンテナは要らない。
+  //
+  // migrations_dir は drizzle-kit の出力先（db/migrations）をそのまま指している。
+  // drizzle が併置する meta/ は wrangler が無視するので、生成は drizzle-kit、
+  // 適用は wrangler、という分担のまま1つのディレクトリを共用できる。
+  "d1_databases": [
     {
-      "binding": "HYPERDRIVE",
-      "id": "REPLACE_WITH_HYPERDRIVE_ID",
-      // ローカル（vite dev の workerd）から見る Postgres。compose のサービス名で引く。
-      "localConnectionString": "postgres://alibai:alibai@db:5432/alibai"
+      "binding": "DB",
+      "database_name": "alibai",
+      "database_id": "REPLACE_WITH_D1_DATABASE_ID",
+      "migrations_dir": "db/migrations"
     }
   ],
 
