@@ -6,6 +6,15 @@ rules:
     - 2
     - always
     - 128
+  # ヘッダーを128にした以上、本文と footer だけ既定の100で止める理由が無い。
+  body-max-line-length:
+    - 2
+    - always
+    - 128
+  footer-max-line-length:
+    - 2
+    - always
+    - 128
   type-enum:
     - 2
     - always
