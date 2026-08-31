@@ -1,4 +1,6 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
+import { useReadOut } from '@/client/hooks/useReadOut'
+import { visibleText } from '@/client/lib/briefing-mode'
 import type { ScenarioDetail } from '@/client/lib/schemas'
 import { playSe } from '@/client/lib/sound'
 
@@ -39,6 +41,28 @@ const toParagraphs = (briefing: string): string[] =>
  */
 export const BriefingScreen = ({ scenario, onRead }: Props) => {
   const paragraphs = useMemo(() => toParagraphs(scenario.briefing), [scenario.briefing])
+  const { shown } = useReadOut(paragraphs)
+  const stage = useRef<HTMLDivElement>(null)
+  // 自分で上へ戻した人を引き戻さない。底の近くにいるあいだだけ書いている先を追う。
+  const stick = useRef(true)
+
+  // 書いている先が器の底に着いたらせり上げる。長い記録でも最後の行が霞に潜らない。
+  useEffect(() => {
+    const el = stage.current
+    if (el === null || !stick.current || shown === 0) {
+      return
+    }
+    el.scrollTop = el.scrollHeight
+  }, [shown])
+
+  /* 段落ごとの開始位置。通しの位置から各段落のぶんを切り出すために要る。 */
+  const offsets = useMemo(
+    () =>
+      paragraphs
+        .map((paragraph) => Array.from(paragraph).length)
+        .map((_, index, lengths) => lengths.slice(0, index).reduce((sum, n) => sum + n, 0)),
+    [paragraphs],
+  )
 
   return (
     <div className="screen-enter relative flex h-dvh flex-col overflow-hidden bg-sumi text-kinari">
@@ -48,7 +72,17 @@ export const BriefingScreen = ({ scenario, onRead }: Props) => {
         スクロールバーは出さない——見出しの視認性ではなく、罫線と余白で組む意匠に
         棒が一本混じるのが浮くため。
       */}
-      <div className="min-h-0 flex-1 overflow-y-auto px-[18px] pt-[30px] [scrollbar-width:none] lg:mx-auto lg:w-[640px] lg:px-0 lg:pt-[96px] lg:pb-[180px] [&::-webkit-scrollbar]:hidden">
+      <div
+        ref={stage}
+        onScroll={() => {
+          const el = stage.current
+          if (el === null) {
+            return
+          }
+          stick.current = el.scrollHeight - el.scrollTop - el.clientHeight < 40
+        }}
+        className="min-h-0 flex-1 overflow-y-auto px-[18px] pt-[30px] [scrollbar-width:none] lg:mx-auto lg:w-[640px] lg:px-0 lg:pt-[96px] lg:pb-[180px] [&::-webkit-scrollbar]:hidden"
+      >
         {/*
           記録の見出し。端末では本文の頭に流れの中で置き、器と一緒に送る。デスクトップでは
           画面の左上に逃がし、器の外（霞より上、z-20）に固定して送らせない。
@@ -63,11 +97,21 @@ export const BriefingScreen = ({ scenario, onRead }: Props) => {
           字を起こし、行間と字送りも広げる。同じ組みのままだと痩せて読みにくい。
         */}
         <div className="mt-[26px] font-mincho text-[14.5px] leading-[2.5] tracking-[0.04em] lg:mt-0 lg:text-[17px] lg:leading-[2.6] lg:tracking-[0.05em]">
-          {paragraphs.map((paragraph) => (
-            <p key={paragraph} className="mb-5 whitespace-pre-wrap last:mb-0 lg:mb-[30px]">
-              {paragraph}
-            </p>
-          ))}
+          {paragraphs.map((paragraph, index) => {
+            // まだ一文字も来ていない段落は置かない。空の <p> が先に場所を取ると、
+            // 送りに合わせて本文がせり上がるのではなく、最初から全段の枠が見えてしまう。
+            const start = offsets[index]
+            const text = start === undefined ? '' : visibleText(paragraph, shown - start)
+            if (text.length === 0) {
+              return null
+            }
+
+            return (
+              <p key={paragraph} className="mb-5 whitespace-pre-wrap last:mb-0 lg:mb-[30px]">
+                {text}
+              </p>
+            )
+          })}
         </div>
       </div>
 
