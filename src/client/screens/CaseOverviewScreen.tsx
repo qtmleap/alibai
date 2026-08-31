@@ -19,6 +19,7 @@ import { activeDetective, loadDetectiveStore, toDetective } from '@/client/lib/d
 import { loadGameMode } from '@/client/lib/game-mode-store'
 import type { CreateSessionResponse, ScenarioDetail } from '@/client/lib/schemas'
 import { railSpanMinutes } from '@/client/lib/time-rail'
+import { VICTIM_ID } from '~/db/scenario-definition'
 
 /** 節の見出し。等幅なのは書式であって時刻ではないので、値には使わない。 */
 const LEGEND =
@@ -75,7 +76,11 @@ type Props = {
    * それまでの聞き込みが宙に浮く。
    */
   activeSessionId?: string
-  onStart: (session: CreateSessionResponse) => void
+  /**
+   * 支度で選んだ相手を添えて渡す。ここで選んだのに聞き込みが別の人から始まると、
+   * 名簿を眺めただけの画面になってしまう。
+   */
+  onStart: (session: CreateSessionResponse, firstTarget: string | undefined) => void
   onResume: () => void
   onGiveUp: () => void
   onBack: () => void
@@ -131,7 +136,19 @@ export const CaseOverviewScreen = ({
    */
   const [firstTarget, setFirstTarget] = useState<string | undefined>(scenario.characters[0]?.id)
 
-  const chosen = scenario.characters.find((character) => character.id === firstTarget)
+  /**
+   * 遺体を調べられる事件か。
+   *
+   * 調べられるなら、被害者も「まず誰から」の一人として選べる。所見も死因も無い事件では
+   * 押せないままにする——押せるのに何も出ない相手を並べるより、押せないほうが正直。
+   */
+  const investigable = scenario.victim?.investigable === true
+
+  const chosen =
+    scenario.victim !== null && firstTarget === VICTIM_ID
+      ? { name: scenario.victim.name, examine: true }
+      : scenario.characters.find((character) => character.id === firstTarget)
+
   const paragraphs = paragraphsOf(scenario.briefing)
 
   /** 表の列。聞き込みの相手に亡くなった人を継ぎ足す——事件の時間を説明するのは四人ぶん。 */
@@ -158,7 +175,7 @@ export const CaseOverviewScreen = ({
     setError(undefined)
 
     createSession(scenario.id, detective, mode)
-      .then(onStart)
+      .then((session) => onStart(session, firstTarget))
       .catch((err: unknown) => {
         setError(describeError(err))
         setStarting(false)
@@ -171,7 +188,9 @@ export const CaseOverviewScreen = ({
       ? '準備中…'
       : chosen === undefined
         ? '聞き込みを始める'
-        : `${chosen.name}に聞き込みをする`
+        : 'examine' in chosen
+          ? `${chosen.name}を調べる`
+          : `${chosen.name}に聞き込みをする`
 
   return (
     <div className="screen-enter mx-auto flex min-h-dvh max-w-md flex-col gap-[17px] bg-sumi px-[18px] py-6 text-kinari lg:grid lg:h-dvh lg:max-w-none lg:grid-cols-[minmax(0,1fr)_628px] lg:grid-rows-[46px_minmax(0,1fr)] lg:gap-0 lg:p-0">
@@ -343,17 +362,25 @@ export const CaseOverviewScreen = ({
 
             {/*
               亡くなった人も同じ列に並べる。別枠にすると、事件のあいだ誰がその場に
-              いたのかという一覧が二つに割れる。話しかけられないことは右端のラベルと、
-              押せないことで足りている。
+              いたのかという一覧が二つに割れる。
+
+              喋らないが、遺体と現場は調べられる。調べられる事件では選べるようにして、
+              右端のラベルを「調べる」に替える——押せる相手なのか、名簿の上で分かるように。
             */}
             {scenario.victim !== null && (
               <li className="border-keisen border-b">
                 <button
                   type="button"
-                  disabled
+                  disabled={!investigable}
+                  onClick={() => setFirstTarget(VICTIM_ID)}
+                  aria-pressed={firstTarget === VICTIM_ID}
                   className="flex w-full items-center gap-2.5 py-[7px] text-left lg:gap-3 lg:py-2.5"
                 >
-                  <CharacterAvatar name={scenario.victim.name} index={scenario.characters.length} />
+                  <CharacterAvatar
+                    name={scenario.victim.name}
+                    index={scenario.characters.length}
+                    active={firstTarget === VICTIM_ID}
+                  />
                   <span className="flex min-w-0 flex-col gap-px">
                     <span
                       className={`text-[13px] leading-[1.75] lg:text-[13.5px] lg:leading-[1.5] ${inkOf(scenario.characters.length)}`}
@@ -365,7 +392,7 @@ export const CaseOverviewScreen = ({
                     </span>
                   </span>
                   <span className="ml-auto shrink-0 text-[10px] text-nezumi-dim tracking-[0.1em] lg:text-[10.5px]">
-                    被害者
+                    {investigable ? '調べる' : '被害者'}
                   </span>
                 </button>
               </li>

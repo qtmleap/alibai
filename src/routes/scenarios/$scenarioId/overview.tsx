@@ -38,10 +38,12 @@ function CaseOverview() {
       activeSessionId={session}
       // replace で入るのは、戻るボタンで「聞き込みを始める」に着地させないため。
       // あれをもう一度押すと、別のセッションが立って計時がやり直しになる。
-      onStart={(started) =>
+      onStart={(started, firstTarget) =>
         navigate({
           to: '/sessions/$sessionId',
           params: { sessionId: started.sessionId },
+          // 支度で選んだ相手を連れていく。渡さないと、聞き込みは常に名簿の先頭から始まる。
+          search: firstTarget === undefined ? {} : { first: firstTarget },
           replace: true,
         })
       }

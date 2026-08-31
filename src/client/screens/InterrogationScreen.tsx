@@ -35,6 +35,8 @@ type Props = {
   /** このセッションで名乗った探偵の名前。名乗らずに始めたなら null。 */
   detectiveName: string | null
   interrogation: UseInterrogation
+  /** 支度で選んだ「まず誰から」。会話が始まっていればそちらが優先される。 */
+  firstTarget?: string
   alibi?: Alibi
   onAccuse: () => void
   /** 聞き込みを切り上げて事件の一覧へ戻る。セッションはサーバに残るが、ここからは辿れなくなる。 */
@@ -75,18 +77,17 @@ const turnsOf = (conversations: Record<string, ChatTurn[]>, characterId: string)
  * 画面のいちばん下に映っている発言と、下の入力欄が向いている相手がずれる。
  */
 const lastSpokenId = (
-  characters: ScenarioDetail['characters'],
+  /** 話題を投げられる相手。遺体も含むので、検分の途中で開き直しても戻ってこられる。 */
+  subjectIds: string[],
   conversations: Record<string, ChatTurn[]>,
   fallback: string,
 ): string =>
-  characters.reduce(
-    (best, character) => {
-      const turns = turnsOf(conversations, character.id)
+  subjectIds.reduce(
+    (best, id) => {
+      const turns = turnsOf(conversations, id)
       const last = turns[turns.length - 1]
 
-      return last !== undefined && last.askedAt >= best.at
-        ? { id: character.id, at: last.askedAt }
-        : best
+      return last !== undefined && last.askedAt >= best.at ? { id, at: last.askedAt } : best
     },
     { id: fallback, at: -1 },
   ).id
@@ -316,6 +317,7 @@ export const InterrogationScreen = ({
   sessionId,
   detectiveName,
   interrogation,
+  firstTarget,
   alibi = EMPTY_ALIBI,
   onAccuse,
   onLeave,
@@ -346,7 +348,15 @@ export const InterrogationScreen = ({
   } = interrogation
 
   const [activeCharacterId, setActiveCharacterId] = useState(() =>
-    lastSpokenId(scenario.characters, conversations, firstCharacter.id),
+    /*
+     * まだ一度も話していなければ、支度で選んだ相手から始める。
+     * 一度でも話していれば、そちらが優先——読んでいた場所と入力欄の向きを合わせる。
+     */
+    lastSpokenId(
+      [...scenario.characters.map((character) => character.id), VICTIM_ID],
+      conversations,
+      firstTarget === undefined ? firstCharacter.id : firstTarget,
+    ),
   )
   const [inputText, setInputText] = useState('')
   const [serverState, setServerState] = useState<SessionState | undefined>(undefined)

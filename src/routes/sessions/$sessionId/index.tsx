@@ -11,6 +11,7 @@ export const Route = createFileRoute('/sessions/$sessionId/')({
 
 function Interrogation() {
   const { scenario, state } = layout.useLoaderData()
+  const { first } = layout.useSearch()
   const interrogation = useInterrogationContext()
   const navigate = useNavigate()
 
@@ -28,6 +29,8 @@ function Interrogation() {
       sessionId={state.sessionId}
       detectiveName={state.detectiveName}
       interrogation={interrogation}
+      // 支度で選んだ相手。会話が始まっていればそちらが優先される。
+      firstTarget={first}
       // 刻限と食い違いはまだサーバから出ていないので、線だけを渡す。
       alibi={{ segments: interrogation.alibiSegments }}
       onAccuse={() =>
