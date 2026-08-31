@@ -1,4 +1,5 @@
 import { createFileRoute, getRouteApi, Navigate, useNavigate } from '@tanstack/react-router'
+import { useEffect, useState } from 'react'
 import { useInterrogationContext } from '@/client/hooks/InterrogationContext'
 import { InterrogationScreen } from '@/client/screens/InterrogationScreen'
 
@@ -15,6 +16,21 @@ function Interrogation() {
   const interrogation = useInterrogationContext()
   const navigate = useNavigate()
 
+  /*
+   * 支度で選んだ相手は一度だけ使う。
+   *
+   * URLに残したままにすると、推理の画面へ行って戻るたびにこの相手へ引き戻され、
+   * 聞き込みの途中で替えた相手が巻き戻る。最初の描画で受け取ってから、
+   * クエリだけを静かに落とす（履歴に残さないので、戻るボタンの挙動も変わらない）。
+   */
+  const [initialTarget] = useState(first)
+
+  useEffect(() => {
+    if (first !== undefined) {
+      navigate({ to: '.', search: {}, replace: true })
+    }
+  }, [first, navigate])
+
   // 終わった事件は聞き込みに戻れない（推理を出した後に戻るを押した場合など）。
   // 開いたままにすると、答え合わせが済んだ相手に質問を投げられてしまう。
   if (state.finished) {
@@ -30,7 +46,7 @@ function Interrogation() {
       detectiveName={state.detectiveName}
       interrogation={interrogation}
       // 支度で選んだ相手。会話が始まっていればそちらが優先される。
-      firstTarget={first}
+      firstTarget={initialTarget}
       // 刻限と食い違いはまだサーバから出ていないので、線だけを渡す。
       alibi={{ segments: interrogation.alibiSegments }}
       onAccuse={() =>

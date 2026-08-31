@@ -347,16 +347,21 @@ export const InterrogationScreen = ({
     ask,
   } = interrogation
 
+  /** 話題を投げられる相手のID。支度から渡された相手が実在するかの判定に使う。 */
+  const subjectIds = [
+    ...scenario.characters.map((character) => character.id),
+    ...(scenario.victim?.investigable === true ? [VICTIM_ID] : []),
+  ]
+
   const [activeCharacterId, setActiveCharacterId] = useState(() =>
     /*
-     * まだ一度も話していなければ、支度で選んだ相手から始める。
-     * 一度でも話していれば、そちらが優先——読んでいた場所と入力欄の向きを合わせる。
+     * 支度で選び直した相手が渡っていれば、それを優先する。
+     * 「聞き込みに戻る」で名簿から選び直したのに、前に話していた相手が開くと、
+     * 選び直した意味が無い。渡っていなければ、最後に話した相手から再開する。
      */
-    lastSpokenId(
-      [...scenario.characters.map((character) => character.id), VICTIM_ID],
-      conversations,
-      firstTarget === undefined ? firstCharacter.id : firstTarget,
-    ),
+    firstTarget !== undefined && subjectIds.includes(firstTarget)
+      ? firstTarget
+      : lastSpokenId(subjectIds, conversations, firstCharacter.id),
   )
   const [inputText, setInputText] = useState('')
   const [serverState, setServerState] = useState<SessionState | undefined>(undefined)

@@ -81,7 +81,8 @@ type Props = {
    * 名簿を眺めただけの画面になってしまう。
    */
   onStart: (session: CreateSessionResponse, firstTarget: string | undefined) => void
-  onResume: () => void
+  /** 戻るときも、名簿で選び直した相手を連れていく。 */
+  onResume: (firstTarget: string | undefined) => void
   onGiveUp: () => void
   onBack: () => void
 }
@@ -405,7 +406,11 @@ export const CaseOverviewScreen = ({
           {error !== undefined && <p className="text-nezumi text-sm">{error}</p>}
 
           <div className="contents lg:block">
-            <Button size="block" onClick={inProgress ? onResume : handleStart} disabled={starting}>
+            <Button
+              size="block"
+              onClick={inProgress ? () => onResume(firstTarget) : handleStart}
+              disabled={starting}
+            >
               {startLabel}
             </Button>
           </div>

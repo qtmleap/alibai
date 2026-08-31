@@ -47,9 +47,13 @@ function CaseOverview() {
           replace: true,
         })
       }
-      onResume={() => {
+      onResume={(firstTarget) => {
         if (session !== undefined) {
-          navigate({ to: '/sessions/$sessionId', params: { sessionId: session } })
+          navigate({
+            to: '/sessions/$sessionId',
+            params: { sessionId: session },
+            search: firstTarget === undefined ? {} : { first: firstTarget },
+          })
         }
       }}
       onGiveUp={() => navigate({ to: '/' })}
