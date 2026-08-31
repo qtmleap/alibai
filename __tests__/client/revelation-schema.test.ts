@@ -24,6 +24,7 @@ describe('Revelation API contract', () => {
     const parsed = sessionStateSchema.parse({
       sessionId: '550e8400-e29b-41d4-a716-446655440001',
       scenarioId: '550e8400-e29b-41d4-a716-446655440002',
+      detectiveName: null,
       hint: { mode: 'nohope' },
       questionCount: 1,
       elapsedSeconds: 30,

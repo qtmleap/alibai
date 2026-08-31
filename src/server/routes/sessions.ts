@@ -34,7 +34,7 @@ import {
 } from '@/shared/turns'
 // 探偵の形と検証は db/detective.ts が正典。ここで定義し直すと、
 // クライアントの選択肢とAPIが受ける値が静かにずれる。
-import { detectiveSchema } from '~/db/detective'
+import { type Detective, detectiveSchema } from '~/db/detective'
 import { type GameMode, gameModeOf, gameModeSchema } from '~/db/game-mode'
 import { llmOverridesSchema } from '~/db/llm-catalog'
 import {
@@ -70,16 +70,22 @@ export const sessionRoutes = new Hono<{ Bindings: Bindings }>()
 const loadSessionMeta = async (
   db: Db,
   sessionId: string,
-): Promise<{ scenarioId: string; mode: GameMode } | undefined> => {
+): Promise<{ scenarioId: string; mode: GameMode; detective: Detective | null } | undefined> => {
   const rows = await db
-    .select({ scenarioId: playSessions.scenarioId, mode: playSessions.mode })
+    .select({
+      scenarioId: playSessions.scenarioId,
+      mode: playSessions.mode,
+      detective: playSessions.detective,
+    })
     .from(playSessions)
     .where(eq(playSessions.id, sessionId))
     .limit(1)
 
   const row = rows[0]
 
-  return row === undefined ? undefined : { scenarioId: row.scenarioId, mode: gameModeOf(row.mode) }
+  return row === undefined
+    ? undefined
+    : { scenarioId: row.scenarioId, mode: gameModeOf(row.mode), detective: row.detective }
 
   // eslint的な早期returnではなくoptional chainingで済ませたいところだが、
   // noUncheckedIndexedAccess下でrows[0]を2回評価するより1回にした方が明快なのでこの形にした。
@@ -364,6 +370,10 @@ sessionRoutes.get('/api/sessions/:id', validateSessionId, withEnv, async (c) => 
   return c.json({
     sessionId,
     scenarioId,
+    // 名乗って始めたセッションだけ名前が入る。正典は play_sessions の行のほうで、
+    // DO に写してある同じ値ではない——localStorage の選択は後から変わるので、
+    // 画面に出す名前は「そのとき名乗った名前」でなければ会話ログと食い違う。
+    detectiveName: meta.detective === null ? null : meta.detective.name,
     hint,
     questionCount: snapshot.questionCount,
     elapsedSeconds: snapshot.elapsedSeconds,

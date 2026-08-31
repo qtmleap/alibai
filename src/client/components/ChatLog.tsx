@@ -5,6 +5,8 @@ type Props = {
   turns: ChatTurn[]
   speakerName: string
   speakerIndex: number
+  /** 聞き手の名前。名乗らずに始めたセッションでは肩書きの「探偵」が入る。 */
+  askerName: string
   /** 返答を待っている最中か。最初の一文字が届くまでのあいだ「…」を出す。 */
   awaiting: boolean
 }
@@ -67,7 +69,7 @@ export const groupTurns = (turns: ChatTurn[]): Item[] => {
   return items
 }
 
-export const ChatLog = ({ turns, speakerName, speakerIndex, awaiting }: Props) => {
+export const ChatLog = ({ turns, speakerName, speakerIndex, askerName, awaiting }: Props) => {
   /*
    * 点を出すのは「送ったが、まだ一文字も返ってきていない」あいだだけ。
    *
@@ -108,7 +110,7 @@ export const ChatLog = ({ turns, speakerName, speakerIndex, awaiting }: Props) =
                 mine ? 'text-nezumi-dim' : inkOf(speakerIndex)
               }`}
             >
-              {mine ? '探偵' : speakerName}
+              {mine ? askerName : speakerName}
             </span>
 
             {item.lines.map((line) => (

@@ -90,6 +90,8 @@ export const revelationCardSchema = z.object({
 export const sessionStateSchema = z.object({
   sessionId: z.uuid(),
   scenarioId: z.uuid(),
+  /** 名乗って始めたときの探偵の名前。名乗らずに始めたセッションでは null。 */
+  detectiveName: z.string().nonempty().nullable(),
   /**
    * 未発見のものについて、このセッションの難易度で出してよい数だけ。
    * モードごとに形が違う（hard の応答には部屋ごとの数を入れる場所が無い）。

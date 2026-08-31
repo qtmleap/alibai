@@ -17,6 +17,8 @@ type Props = {
   scenario: ScenarioDetail
   /** 進行中のセッション。画面が使うのはIDだけ。 */
   sessionId: string
+  /** このセッションで名乗った探偵の名前。名乗らずに始めたなら null。 */
+  detectiveName: string | null
   interrogation: UseInterrogation
   onAccuse: () => void
   /** 聞き込みを切り上げて事件の一覧へ戻る。セッションはサーバに残るが、ここからは辿れなくなる。 */
@@ -34,10 +36,14 @@ const SESSION_POLL_INTERVAL_MS = 5000
 export const InterrogationScreen = ({
   scenario,
   sessionId,
+  detectiveName,
   interrogation,
   onAccuse,
   onLeave,
 }: Props) => {
+  // 名乗らずに始めたセッションでは肩書きで呼ぶ。聞き手の欄を空にすると、
+  // 誰の言葉なのかが縦罫の色だけになり、相手の発言と見分けが付かない。
+  const askerName = detectiveName === null ? '探偵' : detectiveName
   const firstCharacterId = scenario.characters[0]
 
   // シナリオに登場人物が1人もいないのはデータの前提が壊れている状態で、
@@ -301,7 +307,7 @@ export const InterrogationScreen = ({
         <main className="flex flex-1 flex-col gap-3 overflow-y-auto p-3">
           {turnsToShow.length === 0 && (
             <p className="text-center text-sm leading-relaxed text-nezumi-dim">
-              話題を投げると、探偵が代わりに聞き込みます。
+              話題を投げると、{askerName}が代わりに聞き込みます。
             </p>
           )}
 
@@ -310,6 +316,7 @@ export const InterrogationScreen = ({
               turns={turnsToShow}
               speakerName={activeCharacter.name}
               speakerIndex={activeCharacterIndex}
+              askerName={askerName}
               awaiting={isAsking}
             />
           )}

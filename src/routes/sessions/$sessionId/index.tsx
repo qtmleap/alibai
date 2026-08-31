@@ -26,6 +26,7 @@ function Interrogation() {
     <InterrogationScreen
       scenario={scenario}
       sessionId={state.sessionId}
+      detectiveName={state.detectiveName}
       interrogation={interrogation}
       onAccuse={() =>
         navigate({ to: '/sessions/$sessionId/accuse', params: { sessionId: state.sessionId } })
