@@ -8,12 +8,16 @@ import {
   DialogTitle,
 } from '@/client/components/ui/dialog'
 import { loadGameMode, saveGameMode } from '@/client/lib/game-mode-store'
+import { paginate, SCENARIOS_PER_PAGE } from '@/client/lib/pagination'
 import type { GameMode, ScenarioSummary } from '@/client/lib/schemas'
 import { GAME_MODE_LABELS, GAME_MODE_NOTES, GAME_MODES } from '~/db/game-mode'
 
 type Props = {
-  /** 一覧はルートの loader が渡す。SSR でも同じものが手に入る。 */
+  /** 一覧はルートの loader が渡す。SSR でも同じものが手に入る。全件で、切り分けはこの画面の仕事。 */
   scenarios: ScenarioSummary[]
+  /** 1始まり。範囲外の値もそのまま受け取り、paginate が端へ丸める。 */
+  page: number
+  onPageChange: (page: number) => void
   // セッション作成はまだしない。ここでは次の画面へ進むだけ。
   // (POST /api/sessions は支度の画面で「聞き込みを始める」を押した瞬間に投げる。
   //  そうしないと事件の記録を読んでいる時間が solvedSeconds に乗ってしまう)
@@ -32,7 +36,7 @@ const difficultyLabel = (difficulty: number): string => '★'.repeat(difficulty)
  * 上を大きく空けているのは、いきなり一覧から始めないため。暗い画面に題字だけが
  * 置かれている時間があると、これから何かが始まるという構えができる。
  */
-export const ScenarioSelectScreen = ({ scenarios, onSelect }: Props) => {
+export const ScenarioSelectScreen = ({ scenarios, page, onPageChange, onSelect }: Props) => {
   // 押してから次の画面のデータが届くまでの間、押した行だけが応える。
   // 遷移そのものはルータが引き受けるので、ここは見た目のためだけの状態。
   const [loadingId, setLoadingId] = useState<string | undefined>(undefined)
@@ -44,6 +48,8 @@ export const ScenarioSelectScreen = ({ scenarios, onSelect }: Props) => {
    */
   const [pending, setPending] = useState<ScenarioSummary | undefined>(undefined)
   const [mode, setMode] = useState<GameMode>(() => loadGameMode())
+
+  const { items, current, total } = paginate(scenarios, page, SCENARIOS_PER_PAGE)
 
   const start = () => {
     if (pending === undefined) {
@@ -80,7 +86,7 @@ export const ScenarioSelectScreen = ({ scenarios, onSelect }: Props) => {
         一覧は読み物ではないので、行ごとに行間を締める。
       */}
       <ul className="flex flex-col border-keisen border-t">
-        {scenarios.map((scenario, index) => (
+        {items.map((scenario, index) => (
           <li key={scenario.id} className="border-keisen border-b">
             <button
               type="button"
@@ -92,12 +98,11 @@ export const ScenarioSelectScreen = ({ scenarios, onSelect }: Props) => {
                 同じ分類が続くあいだは繰り返さない。3行続けて「殺人」と書いても
                 読み手が得るものは無く、題字の手前で毎回目が止まるだけ。
               */}
-              {scenario.category.length > 0 &&
-                scenarios[index - 1]?.category !== scenario.category && (
-                  <span className="text-[10px] text-nezumi-dim leading-[1.4] tracking-[0.16em]">
-                    {scenario.category}
-                  </span>
-                )}
+              {scenario.category.length > 0 && items[index - 1]?.category !== scenario.category && (
+                <span className="text-[10px] text-nezumi-dim leading-[1.4] tracking-[0.16em]">
+                  {scenario.category}
+                </span>
+              )}
               <span className="font-medium font-mincho text-base leading-[1.5] tracking-[0.03em]">
                 {scenario.title}
               </span>
@@ -110,6 +115,41 @@ export const ScenarioSelectScreen = ({ scenarios, onSelect }: Props) => {
           </li>
         ))}
       </ul>
+
+      {/*
+        ページ送り。
+
+        一覧の閉じ罫線がそのまま仕切りになるので、この行に枠は持たせない。
+        矢印記号は置かない。この画面は他のどこでも記号を使っておらず、
+        ここだけに ‹ › を出すと、そこだけ別の作りに見える。
+
+        端のページでもボタンを消さずに薄くするのは、消すと行が組み替わって、
+        押そうとしていた側のボタンが指の下から動くため。
+      */}
+      {total > 1 && (
+        <nav aria-label="ページ送り" className="flex items-center justify-between pt-5 pb-16">
+          <button
+            type="button"
+            onClick={() => onPageChange(current - 1)}
+            disabled={current === 1}
+            className="-mx-2 px-2 py-3 text-[11px] tracking-[0.16em] disabled:opacity-30"
+          >
+            前へ
+          </button>
+          {/* 件数と同じ扱いの小さなラベル。等幅は桁を揃えるためだけに借りる。 */}
+          <span className="font-mono text-[9.5px] text-nezumi-dim tabular-nums tracking-[0.24em]">
+            {current} / {total}
+          </span>
+          <button
+            type="button"
+            onClick={() => onPageChange(current + 1)}
+            disabled={current === total}
+            className="-mx-2 px-2 py-3 text-[11px] tracking-[0.16em] disabled:opacity-30"
+          >
+            次へ
+          </button>
+        </nav>
+      )}
 
       {/*
         難易度は事件の難しさではなく「どこまで教えてもらうか」の選択。

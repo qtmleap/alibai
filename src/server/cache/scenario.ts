@@ -125,6 +125,11 @@ export const loadPublishedScenarios = async (
     .leftJoin(characters, eq(characters.scenarioId, scenarios.id))
     .where(eq(scenarios.isPublished, true))
     .groupBy(scenarios.id)
+    // 並び順を明示するのはページ送りのため。ORDER BY が無いと順序は SQLite 任せで、
+    // ページの境目がキャッシュの張り替えを跨いだ瞬間にずれ、同じ事件が二度出たり
+    // 一度も出なかったりする。分類でまとめるのは、一覧が分類ごとの見出しを
+    // 出す作りになっているため（ScenarioSelectScreen 参照）。
+    .orderBy(scenarios.category, scenarios.title)
 
   await kv.put(SCENARIO_LIST_KEY, JSON.stringify(rows), {
     expirationTtl: SCENARIO_LIST_TTL_SECONDS,

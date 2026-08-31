@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AlibAI — タイトル画面（ページ送り）</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500&family=Roboto+Mono:wght@400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /*
+        src/client/index.css の @theme をそのまま写したもの。
+        React 側と突き合わせるためのモックなので、ここで新しい色や字体を足さない。
+      */
+      :root {
+        --sumi: #141317;
+        --keisen: #302c39;
+        --kinari: #e9e4d9;
+        --nezumi: #8e8896;
+        --nezumi-dim: #625d6c;
+        --mincho: "Shippori Mincho B1", "Hiragino Mincho ProN", "Yu Mincho", serif;
+        --gothic: "Zen Kaku Gothic New", "Hiragino Sans", "Noto Sans JP", sans-serif;
+        --mono: "Roboto Mono", ui-monospace, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        background-color: var(--sumi);
+        overflow-x: clip;
+      }
+
+      body {
+        font-family: var(--gothic);
+        color: var(--kinari);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .screen {
+        margin-inline: auto;
+        display: flex;
+        min-height: 100dvh;
+        max-width: 28rem;
+        flex-direction: column;
+        padding-inline: 1.25rem;
+      }
+
+      .head {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.625rem;
+        padding-top: 6rem;
+        padding-bottom: 4rem;
+      }
+
+      .head h1 {
+        margin: 0;
+        font-family: var(--mincho);
+        font-weight: 700;
+        font-size: 2.25rem;
+        line-height: 2.5rem;
+        letter-spacing: 0.18em;
+      }
+
+      .head p {
+        margin: 0;
+        font-size: 11px;
+        color: var(--nezumi-dim);
+        letter-spacing: 0.3em;
+      }
+
+      /*
+        件数は総数を出す。ページ内の件数に置き換えると、
+        「全部でいくつあるのか」を知る手がかりが画面から消える。
+      */
+      .total {
+        padding-bottom: 0.5rem;
+        font-family: var(--mono);
+        font-size: 9.5px;
+        color: var(--nezumi-dim);
+        letter-spacing: 0.24em;
+      }
+
+      .list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        border-top: 1px solid var(--keisen);
+      }
+
+      .list li {
+        border-bottom: 1px solid var(--keisen);
+      }
+
+      .row {
+        display: flex;
+        width: 100%;
+        flex-direction: column;
+        gap: 3px;
+        padding: 9px 0;
+        text-align: left;
+        background: none;
+        border: 0;
+        color: inherit;
+        font: inherit;
+        cursor: pointer;
+      }
+
+      .row .cat {
+        font-size: 10px;
+        color: var(--nezumi-dim);
+        line-height: 1.4;
+        letter-spacing: 0.16em;
+      }
+
+      .row .title {
+        font-family: var(--mincho);
+        font-weight: 500;
+        font-size: 1rem;
+        line-height: 1.5;
+        letter-spacing: 0.03em;
+      }
+
+      .row .meta {
+        font-size: 11px;
+        color: var(--nezumi-dim);
+        line-height: 1.45;
+      }
+
+      /*
+        ページ送り。
+
+        一覧の閉じ罫線がそのまま仕切りになるので、この行に枠は持たせない。
+        左右を端に寄せて中央を空けるのは、押す場所が親指の届く両端に来るのと、
+        真ん中に現在地だけが浮くことで「どこにいるか」が読み取りやすいため。
+
+        矢印記号は置かない。この画面は他のどこでも記号を使っておらず、
+        ここだけに ‹ › を出すと、そこだけ別の作りに見える。
+
+        端のページでも「前へ」「次へ」を消さずに薄くするのは、
+        消すと行が組み替わって、押そうとしていた側のボタンが動くため。
+      */
+      .pager {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-top: 1.25rem;
+        padding-bottom: 4rem;
+      }
+
+      .pager button {
+        margin-inline: -0.5rem;
+        padding: 0.75rem 0.5rem;
+        font: inherit;
+        font-size: 11px;
+        letter-spacing: 0.16em;
+        color: var(--kinari);
+        background: none;
+        border: 0;
+        cursor: pointer;
+      }
+
+      .pager button:disabled {
+        opacity: 0.3;
+        cursor: default;
+      }
+
+      /* 現在地は件数と同じ扱いの小さなラベル。等幅は桁を揃えるためだけに借りる。 */
+      .pager .at {
+        font-family: var(--mono);
+        font-size: 9.5px;
+        color: var(--nezumi-dim);
+        letter-spacing: 0.24em;
+        font-variant-numeric: tabular-nums;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="screen">
+      <header class="head">
+        <h1>AlibAI</h1>
+        <p>聞き込みで、犯人を指し示す</p>
+      </header>
+
+      <p class="total">43件</p>
+
+      <ul class="list">
+        <li>
+          <button class="row" type="button">
+            <span class="cat">SFクローズドサークル</span>
+            <span class="title">世代船、三つの夜明け</span>
+            <span class="meta">3人　★★★★★　約15分</span>
+          </button>
+        </li>
+        <li>
+          <button class="row" type="button">
+            <span class="title">火星基地、遅れて届いた返事</span>
+            <span class="meta">3人　★★★★★　約15分</span>
+          </button>
+        </li>
+        <li>
+          <button class="row" type="button">
+            <span class="cat">クローズドサークル</span>
+            <span class="title">台風のデータセンター、無人の保守窓</span>
+            <span class="meta">4人　★★★★★　約15分</span>
+          </button>
+        </li>
+        <li>
+          <button class="row" type="button">
+            <span class="title">台風圏の洋上基地、自律飛行の十八分</span>
+            <span class="meta">4人　★★★★★　約18分</span>
+          </button>
+        </li>
+        <li>
+          <button class="row" type="button">
+            <span class="title">吹雪のロッジ、青席のアリバイ</span>
+            <span class="meta">4人　★★★★　約15分</span>
+          </button>
+        </li>
+        <li>
+          <button class="row" type="button">
+            <span class="title">崖上ホテル、磨りガラスの人影</span>
+            <span class="meta">3人　★★★★★　約15分</span>
+          </button>
+        </li>
+        <li>
+          <button class="row" type="button">
+            <span class="title">崩落の時計博物館、十一分早い八時半</span>
+            <span class="meta">4人　★★★★★　約18分</span>
+          </button>
+        </li>
+        <li>
+          <button class="row" type="button">
+            <span class="title">崩落洞窟、歩き続ける位置タグ</span>
+            <span class="meta">4人　★★★★★　約18分</span>
+          </button>
+        </li>
+        <li>
+          <button class="row" type="button">
+            <span class="title">嵐の天象館、ガラスの向こうの目撃者</span>
+            <span class="meta">3人　★★★★★　約15分</span>
+          </button>
+        </li>
+        <li>
+          <button class="row" type="button">
+            <span class="title">嵐の山宿、二階を歩く杖</span>
+            <span class="meta">3人　★★★★★　約15分</span>
+          </button>
+        </li>
+      </ul>
+
+      <nav class="pager" aria-label="ページ送り">
+        <button type="button" disabled>前へ</button>
+        <span class="at">1 / 5</span>
+        <button type="button">次へ</button>
+      </nav>
+    </div>
+  </body>
+</html>
