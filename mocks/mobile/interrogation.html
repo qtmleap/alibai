@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AlibAI モバイル — 聞き込み</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500&family=Roboto+Mono:wght@400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./_phone.css" />
+    <link rel="stylesheet" href="../_mock.css" />
+    <style>
+      .int-head a { text-decoration: none; color: inherit; }
+      .int-head .row1 .acc { color: var(--nezumi); flex: none; }
+
+      /*
+        _phone.css の帯は 34px で、両端の時刻と目盛りが同じ高さの帯を奪い合う。
+        白紙のうちは気づかないが、18:23 のように端寄りの時刻が確定した途端、
+        印が「18:20」の字を貫く。帯を一段深くして、見出しの下に印の道を作る。
+      */
+      .rail { height: 46px; }
+      .rail .cap, .rail .cap2 { top: 0; }
+      /* 線も明示的に置く。flex の中央任せだと、帯を深くした途端に印とずれる。 */
+      .rail .line { top: 28px; }
+      .rail .pin { top: 22px; }
+      .rail .now { top: 18px; height: 22px; }
+    </style>
+  </head>
+  <body>
+    <div class="phone" data-mock-id="ALI_INT_01">
+      <div class="int-head hair" data-mock-id="ALI_INT_02">
+        <div class="row1">
+          <a class="ttl" href="./case-overview.html">←　概要に戻る</a>
+          <span style="flex: none" id="count"></span>
+          <a class="acc" href="./accusation.html" data-mock-id="ALI_INT_03">告発</a>
+        </div>
+        <div class="nm" id="who" data-mock-id="ALI_INT_05"></div>
+        <div class="pers" id="pers"></div>
+      </div>
+
+      <div class="rail hair" id="rail" data-mock-id="ALI_INT_04"></div>
+
+      <div class="log" id="log" data-mock-id="ALI_INT_06">
+        <div class="hint" id="hint" data-mock-id="ALI_INT_08">
+          <span class="head">訊けそうなこと<span>▲</span></span>
+        </div>
+      </div>
+
+      <div class="int-foot" style="border-top: 1px solid var(--keisen)">
+        <div class="askbar">
+          <span class="box" data-mock-id="ALI_INT_10">何について訊く？</span>
+          <span class="btn" data-mock-id="ALI_INT_11">訊く</span>
+        </div>
+      </div>
+    </div>
+
+    <script src="../_case.js"></script>
+    <script src="../_mock.js"></script>
+    <script>
+      ;(function () {
+        var C = Mock.case
+        var st = Mock.play(Mock.num('turn', 4))
+        var me = Mock.cast[st.current]
+
+        document.getElementById('count').innerHTML =
+          st.turn +
+          '/' +
+          C.turns +
+          '　<span class="t">' +
+          Mock.clock(st.turn) +
+          '</span>'
+
+        document.getElementById('who').textContent = me.name
+        document.getElementById('who').style.color = 'var(--' + me.hue + Mock.lit + ')'
+        document.getElementById('pers').textContent = me.persona
+
+        document.getElementById('rail').innerHTML = Mock.rail({ segments: st.segments })
+
+        // 訊けそうなことはログの末尾に畳んである。会話はその上に積む。
+        var hint = document.getElementById('hint')
+        document.getElementById('log').insertAdjacentHTML('afterbegin', Mock.log(st.log.slice(-8)))
+        hint.insertAdjacentHTML(
+          'beforeend',
+          st.hints
+            .map(function (q) {
+              return '<span class="q" data-mock-id="ALI_INT_09">' + Mock.esc(q) + '</span>'
+            })
+            .join(''),
+        )
+
+        Mock.ready()
+      })()
+    </script>
+  </body>
+</html>

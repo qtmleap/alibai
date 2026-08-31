@@ -1,5 +1,7 @@
 import { useState } from 'react'
-import { FloorPlanMap } from '@/client/components/FloorPlan'
+import { AlibiChart, type AlibiPerson } from '@/client/components/AlibiChart'
+import { CharacterAvatar, inkOf } from '@/client/components/CharacterAvatar'
+import { TimeRail } from '@/client/components/TimeRail'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,12 +14,58 @@ import {
   AlertDialogTrigger,
 } from '@/client/components/ui/alert-dialog'
 import { Button } from '@/client/components/ui/button'
-import { ToggleGroup, ToggleGroupItem } from '@/client/components/ui/toggle-group'
 import { createSession, describeError } from '@/client/lib/api'
 import { activeDetective, loadDetectiveStore, toDetective } from '@/client/lib/detective-store'
-import { loadGameMode, saveGameMode } from '@/client/lib/game-mode-store'
-import type { CreateSessionResponse, GameMode, ScenarioDetail } from '@/client/lib/schemas'
-import { GAME_MODE_LABELS, GAME_MODE_NOTES, GAME_MODES } from '~/db/game-mode'
+import { loadGameMode } from '@/client/lib/game-mode-store'
+import type { CreateSessionResponse, ScenarioDetail } from '@/client/lib/schemas'
+import { railSpanMinutes } from '@/client/lib/time-rail'
+
+/** 節の見出し。等幅なのは書式であって時刻ではないので、値には使わない。 */
+const LEGEND =
+  'block font-mono text-[9.5px] leading-[1.75] tracking-[0.24em] text-nezumi-dim lg:text-[10px]'
+
+/** 顔料の割り当ては登場順。CharacterAvatar と同じ並びでないと、顔と列の色がずれる。 */
+const HUES = ['asagi', 'fuji', 'suou', 'karashi'] as const
+
+const hueOf = (index: number): AlibiPerson['hue'] => {
+  const found = HUES[index % HUES.length]
+
+  return found === undefined ? 'asagi' : found
+}
+
+/**
+ * 表の見出しに立てる肩書。
+ *
+ * 紹介文は「店員。書誌と発送手順には強い」のように、肩書と人となりが句点で分かれている。
+ * 列は 108px しかないので、頭のひとことだけを取る。
+ */
+const roleOf = (introduction: string): string => {
+  const head = introduction.split('。')[0]
+
+  return head === undefined ? introduction : head
+}
+
+/**
+ * 端末では題字を読点で折る。
+ *
+ * 「場所、そこで起きたこと」という形の題が多く、放っておくと折り返しが句の途中に落ちて、
+ * 二行目が「ト」の一文字だけになる。意味の切れ目で折れば、狭い幅でも題字として読める。
+ * 机の上では幅が余るので、繋げて一行に戻す。
+ */
+const titleLines = (title: string): string[] => {
+  const at = title.indexOf('、')
+
+  return at === -1 || at === title.length - 1
+    ? [title]
+    : [title.slice(0, at + 1), title.slice(at + 1)]
+}
+
+/** 事件の記録は空行で段落が分かれている。 */
+const paragraphsOf = (briefing: string): string[] =>
+  briefing
+    .split(/\n\s*\n/)
+    .map((paragraph) => paragraph.trim())
+    .filter((paragraph) => paragraph.length > 0)
 
 type Props = {
   scenario: ScenarioDetail
@@ -39,8 +87,18 @@ type Props = {
  * プロローグを語る画面とは分けてある。語りの締めの上に人物や地図を積み上げると、
  * 余韻が資料に押し流されて、読み物が説明書に変わってしまう。
  *
- * ここで見せるのも最小限にする。誰に会うのかと、現場の形。人物像の細かい話は
- * 聞き込み画面でタブを選べば読めるし、見取り図もあちらで開ける。
+ * 机の上では左右に割る。左はまだ一本も線の立っていないアリバイ表で、聞き込みが
+ * 始まる前から据え置く——何も置かれていない表を先に見せておくと、これから何を
+ * 埋めていく遊びなのかが、最初の一問より前に分かる。右が支度の面で、上から
+ * 記録・名簿・開始と一列に積む。記録だけが縦に伸び縮みしてここだけスクロールし、
+ * 入りきらないときは切れ口に霞をかけて続きがあることを示す。
+ *
+ * 端末では一列。表を出す幅が無いので時刻軸だけを置き、記録は別の画面に譲って
+ * 「もう一度読む」への導線を残す。
+ *
+ * 手がかりの見え方（難易度）はここでは選べない。事件ごとに選び直すものではなく、
+ * 事件を選ぶ前に一度だけ決めるものなので、選択は ScenarioSelectScreen 側にある。
+ * ここでは前回の選択を読んで開始時にそのまま使うだけ。
  *
  * セッション開始（POST /api/sessions）はこの画面の「聞き込みを始める」で行う。
  * ここより前で作ってしまうと、記録を読んでいる時間まで solvedSeconds に乗る。
@@ -54,18 +112,46 @@ export const CaseOverviewScreen = ({
   onBack,
 }: Props) => {
   const inProgress = activeSessionId !== undefined
+  const span =
+    scenario.timeWindow === null
+      ? undefined
+      : railSpanMinutes(scenario.timeWindow.start, scenario.timeWindow.end)
   const [starting, setStarting] = useState(false)
   const [error, setError] = useState<string | undefined>(undefined)
   // 探偵の設定画面が localStorage に書いた選択を読む。名乗らずに始めた場合は undefined。
   const [stored] = useState(() => activeDetective(loadDetectiveStore()))
   const detective = stored === undefined ? undefined : toDetective(stored)
-  // 前回選んだ難易度から始める。事件ごとに選び直すものではない。
-  const [mode, setMode] = useState<GameMode>(() => loadGameMode())
+  // 難易度は事件を選ぶ前に決めたもの。ここでは読むだけで、選び直しはしない。
+  const [mode] = useState(() => loadGameMode())
+  /*
+   * まず誰から聞くか。
+   *
+   * 決めた相手は開始ボタンの文言になる。名簿を眺めるだけの画面にすると、
+   * 「始める」を押した先で改めて相手を選ぶことになり、支度が二度に割れる。
+   */
+  const [firstTarget, setFirstTarget] = useState<string | undefined>(scenario.characters[0]?.id)
 
-  const chooseMode = (next: GameMode) => {
-    setMode(next)
-    saveGameMode(next)
-  }
+  const chosen = scenario.characters.find((character) => character.id === firstTarget)
+  const paragraphs = paragraphsOf(scenario.briefing)
+
+  /** 表の列。聞き込みの相手に亡くなった人を継ぎ足す——事件の時間を説明するのは四人ぶん。 */
+  const people: AlibiPerson[] = scenario.characters.map((character, index) => ({
+    key: character.id,
+    name: character.name,
+    role: roleOf(character.publicIntroduction),
+    hue: hueOf(index),
+  }))
+  const victimColumn: AlibiPerson[] =
+    scenario.victim === null
+      ? []
+      : [
+          {
+            key: 'victim',
+            name: scenario.victim.name,
+            role: '被害者',
+            hue: hueOf(scenario.characters.length),
+          },
+        ]
 
   const handleStart = () => {
     setStarting(true)
@@ -79,19 +165,29 @@ export const CaseOverviewScreen = ({
       })
   }
 
+  const startLabel = inProgress
+    ? '聞き込みに戻る'
+    : starting
+      ? '準備中…'
+      : chosen === undefined
+        ? '聞き込みを始める'
+        : `${chosen.name}に聞き込みをする`
+
   return (
-    <div className="screen-enter mx-auto flex min-h-dvh max-w-md flex-col gap-6 bg-slate-950 px-5 py-6 text-slate-100">
-      <header className="flex items-start justify-between gap-3">
-        <h1 className="text-xl font-bold">{scenario.title}</h1>
-        {/*
-          降りる口。押した瞬間に落ちると事故になるので、必ず一度確かめる。
-          AlertDialog は「×で閉じる」を持たないので、続けるか諦めるかを必ず選ばせられる。
-        */}
+    <div className="screen-enter mx-auto flex min-h-dvh max-w-md flex-col gap-[17px] bg-sumi px-[18px] py-6 text-kinari lg:grid lg:h-dvh lg:max-w-none lg:grid-cols-[minmax(0,1fr)_628px] lg:grid-rows-[46px_minmax(0,1fr)] lg:gap-0 lg:p-0">
+      {/*
+        上部バーは薄く、机の面を最大に取る。降りる口はここひとつ。押した瞬間に
+        落ちると事故になるので、AlertDialog で必ず一度確かめる。
+      */}
+      <header className="flex items-center justify-between gap-5 lg:col-span-2 lg:border-keisen lg:border-b lg:px-[22px]">
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button variant="link" size="sm" className="shrink-0 px-0">
-              諦める
-            </Button>
+            <button
+              type="button"
+              className="font-mono text-[9.5px] text-nezumi-dim leading-[1.75] tracking-[0.24em] lg:font-gothic lg:text-xs lg:tracking-normal"
+            >
+              ←　事件を選ぶ
+            </button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
@@ -108,69 +204,194 @@ export const CaseOverviewScreen = ({
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* 計器。端末では出す幅が無いので、机の上だけ。 */}
+        <div className="hidden lg:flex lg:items-center lg:gap-[22px] lg:text-nezumi-dim lg:text-xs">
+          <span>約{scenario.estimatedMinutes}分</span>
+        </div>
       </header>
 
       {/*
-        ここでは畳まない。支度の画面に置くものは少なく、縦に余裕がある。
-        現場の形は聞き込みに入る前に頭へ入れておきたいものなので、開く操作を挟まない。
-        （聞き込み画面のほうは会話ログを削ることになるので、あちらは折りたたみのまま）
+        アリバイ表。まだ白紙で、線を引くのはこれから始まる聞き込みの仕事。
+        端末では列を並べる幅が無いので、時刻軸だけを下に置き換える。
       */}
-      {scenario.floorPlan !== null && (
-        <section className="flex flex-col gap-2">
-          <h2 className="text-xs tracking-widest text-slate-500">事件現場</h2>
-          <FloorPlanMap plan={scenario.floorPlan} interactive />
-        </section>
+      {scenario.timeWindow !== null && (
+        <div className="hidden lg:flex lg:min-h-0 lg:flex-col lg:border-keisen lg:border-r lg:px-[22px] lg:pt-[14px] lg:pb-3">
+          <div className="flex items-baseline justify-between leading-[1.4]">
+            <span className="font-mincho text-sm tracking-[0.1em]">アリバイ表</span>
+            <span className="font-mono text-[10px] text-nezumi-dim tabular-nums tracking-[0.24em]">
+              {scenario.timeWindow.start} − {scenario.timeWindow.end}
+            </span>
+          </div>
+
+          <AlibiChart
+            people={[...people, ...victimColumn]}
+            segments={[]}
+            span={{ from: scenario.timeWindow.start, to: scenario.timeWindow.end }}
+          />
+
+          {/*
+            線の意味は表のそばに置く。色は顔料に使い切っているので、
+            裏付けの有無は実線と破線で分ける。
+          */}
+          <div className="mt-4 flex items-center gap-5 text-[10.5px] text-nezumi-dim leading-[1.4]">
+            <span className="inline-flex items-center gap-1.5">
+              <span className="h-[3px] w-[14px] bg-nezumi" />
+              <span className="text-nezumi">実線</span>
+            </span>
+            <span>裏付けあり</span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="w-[14px] border-nezumi-dim border-t border-dashed" />
+              <span className="text-nezumi">破線</span>
+            </span>
+            <span>本人の申告のみ</span>
+          </div>
+        </div>
       )}
 
-      {scenario.characters.length > 0 && (
-        <section className="flex flex-col gap-2">
-          <h2 className="text-xs tracking-widest text-slate-500">この夜、居合わせた者</h2>
-          <p className="text-sm text-slate-300">
-            {scenario.characters.map((character) => character.name).join('　')}
+      {/* 支度の面。端末では contents で解いて、画面そのものの一列に戻す。 */}
+      <div className="contents lg:flex lg:min-h-0 lg:flex-col lg:px-[34px] lg:pt-6 lg:pb-[22px]">
+        <div className="contents lg:block lg:shrink-0 lg:border-keisen lg:border-b lg:pb-[18px]">
+          <h1 className="font-bold font-mincho text-[19px] leading-[1.55] tracking-[0.05em] lg:text-[26px] lg:leading-[1.45]">
+            {titleLines(scenario.title).map((line) => (
+              <span key={line} className="block lg:inline">
+                {line}
+              </span>
+            ))}
+          </h1>
+          {/* 導入文は読み物なので行長を締める。ペイン幅いっぱいに流すと目が戻れない。 */}
+          <p className="hidden text-[13px] text-nezumi leading-[1.9] lg:mt-2.5 lg:block lg:max-w-[42em]">
+            {scenario.synopsis}
           </p>
-        </section>
-      )}
+        </div>
 
-      {/*
-        難易度は「事件の難しさ」ではなく「どこまで教えてもらうか」の選択。
-        始めたら変えられないので、聞き込みに入る直前のここで決める。
-      */}
-      <fieldset className="mt-auto flex flex-col gap-2" disabled={inProgress}>
-        <legend className="text-[10px] tracking-[0.3em] text-slate-600">
-          手がかりの見え方{inProgress ? '（この事件では変えられません）' : ''}
-        </legend>
-        <ToggleGroup
-          type="single"
-          variant="outline"
-          spacing={2}
-          value={mode}
-          onValueChange={(value) => {
-            const picked = GAME_MODES.find((option) => option === value)
+        {/*
+          端末での時刻軸。表の代わりに幅だけを見せる。
+          幅を数字でも言い直すのは、両端の時刻だけだと長さが直感で掴めないため。
+        */}
+        {scenario.timeWindow !== null && (
+          <div className="flex flex-col lg:hidden">
+            <TimeRail start={scenario.timeWindow.start} end={scenario.timeWindow.end} />
+            {span !== undefined && (
+              <p className="text-[11px] text-nezumi-dim leading-[1.75]">
+                この{span}分を、説明しきる
+              </p>
+            )}
+          </div>
+        )}
 
-            if (picked !== undefined) {
-              chooseMode(picked)
-            }
-          }}
-          className="flex-wrap"
-        >
-          {GAME_MODES.map((option) => (
-            <ToggleGroupItem key={option} value={option} className="h-auto px-3 py-2">
-              {GAME_MODE_LABELS[option]}
-            </ToggleGroupItem>
-          ))}
-        </ToggleGroup>
-        <p className="text-xs text-slate-500">{GAME_MODE_NOTES[mode]}</p>
-      </fieldset>
+        {/*
+          事件の記録。机の上では読みながら選べるので、別の画面へ往復しなくていい。
+          行長を 34em で締めるのは、ここが唯一の読み物だから。ここだけが縦に
+          伸び縮みしてスクロールする——左の名簿と開始ボタンは記録の長さで動かない。
+        */}
+        <div className="hidden lg:flex lg:min-h-0 lg:flex-1 lg:flex-col lg:overflow-y-auto lg:pt-5 lg:pr-[26px] lg:pb-1">
+          <span className={`${LEGEND} pb-3`}>事件の記録</span>
+          <div className="flex flex-col gap-[15px]">
+            {paragraphs.map((paragraph, index) => (
+              <p
+                key={paragraph}
+                className={
+                  index === 0
+                    ? 'max-w-[34em] text-[12.5px] text-nezumi-dim leading-[2.05] tracking-[0.06em]'
+                    : 'max-w-[34em] text-[13.5px] text-nezumi leading-[2.05]'
+                }
+              >
+                {paragraph}
+              </p>
+            ))}
+          </div>
+        </div>
 
-      {error !== undefined && <p className="text-sm text-red-400">{error}</p>}
+        {/*
+          名前を並べるだけだと、誰に会うのかは分かっても、どんな相手かが分からない。
+          顔料と一言を添えて、聞き込みの相手として頭に入る形にする。
+          机の上では記録の直下、罫線で区切って置く。記録が入りきらないときは、
+          罫のところで断ち切れる——切れ口に霞をかけて、途切れではなく続きがある
+          ことを示す(聞き込みの記録欄と同じ手)。
+        */}
+        <div className="lg:relative lg:mt-6 lg:flex-none lg:border-keisen lg:border-t lg:pt-[18px] lg:before:pointer-events-none lg:before:absolute lg:before:inset-x-0 lg:before:bottom-full lg:before:h-[46px] lg:before:bg-gradient-to-t lg:before:from-sumi lg:before:to-transparent lg:before:content-['']">
+          <h2 className={`${LEGEND} pb-2 lg:pb-[7px]`}>まず誰から話を聞くか</h2>
+          {/* 一列に積むと四人で三百px を占め、記録が二行しか残らない。机の上だけ二列に畳む。 */}
+          <ul className="flex flex-col border-keisen border-t lg:grid lg:grid-cols-2 lg:gap-x-[30px]">
+            {scenario.characters.map((character, index) => (
+              <li key={character.id} className="border-keisen border-b">
+                <button
+                  type="button"
+                  onClick={() => setFirstTarget(character.id)}
+                  aria-pressed={character.id === firstTarget}
+                  className="flex w-full items-center gap-2.5 py-[7px] text-left lg:gap-3 lg:py-2.5"
+                >
+                  <CharacterAvatar
+                    name={character.name}
+                    index={index}
+                    active={character.id === firstTarget}
+                  />
+                  <span className="flex min-w-0 flex-col gap-px">
+                    <span
+                      className={`text-[13px] leading-[1.75] lg:text-[13.5px] lg:leading-[1.5] ${inkOf(index)}`}
+                    >
+                      {character.name}
+                    </span>
+                    <span className="text-[10.5px] text-nezumi-dim leading-[1.6] lg:text-[11.5px]">
+                      {character.publicIntroduction}
+                    </span>
+                  </span>
+                </button>
+              </li>
+            ))}
 
-      <Button size="block" onClick={inProgress ? onResume : handleStart} disabled={starting}>
-        {inProgress ? '聞き込みに戻る' : starting ? '準備中…' : '聞き込みを始める'}
-      </Button>
+            {/*
+              亡くなった人も同じ列に並べる。別枠にすると、事件のあいだ誰がその場に
+              いたのかという一覧が二つに割れる。話しかけられないことは右端のラベルと、
+              押せないことで足りている。
+            */}
+            {scenario.victim !== null && (
+              <li className="border-keisen border-b">
+                <button
+                  type="button"
+                  disabled
+                  className="flex w-full items-center gap-2.5 py-[7px] text-left lg:gap-3 lg:py-2.5"
+                >
+                  <CharacterAvatar name={scenario.victim.name} index={scenario.characters.length} />
+                  <span className="flex min-w-0 flex-col gap-px">
+                    <span
+                      className={`text-[13px] leading-[1.75] lg:text-[13.5px] lg:leading-[1.5] ${inkOf(scenario.characters.length)}`}
+                    >
+                      {scenario.victim.name}
+                    </span>
+                    <span className="text-[10.5px] text-nezumi-dim leading-[1.6] lg:text-[11.5px]">
+                      {scenario.victim.introduction}
+                    </span>
+                  </span>
+                  <span className="ml-auto shrink-0 text-[10px] text-nezumi-dim tracking-[0.1em] lg:text-[10.5px]">
+                    被害者
+                  </span>
+                </button>
+              </li>
+            )}
+          </ul>
+        </div>
 
-      <Button variant="link" size="sm" onClick={onBack}>
-        事件の記録をもう一度読む
-      </Button>
+        {/* 名簿を選んだ直後に押すものなので、間を空けずすぐ下に置く。 */}
+        <div className="flex-none lg:mt-0 lg:pt-[18px]">
+          {error !== undefined && <p className="text-nezumi text-sm">{error}</p>}
+
+          <div className="contents lg:block">
+            <Button size="block" onClick={inProgress ? onResume : handleStart} disabled={starting}>
+              {startLabel}
+            </Button>
+          </div>
+
+          {/*
+            記録は端末では別の画面なので、戻る道を残す。
+            机の上では上に開いたままなので、この往復は要らない。
+          */}
+          <Button variant="ghost" size="sm" onClick={onBack} className="lg:hidden">
+            事件の記録をもう一度読む
+          </Button>
+        </div>
+      </div>
     </div>
   )
 }

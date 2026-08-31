@@ -1,6 +1,6 @@
 {
   "name": "alibai",
-  "version": "0.2.0",
+  "version": "0.2.3",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,6 +11,8 @@
     "lint": "bunx --bun biome check",
     "format": "bunx --bun biome check --write",
     "test": "bun test",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "wrangler d1 migrations apply alibai --local",
     "db:migrate:remote": "wrangler d1 migrations apply alibai --remote",
@@ -18,7 +20,8 @@
     "db:seed:apply": "wrangler d1 execute alibai --local --file=db/seed.sql",
     "db:seed:apply:remote": "wrangler d1 execute alibai --remote --file=db/seed.sql",
     "db:author": "bun run db/generate-scenario.ts",
-    "deploy": "vite build && wrangler deploy"
+    "se:fetch": "bun run scripts/fetch-se.ts",
+    "deploy": "bun run se:fetch && bun run build && bun run db:migrate:remote && wrangler deploy"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^2",
@@ -34,6 +37,7 @@
     "clsx": "^2.1.1",
     "commitlint": "^21.2.1",
     "conventional-changelog-conventionalcommits": "^10.2.1",
+    "dayjs": "^1.11.23",
     "drizzle-orm": "^0.44",
     "hono": "^4",
     "lucide-react": "^1.37.0",
@@ -47,6 +51,7 @@
     "@biomejs/biome": "^2",
     "@cloudflare/vite-plugin": "^1.54.2",
     "@cloudflare/workers-types": "^4",
+    "@storybook/react-vite": "10.5.10",
     "@tailwindcss/vite": "^4",
     "@types/bun": "^1",
     "@types/node": "^26",
@@ -54,6 +59,7 @@
     "@types/react-dom": "^19",
     "drizzle-kit": "^0.31",
     "playwright": "^1.62.1",
+    "storybook": "10.5.10",
     "tailwindcss": "^4",
     "typescript": "^7",
     "vite": "^8",

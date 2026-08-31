@@ -247,6 +247,11 @@ vite.config.*.timestamp-*
 # 環境変数テンプレートだけは追跡する
 !.env.example
 
+# 効果音の実体。効果音ラボは「アプリの操作音として組み込む」ことは許可しているが
+# 再配布を禁じており、公開リポジトリに置くと clone した人へ素材を配る形になる。
+# `bun run se:fetch` で取得する。
+/public/se/
+
 # シナリオ真相のローカルダンプ（誤コミット防止）
 /db/*.dump
 /db/seeds/*.local.*
@@ -259,3 +264,6 @@ vite.config.*.timestamp-*
 
 # Playwright MCP が吐くスナップショット
 /screenshots/
+
+# Storybook の静的ビルド。成果物なので追跡しない。
+/storybook-static/

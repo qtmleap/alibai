@@ -12,7 +12,7 @@ import {
 } from '@/server/cache/scenario'
 import type { Db } from '@/server/db/client'
 import { createDb } from '@/server/db/client'
-import type { Bindings } from '@/server/env'
+import type { Bindings, Env } from '@/server/env'
 import { remainingHints } from '@/server/game/hints'
 import { acceptRevealedRevelationIds } from '@/server/game/revelations'
 import { GAME_RULES } from '@/server/game/rules'
@@ -22,13 +22,21 @@ import { gradeDeduction } from '@/server/llm/deduction'
 import { createFilterState, FALLBACK_REPLY, feedChunk, finalizeFilter } from '@/server/llm/filter'
 import { generateQuestion, type TopicExchange } from '@/server/llm/interviewer'
 import { judgeTurn } from '@/server/llm/judge'
+import { chooseLlm, type LlmChoice } from '@/server/llm/provider'
 import { toUsageRow } from '@/server/llm/usage'
 import { withEnv } from '@/server/middleware/env'
-import { EXCHANGES_PER_TOPIC, turnStateOf } from '@/shared/turns'
+import {
+  clampLimits,
+  EXCHANGES_PER_TOPIC,
+  modelCallsPerTopic,
+  type SessionLimits,
+  turnStateOf,
+} from '@/shared/turns'
 // 探偵の形と検証は db/detective.ts が正典。ここで定義し直すと、
 // クライアントの選択肢とAPIが受ける値が静かにずれる。
-import { detectiveSchema } from '~/db/detective'
+import { type Detective, detectiveSchema } from '~/db/detective'
 import { type GameMode, gameModeOf, gameModeSchema } from '~/db/game-mode'
+import { llmOverridesSchema } from '~/db/llm-catalog'
 import {
   characters,
   type DeductionRecord,
@@ -62,16 +70,22 @@ export const sessionRoutes = new Hono<{ Bindings: Bindings }>()
 const loadSessionMeta = async (
   db: Db,
   sessionId: string,
-): Promise<{ scenarioId: string; mode: GameMode } | undefined> => {
+): Promise<{ scenarioId: string; mode: GameMode; detective: Detective | null } | undefined> => {
   const rows = await db
-    .select({ scenarioId: playSessions.scenarioId, mode: playSessions.mode })
+    .select({
+      scenarioId: playSessions.scenarioId,
+      mode: playSessions.mode,
+      detective: playSessions.detective,
+    })
     .from(playSessions)
     .where(eq(playSessions.id, sessionId))
     .limit(1)
 
   const row = rows[0]
 
-  return row === undefined ? undefined : { scenarioId: row.scenarioId, mode: gameModeOf(row.mode) }
+  return row === undefined
+    ? undefined
+    : { scenarioId: row.scenarioId, mode: gameModeOf(row.mode), detective: row.detective }
 
   // eslint的な早期returnではなくoptional chainingで済ませたいところだが、
   // noUncheckedIndexedAccess下でrows[0]を2回評価するより1回にした方が明快なのでこの形にした。
@@ -132,6 +146,21 @@ const loadTruth = async (db: Db, scenarioId: string): Promise<Truth | undefined>
   }
 }
 
+/**
+ * 設定が無いときの拠りどころ。デプロイ設定がそのまま既定になる。
+ *
+ * この機能より前に始まったセッションは DO に上限を持っていないので、そこでもこれを使う。
+ */
+const envLimits = (env: Env): SessionLimits => ({
+  maxTurns: env.MAX_TURNS,
+  questionsPerTurn: env.QUESTIONS_PER_TURN,
+  exchangesPerTopic: EXCHANGES_PER_TOPIC,
+})
+
+/** そのセッションの上限。DO に固定されていればそれ、無ければ env。 */
+const limitsOf = (stored: SessionLimits | undefined, env: Env): SessionLimits =>
+  stored === undefined ? envLimits(env) : stored
+
 const createSessionSchema = z.object({
   scenarioId: z.uuid(),
   detective: detectiveSchema.optional(),
@@ -140,12 +169,34 @@ const createSessionSchema = z.object({
    * 送られてこなければ normal（この機能を知らない古いクライアント向け）。
    */
   mode: gameModeSchema.default('normal'),
+  /**
+   * 進行の上限。mode と同じく、始めるときに決めて以降は変えない。
+   *
+   * 途中で変えられると、ターンは DO の質問回数から逆算する仕組み（src/shared/turns.ts）の
+   * 前提が崩れ、ターン番号が飛んだり「使い切った」が戻ったりする。
+   * 受け取った値は clampLimits で遊べる範囲へ切り詰めてから DO に固定する。
+   */
+  limits: z
+    .object({
+      maxTurns: z.coerce.number().int().positive().optional(),
+      questionsPerTurn: z.coerce.number().int().positive().optional(),
+      exchangesPerTopic: z.coerce.number().int().positive().optional(),
+    })
+    .optional(),
 })
 
 /**
- * セッション開始。play_sessions に行を作り、その id で PLAY_SESSION の DO を起こす。
+ * セッション開始の入力バリデーション。
+ *
+ * validateAsk と同じ理由でミドルウェアに切り出す。上限を DO へ固定するために
+ * env が要るようになったが、withEnv を先に走らせると、ボディが不正なだけの
+ * リクエストが 400 ではなく（env 未設定の）500 で返る。そうなると
+ * 「リクエストが悪いのか、サーバの設定が悪いのか」を切り分ける手がかりが消える。
  */
-sessionRoutes.post('/api/sessions', async (c) => {
+const validateCreateSession = createMiddleware<{
+  Bindings: Bindings
+  Variables: { createInput: z.infer<typeof createSessionSchema> }
+}>(async (c, next) => {
   const body = await c.req.json()
   const parsed = createSessionSchema.safeParse(body)
 
@@ -153,24 +204,35 @@ sessionRoutes.post('/api/sessions', async (c) => {
     return c.json({ error: 'invalid request', detail: z.treeifyError(parsed.error) }, 400)
   }
 
+  c.set('createInput', parsed.data)
+  await next()
+})
+
+/**
+ * セッション開始。play_sessions に行を作り、その id で PLAY_SESSION の DO を起こす。
+ */
+sessionRoutes.post('/api/sessions', validateCreateSession, withEnv, async (c) => {
+  const createInput = c.get('createInput')
+  const env = c.get('env')
+
   const db = createDb(c.env.DB)
 
   // /api/scenarios/:id と同じ理由で、非公開シナリオへは直接IDを叩いても入れない。
   const scenarioRows = await db
     .select({ id: scenarios.id })
     .from(scenarios)
-    .where(and(eq(scenarios.id, parsed.data.scenarioId), eq(scenarios.isPublished, true)))
+    .where(and(eq(scenarios.id, createInput.scenarioId), eq(scenarios.isPublished, true)))
     .limit(1)
 
   if (scenarioRows[0] === undefined) {
     return c.json({ error: 'scenario not found' }, 404)
   }
 
-  const detective = parsed.data.detective
+  const detective = createInput.detective
 
   const inserted = await db
     .insert(playSessions)
-    .values({ scenarioId: parsed.data.scenarioId, detective, mode: parsed.data.mode })
+    .values({ scenarioId: createInput.scenarioId, detective, mode: createInput.mode })
     .returning({ id: playSessions.id, startedAt: playSessions.startedAt })
 
   const row = inserted[0]
@@ -190,6 +252,12 @@ sessionRoutes.post('/api/sessions', async (c) => {
     await session.setDetective(detective)
   }
 
+  // 上限もここで固定する。送られてこなければ env の値がそのまま入るので、
+  // 設定画面を知らないクライアントでも今までと同じ進行になる。
+  await session.setLimits(
+    clampLimits(createInput.limits === undefined ? {} : createInput.limits, envLimits(env)),
+  )
+
   // 探偵の有無に関わらず必ず呼ぶ。ここで meta() が初期化されて計時が始まるので、
   // 省くと「最初の質問を投げた瞬間」が開始時刻になり、考えていた時間がタイムから消える。
   await session.snapshot()
@@ -197,7 +265,7 @@ sessionRoutes.post('/api/sessions', async (c) => {
   return c.json(
     {
       sessionId: row.id,
-      scenarioId: parsed.data.scenarioId,
+      scenarioId: createInput.scenarioId,
       startedAt: row.startedAt.toISOString(),
     },
     201,
@@ -297,9 +365,15 @@ sessionRoutes.get('/api/sessions/:id', validateSessionId, withEnv, async (c) => 
     characterIds: subjects.characterIds,
   })
 
+  const limits = limitsOf(snapshot.limits, env)
+
   return c.json({
     sessionId,
     scenarioId,
+    // 名乗って始めたセッションだけ名前が入る。正典は play_sessions の行のほうで、
+    // DO に写してある同じ値ではない——localStorage の選択は後から変わるので、
+    // 画面に出す名前は「そのとき名乗った名前」でなければ会話ログと食い違う。
+    detectiveName: meta.detective === null ? null : meta.detective.name,
     hint,
     questionCount: snapshot.questionCount,
     elapsedSeconds: snapshot.elapsedSeconds,
@@ -312,7 +386,7 @@ sessionRoutes.get('/api/sessions/:id', validateSessionId, withEnv, async (c) => 
       category: row.category,
       subject: { type: row.subjectType, id: row.subjectId },
     })),
-    turn: turnStateOf(snapshot.questionCount, env.MAX_TURNS, env.QUESTIONS_PER_TURN),
+    turn: turnStateOf(snapshot.questionCount, limits.maxTurns, limits.questionsPerTurn),
   })
 })
 
@@ -324,6 +398,13 @@ const askSchema = z.object({
    * 実際にNPCへ投げる質問は探偵役のモデルがここから組み立てる。
    */
   topic: z.string().nonempty().max(500),
+  /**
+   * プレイヤーが設定画面で選んだモデル。送られてこなければデプロイ設定のまま。
+   *
+   * 知らない値は 400 にせず既定へ落とす（`chooseLlm`）。localStorage に古い設定が
+   * 残っているだけのプレイヤーを、事件の途中で締め出すことになるため。
+   */
+  llm: llmOverridesSchema.optional(),
 })
 
 /**
@@ -425,9 +506,6 @@ const streamFilteredReply = async (
   return { blocked: progress.blocked, text: progress.safeChunks.join('') }
 }
 
-/** 上限まで回すためのラウンド番号。長さが固定なので、往復数はここで構造的に決まる。 */
-const TOPIC_ROUNDS = Array.from({ length: EXCHANGES_PER_TOPIC }, (_value, index) => index)
-
 /**
  * 話題を1つ投げる。返答はSSEで逐次流す。
  * スマホで10分の体験なので、返答を丸ごと待たせるとテンポが死ぬ。
@@ -450,16 +528,6 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
   const sessionId = askInput.sessionId
   const env = c.get('env')
 
-  // 認証がまだ無いので、上限のキーは当面IPになる。
-  const clientIp = c.req.header('cf-connecting-ip')
-  const limiterKey = clientIp === undefined ? 'anonymous' : clientIp
-  const limiter = c.env.RATE_LIMITER.get(c.env.RATE_LIMITER.idFromName(limiterKey))
-  const verdict = await limiter.consume(env.RATE_LIMIT_MAX_CALLS, env.RATE_LIMIT_WINDOW_SECONDS)
-
-  if (!verdict.allowed) {
-    return c.json({ error: 'rate limit exceeded', resetAt: verdict.resetAt }, 429)
-  }
-
   const db = createDb(c.env.DB)
   const meta = await loadSessionMeta(db, sessionId)
 
@@ -474,7 +542,40 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
   // 何回でも聞けてしまい、制限が演出にしかならない。
   const session = c.env.PLAY_SESSION.get(c.env.PLAY_SESSION.idFromName(sessionId))
   const before = await session.snapshot()
-  const turnsBefore = turnStateOf(before.questionCount, env.MAX_TURNS, env.QUESTIONS_PER_TURN)
+  const limits = limitsOf(before.limits, env)
+  const turnsBefore = turnStateOf(before.questionCount, limits.maxTurns, limits.questionsPerTurn)
+
+  /*
+    使うモデルはここで一度だけ決めて、以降は同じ値を配り回す。
+    役割から都度引き直すと、モデルとキャッシュ指定が別々に解決されて食い違う。
+    env そのものには決して混ぜない——withEnv が isolate 全体で使い回している
+    オブジェクトなので、一人の選択が他のプレイヤーのリクエストへ漏れる。
+  */
+  const choices: Record<'actor' | 'judge', LlmChoice> = {
+    actor: chooseLlm(env, 'actor', askInput.llm?.actor),
+    judge: chooseLlm(env, 'judge', askInput.llm?.judge),
+  }
+
+  /*
+    レート制限は「このリクエストが実際に走らせるモデル呼び出しの数」で消費する。
+    1リクエスト＝1消費にすると、往復数を増やしたプレイヤーだけが同じ予算で
+    何倍も呼べてしまう。上限を確定させたあとに数える必要があるので、
+    セッションを読んでから消費する。
+
+    認証がまだ無いので、上限のキーは当面IPになる。
+  */
+  const clientIp = c.req.header('cf-connecting-ip')
+  const limiterKey = clientIp === undefined ? 'anonymous' : clientIp
+  const limiter = c.env.RATE_LIMITER.get(c.env.RATE_LIMITER.idFromName(limiterKey))
+  const verdict = await limiter.consume(
+    env.RATE_LIMIT_MAX_CALLS,
+    env.RATE_LIMIT_WINDOW_SECONDS,
+    modelCallsPerTopic(limits.exchangesPerTopic),
+  )
+
+  if (!verdict.allowed) {
+    return c.json({ error: 'rate limit exceeded', resetAt: verdict.resetAt }, 429)
+  }
 
   if (turnsBefore.exhausted) {
     return c.json({ error: 'no turns left', turn: turnsBefore }, 409)
@@ -516,9 +617,13 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
       blocked: boolean
     } = { exchanges: [], usages: [], blocked: false }
 
-    for (const _round of TOPIC_ROUNDS) {
+    // 往復の上限はセッションに固定された値。ここが1つの話題のコストを決める。
+    const rounds = Array.from({ length: limits.exchangesPerTopic }, (_value, index) => index)
+
+    for (const _round of rounds) {
       const interviewer = await generateQuestion({
         env,
+        choice: choices.actor,
         detective,
         characterName,
         topic: askInput.topic,
@@ -527,7 +632,7 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
 
       collected.usages.push(
         toUsageRow({
-          env,
+          choice: choices.actor,
           role: 'actor',
           model: interviewer.model,
           usage: interviewer.usage,
@@ -547,6 +652,7 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
 
       const result = streamNpcReply({
         env,
+        choice: choices.actor,
         gameRules: GAME_RULES,
         characterSheet,
         detective,
@@ -573,7 +679,7 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
 
         collected.usages.push(
           toUsageRow({
-            env,
+            choice: choices.actor,
             role: 'actor',
             model: response.modelId,
             usage,
@@ -685,7 +791,7 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
         .map((entry) => `探偵: ${entry.question}\nNPC: ${entry.answer}`)
         .join('\n\n')
       const exchange = `プレイヤーが指定した話題: ${askInput.topic}\n\n${transcript}\n\n今回判定可能なRevelation:\n${candidateBlock}`
-      const judged = await judgeTurn({ env, rubric, exchange })
+      const judged = await judgeTurn({ env, choice: choices.judge, rubric, exchange })
       const judgement = judged.judgement
       const revealedRevelationIds = acceptRevealedRevelationIds(
         revelationCandidates,
@@ -755,7 +861,7 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
           contradictionPointedOut: judgement.contradictionPointedOut,
           suggestedQuestions: judgement.suggestedQuestions,
           questionCount,
-          turn: turnStateOf(questionCount, env.MAX_TURNS, env.QUESTIONS_PER_TURN),
+          turn: turnStateOf(questionCount, limits.maxTurns, limits.questionsPerTurn),
         }),
       })
 
@@ -767,7 +873,7 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
       try {
         await db.insert(llmUsages).values(
           toUsageRow({
-            env,
+            choice: choices.judge,
             role: 'judge',
             model: judged.model,
             usage: judged.usage,
@@ -793,6 +899,8 @@ const accuseSchema = z.object({
   reasoning: z.string().nonempty().max(1000),
   method: z.string().nonempty().max(1000),
   motive: z.string().nonempty().max(1000),
+  /** 採点に使うモデル。ask と同じく、知らない値は既定へ落とす。 */
+  llm: llmOverridesSchema.optional(),
 })
 
 /**
@@ -838,6 +946,7 @@ sessionRoutes.post('/api/sessions/:id/accuse', validateAccuse, withEnv, async (c
   const accuseInput = c.get('accuseInput')
   const sessionId = accuseInput.sessionId
   const env = c.get('env')
+  const judgeChoice = chooseLlm(env, 'judge', accuseInput.llm?.judge)
 
   // LLMを呼ぶ口になったので ask と同じ上限を通す。認証がまだ無いのでキーはIP。
   const clientIp = c.req.header('cf-connecting-ip')
@@ -884,6 +993,7 @@ sessionRoutes.post('/api/sessions/:id/accuse', validateAccuse, withEnv, async (c
 
   const graded = await gradeDeduction({
     env,
+    choice: judgeChoice,
     // method / motive が空のシナリオでは summary を的に使う。採点の精度は落ちるが、
     // 古いシナリオで推理パートごと成立しなくなるよりはいい。
     truth: {
@@ -957,7 +1067,7 @@ sessionRoutes.post('/api/sessions/:id/accuse', validateAccuse, withEnv, async (c
   try {
     await db.insert(llmUsages).values(
       toUsageRow({
-        env,
+        choice: judgeChoice,
         role: 'judge',
         model: graded.model,
         usage: graded.usage,

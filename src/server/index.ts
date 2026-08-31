@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import type { Bindings } from '@/server/env'
 import { scenarioRoutes } from '@/server/routes/scenarios'
 import { sessionRoutes } from '@/server/routes/sessions'
+import { settingsRoutes } from '@/server/routes/settings'
 
 const app = new Hono<{ Bindings: Bindings }>()
 
@@ -16,6 +17,7 @@ app.get('/api/health', (c) => c.json({ status: 'ok' }))
 // 「設定不備でなくても実行できるはずのバリデーション」が500に化けてしまう。
 app.route('/', scenarioRoutes)
 app.route('/', sessionRoutes)
+app.route('/', settingsRoutes)
 
 app.onError((error, c) => {
   console.error('[unhandled]', error)

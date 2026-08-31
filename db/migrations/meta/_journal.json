@@ -8,6 +8,62 @@
       "when": 1788070090766,
       "tag": "0000_rapid_shinko_yamashiro",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1788141212245,
+      "tag": "0001_lethal_ben_urich",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1788143069105,
+      "tag": "0002_steep_sinister_six",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1788145428661,
+      "tag": "0003_flimsy_ravenous",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1788154172425,
+      "tag": "0004_public-scenario-copy",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1788154281809,
+      "tag": "0005_public-introduction-safety",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1788154959360,
+      "tag": "0006_scenario-title-safety",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1788157081010,
+      "tag": "0007_scenario-briefing-expansion",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1788157642204,
+      "tag": "0008_scenario-victim-profiles",
+      "breakpoints": true
     }
   ]
 }

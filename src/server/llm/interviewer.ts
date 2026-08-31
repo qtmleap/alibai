@@ -1,7 +1,7 @@
 import { generateText, type LanguageModelUsage, type ModelMessage, type ProviderMetadata } from 'ai'
 import type { Env } from '@/server/env'
 import { buildDetectiveSelfBlock } from '@/server/llm/detective'
-import { resolveModel } from '@/server/llm/provider'
+import { type LlmChoice, resolveModel } from '@/server/llm/provider'
 import type { Detective } from '~/db/detective'
 
 /**
@@ -21,11 +21,14 @@ export type TopicExchange = {
   answer: string
 }
 
-/**
- * 役割としては Actor と同じ「演じて喋る」仕事なので、モデルの選択も actor に相乗りする。
- * 専用の役割を足すと env とデプロイ設定に列が増えるが、選ぶべき値は actor と同じになる。
- */
-const INTERVIEWER_ROLE = 'actor' as const
+/*
+  役割としては Actor と同じ「演じて喋る」仕事なので、モデルの選択も actor に相乗りする。
+  専用の役割を足すと env とデプロイ設定に列が増えるが、選ぶべき値は actor と同じになる。
+
+  どの組み合わせを使うかは呼び出し側が決めて choice で渡す（src/server/routes/sessions.ts が
+  actor 用に決めたものをそのまま寄越す）。ここで役割名から引き直さないので、
+  相乗りの事実はこのコメントと呼び出し側にだけ残る。
+*/
 
 const INTERVIEWER_RULES = `あなたはマーダーミステリーの探偵で、事件の関係者に聞き込みをしている。
 
@@ -39,6 +42,8 @@ const INTERVIEWER_RULES = `あなたはマーダーミステリーの探偵で�
 export type InterviewerContext = {
   /** リクエストスコープで検証済みの設定。 */
   env: Env
+  /** この呼び出しで使う組み合わせ。役割から引き直さず、呼び出し側が決めた値を使う。 */
+  choice: LlmChoice
   /** プレイヤーが演じる探偵。名乗らずに始めることもできるので undefined を許す。 */
   detective: Detective | undefined
   /** 目の前の人物の名前。人物像や秘密は渡さない。 */
@@ -72,6 +77,7 @@ const toConversation = (characterName: string, exchanges: TopicExchange[]): Mode
 
 export const generateQuestion = async ({
   env,
+  choice,
   detective,
   characterName,
   topic,
@@ -80,7 +86,7 @@ export const generateQuestion = async ({
   // 話題はプレイヤー由来の文字列なので、必ず user ロールに閉じ込める。
   // system 側へ回すと、指示文として読ませる経路をこちらから開くことになる。
   const result = await generateText({
-    model: resolveModel(env, INTERVIEWER_ROLE),
+    model: resolveModel(env, choice),
     system:
       detective === undefined
         ? INTERVIEWER_RULES

@@ -26,7 +26,7 @@ type Props = {
   種類の要素ではないため。見出しの文字を押しても開かないので、
   代わりに aria-label で名前を渡す。
 */
-const LEGEND = 'text-[10px] tracking-[0.3em] text-slate-600'
+const LEGEND = 'text-[10px] tracking-[0.3em] text-nezumi-dim'
 
 const WALL_LABEL: Record<WallSide, string> = {
   north: '北',
@@ -51,7 +51,7 @@ const NumberField = ({
 
   return (
     <label className="flex flex-col gap-1" htmlFor={id}>
-      <span className="text-[10px] text-slate-500">{label}</span>
+      <span className="text-[10px] text-nezumi-dim">{label}</span>
       <Input
         id={id}
         type="number"
@@ -85,7 +85,7 @@ const RoomFields = ({
   return (
     <div className="flex flex-col gap-3">
       <label className="flex flex-col gap-1" htmlFor={labelId}>
-        <span className="text-[10px] text-slate-500">部屋名</span>
+        <span className="text-[10px] text-nezumi-dim">部屋名</span>
         <Input
           id={labelId}
           value={room.label}
@@ -95,7 +95,7 @@ const RoomFields = ({
       </label>
 
       <label className="flex flex-col gap-1" htmlFor={noteId}>
-        <span className="text-[10px] text-slate-500">注記（図に添える一言）</span>
+        <span className="text-[10px] text-nezumi-dim">注記（図に添える一言）</span>
         <Input
           id={noteId}
           value={room.note === undefined ? '' : room.note}
@@ -105,7 +105,7 @@ const RoomFields = ({
       </label>
 
       <div className="flex flex-col gap-1">
-        <span className="text-[10px] text-slate-500">種別</span>
+        <span className="text-[10px] text-nezumi-dim">種別</span>
         <Select
           value={room.kind}
           onValueChange={(next) => {
@@ -132,29 +132,29 @@ const RoomFields = ({
         <NumberField label="高さ" value={room.h} onChange={(h) => patch({ h })} />
       </div>
 
-      <div className="flex flex-col gap-2 border-t border-slate-800 pt-3">
+      <div className="flex flex-col gap-2 border-t border-keisen pt-3">
         <div className="flex items-center justify-between">
           <span className={LEGEND}>扉</span>
           <Button
             variant="link"
             size="sm"
-            className="px-0 text-slate-400"
+            className="px-0 text-nezumi"
             onClick={() => dispatch({ type: 'add-opening', roomId: room.id, opening: 'door' })}
           >
             扉を足す
           </Button>
         </div>
 
-        {room.doors.length === 0 && <p className="text-xs text-slate-600">まだ扉がありません。</p>}
+        {room.doors.length === 0 && <p className="text-xs text-nezumi-dim">まだ扉がありません。</p>}
 
         {room.doors.map((door, index) => (
           <div
             // biome-ignore lint/suspicious/noArrayIndexKey: 開口の同一性は並びの位置そのもの。壁や幅から鍵を作ると、数値を打っている途中で要素が作り直されて入力欄から指が離れる。
             key={`door-${room.id}-${index}`}
-            className="grid grid-cols-[1fr_1fr_1fr_1fr_auto] items-end gap-2 border-b border-slate-800 pb-2"
+            className="grid grid-cols-[1fr_1fr_1fr_1fr_auto] items-end gap-2 border-b border-keisen pb-2"
           >
             <div className="flex flex-col gap-1">
-              <span className="text-[10px] text-slate-500">壁</span>
+              <span className="text-[10px] text-nezumi-dim">壁</span>
               <Select
                 value={door.wall}
                 onValueChange={(value) => {
@@ -194,7 +194,7 @@ const RoomFields = ({
             />
 
             <div className="flex flex-col gap-1">
-              <span className="text-[10px] text-slate-500">開き</span>
+              <span className="text-[10px] text-nezumi-dim">開き</span>
               <Select
                 value={door.swing}
                 onValueChange={(swing) => {
@@ -235,7 +235,7 @@ const RoomFields = ({
                 variant="ghost"
                 size="icon-sm"
                 aria-label="この扉を消す"
-                className="text-xs text-red-400 hover:text-red-300"
+                className="text-xs text-nezumi hover:text-nezumi"
                 onClick={() =>
                   dispatch({ type: 'remove-opening', roomId: room.id, opening: 'door', index })
                 }
@@ -247,13 +247,13 @@ const RoomFields = ({
         ))}
       </div>
 
-      <div className="flex flex-col gap-2 border-t border-slate-800 pt-3">
+      <div className="flex flex-col gap-2 border-t border-keisen pt-3">
         <div className="flex items-center justify-between">
           <span className={LEGEND}>窓</span>
           <Button
             variant="link"
             size="sm"
-            className="px-0 text-slate-400"
+            className="px-0 text-nezumi"
             onClick={() => dispatch({ type: 'add-opening', roomId: room.id, opening: 'window' })}
           >
             窓を足す
@@ -261,17 +261,17 @@ const RoomFields = ({
         </div>
 
         {room.windows.length === 0 && (
-          <p className="text-xs text-slate-600">まだ窓がありません。</p>
+          <p className="text-xs text-nezumi-dim">まだ窓がありません。</p>
         )}
 
         {room.windows.map((opening, index) => (
           <div
             // biome-ignore lint/suspicious/noArrayIndexKey: 扉の一覧と同じ理由（入力中に作り直さない）。
             key={`window-${room.id}-${index}`}
-            className="grid grid-cols-[1fr_1fr_1fr_auto] items-end gap-2 border-b border-slate-800 pb-2"
+            className="grid grid-cols-[1fr_1fr_1fr_auto] items-end gap-2 border-b border-keisen pb-2"
           >
             <div className="flex flex-col gap-1">
-              <span className="text-[10px] text-slate-500">壁</span>
+              <span className="text-[10px] text-nezumi-dim">壁</span>
               <Select
                 value={opening.wall}
                 onValueChange={(value) => {
@@ -314,7 +314,7 @@ const RoomFields = ({
               variant="ghost"
               size="icon-sm"
               aria-label="この窓を消す"
-              className="mb-1 text-xs text-red-400 hover:text-red-300"
+              className="mb-1 text-xs text-nezumi hover:text-nezumi"
               onClick={() =>
                 dispatch({ type: 'remove-opening', roomId: room.id, opening: 'window', index })
               }
@@ -351,7 +351,7 @@ export const FloorPlanInspector = ({ state, dispatch }: Props) => {
         <h2 className={LEGEND}>図面</h2>
 
         <label className="flex flex-col gap-1" htmlFor={titleId}>
-          <span className="text-[10px] text-slate-500">題字</span>
+          <span className="text-[10px] text-nezumi-dim">題字</span>
           <Input
             id={titleId}
             value={state.plan.title === undefined ? '' : state.plan.title}
@@ -374,7 +374,7 @@ export const FloorPlanInspector = ({ state, dispatch }: Props) => {
           />
 
           <div className="flex flex-col gap-1">
-            <span className="text-[10px] text-slate-500">北</span>
+            <span className="text-[10px] text-nezumi-dim">北</span>
             <Select
               value={state.plan.north}
               onValueChange={(north) => {
@@ -396,7 +396,7 @@ export const FloorPlanInspector = ({ state, dispatch }: Props) => {
           </div>
 
           <div className="flex flex-col gap-1">
-            <span className="text-[10px] text-slate-500">格子</span>
+            <span className="text-[10px] text-nezumi-dim">格子</span>
             {/* Radix の Select は文字列しか扱わないので、格子の刻みはここで数に戻す。 */}
             <Select
               value={String(state.grid)}
@@ -415,11 +415,11 @@ export const FloorPlanInspector = ({ state, dispatch }: Props) => {
         </div>
       </section>
 
-      <section className="flex flex-col gap-3 border-t border-slate-800 pt-4">
+      <section className="flex flex-col gap-3 border-t border-keisen pt-4">
         <h2 className={LEGEND}>選択中の部屋</h2>
 
         {selected === undefined ? (
-          <p className="text-xs text-slate-600">
+          <p className="text-xs text-nezumi-dim">
             図の上でドラッグすると部屋を描けます。部屋を押すと選べます。
           </p>
         ) : (

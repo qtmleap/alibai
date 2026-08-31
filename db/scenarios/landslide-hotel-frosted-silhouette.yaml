@@ -1,0 +1,350 @@
+schemaVersion: 1
+id: landslide-hotel-frosted-silhouette
+meta:
+  title: 崖上ホテル、孤立の夜
+  synopsis: "午後十時、山腹の小さなホテルで支配人・長峰宗一が執務室内で死亡しているのが見つかりました。夕方からの豪雨で道路は土砂崩れに塞がれ、ホテルには外部から出入りできません。"
+  category: クローズドサークル
+  difficulty: 5
+  estimatedMinutes: 15
+  tags: [ホテル, 土砂崩れ, 目撃, 死亡時刻]
+victim:
+  name: 長峰宗一
+  introduction: 山腹のホテル支配人
+briefing: |-
+  ——事件の記録を読み上げます。
+
+  山腹に建つそのホテルは、客室数の少ない静かな宿として知られていました。大きな観光地から少し離れているぶん、長期滞在の客や制作のためにこもる客も多く、館内では従業員と宿泊客の距離も自然と近くなります。その日も数組の客が滞在していました。
+
+  支配人の長峰宗一は、予約から館内管理まで幅広く目を配る人物でした。人手の少ないホテルでは支配人自身が現場へ出ることも多く、夜になってからも執務室で翌日の手配を続けていたといいます。
+
+  長峰宗一は客前では穏やかで、常連客の名前や好みをよく覚える支配人として親しまれていました。館内の仕事には厳格で従業員を困らせることもありましたが、ホテルを守る責任感の強さは誰もが認めていました。
+
+  夕方から降り出した雨は次第に強まり、山道の一部で土砂崩れが発生しました。ホテルへ通じる道路は塞がれ、宿泊客も従業員も朝まで館内に留まることになります。外部との往来は止まり、窓の外では雨と風の音だけが続いていました。
+
+  午後十時、執務室で長峰宗一が死亡しているのが発見されます。館内にいた主な関係者は、フロント主任の綾瀬環、宿泊客の作家・神田理一、写真家の星野結です。
+
+  孤立したホテルで、夕食後から発見までに何があったのか。三人から長峰とのやり取りと、その夜の館内の様子を聞いてください。
+floorPlan: null
+facts:
+  - id: ayase-front-chief
+    statement: 綾瀬環はホテルのフロント主任で、館内備品と予約管理も担当している
+    kind: other
+  - id: kanda-guest
+    statement: 神田理一は取材のため宿泊していた作家である
+    kind: other
+  - id: hoshino-photographer
+    statement: 星野結はホテルの広報写真を撮影するため滞在していた写真家である
+    kind: other
+  - id: renovation-shortage
+    statement: 長峰宗一は事件当日の夕方、改装費の請求書に不自然な水増しを見つけた
+    kind: motive
+    secret: true
+  - id: ayase-falsified-invoices
+    statement: 綾瀬環は改装業者への請求額を水増しし、差額を私的に流用していた
+    kind: motive
+    secret: true
+  - id: nagamine-called-ayase
+    statement: 20時52分ごろ、長峰宗一は綾瀬環を執務室に呼び、請求書について説明を求めた
+    kind: motive
+    secret: true
+  - id: ayase-killed-nagamine
+    statement: 21時05分ごろ、綾瀬環は執務室で長峰宗一を襲い死亡させた
+    kind: truth
+    secret: true
+  - id: ayase-staged-silhouette
+    statement: 21時23分ごろ、綾瀬環は長峰宗一の長い上着を背の高い衣紋掛けに掛け、執務室の磨りガラス越しに人影へ見えるよう配置した
+    kind: truth
+    secret: true
+  - id: desk-lamp-left-on
+    statement: 綾瀬環は執務室内の机上灯をつけ、人影の輪郭が廊下側へ映る状態にした
+    kind: truth
+    secret: true
+  - id: kanda-saw-silhouette
+    statement: 21時30分ごろ、神田理一は磨りガラス越しに長峰宗一の長い上着に似た輪郭の人影を見た
+    kind: observation
+  - id: kanda-did-not-hear-voice
+    statement: 神田理一は21時30分ごろの人影を見た際、長峰宗一の顔を見ておらず声も聞いていない
+    kind: testimony
+  - id: hoshino-saw-empty-coat-hook
+    statement: 21時18分ごろ、星野結はフロント裏の衣類掛けから長峰宗一の長い上着がなくなっていることに気づいた
+    kind: observation
+  - id: coat-returned-after-discovery
+    statement: 事件発見後、長峰宗一の長い上着は執務室内の衣紋掛けに掛かった状態で見つかった
+    kind: physical
+  - id: stand-feet-dust-mark
+    statement: 執務室の床には普段窓際にある衣紋掛けを磨りガラスの近くまで移動した跡が残っていた
+    kind: physical
+  - id: kanda-secret-manuscript
+    statement: 神田理一は長峰宗一から預かった未発表の回想録を無断で複写していた
+    kind: other
+    secret: true
+  - id: hoshino-secret-photo
+    statement: 星野結は契約外の館内写真を出版社へ売ろうとしていた
+    kind: other
+    secret: true
+  - id: body-found-2200
+    statement: 22時00分、星野結が執務室で長峰宗一の死を発見した
+    kind: observation
+timeline:
+  - id: invoice-confrontation
+    at: "20:52"
+    participants: [ayase]
+    facts: [renovation-shortage, ayase-falsified-invoices, nagamine-called-ayase]
+    description: 長峰が綾瀬を執務室へ呼び、改装費の不自然な請求について説明を求める。
+  - id: nagamine-death
+    at: "21:05"
+    participants: [ayase]
+    facts: [ayase-killed-nagamine]
+    description: 綾瀬が執務室で長峰を襲う。
+  - id: coat-missing
+    at: "21:18"
+    participants: [hoshino]
+    facts: [hoshino-saw-empty-coat-hook]
+    description: 星野がフロント裏の衣類掛けから長峰の長い上着がなくなっていることに気づく。
+  - id: silhouette-staged
+    at: "21:23"
+    participants: [ayase]
+    facts: [ayase-staged-silhouette, desk-lamp-left-on, stand-feet-dust-mark]
+    description: 綾瀬が上着と衣紋掛け、机上灯を使って磨りガラス越しの人影を作る。
+  - id: silhouette-seen
+    at: "21:30"
+    participants: [kanda]
+    facts: [kanda-saw-silhouette, kanda-did-not-hear-voice]
+    description: 神田が廊下から人影を見て、長峰本人が執務室にいると思い込む。
+  - id: discovery
+    at: "22:00"
+    participants: [hoshino, ayase, kanda]
+    facts: [body-found-2200, coat-returned-after-discovery]
+    description: 星野が執務室で長峰の死を発見し、室内の衣紋掛けには長峰の上着が残されている。
+characters:
+  - id: ayase
+    name: 綾瀬環
+    role: suspect
+    publicIntroduction: "愛想がよく館内の細かな要望にもすぐ対応するフロント主任。"
+    personality: 愛想がよく館内の細かな要望にもすぐ対応するフロント主任。備品の位置や客の動線を熟知している。請求書の話になると説明を曖昧にし、21時半の人影を長峰本人だったと強く主張する。
+    goals:
+      - 改装費の流用を隠したい
+      - 21時30分まで長峰が生きていたと思わせたい
+    knowledge: [ayase-front-chief, kanda-saw-silhouette, coat-returned-after-discovery, body-found-2200]
+    secrets:
+      - fact: ayase-falsified-invoices
+        disclosure: pressured
+      - fact: nagamine-called-ayase
+        disclosure: pressured
+      - fact: ayase-staged-silhouette
+        disclosure: never
+      - fact: desk-lamp-left-on
+        disclosure: never
+      - fact: ayase-killed-nagamine
+        disclosure: never
+    lies:
+      - id: ayase-late-death
+        about: ayase-killed-nagamine
+        claim: 神田さんが21時半に長峰さんを見ているなら、その時刻より前に亡くなっているはずがありません
+        strategy: maintain-until-contradicted
+      - id: ayase-clean-invoices
+        about: ayase-falsified-invoices
+        claim: 改装費の請求書に私が説明できない金額はありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: frosted-glass-idea
+        about: ayase-staged-silhouette
+        detail: 雨の日は執務室の磨りガラスに中の輪郭だけが濃く映ることを、毎晩フロントから見て知っていた。
+    relationships:
+      - character: kanda
+        relation: 宿泊客
+        attitude: 人影を見た証言をできるだけ確実なものとして扱ってほしい
+      - character: hoshino
+        relation: 撮影依頼の客
+        attitude: 館内を細かく撮影しているため、余計な物の位置まで覚えていそうで警戒している
+  - id: kanda
+    name: 神田理一
+    role: witness
+    publicIntroduction: "ホテルに宿泊していた作家。"
+    personality: 観察したことを文章にする癖がある作家だが、一度意味づけした光景を事実そのものと思い込みやすい。人影を見たことには自信があるが、顔も声も確認していない。
+    goals:
+      - 無断で回想録を複写したことを隠したい
+      - 人影について実際に見た範囲だけを説明したい
+    knowledge: [kanda-guest, kanda-saw-silhouette, kanda-did-not-hear-voice, body-found-2200]
+    secrets:
+      - fact: kanda-secret-manuscript
+        disclosure: pressured
+    lies:
+      - id: kanda-no-copy
+        about: kanda-secret-manuscript
+        claim: 長峰さんから預かった原稿を許可なく写したことはありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: long-coat-shadow
+        about: kanda-saw-silhouette
+        detail: 磨りガラスの向こうに肩から下へ長く落ちる輪郭があり、長峰のいつもの上着だと思った。それだけで本人だと決めつけた。
+    relationships:
+      - character: ayase
+        relation: ホテルスタッフ
+        attitude: 丁寧だが、自分の証言を必要以上に強調している気がする
+      - character: hoshino
+        relation: 同宿客
+        attitude: 写真で物の位置をよく覚えているので観察力は信用している
+  - id: hoshino
+    name: 星野結
+    role: suspect
+    publicIntroduction: "光や構図に敏感な写真家。"
+    personality: 光や構図に敏感な写真家。物の位置が変わるとすぐ気づく。契約外の写真を売ろうとした後ろめたさがあり、その話題では歯切れが悪い。
+    goals:
+      - 契約外写真の売却計画を隠したい
+      - 長峰の上着が途中で消えていた事実を伝えたい
+    knowledge: [hoshino-photographer, hoshino-saw-empty-coat-hook, coat-returned-after-discovery, stand-feet-dust-mark, body-found-2200]
+    secrets:
+      - fact: hoshino-secret-photo
+        disclosure: pressured
+    lies:
+      - id: hoshino-no-side-sale
+        about: hoshino-secret-photo
+        claim: 撮影した写真を契約外で売るつもりはありませんでした
+        strategy: maintain-until-contradicted
+    memories:
+      - id: missing-coat
+        about: hoshino-saw-empty-coat-hook
+        detail: フロント裏を撮る許可を確認したとき、いつも端に掛かっていた長峰の長い上着だけが消えていたので妙に目についた。
+    relationships:
+      - character: ayase
+        relation: 撮影窓口
+        attitude: 館内の物の位置を自在に変えられる人物だと知っている
+      - character: kanda
+        relation: 同宿客
+        attitude: 見たものと解釈を混ぜやすい人だと思っている
+revelations:
+  - id: silhouette-not-identification
+    title: 人影は本人確認にならない
+    text: 神田が確認したのは長い上着に似た輪郭だけで、顔も声も見聞きしていない。磨りガラス越しの人影だけでは長峰の生存を証明できない。
+    category: alibi
+    subject:
+      type: event
+      id: silhouette-seen
+    sources:
+      - type: character
+        id: kanda
+        revealCondition: 神田に21時30分に見たものを顔、声、服、動きに分けて尋ね、本人を直接確認していないと整理したら開示する。
+        requires:
+          revelations: []
+          evidences: [silhouette-detail]
+      - type: character
+        id: hoshino
+        revealCondition: 星野に上着と衣紋掛けの位置変化を尋ね、人影を物で作れた可能性に気づいたら開示する。
+        requires:
+          revelations: []
+          evidences: [coat-location, stand-drag-mark]
+    relatedFacts: [kanda-saw-silhouette, kanda-did-not-hear-voice, ayase-staged-silhouette]
+  - id: invoice-motive
+    title: 改装費の不足
+    text: 長峰は事件直前に改装費の水増しを発見し、綾瀬を執務室へ呼び出していた。
+    category: motive
+    subject:
+      type: character
+      id: ayase
+    sources:
+      - type: character
+        id: ayase
+        revealCondition: 綾瀬に改装費の請求書と長峰から呼び出された理由を具体的に追及したら開示する。
+        requires:
+          revelations: [silhouette-not-identification]
+          evidences: [invoice-copy]
+      - type: character
+        id: hoshino
+        revealCondition: 星野に長峰が夕方に確認していた書類について尋ね、改装費の問題へ話が及んだら開示する。
+        requires:
+          revelations: [silhouette-not-identification]
+          evidences: [invoice-copy]
+    relatedFacts: [renovation-shortage, ayase-falsified-invoices, nagamine-called-ayase]
+evidences:
+  - id: silhouette-detail
+    label: 神田の人影証言の詳細
+    description: 神田が確認したのは磨りガラス越しの長い輪郭だけで、顔も声も確認していない。
+    reveal:
+      mode: conversation
+      condition: 神田に21時30分の目撃を具体的に描写してもらい、何を直接確認したのか問い直したら開示する。
+    sources:
+      - type: character
+        id: kanda
+    supports: [kanda-saw-silhouette, kanda-did-not-hear-voice]
+    contradicts: ["lie:ayase-late-death"]
+  - id: coat-location
+    label: 長峰の上着の移動
+    description: 21時18分にはフロント裏から消えていた長峰の長い上着が、発見時には執務室の衣紋掛けに掛かっていた。
+    reveal:
+      mode: conversation
+      condition: 星野にフロント裏で気づいた変化か、発見時の執務室内の上着について尋ねたら開示する。
+    sources:
+      - type: character
+        id: hoshino
+      - type: character
+        id: ayase
+    supports: [hoshino-saw-empty-coat-hook, coat-returned-after-discovery, ayase-staged-silhouette]
+    contradicts: []
+  - id: stand-drag-mark
+    label: 衣紋掛けの移動跡
+    description: 執務室の床には衣紋掛けを窓際から磨りガラスの近くへ動かした跡が残る。
+    reveal:
+      mode: conversation
+      condition: 星野に執務室内の物の位置を尋ねるか、綾瀬に衣紋掛けを動かした理由を確認したら開示する。
+    sources:
+      - type: character
+        id: hoshino
+      - type: character
+        id: ayase
+    supports: [stand-feet-dust-mark, ayase-staged-silhouette]
+    contradicts: ["lie:ayase-late-death"]
+  - id: invoice-copy
+    label: 水増しされた改装請求書
+    description: 長峰が印を付けた請求書には、綾瀬が処理した項目に説明できない差額がまとまっている。
+    reveal:
+      mode: conversation
+      condition: 綾瀬に改装費の処理を尋ねるか、長峰が直前まで確認していた書類について追及したら開示する。
+    sources:
+      - type: character
+        id: ayase
+      - type: character
+        id: hoshino
+    supports: [renovation-shortage, ayase-falsified-invoices, nagamine-called-ayase]
+    contradicts: ["lie:ayase-clean-invoices"]
+  - id: manuscript-copy
+    label: 無断複写された回想録
+    description: 神田の鞄から長峰の未発表回想録の複写が見つかるが、死亡時刻の偽装とは関係しない。
+    reveal:
+      mode: conversation
+      condition: 神田に長峰から預かった原稿の扱いを尋ね、複写を否定したら開示する。
+    sources:
+      - type: character
+        id: kanda
+    supports: [kanda-secret-manuscript]
+    contradicts: ["lie:kanda-no-copy"]
+  - id: side-photo-sale
+    label: 契約外写真の送付準備
+    description: 星野が契約外の館内写真を出版社へ送る準備をしていた記録。事件の人影偽装とは独立した秘密である。
+    reveal:
+      mode: conversation
+      condition: 星野に契約外の写真利用について尋ね、売却予定を否定したら開示する。
+    sources:
+      - type: character
+        id: hoshino
+    supports: [hoshino-secret-photo]
+    contradicts: ["lie:hoshino-no-side-sale"]
+solution:
+  culprit: ayase
+  summary: 犯人は綾瀬環。改装費の水増しを長峰に見抜かれ、説明を求められた直後に執務室で長峰を襲った。犯行を21時半以後に見せるため、長峰の長い上着を衣紋掛けに掛け、机上灯で磨りガラスへ人の輪郭を映した。神田はその輪郭を長峰本人だと思い込んだが、顔も声も確認していない。上着が21時18分にはフロント裏から消えていたこと、発見時には執務室の衣紋掛けに掛かっていたこと、衣紋掛けを磨りガラス付近へ移動した跡が残ることを合わせると、目撃は生存証明ではなく偽装だったと分かる。
+  method: 長峰を襲った後、本人の長い上着と衣紋掛け、室内灯で磨りガラス越しの人影を作り、死亡時刻を遅く見せた
+  motive: 改装費の水増しと私的流用を長峰に発見され、責任追及を恐れたため
+  requiredFacts: [ayase-falsified-invoices, nagamine-called-ayase, ayase-killed-nagamine, ayase-staged-silhouette, kanda-did-not-hear-voice, hoshino-saw-empty-coat-hook, stand-feet-dust-mark]
+  secretKeywords:
+    - 犯人は綾瀬
+    - 綾瀬が長峰を襲
+    - 上着で人影を作
+    - 人影で死亡時刻を偽装
+quality:
+  expectedQuestionCount:
+    min: 10
+    max: 22
+  requiredEvidence:
+    min: 3
+  redHerrings: [kanda-secret-manuscript, hoshino-secret-photo]
+  notes: 目撃証言を「見た事実」と「証人の解釈」に分けるのが中心。人影の正体だけでは犯人確定にせず、上着の移動と請求書の動機を合わせる。

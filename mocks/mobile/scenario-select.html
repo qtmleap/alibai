@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AlibAI — タイトル画面（ページ送り）</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500&family=Roboto+Mono:wght@400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../_mock.css" />
+    <style>
+      /*
+        src/client/index.css の @theme をそのまま写したもの。
+        React 側と突き合わせるためのモックなので、ここで新しい色や字体を足さない。
+      */
+      :root {
+        --sumi: #141317;
+        --keisen: #302c39;
+        --kinari: #e9e4d9;
+        --nezumi: #8e8896;
+        --nezumi-dim: #625d6c;
+        --mincho: "Shippori Mincho B1", "Hiragino Mincho ProN", "Yu Mincho", serif;
+        --gothic: "Zen Kaku Gothic New", "Hiragino Sans", "Noto Sans JP", sans-serif;
+        --mono: "Roboto Mono", ui-monospace, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        background-color: var(--sumi);
+        overflow-x: clip;
+      }
+
+      body {
+        font-family: var(--gothic);
+        color: var(--kinari);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .screen {
+        margin-inline: auto;
+        display: flex;
+        min-height: 100dvh;
+        max-width: 28rem;
+        flex-direction: column;
+        padding-inline: 1.25rem;
+      }
+
+      .head {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.625rem;
+        padding-top: 6rem;
+        padding-bottom: 4rem;
+      }
+
+      .head h1 {
+        margin: 0;
+        font-family: var(--mincho);
+        font-weight: 700;
+        font-size: 2.25rem;
+        line-height: 2.5rem;
+        letter-spacing: 0.18em;
+      }
+
+      .head p {
+        margin: 0;
+        font-size: 11px;
+        color: var(--nezumi-dim);
+        letter-spacing: 0.3em;
+      }
+
+      /*
+        件数は総数を出す。ページ内の件数に置き換えると、
+        「全部でいくつあるのか」を知る手がかりが画面から消える。
+        設定への入口は件数と同じ行の右端に置く。行をもう一本増やさない。
+      */
+      .bar {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        padding-bottom: 0.5rem;
+      }
+
+      .total {
+        margin: 0;
+        font-family: var(--mono);
+        font-size: 9.5px;
+        color: var(--nezumi-dim);
+        letter-spacing: 0.24em;
+      }
+
+      .bar a {
+        font-size: 11.5px;
+        color: var(--nezumi);
+        text-decoration: none;
+      }
+
+      .list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        border-top: 1px solid var(--keisen);
+      }
+
+      .list li {
+        border-bottom: 1px solid var(--keisen);
+      }
+
+      .row {
+        display: flex;
+        width: 100%;
+        flex-direction: column;
+        gap: 3px;
+        padding: 9px 0;
+        text-align: left;
+        background: none;
+        border: 0;
+        color: inherit;
+        font: inherit;
+        cursor: pointer;
+        text-decoration: none;
+      }
+
+      .row .cat {
+        font-size: 10px;
+        color: var(--nezumi-dim);
+        line-height: 1.4;
+        letter-spacing: 0.16em;
+      }
+
+      .row .title {
+        font-family: var(--mincho);
+        font-weight: 500;
+        font-size: 1rem;
+        line-height: 1.5;
+        letter-spacing: 0.03em;
+      }
+
+      .row .meta {
+        font-size: 11px;
+        color: var(--nezumi-dim);
+        line-height: 1.45;
+      }
+
+      /*
+        ページ送り。
+
+        一覧の閉じ罫線がそのまま仕切りになるので、この行に枠は持たせない。
+        左右を端に寄せて中央を空けるのは、押す場所が親指の届く両端に来るのと、
+        真ん中に現在地だけが浮くことで「どこにいるか」が読み取りやすいため。
+
+        矢印記号は置かない。この画面は他のどこでも記号を使っておらず、
+        ここだけに ‹ › を出すと、そこだけ別の作りに見える。
+
+        端のページでも「前へ」「次へ」を消さずに薄くするのは、
+        消すと行が組み替わって、押そうとしていた側のボタンが動くため。
+      */
+      .pager {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-top: 1.25rem;
+        padding-bottom: 4rem;
+      }
+
+      .pager button {
+        margin-inline: -0.5rem;
+        padding: 0.75rem 0.5rem;
+        font: inherit;
+        font-size: 11px;
+        letter-spacing: 0.16em;
+        color: var(--kinari);
+        background: none;
+        border: 0;
+        cursor: pointer;
+      }
+
+      .pager button:disabled {
+        opacity: 0.3;
+        cursor: default;
+      }
+
+      /* 現在地は件数と同じ扱いの小さなラベル。等幅は桁を揃えるためだけに借りる。 */
+      .pager .at {
+        font-family: var(--mono);
+        font-size: 9.5px;
+        color: var(--nezumi-dim);
+        letter-spacing: 0.24em;
+        font-variant-numeric: tabular-nums;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="screen" data-mock-id="ALI_SEL_01">
+      <header class="head" data-mock-id="ALI_SEL_02">
+        <h1>AlibAI</h1>
+        <p>聞き込みで、犯人を指し示す</p>
+      </header>
+
+      <div class="bar">
+        <p class="total" id="total" data-mock-id="ALI_SEL_03"></p>
+        <a href="./settings.html" data-mock-id="ALI_SEL_04">設定</a>
+      </div>
+
+      <ul class="list" id="list" data-mock-id="ALI_SEL_05"></ul>
+
+      <nav class="pager" aria-label="ページ送り" data-mock-id="ALI_SEL_07">
+        <button type="button" id="prev">前へ</button>
+        <span class="at" id="at"></span>
+        <button type="button" id="next">次へ</button>
+      </nav>
+    </div>
+
+    <script src="../_case.js"></script>
+    <script src="../_mock.js"></script>
+    <script>
+      ;(function () {
+        var PER = 10
+        var pages = Math.ceil(CASES.length / PER)
+        var page = Math.min(pages, Math.max(1, Mock.num('page', 1)))
+        var slice = CASES.slice((page - 1) * PER, page * PER)
+
+        document.getElementById('total').textContent = CASES.length + '件'
+        document.getElementById('at').textContent = page + ' / ' + pages
+
+        // 種別で並べてあるので、同じ値が続くあいだは繰り返さない（発話の塊と同じ扱い）。
+        var prevCat = null
+        document.getElementById('list').innerHTML = slice
+          .map(function (c) {
+            var cat = c.cat === prevCat ? '' : '<span class="cat">' + Mock.esc(c.cat) + '</span>'
+            prevCat = c.cat
+            return (
+              '<li><a class="row" href="./detective.html" data-mock-id="ALI_SEL_06">' +
+              cat +
+              '<span class="title">' +
+              Mock.esc(c.title) +
+              '</span><span class="meta">' +
+              Mock.esc(c.meta) +
+              '</span></a></li>'
+            )
+          })
+          .join('')
+
+        var go = function (n) {
+          location.hash = 'page=' + n
+          location.reload()
+        }
+        var prev = document.getElementById('prev')
+        var next = document.getElementById('next')
+        prev.disabled = page === 1
+        next.disabled = page === pages
+        prev.addEventListener('click', function () {
+          go(page - 1)
+        })
+        next.addEventListener('click', function () {
+          go(page + 1)
+        })
+
+        Mock.ready()
+      })()
+    </script>
+  </body>
+</html>

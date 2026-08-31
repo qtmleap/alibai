@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <title>AlibAI デスクトップ — 聞き込み</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500&family=Roboto+Mono:wght@400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./_desk.css" />
+    <link rel="stylesheet" href="../_mock.css" />
+  </head>
+  <body>
+    <!-- 左のアリバイ表が主役。右は対話なので行長を締める——ここは幅を余らせているのではなく、読める行長を守っている。 -->
+    <div class="desk" data-mock-id="ALI_INT_01">
+      <div class="top" data-mock-id="ALI_INT_02">
+        <span class="ttl" id="ttl"></span>
+        <div class="rgt">
+          <span id="turns"></span><span class="t" id="clock"></span>
+          <a class="act" href="./accusation.html" data-mock-id="ALI_INT_03">告発する</a>
+        </div>
+      </div>
+      <div class="panes">
+        <div class="board" data-mock-id="ALI_INT_04">
+          <div class="bh">
+            <span class="nm">アリバイ表</span>
+            <span class="label t" id="bspan"></span>
+          </div>
+          <div class="cols chart-head" id="head"></div>
+          <div class="cols chart" id="chart"></div>
+          <div class="legend">
+            <span class="k"><b>実線</b>　裏付けあり</span>
+            <span class="k cl"><b>破線</b>　本人の申告のみ</span>
+          </div>
+        </div>
+
+        <div class="work">
+          <div class="talk-head" data-mock-id="ALI_INT_05">
+            <div class="nm" id="who"></div>
+            <div class="ps" id="pers"></div>
+          </div>
+
+          <div class="log" id="log" data-mock-id="ALI_INT_06"></div>
+
+          <div class="hint" id="hint" data-mock-id="ALI_INT_08">
+            <div class="hd"><span>訊けそうなこと</span><span>▲</span></div>
+          </div>
+
+          <div class="askbar">
+            <span class="box" data-mock-id="ALI_INT_10">何について訊く？</span>
+            <span class="btn" data-mock-id="ALI_INT_11">訊く</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="../_case.js"></script>
+    <script src="../_mock.js"></script>
+    <script>
+      ;(function () {
+        var C = Mock.case
+        // 一枚だけ開いて撮ったときに白紙にならないよう、既定を中盤に置く。
+        var st = Mock.play(Mock.num('turn', 4))
+        var me = Mock.cast[st.current]
+
+        document.getElementById('ttl').textContent = C.title
+        document.getElementById('turns').textContent = st.turn + ' / ' + C.turns + ' ターン'
+        // 経過時間。ターン数から作った見せかけで、意味のある数字ではない。
+        document.getElementById('clock').textContent = Mock.clock(st.turn)
+        document.getElementById('bspan').textContent = C.span.from + ' – ' + C.span.to
+
+        document.getElementById('head').innerHTML = Mock.chartHead({
+          active: st.current,
+          activeLabel: '聞き込み中',
+        })
+        document.getElementById('chart').innerHTML = Mock.chart({
+          segments: st.segments,
+          active: st.current,
+          clash: st.clash,
+          litFix: '19:08　受付',
+        })
+
+        document.getElementById('who').textContent = me.name
+        document.getElementById('who').style.color = 'var(--' + me.hue + Mock.lit + ')'
+        document.getElementById('pers').textContent = me.role + '。' + me.persona
+
+        // 直近の三塊だけ残す。上は溢れるに任せ、切れ口は CSS の霞が引き受ける。
+        document.getElementById('log').innerHTML = Mock.log(st.log.slice(-6))
+        // .hint は縦の flex。包む箱を挟むと候補が一行に繋がるので、直の子として並べる。
+        document.getElementById('hint').insertAdjacentHTML(
+          'beforeend',
+          st.hints
+            .map(function (q) {
+              return '<span class="q" data-mock-id="ALI_INT_09">' + Mock.esc(q) + '</span>'
+            })
+            .join(''),
+        )
+
+        // 列見出しを押すと、その人に相手を替える。
+        Array.prototype.forEach.call(document.querySelectorAll('[data-who]'), function (el) {
+          el.addEventListener('click', function () {
+            location.hash = 'turn=' + st.turn + '&who=' + el.dataset.who
+            location.reload()
+          })
+        })
+
+        Mock.ready()
+      })()
+    </script>
+  </body>
+</html>

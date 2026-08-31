@@ -1,0 +1,62 @@
+/*
+ * モックの足場。画面の意匠ではない。
+ *
+ * ここにある色は意図的にパレットの外から採っている。青はアプリのどこにも
+ * 出てこないので、バッジが design の一部と見間違えられることがない。
+ */
+
+.mock-badges {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.mock-badges .box {
+  position: absolute;
+  outline: 1px solid rgba(58, 169, 255, 0.5);
+  outline-offset: -1px;
+}
+
+.mock-badges .tag {
+  position: absolute;
+  font-family: "Roboto Mono", ui-monospace, monospace;
+  font-size: 9px;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  color: #06121c;
+  background: #3aa9ff;
+  padding: 2px 4px;
+  white-space: nowrap;
+}
+
+/* 上端に貼るとページ外へ出る要素があるので、その時だけ内側へ落とす。 */
+.mock-badges .tag.inside {
+  transform: translateY(0);
+}
+
+.mock-hint {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10000;
+  padding: 5px 10px;
+  background: #3aa9ff;
+  color: #06121c;
+  font-family: "Roboto Mono", ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  pointer-events: none;
+}
+
+/*
+ * モックだけの補助線。通しで動くのが一件だけであることなど、
+ * 実装には持ち込まない但し書きに使う。
+ */
+.mock-note {
+  font-size: 10.5px;
+  line-height: 1.6;
+  color: #3aa9ff;
+  letter-spacing: 0.04em;
+}

@@ -1,0 +1,391 @@
+schemaVersion: 1
+id: thunder-cablecar-occupied-cabin
+meta:
+  title: 霧岳山頂駅、落雷の夜
+  synopsis: "午後九時三十八分、霧岳ロープウェイ山頂駅の運行事務室で、駅長の高瀬修司が死亡しているのが見つかりました。落雷で本線索道は停止し、山道も土砂流入で通行できません。午後八時五十分以降、山頂駅へ出入りした者はいません。"
+  category: クローズドサークル
+  difficulty: 4
+  estimatedMinutes: 15
+  tags: [山頂駅, 雷雨, 重量センサー, アリバイ]
+victim:
+  name: 高瀬修司
+  introduction: 霧岳ロープウェイ山頂駅駅長
+briefing: |-
+  ——事件の記録を読み上げます。
+
+  霧岳ロープウェイの山頂駅は、観光客を山上へ運ぶ交通施設であると同時に、索道設備を管理する作業拠点でもあります。営業終了後には運転設備の確認や翌日の準備が行われ、職員が遅くまで残ることがあります。
+
+  駅長の高瀬修司は、山頂駅の運営と索道の安全管理を預かる責任者でした。天候判断や運休の決定にも関わり、設備担当や運転主任をまとめる立場にありました。
+
+  高瀬修司は安全規程に厳格な駅長で、悪天候では運行を止める判断をためらわない人物として知られていました。観光客には堅い印象を持たれがちでしたが、職員からは山頂駅を守る実直な責任者として信頼されていました。
+
+  その夜、山頂付近で落雷が相次ぎ、本線の索道は停止しました。山道にも土砂が流れ込み、午後八時五十分以降、山頂駅へ新たに出入りした者はいません。残った者たちは復旧確認をしながら駅内で待機していました。
+
+  午後九時三十八分、運行事務室で高瀬修司が死亡しているのが発見されます。駅にいた関係者は、運転主任の須藤拓海、案内係の榎本澄、設備担当の長峰礼、山岳写真家の折原壮です。
+
+  雷雲の中に取り残された山頂駅で、営業終了後に何が起きたのか。四人からその夜の行動を聞いてください。
+floorPlan: null
+facts:
+  - id: sudo-operator
+    statement: 須藤拓海はロープウェイの運転と安全点検を担当する主任である
+    kind: other
+  - id: enomoto-guide
+    statement: 榎本澄は山頂駅の案内と売店閉め作業を担当している
+    kind: other
+  - id: nagamine-maintenance
+    statement: 長峰礼は駅舎の電気設備と非常用搬器の保守を担当している
+    kind: other
+  - id: orihara-photographer
+    statement: 折原壮は悪天候で下山できず駅舎に残った山岳写真家である
+    kind: other
+  - id: sudo-falsified-brake-tests
+    statement: 須藤拓海は期限内に実施していない一部の制動点検を実施済みとして記録していた
+    kind: motive
+    secret: true
+  - id: takase-found-false-tests
+    statement: 高瀬修司は事件当日、須藤拓海の制動点検記録と実作業が一致しないことに気づいた
+    kind: motive
+    secret: true
+  - id: takase-planned-suspension
+    statement: 高瀬修司は翌朝、須藤拓海を運転業務から外し、安全管理部へ記録不備を報告する予定だった
+    kind: motive
+    secret: true
+  - id: cabin-display-weight-based
+    statement: 非常用搬器の『乗員1』表示は人を識別せず、座席下の重量センサーが一定以上の荷重を検知すると点灯する
+    kind: physical
+  - id: tool-case-heavy-enough
+    statement: 保守用工具ケースは重量センサーが『乗員1』と判定するのに十分な重さがある
+    kind: physical
+  - id: sudo-left-tool-case
+    statement: 21時09分ごろ、須藤拓海は保守用工具ケースを非常用搬器の点検席へ置いた
+    kind: truth
+    secret: true
+  - id: occupancy-display-on
+    statement: 21時10分から21時30分まで、非常用搬器の監視盤には『乗員1』が連続表示された
+    kind: physical
+  - id: sudo-left-cabin-area
+    statement: 21時12分ごろ、須藤拓海は非常用搬器前を離れた
+    kind: truth
+    secret: true
+  - id: enomoto-saw-sudo-2118
+    statement: 21時18分ごろ、榎本澄は運行事務室へ続く職員通路で須藤拓海を見た
+    kind: observation
+  - id: sudo-killed-takase
+    statement: 21時22分ごろ、須藤拓海は運行事務室で高瀬修司を襲い死亡させた
+    kind: truth
+    secret: true
+  - id: sudo-returned-cabin
+    statement: 21時28分ごろ、須藤拓海は非常用搬器前へ戻った
+    kind: truth
+    secret: true
+  - id: enomoto-kept-lost-wallet
+    statement: 榎本澄は売店で拾った財布を正式な遺失物処理に回さず、自分のロッカーへ入れていた
+    kind: other
+    secret: true
+  - id: nagamine-bypassed-heater
+    statement: 長峰礼は規定外の方法で融雪ヒーターの警報を一時的に無効化していた
+    kind: other
+    secret: true
+  - id: orihara-entered-restricted-deck
+    statement: 折原壮は撮影のため立入禁止の保守デッキへ無断で出ていた
+    kind: other
+    secret: true
+  - id: body-found-2138
+    statement: 21時38分、長峰礼が運行事務室で高瀬修司の死を発見した
+    kind: observation
+
+timeline:
+  - id: tool-case-placed
+    at: "21:09"
+    participants: [sudo]
+    facts: [cabin-display-weight-based, tool-case-heavy-enough, sudo-left-tool-case]
+    description: 須藤が保守用工具ケースを非常用搬器の点検席へ置く。
+  - id: occupancy-start
+    at: "21:10"
+    participants: []
+    facts: [occupancy-display-on]
+    description: 工具ケースの荷重で監視盤に『乗員1』が表示される。
+  - id: sudo-leaves-cabin
+    at: "21:12"
+    participants: [sudo]
+    facts: [sudo-left-cabin-area]
+    description: 須藤が非常用搬器前を離れる。
+  - id: enomoto-sighting
+    at: "21:18"
+    participants: [sudo, enomoto]
+    facts: [enomoto-saw-sudo-2118]
+    description: 榎本が職員通路で須藤を目撃する。
+  - id: takase-death
+    at: "21:22"
+    participants: [sudo]
+    facts: [sudo-killed-takase]
+    description: 須藤が運行事務室で高瀬を襲い、高瀬は死亡する。
+  - id: sudo-return
+    at: "21:28"
+    participants: [sudo]
+    facts: [sudo-returned-cabin]
+    description: 須藤が非常用搬器前へ戻る。
+  - id: occupancy-end
+    at: "21:30"
+    participants: [sudo]
+    facts: [occupancy-display-on]
+    description: 須藤が工具ケースを点検席から下ろし、『乗員1』表示が消える。
+  - id: discovery
+    at: "21:38"
+    participants: [nagamine, sudo, enomoto, orihara]
+    facts: [body-found-2138]
+    description: 長峰が運行事務室で高瀬の死を発見する。
+
+characters:
+  - id: sudo
+    name: 須藤拓海
+    role: suspect
+    publicIntroduction: "ロープウェイの運転主任。"
+    personality: 安全規程を熟知し、自信を持って機器表示を説明する運転主任。自分の点検記録の不備を隠し、監視盤の『乗員1』を人物の在席記録であるかのように語る。
+    goals:
+      - 制動点検記録の虚偽を隠したい
+      - 二十分続いた『乗員1』表示を、自分が点検席に座っていた証拠として通したい
+    knowledge: [sudo-operator, cabin-display-weight-based, tool-case-heavy-enough, occupancy-display-on, body-found-2138]
+    secrets:
+      - fact: sudo-falsified-brake-tests
+        disclosure: pressured
+      - fact: takase-found-false-tests
+        disclosure: pressured
+      - fact: takase-planned-suspension
+        disclosure: pressured
+      - fact: sudo-left-tool-case
+        disclosure: pressured
+      - fact: sudo-left-cabin-area
+        disclosure: never
+      - fact: sudo-killed-takase
+        disclosure: never
+      - fact: sudo-returned-cabin
+        disclosure: never
+    lies:
+      - id: sudo-cabin-alibi
+        about: sudo-left-cabin-area
+        claim: 21時10分から30分まで非常用搬器の点検席から離れていません。監視盤もずっと『乗員1』だったでしょう
+        strategy: maintain-until-contradicted
+      - id: sudo-no-toolcase-seat
+        about: sudo-left-tool-case
+        claim: 工具ケースを点検席へ置いて表示を出したことはありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: suspension-threat
+        about: takase-planned-suspension
+        detail: 高瀬から「明朝から運転を外す。安全管理部にも出す」と言われ、資格まで失うのではないかと焦った。
+    relationships:
+      - character: nagamine
+        relation: 設備担当の同僚
+        attitude: センサー仕様を知っているので話を深掘りされたくない
+      - character: enomoto
+        relation: 駅職員
+        attitude: 通路ですれ違ったことを覚えていそうで警戒している
+  - id: enomoto
+    name: 榎本澄
+    role: witness
+    publicIntroduction: "丁寧で記憶力のよい案内係。"
+    personality: 丁寧で記憶力のよい案内係。拾った財布を正式処理しなかったことを隠したいが、21時18分に職員通路で須藤とすれ違ったことは明確に覚えている。
+    goals:
+      - 拾得物を自分のロッカーへ入れたことを隠したい
+      - 21時18分の須藤の目撃は正確に話したい
+    knowledge: [enomoto-guide, enomoto-saw-sudo-2118, occupancy-display-on, body-found-2138]
+    secrets:
+      - fact: enomoto-kept-lost-wallet
+        disclosure: pressured
+    lies:
+      - id: enomoto-no-wallet
+        about: enomoto-kept-lost-wallet
+        claim: 今日、遺失物を正式処理せず自分のロッカーへ入れたことはありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: corridor-sudo
+        about: enomoto-saw-sudo-2118
+        detail: 21時18分ごろ、搬器にいるはずの須藤が運行事務室側から歩いてきたので、監視盤の表示を見間違えたのかと思った。
+    relationships: []
+  - id: nagamine
+    name: 長峰礼
+    role: witness
+    publicIntroduction: "機械の仕様を優先して考える設備担当。"
+    personality: 機械の仕様を優先して考える設備担当。融雪設備の手順違反を隠したいが、非常用搬器の乗員表示が単なる荷重判定だと知っている。
+    goals:
+      - 融雪ヒーターの警報を無効化したことを隠したい
+      - 『乗員1』表示の意味は技術的に正確に説明する
+    knowledge: [nagamine-maintenance, cabin-display-weight-based, tool-case-heavy-enough, occupancy-display-on, body-found-2138]
+    secrets:
+      - fact: nagamine-bypassed-heater
+        disclosure: pressured
+    lies:
+      - id: nagamine-no-bypass
+        about: nagamine-bypassed-heater
+        claim: 融雪ヒーターの警報を手順外で止めたことはありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: occupancy-test
+        about: tool-case-heavy-enough
+        detail: 保守点検では工具ケースを席へ置いただけで『乗員1』になることがあるので、表示を人員確認には使わないよう教えている。
+    relationships:
+      - character: sudo
+        relation: 運転担当の同僚
+        attitude: センサーの限界を知っているはずなのに表示を人の証明として強調するのが不自然だと思う
+  - id: orihara
+    name: 折原壮
+    role: suspect
+    publicIntroduction: "山頂駅にいた山岳写真家。"
+    personality: 好奇心が強く規則を軽視しがちな山岳写真家。立入禁止の保守デッキへ出たことを隠すため行動をぼかすが、職員同士の事情には詳しくない。
+    goals:
+      - 保守デッキへ無断で出たことを隠したい
+      - 駅職員の内部事情に巻き込まれたくない
+    knowledge: [orihara-photographer, body-found-2138]
+    secrets:
+      - fact: orihara-entered-restricted-deck
+        disclosure: pressured
+    lies:
+      - id: orihara-no-restricted-deck
+        about: orihara-entered-restricted-deck
+        claim: 立入禁止の保守デッキには出ていません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: heavy-case
+        about: sudo-left-tool-case
+        detail: 21時すぎ、須藤が大きな工具ケースを非常用搬器へ運び込むところを遠目に見た。
+    relationships: []
+
+revelations:
+  - id: occupancy-is-weight
+    title: 『乗員1』は人を数えていない
+    text: 非常用搬器の乗員表示は重量センサーの閾値だけで決まり、重い工具ケースでも『乗員1』になる。表示は須藤本人の在席を証明しない。
+    category: alibi
+    subject: { type: character, id: sudo }
+    sources:
+      - type: character
+        id: nagamine
+        revealCondition: 長峰に『乗員1』表示が何を検知しているのか尋ね、工具ケースでも反応することを確認した。
+        requires:
+          revelations: []
+          evidences: [seat-weight-spec]
+      - type: character
+        id: orihara
+        revealCondition: 折原に21時すぎ非常用搬器付近で見た物を尋ね、須藤が重い工具ケースを運び込んだことを確認した。
+        requires:
+          revelations: []
+          evidences: [seat-weight-spec]
+    relatedFacts: [cabin-display-weight-based, tool-case-heavy-enough, sudo-left-tool-case, occupancy-display-on]
+  - id: sudo-corridor-contradiction
+    title: 搬器にいるはずの須藤
+    text: 21時18分ごろ、榎本は運行事務室へ続く職員通路で須藤を目撃しており、搬器の点検席に居続けたという説明と両立しない。
+    category: timeline
+    subject: { type: event, id: enomoto-sighting }
+    sources:
+      - type: character
+        id: enomoto
+        revealCondition: 榎本に21時台の職員通路で会った人物を尋ね、須藤の目撃時刻を具体化した。
+        requires:
+          revelations: [occupancy-is-weight]
+          evidences: [staff-corridor-sighting]
+    relatedFacts: [sudo-left-cabin-area, enomoto-saw-sudo-2118]
+  - id: sudo-safety-motive
+    title: 翌朝に外される運転業務
+    text: 高瀬は須藤の制動点検記録の虚偽を発見し、翌朝から須藤を運転業務から外して安全管理部へ報告する予定だった。
+    category: motive
+    subject: { type: character, id: sudo }
+    sources:
+      - type: character
+        id: sudo
+        revealCondition: 須藤に高瀬が照合していた制動点検記録と翌朝の処分を追及し、運転業務を外される恐れを明確にした。
+        requires:
+          revelations: [sudo-corridor-contradiction]
+          evidences: [brake-test-diff]
+      - type: character
+        id: nagamine
+        revealCondition: 長峰に高瀬が確認していた制動点検の実作業を尋ね、記録との不一致へつなげた。
+        requires:
+          revelations: []
+          evidences: [brake-test-diff]
+    relatedFacts: [sudo-falsified-brake-tests, takase-found-false-tests, takase-planned-suspension]
+
+evidences:
+  - id: seat-weight-spec
+    label: 非常用搬器の座席重量仕様
+    description: 『乗員1』は一定以上の荷重で点灯し、保守用工具ケースだけでも同じ表示になる。21時台にはそのケースが点検席へ置かれていた。
+    reveal:
+      mode: conversation
+      condition: 須藤、長峰、折原のいずれかに『乗員1』表示の検知方式と工具ケースについて尋ねたら開示する。
+    sources:
+      - { type: character, id: sudo }
+      - { type: character, id: nagamine }
+      - { type: character, id: orihara }
+    supports: [cabin-display-weight-based, tool-case-heavy-enough, sudo-left-tool-case, occupancy-display-on]
+    contradicts: ["lie:sudo-cabin-alibi", "lie:sudo-no-toolcase-seat"]
+  - id: staff-corridor-sighting
+    label: 二十一時十八分の職員通路目撃
+    description: 榎本は21時18分ごろ、運行事務室へ続く職員通路で須藤とすれ違っている。
+    reveal:
+      mode: conversation
+      condition: 榎本に21時15分から20分ごろ職員通路で誰を見たか尋ねたら開示する。
+    sources:
+      - { type: character, id: enomoto }
+    supports: [enomoto-saw-sudo-2118]
+    contradicts: ["lie:sudo-cabin-alibi"]
+  - id: brake-test-diff
+    label: 制動点検記録と作業履歴の不一致
+    description: 須藤が実施済みと記した点検の一部に作業履歴がなく、高瀬が翌朝の運転停止と安全管理部への報告を記している。
+    reveal:
+      mode: conversation
+      condition: 須藤か長峰に高瀬が事件直前に確認していた制動点検について尋ね、記録と実作業の不一致を追及したら開示する。
+    sources:
+      - { type: character, id: sudo }
+      - { type: character, id: nagamine }
+    supports: [sudo-falsified-brake-tests, takase-found-false-tests, takase-planned-suspension]
+    contradicts: []
+  - id: lost-wallet
+    label: 榎本のロッカーにある拾得財布
+    description: 売店で拾われた財布が正式な遺失物処理をされず榎本のロッカーに入っていたが、事件とは無関係だった。
+    reveal:
+      mode: conversation
+      condition: 榎本に拾得物を私物ロッカーへ入れていないか尋ね、否定を続けたら開示する。
+    sources:
+      - { type: character, id: enomoto }
+    supports: [enomoto-kept-lost-wallet]
+    contradicts: ["lie:enomoto-no-wallet"]
+  - id: heater-bypass-log
+    label: 融雪ヒーターの警報停止履歴
+    description: 長峰が規定外に警報を一時停止していたことが分かるが、運行事務室の事件とは別件である。
+    reveal:
+      mode: conversation
+      condition: 長峰に融雪ヒーターの警報を止めていないか尋ね、否定を検証したら開示する。
+    sources:
+      - { type: character, id: nagamine }
+    supports: [nagamine-bypassed-heater]
+    contradicts: ["lie:nagamine-no-bypass"]
+  - id: restricted-deck-photo
+    label: 保守デッキで撮られた写真
+    description: 折原が立入禁止の保守デッキへ出て撮影していたことが分かるが、事件時刻の運行事務室とは結びつかない。
+    reveal:
+      mode: conversation
+      condition: 折原に保守デッキへ出ていないか尋ね、撮影データの場所を検証したら開示する。
+    sources:
+      - { type: character, id: orihara }
+    supports: [orihara-entered-restricted-deck]
+    contradicts: ["lie:orihara-no-restricted-deck"]
+
+solution:
+  culprit: sudo
+  summary: 犯人は須藤拓海。実施していない制動点検を実施済みとして記録していたことを高瀬に見抜かれ、翌朝から運転業務を外され安全管理部へ報告される予定だった。須藤は21時09分ごろ、非常用搬器の点検席へ重い工具ケースを置いた。座席下のセンサーは人物を識別せず一定以上の荷重だけで『乗員1』を表示するため、監視盤には21時10分から30分まで一人が乗っているように見えた。須藤本人は21時12分ごろ搬器前を離れ、21時18分には榎本が職員通路で目撃している。21時22分ごろ高瀬を襲った後、21時28分ごろ搬器前へ戻った。
+  method: 重い工具ケースで非常用搬器の重量センサーを反応させ、『乗員1』表示を在席証明に見せかけて運行事務室へ移動した
+  motive: 制動点検記録の虚偽が発覚し、翌朝から運転業務を外され安全管理部へ報告されることを恐れたため
+  requiredFacts: [sudo-falsified-brake-tests, takase-planned-suspension, cabin-display-weight-based, tool-case-heavy-enough, sudo-left-tool-case, occupancy-display-on, sudo-left-cabin-area, enomoto-saw-sudo-2118, sudo-killed-takase]
+  secretKeywords:
+    - 犯人は須藤
+    - 須藤が犯人
+    - 須藤が高瀬を襲
+    - 私が高瀬を襲
+    - 工具ケースで乗員表示を偽装
+quality:
+  expectedQuestionCount:
+    min: 11
+    max: 23
+  requiredEvidence:
+    min: 3
+  redHerrings: [enomoto-kept-lost-wallet, nagamine-bypassed-heater, orihara-entered-restricted-deck]
+  notes: 監視盤の『乗員1』という自然言語表示が、人を認識した記録だと誤読させる。長峰の仕様説明、折原の工具ケース目撃、榎本の通路目撃を別々の入口にして、単独の証言に依存しない。

@@ -22,6 +22,12 @@ export const scenarioMetaSchema = z.object({
   tags: z.array(nonemptyTextSchema.max(50)).default([]),
 })
 
+export const scenarioVictimSchema = z.object({
+  name: nonemptyTextSchema.max(50),
+  /** 肩書きひとつぶんの短い紹介。「青雨堂店主」のように、役割が分かれば足りる。 */
+  introduction: nonemptyTextSchema.max(60),
+})
+
 export const scenarioFactSchema = z.object({
   id: localIdSchema,
   statement: nonemptyTextSchema,
@@ -66,6 +72,7 @@ export const scenarioCharacterSchema = z.object({
   id: localIdSchema,
   name: nonemptyTextSchema.max(100),
   role: nonemptyTextSchema.max(50).optional(),
+  publicIntroduction: nonemptyTextSchema.max(300),
   personality: nonemptyTextSchema,
   goals: z.array(nonemptyTextSchema),
   knowledge: z.array(localIdSchema),
@@ -196,6 +203,17 @@ export const scenarioDefinitionShapeSchema = z.object({
   schemaVersion: z.literal(1),
   id: scenarioIdSchema,
   meta: scenarioMetaSchema,
+  /**
+   * 亡くなった人。
+   *
+   * characters には入れない。あちらは聞き込みの相手の一覧で、
+   * knowledge や secrets を持つ前提で NPC のプロンプトになる。
+   * 被害者を混ぜると、話しかけられる列に死者が並ぶ。
+   *
+   * 事件の記録が名前を語っているので、伏せる情報ではない。
+   * 殺人以外の事件を書けるようにするため任意にしてある。
+   */
+  victim: scenarioVictimSchema.optional(),
   briefing: nonemptyTextSchema,
   floorPlan: floorPlanSchema.nullable(),
   facts: z.array(scenarioFactSchema).min(1),
@@ -556,6 +574,7 @@ export const ScenarioDefinitionSchema = scenarioDefinitionShapeSchema.superRefin
       scenario.meta.category,
       ...scenario.meta.tags,
       scenario.briefing,
+      ...scenario.characters.map((character) => character.publicIntroduction),
     ]
       .join('\n')
       .toLocaleLowerCase()

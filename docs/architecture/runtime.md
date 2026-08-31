@@ -58,13 +58,13 @@ const app = new Hono<{ Bindings: Bindings; Variables: { env: Env } }>()
 | --- | --- |
 | `GET /api/health` | 疎通確認。バインディング不要 |
 | `GET /api/scenarios` | 一覧。タイトル・カテゴリ・登場人物数・難易度・所要時間だけ |
-| `GET /api/scenarios/:id` | 詳細。事件の記録・見取り図・登場人物（`personality` のみ） |
+| `GET /api/scenarios/:id` | 詳細。事件の記録・見取り図・登場人物（`publicIntroduction` のみ） |
 | `POST /api/sessions` | セッション開始。探偵の設定を受け取る。**ここで計時が始まる** |
 | `GET /api/sessions/:id` | 進行状況。発見済みの証拠だけをラベル付きで返す |
 | `POST /api/sessions/:id/ask` | 話題を1つ投げる。SSE で（`question` → `delta`）×N → `judgement` → `done` |
 | `POST /api/sessions/:id/accuse` | 犯人当て。**真相を返してよいのはここだけ** |
 
-`/api/scenarios/:id` が返す登場人物は `personality` までです。`knowledge` / `secrets` / `lies` / `memories` はNPCのプロンプトの材料であって、プレイヤーに見せるものではありません。証拠の一覧も返しません。未発見の証拠名それ自体がネタバレになるためです。
+`/api/scenarios/:id` が返す登場人物は `id` / `name` / `publicIntroduction` だけです。`personality` / `knowledge` / `secrets` / `goals` / `lies` / `memories` はNPCのプロンプトの材料であって、プレイヤーに見せるものではありません。`relationships` も `personality` 側へコンパイルされる非公開情報です。証拠の一覧も返しません。未発見の証拠名それ自体がネタバレになるためです。
 
 セッション作成をシナリオ選択時ではなく「聞き込みを始める」時に行うのは、事件の記録を読んでいる時間が `solvedSeconds` に乗らないようにするためです。じっくり読む人ほどタイムで不利になるのは、ゲームとして間違っています。
 

@@ -71,6 +71,7 @@ const validScenario: ScenarioDefinition = {
       id: 'a',
       name: '美術部員 A',
       role: 'witness',
+      publicIntroduction: '美術部員。',
       personality: '真面目で慎重。',
       goals: ['知っていることには正直に答える'],
       knowledge: ['painting-present-at-1800', 'b-seen-at-1810'],
@@ -95,6 +96,7 @@ const validScenario: ScenarioDefinition = {
       id: 'b',
       name: '美術部員 B',
       role: 'suspect',
+      publicIntroduction: '美術部員。',
       personality: '負けず嫌い。追及されると防御的になる。',
       goals: ['自分が作品を持ち出したことを隠す'],
       knowledge: ['b-seen-at-1810', 'b-took-painting'],
@@ -542,6 +544,7 @@ describe('character の構造', () => {
   const minimalCharacter = {
     id: 'a',
     name: '人物A',
+    publicIntroduction: '事件当時その場にいた人物。',
     personality: '慎重。',
     goals: [],
     knowledge: [],
@@ -604,6 +607,19 @@ describe('character の構造', () => {
     expect(scenarioCharacterSchema.safeParse({ ...minimalCharacter, role: '   ' }).success).toBe(
       false,
     )
+  })
+
+  test('publicIntroduction が空白だけなら拒否する', () => {
+    expect(
+      scenarioCharacterSchema.safeParse({ ...minimalCharacter, publicIntroduction: '   ' }).success,
+    ).toBe(false)
+  })
+
+  test('publicIntroduction は必須', () => {
+    const character = structuredClone(minimalCharacter)
+    Reflect.deleteProperty(character, 'publicIntroduction')
+
+    expect(scenarioCharacterSchema.safeParse(character).success).toBe(false)
   })
 
   test('personality が空白だけなら拒否する', () => {
@@ -1391,6 +1407,14 @@ describe('semantic validation: 秘匿キーワード漏洩', () => {
   test('tags に秘匿キーワードが含まれていたら拒否する', () => {
     const scenario = makeScenario()
     scenario.meta.tags.push(requiredAt(scenario.solution.secretKeywords, 0))
+
+    expectInvalidAt(scenario, 'solution.secretKeywords.0')
+  })
+
+  test('publicIntroduction に秘匿キーワードが含まれていたら拒否する', () => {
+    const scenario = makeScenario()
+    requiredAt(scenario.characters, 0).publicIntroduction =
+      `人物紹介。${requiredAt(scenario.solution.secretKeywords, 0)}`
 
     expectInvalidAt(scenario, 'solution.secretKeywords.0')
   })

@@ -22,17 +22,21 @@ const CHARACTER_TTL_SECONDS = 3600
 const SCENARIO_LIST_TTL_SECONDS = 60
 const JUDGE_RUBRIC_TTL_SECONDS = 3600
 
-const characterKey = (characterId: string) => `character:${characterId}`
+const characterKey = (characterId: string) => `character:v2:${characterId}`
 const judgeRubricKey = (scenarioId: string) => `judge-rubric:${scenarioId}`
 const judgeRevelationsKey = (scenarioId: string) => `judge-revelations:${scenarioId}`
 const hintSubjectsKey = (scenarioId: string) => `hint-subjects:${scenarioId}`
 const SCENARIO_LIST_KEY = 'scenarios:published'
 
 /**
- * NPCのプロンプトになる上限。characters の行がそのまま境界。
+ * NPCのプロンプトになる上限。全員共通の公開事件記録と、そのNPC自身の characters 行だけを使う。
+ * scenario_truths や他人物の内部情報はここへ持ち込まない。
  */
-const buildSheet = (row: typeof characters.$inferSelect) =>
+export const buildCharacterSheet = (row: typeof characters.$inferSelect, briefing: string) =>
   `# ${row.name}
+
+## 事件の公開記録
+${briefing}
 
 ## 人物像
 ${row.personality}
@@ -74,7 +78,18 @@ export const loadCharacterSheet = async (
     return undefined
   }
 
-  const sheet = buildSheet(row)
+  const scenarioRows = await db
+    .select({ briefing: scenarios.briefing })
+    .from(scenarios)
+    .where(eq(scenarios.id, row.scenarioId))
+    .limit(1)
+  const scenarioRow = scenarioRows[0]
+
+  if (scenarioRow === undefined) {
+    return undefined
+  }
+
+  const sheet = buildCharacterSheet(row, scenarioRow.briefing)
   await kv.put(characterKey(characterId), sheet, { expirationTtl: CHARACTER_TTL_SECONDS })
 
   return sheet
@@ -125,6 +140,11 @@ export const loadPublishedScenarios = async (
     .leftJoin(characters, eq(characters.scenarioId, scenarios.id))
     .where(eq(scenarios.isPublished, true))
     .groupBy(scenarios.id)
+    // 並び順を明示するのはページ送りのため。ORDER BY が無いと順序は SQLite 任せで、
+    // ページの境目がキャッシュの張り替えを跨いだ瞬間にずれ、同じ事件が二度出たり
+    // 一度も出なかったりする。分類でまとめるのは、一覧が分類ごとの見出しを
+    // 出す作りになっているため（ScenarioSelectScreen 参照）。
+    .orderBy(scenarios.category, scenarios.title)
 
   await kv.put(SCENARIO_LIST_KEY, JSON.stringify(rows), {
     expirationTtl: SCENARIO_LIST_TTL_SECONDS,

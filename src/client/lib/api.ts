@@ -9,6 +9,8 @@ import {
   type GameMode,
   type Judgement,
   judgementSchema,
+  type LlmSettingsResponse,
+  llmSettingsResponseSchema,
   type ScenarioDetail,
   type ScenarioSummary,
   type SessionHistory,
@@ -18,6 +20,12 @@ import {
   sessionHistorySchema,
   sessionStateSchema,
 } from '@/client/lib/schemas'
+/*
+  設定はブラウザごとの好みで、LLMを呼ぶ全リクエストに等しく載る。
+  画面から引数で渡して回すと、設定と関係のない関数にまで引数が生えるので、
+  送る直前にここで読む。サーバはこの値を信用せず、許可リストと上限で検め直す。
+*/
+import { loadSettings, settingsLimits, toLlmOverrides } from '@/client/lib/settings-store'
 import { parseSseStream } from '@/client/lib/sse'
 
 /**
@@ -105,8 +113,14 @@ export const createSession = (
   requestJson(
     '/api/sessions',
     createSessionResponseSchema,
-    jsonInit('POST', { scenarioId, detective, mode }),
+    jsonInit('POST', { scenarioId, detective, mode, limits: settingsLimits(loadSettings()) }),
   )
+
+/**
+ * 設定画面が選択肢を組み立てるための材料。返ってくるのはキーの有無だけで、鍵は載らない。
+ */
+export const fetchLlmSettings = (): Promise<LlmSettingsResponse> =>
+  requestJson('/api/settings/llm', llmSettingsResponseSchema, undefined)
 
 export const fetchSessionState = (sessionId: string): Promise<SessionState> =>
   requestJson(`/api/sessions/${sessionId}`, sessionStateSchema, undefined)
@@ -135,7 +149,7 @@ export const submitAccusation = (params: {
   requestJson(
     `/api/sessions/${params.sessionId}/accuse`,
     accuseResultSchema,
-    jsonInit('POST', params),
+    jsonInit('POST', { ...params, llm: toLlmOverrides(loadSettings()) }),
   )
 
 export type AskCallbacks = {
@@ -161,7 +175,10 @@ export const askTopic = async (
   params: { sessionId: string; characterId: string; topic: string },
   callbacks: AskCallbacks,
 ): Promise<void> => {
-  const res = await fetch(`/api/sessions/${params.sessionId}/ask`, jsonInit('POST', params))
+  const res = await fetch(
+    `/api/sessions/${params.sessionId}/ask`,
+    jsonInit('POST', { ...params, llm: toLlmOverrides(loadSettings()) }),
+  )
 
   if (!res.ok) {
     const payload = await readJsonBody(res)

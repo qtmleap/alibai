@@ -166,6 +166,8 @@ meta:
 
 `tags` は任意です。
 
+`title` は最初から見えるため、トリック・中心証拠・アリバイの弱点・時刻差・誤認などを示す語を避けます。施設名、土地、時代、天候、事件の場といった**真相を知らなくても付けられる題名**を基本にします。
+
 ## 5. `briefing`
 
 ゲーム開始時にプレイヤーへ提示する事件の記録です。
@@ -177,9 +179,11 @@ briefing: |
   作品が最後に確認されたのは18時00分。校内に残っていた関係者は三人だった。
 ```
 
-ここには犯人・真相・未発見の証拠などを書いてはいけません。
+ここには犯人・真相・未発見の証拠だけでなく、**解法や着眼点も書いてはいけません。** 特定人物のアリバイ、決定的な記録の意味、「この証拠を疑え」という誘導、表面的な事実を `しかし` / `ただし` で反転させる説明は聞き込み側へ残します。公開層は舞台・被害者・発見状況・隔絶事情・最初から公知の人物構成までを基本とします。
 
-Importer の semantic validation では `solution.secretKeywords` と照合し、明白な秘匿語が含まれていないことを検査します。
+また、被害者は役職だけの記号にしません。`briefing` に公開人物像の段落を置き、事件前から共有されていた評判・人柄・仕事への姿勢・周囲での立ち位置を描きます。特定人物との秘密の対立や犯行動機へ直結する事情は含めません。この `briefing` は Actor のキャラクターシートにも共通知識として含めるため、NPC は公開された背景について一貫した前提で会話できます。
+
+Importer の semantic validation では `solution.secretKeywords` と照合し、明白な秘匿語が含まれていないことを検査します。加えてリポジトリのシナリオテストでは、公開文に典型的な解法誘導表現が入っていないことも検査します。
 
 ## 6. `floorPlan`
 
@@ -268,6 +272,8 @@ characters:
     name: 美術部員 A
     role: witness
 
+    publicIntroduction: 美術部に所属する生徒。
+
     personality: |
       真面目で慎重。断定できないことは断定しない。
 
@@ -297,12 +303,15 @@ characters:
 
 - `id`
 - `name`
+- `publicIntroduction`
 - `personality`
 - `knowledge`
 - `secrets`
 - `goals`
 - `lies`
 - `memories`
+
+`publicIntroduction` はプレイヤーへ最初から公開する短い人物紹介です。職業・立場・表向きの性格だけを書き、秘密・動機・未公開の目撃・アリバイ・嘘・違反行為など、聞き込みで判明すべき情報を含めません。`personality` と `relationships` はActor専用の非公開情報です。
 
 `knowledge` は原則 `facts[].id` の参照です。
 
@@ -482,6 +491,7 @@ characters:
   - id: a
     name: 美術部員 A
     role: witness
+    publicIntroduction: 美術部に所属する生徒。
     personality: 真面目で慎重。
     goals:
       - 知っていることには正直に答える
@@ -502,6 +512,7 @@ characters:
   - id: b
     name: 美術部員 B
     role: suspect
+    publicIntroduction: 美術部に所属する生徒。
     personality: 負けず嫌い。追及されると防御的になる。
     goals:
       - 自分が作品を持ち出したことを隠す
@@ -591,7 +602,7 @@ Author LLM の Structured Output も同じ構造を使います。
 3. `solution.culprit` が存在する人物を指す
 4. `timeline.participants` が存在する人物を指す
 5. `lie:*` が存在する嘘を指す
-6. `briefing` / 公開メタ情報に `secretKeywords` が含まれない
+6. `briefing` / 公開メタ情報 / `publicIntroduction` に `secretKeywords` が含まれない
 7. Actor 用キャラクターシートへ他人物の秘密や `solution.summary` が混入しない
 8. `requiredFacts` の各要素に、プレイヤーが到達できる情報経路が最低一つ存在する
 9. 互いに両立しない truth fact が存在しない
@@ -617,7 +628,7 @@ Author は一発で完成 YAML を書くのではなく、段階的に生成し�
    requiredFacts にプレイヤーが到達できる経路を作る
 
 5. Public Layer
-   synopsis / briefing を作る。真相は含めない
+   title / synopsis / briefing / publicIntroduction を作る。真相・解法・中心証拠・聞き込みで判明すべき情報は含めない
 
 6. Structural Validation
    Zod で検証
@@ -666,7 +677,8 @@ Author は一発で完成 YAML を書くのではなく、段階的に生成し�
 | `solution.summary` | `scenario_truths.truth` |
 | `timeline` | `scenario_truths.timeline` |
 | `solution.secretKeywords` | `scenario_truths.secret_keywords` |
-| `characters[].personality` | `characters.personality` |
+| `characters[].publicIntroduction` | `characters.public_introduction` |
+| `characters[].personality` + `relationships` | `characters.personality` |
 | compiled `knowledge` | `characters.knowledge` |
 | compiled `secrets` | `characters.secrets` |
 | compiled `goals` | `characters.goals` |
@@ -675,7 +687,7 @@ Author は一発で完成 YAML を書くのではなく、段階的に生成し�
 | `evidences[].label` | `evidences.label` |
 | `evidences[].reveal.condition` | `evidences.reveal_condition` |
 
-`facts`、`relationships`、`supports`、`contradicts`、`quality` は当面 Authoring/Validation 用の情報です。必要になった段階で Runtime schema を拡張します。
+`facts`、`supports`、`contradicts`、`quality` は当面 Authoring/Validation 用の情報です。`relationships` は人物像へコンパイルされ、Actor にだけ渡されます。必要になった段階で Runtime schema を拡張します。
 
 ## 18. 秘匿境界
 

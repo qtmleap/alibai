@@ -1,5 +1,11 @@
 import { describe, expect, test } from 'bun:test'
-import { advanceTurn, turnStateOf } from '@/shared/turns'
+import {
+  advanceTurn,
+  clampLimits,
+  LIMIT_CEILINGS,
+  modelCallsPerTopic,
+  turnStateOf,
+} from '@/shared/turns'
 
 /** 既定の構成（1ターンに1問、全5ターン）。 */
 const standard = (questionCount: number) => turnStateOf(questionCount, 5, 1)
@@ -108,5 +114,73 @@ describe('advanceTurn（投げた瞬間の先回り）', () => {
 
     expect(after.turn).toBe(5)
     expect(after.exhausted).toBe(true)
+  })
+})
+
+describe('clampLimits', () => {
+  const fallback = { maxTurns: 5, questionsPerTurn: 1, exchangesPerTopic: 3 }
+
+  test('指定が無ければ既定のまま', () => {
+    expect(clampLimits({}, fallback)).toEqual(fallback)
+  })
+
+  test('上限を超えた値は切り詰める', () => {
+    const limits = clampLimits(
+      { maxTurns: 999, questionsPerTurn: 999, exchangesPerTopic: 999 },
+      fallback,
+    )
+
+    expect(limits.maxTurns).toBe(LIMIT_CEILINGS.maxTurns)
+    expect(limits.exchangesPerTopic).toBe(LIMIT_CEILINGS.exchangesPerTopic)
+  })
+
+  /*
+    ターン数と1ターンの質問数を両方上限まで上げられると 30 問になる。
+    10分で遊ぶゲームの形が変わるので、積にも天井を置く。
+  */
+  test('質問の総数が上限を超えない', () => {
+    const limits = clampLimits({ maxTurns: 10, questionsPerTurn: 3 }, fallback)
+
+    expect(limits.maxTurns * limits.questionsPerTurn).toBeLessThanOrEqual(
+      LIMIT_CEILINGS.totalQuestions,
+    )
+  })
+
+  test('積の天井に当たったらターン数ではなく1ターンの質問数を削る', () => {
+    const limits = clampLimits({ maxTurns: 10, questionsPerTurn: 3 }, fallback)
+
+    expect(limits.maxTurns).toBe(10)
+    expect(limits.questionsPerTurn).toBe(2)
+  })
+
+  test('0 や負数は1まで引き上げる', () => {
+    const limits = clampLimits(
+      { maxTurns: 0, questionsPerTurn: -3, exchangesPerTopic: 0 },
+      fallback,
+    )
+
+    expect(limits.maxTurns).toBe(1)
+    expect(limits.questionsPerTurn).toBe(1)
+    expect(limits.exchangesPerTopic).toBe(1)
+  })
+
+  test('小数は切り捨てる', () => {
+    expect(clampLimits({ maxTurns: 4.9 }, fallback).maxTurns).toBe(4)
+  })
+})
+
+/*
+  レート制限をこの重みで消費させることで、往復数を増やしたプレイヤーが
+  同じ予算をその分速く使い切るようになる。1リクエスト＝1消費だと、
+  設定を上げた人だけが同じ予算で何倍もモデルを呼べてしまう。
+*/
+describe('modelCallsPerTopic', () => {
+  test('往復ごとに2回、最後に判定が1回', () => {
+    expect(modelCallsPerTopic(3)).toBe(7)
+    expect(modelCallsPerTopic(1)).toBe(3)
+  })
+
+  test('往復を増やすほど消費が増える', () => {
+    expect(modelCallsPerTopic(5)).toBeGreaterThan(modelCallsPerTopic(3))
   })
 })

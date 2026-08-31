@@ -1,0 +1,294 @@
+schemaVersion: 1
+id: mars-outpost-delayed-reply
+meta:
+  title: 火星基地、砂嵐の夜
+  synopsis: "2147年、火星エリュシオン観測基地。大規模な砂嵐で地表車両も通信中継ドローンも停止するなか、主任研究員エレナ・ヴァルガが解析室で死亡しました。"
+  category: SFクローズドサークル
+  difficulty: 5
+  estimatedMinutes: 15
+  tags: [2147年, 火星, 通信遅延, 基地]
+victim:
+  name: エレナ・ヴァルガ
+  introduction: 火星エリュシオン観測基地主任研究員
+briefing: |-
+  ——事件の記録を読み上げます。
+
+  2147年、火星エリュシオン観測基地。赤い平原の一角に築かれたこの基地では、少人数の研究者と技術者が数か月単位で生活しています。地球は空に浮かぶ遠い故郷であり、食料も空気も電力も、基地内の設備を維持することで初めて日常が成り立ちます。
+
+  主任研究員エレナ・ヴァルガは、観測計画と研究班をまとめる責任者でした。地質データや大気観測の成果を地球側へ報告しながら、限られた人員で基地を運営する立場でもあります。その日は長期観測の節目にあたり、各担当がデータ整理を進めていました。
+
+  エレナ・ヴァルガは火星の長期観測に人生を捧げた研究熱心な科学者です。判断基準には厳格で議論でも譲らないことがありましたが、危険な基地生活で責任を引き受ける姿勢から、隊員たちには頼られる主任でした。
+
+  夕刻から大規模な砂嵐が基地周辺を覆いました。地表車両は運用を停止し、屋外活動も中止。通信中継用の機体も退避し、基地の住人たちは嵐が収まるまで建物内に留まることになります。
+
+  その夜、解析室でエレナ・ヴァルガが死亡しているのが発見されました。基地にいた関係者は、副主任のノア・チェン、通信士のアミラ・サイード、整備主任のルイス・オルテガです。
+
+  地球から遠く離れ、砂嵐に閉ざされた基地で何が起きたのか。三人からその日の勤務とエレナの最後の行動について話を聞いてください。
+floorPlan: null
+facts:
+  - id: noah-deputy
+    statement: ノア・チェンはエリュシオン観測基地の副主任である
+    kind: other
+  - id: amira-comms
+    statement: アミラ・サイードは基地の惑星間通信を担当する通信士である
+    kind: other
+  - id: luis-maintenance
+    statement: ルイス・オルテガは生命維持設備と地表車両を担当する整備主任である
+    kind: other
+  - id: earth-mars-delay
+    statement: 事件当夜の地球と火星の通信は片道約九分で、質問への返答が火星へ戻るまで最短でも約十八分かかった
+    kind: physical
+  - id: noah-sent-question-2118
+    statement: ノア・チェンは21時18分に地球管制へ観測予算について質問を送信した
+    kind: observation
+  - id: earth-reply-arrived-2138
+    statement: 21時38分、21時18分に送られた質問への地球管制の返答が基地へ到着した
+    kind: observation
+  - id: noah-budget-fraud
+    statement: ノア・チェンは観測機器の調達予算を別用途へ流用していた
+    kind: motive
+    secret: true
+  - id: elena-found-fraud
+    statement: エレナ・ヴァルガは事件当日、ノアによる予算流用を発見した
+    kind: motive
+    secret: true
+  - id: elena-would-report
+    statement: 21時25分、エレナはノアに翌朝の定時通信で地球本部へ不正を報告すると告げた
+    kind: motive
+    secret: true
+  - id: luis-saw-noah-corridor
+    statement: 21時33分ごろ、ルイス・オルテガは解析室へ続く連絡廊下でノア・チェンを見た
+    kind: observation
+  - id: noah-killed-elena
+    statement: 21時36分ごろ、ノア・チェンは解析室でエレナを襲い死亡させた
+    kind: truth
+    secret: true
+  - id: noah-played-arrival-tone
+    statement: 21時38分、ノア・チェンは地球から届いた返信を自分がその場で会話していた証拠として利用した
+    kind: truth
+    secret: true
+  - id: amira-private-channel
+    statement: アミラ・サイードは規則に反して家族との私的通信へ基地帯域を使っていた
+    kind: other
+    secret: true
+  - id: luis-unlogged-part
+    statement: ルイス・オルテガは予備部品を正式な在庫登録なしで交換していた
+    kind: other
+    secret: true
+  - id: body-found-2150
+    statement: 21時50分、アミラ・サイードが解析室でエレナの死を発見した
+    kind: observation
+timeline:
+  - id: noah-question
+    at: "21:18"
+    participants: [noah, amira]
+    facts: [noah-sent-question-2118]
+    description: ノアが地球管制へ観測予算について質問を送る。
+  - id: fraud-confrontation
+    at: "21:25"
+    participants: [noah]
+    facts: [noah-budget-fraud, elena-found-fraud, elena-would-report]
+    description: エレナが予算流用をノアへ突きつけ、翌朝に地球本部へ報告すると告げる。
+  - id: corridor-sighting
+    at: "21:33"
+    participants: [noah, luis]
+    facts: [luis-saw-noah-corridor]
+    description: ルイスが解析室へ続く連絡廊下でノアを見かける。
+  - id: elena-death
+    at: "21:36"
+    participants: [noah]
+    facts: [noah-killed-elena]
+    description: ノアが解析室でエレナを襲う。
+  - id: delayed-reply
+    at: "21:38"
+    participants: [noah, amira]
+    facts: [earth-reply-arrived-2138, noah-played-arrival-tone, earth-mars-delay]
+    description: 21時18分の質問への返答が地球から到着し、ノアはそれを事件時刻の会話記録として扱わせる。
+  - id: discovery
+    at: "21:50"
+    participants: [noah, amira, luis]
+    facts: [body-found-2150]
+    description: アミラが解析室でエレナの死を発見する。
+characters:
+  - id: noah
+    name: ノア・チェン
+    role: suspect
+    publicIntroduction: "火星基地の副主任。"
+    personality: 冷静で数字に強い副主任。地球からの返信が21時38分に届いたことを強調し、それを自分が通信室にいた証明として扱わせようとする。予算の細部には神経質。
+    goals:
+      - 予算流用を隠したい
+      - 21時38分の返信を事件時刻の会話アリバイとして通したい
+    knowledge: [noah-deputy, earth-mars-delay, noah-sent-question-2118, earth-reply-arrived-2138, body-found-2150]
+    secrets:
+      - fact: noah-budget-fraud
+        disclosure: pressured
+      - fact: elena-found-fraud
+        disclosure: pressured
+      - fact: elena-would-report
+        disclosure: pressured
+      - fact: noah-killed-elena
+        disclosure: never
+      - fact: noah-played-arrival-tone
+        disclosure: never
+    lies:
+      - id: noah-live-conversation
+        about: noah-played-arrival-tone
+        claim: 21時35分から40分ごろは地球管制とやり取りしていました。21時38分の返信記録が残っています
+        strategy: maintain-until-contradicted
+      - id: noah-no-fraud
+        about: noah-budget-fraud
+        claim: 観測予算を規定外の用途へ流したことはありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: noah-report-threat
+        about: elena-would-report
+        detail: エレナに「朝の窓で本部へ全部送る」と言われた瞬間、地球へ届けば取り返せないと感じた。
+    relationships:
+      - character: amira
+        relation: 同僚
+        attitude: 通信遅延の仕組みを説明できるので警戒している
+      - character: luis
+        relation: 同僚
+        attitude: 廊下で自分を見た可能性があり避けたい
+  - id: amira
+    name: アミラ・サイード
+    role: witness
+    publicIntroduction: "火星基地の通信士。"
+    personality: 理屈を重んじる通信士。送受信時刻と会話の因果関係を厳密に区別する。私的通信の帯域利用は隠したい。
+    goals:
+      - 家族との規則外通信を隠したい
+      - 21時38分の返信が21時18分の質問へのものだと正確に伝えたい
+    knowledge: [amira-comms, earth-mars-delay, noah-sent-question-2118, earth-reply-arrived-2138, body-found-2150]
+    secrets:
+      - fact: amira-private-channel
+        disclosure: pressured
+    lies:
+      - id: amira-no-private-channel
+        about: amira-private-channel
+        claim: 私用の家族通信に基地帯域を使ったことはありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: amira-packet-chain
+        about: earth-reply-arrived-2138
+        detail: 21時38分のパケットには、21時18分に送った質問の識別番号がそのまま返っていた。
+    relationships:
+      - character: noah
+        relation: 上司
+        attitude: 通信を都合よく会話と呼んでいるのが気になっている
+      - character: luis
+        relation: 同僚
+        attitude: 機械は雑に扱うが人の動きはよく見ていると思っている
+  - id: luis
+    name: ルイス・オルテガ
+    role: suspect
+    publicIntroduction: "現場主義の整備主任。"
+    personality: 現場主義の整備主任。規定より稼働を優先して無登録部品を使うことがある。通信には疎いが、廊下で見たノアについては自信がある。
+    goals:
+      - 無登録部品の交換を隠したい
+      - 21時33分にノアを見たことを伝えたい
+    knowledge: [luis-maintenance, luis-saw-noah-corridor, body-found-2150]
+    secrets:
+      - fact: luis-unlogged-part
+        disclosure: pressured
+    lies:
+      - id: luis-no-unlogged-parts
+        about: luis-unlogged-part
+        claim: 在庫登録のない部品を設備へ使ったことはない
+        strategy: maintain-until-contradicted
+    memories:
+      - id: luis-noah-corridor
+        about: luis-saw-noah-corridor
+        detail: 解析室へ工具を取りに向かったとき、逆方向から来るノアとすれ違った。
+    relationships:
+      - character: noah
+        relation: 上司
+        attitude: 書類に厳しいので無登録部品を知られたくない
+      - character: amira
+        relation: 同僚
+        attitude: 通信の時刻なら自分より信用できる
+revelations:
+  - id: reply-was-old-question
+    title: 21時38分は会話開始時刻ではない
+    text: 21時38分に届いた地球からの返信は、その約20分前に送られた質問への返答だった。受信時刻はノアが21時38分に通信室へいた証明にならない。
+    category: alibi
+    subject: { type: character, id: noah }
+    sources:
+      - type: character
+        id: amira
+        revealCondition: アミラに21時38分の返信がどの送信パケットへ対応していたか尋ね、21時18分の質問への返答だと確認した。
+        requires:
+          revelations: []
+          evidences: [packet-thread]
+    relatedFacts: [earth-mars-delay, noah-sent-question-2118, earth-reply-arrived-2138]
+  - id: noah-could-leave
+    title: 返信を待つ間の空白
+    text: ノアは21時18分に質問を送った後、返信が届く21時38分まで通信端末の前にいる必要がなかった。21時33分には解析室側で目撃されている。
+    category: timeline
+    subject: { type: character, id: noah }
+    sources:
+      - type: character
+        id: luis
+        revealCondition: 通信の遅延が確認された後、ルイスに21時30分台にノアを見た場所を尋ねた。
+        requires:
+          revelations: [reply-was-old-question]
+          evidences: [corridor-maintenance-note]
+    relatedFacts: [luis-saw-noah-corridor]
+evidences:
+  - id: packet-thread
+    label: 惑星間通信のスレッド記録
+    description: 21時38分の返信パケットには21時18分送信の質問IDが紐づき、約20分前の問いへの返答だと分かる。
+    reveal:
+      mode: conversation
+      condition: アミラかノアに21時38分の返信がどの質問への返答だったか具体的に尋ねたら開示する。
+    sources:
+      - { type: character, id: amira }
+      - { type: character, id: noah }
+    supports: [earth-mars-delay, noah-sent-question-2118, earth-reply-arrived-2138]
+    contradicts: ["lie:noah-live-conversation"]
+  - id: corridor-maintenance-note
+    label: 21時33分の整備メモ
+    description: ルイスの整備端末に21時33分の位置メモがあり、その場所で解析室側から来たノアとすれ違ったと記録されている。
+    reveal:
+      mode: conversation
+      condition: ルイスに21時30分台の作業場所と誰を見たか尋ねたら開示する。
+    sources:
+      - { type: character, id: luis }
+    supports: [luis-saw-noah-corridor]
+    contradicts: ["lie:noah-live-conversation"]
+  - id: procurement-audit
+    label: 調達予算の監査ファイル
+    description: ノア管理の予算だけ用途が合わず、エレナが翌朝の地球送信用フォルダへ証拠をまとめている。
+    reveal:
+      mode: conversation
+      condition: ノアかアミラにエレナが翌朝送ろうとしていた監査資料について尋ねたら開示する。
+    sources:
+      - { type: character, id: noah }
+      - { type: character, id: amira }
+    supports: [noah-budget-fraud, elena-found-fraud, elena-would-report]
+    contradicts: ["lie:noah-no-fraud"]
+  - id: private-bandwidth-log
+    label: 私用通信の帯域ログ
+    description: アミラの私用通信が見つかるが、解析室の事件とは独立している。
+    reveal:
+      mode: conversation
+      condition: アミラに業務外の通信帯域利用を追及したら開示する。
+    sources:
+      - { type: character, id: amira }
+    supports: [amira-private-channel]
+    contradicts: ["lie:amira-no-private-channel"]
+solution:
+  culprit: noah
+  summary: 犯人はノア・チェン。予算流用をエレナに見抜かれ、翌朝地球本部へ報告されるのを恐れた。ノアは21時18分に地球へ質問を送った後、返信を待つ約20分の間に通信室を離れ、21時36分ごろ解析室でエレナを襲った。21時38分に地球から返答が届くと、それを「その時刻に地球と会話していた」証拠として利用した。しかし返信は21時18分の質問へのもので、受信時にノアが端末前にいる必要はない。さらに21時33分にはルイスが解析室側でノアを目撃している。
+  method: 惑星間通信の受信時刻を現在進行の会話時刻に見せかけ、返信待ちの時間帯の行動を隠した
+  motive: 予算流用が地球本部へ報告されるのを防ぐため
+  requiredFacts: [earth-mars-delay, noah-sent-question-2118, earth-reply-arrived-2138, noah-budget-fraud, elena-would-report, luis-saw-noah-corridor, noah-killed-elena, noah-played-arrival-tone]
+  secretKeywords:
+    - 犯人はノア
+    - ノアがエレナを襲
+    - 返信をアリバイに
+    - 私がエレナを襲
+quality:
+  expectedQuestionCount: { min: 10, max: 22 }
+  requiredEvidence: { min: 3 }
+  redHerrings: [amira-private-channel, luis-unlogged-part]
+  notes: 受信パケットが存在することと、その瞬間に通信相手が端末前にいたことを分離する。通信遅延と廊下目撃の二段でアリバイを崩す。

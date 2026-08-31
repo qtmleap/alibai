@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AlibAI モバイル — 告発</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500&family=Roboto+Mono:wght@400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./_phone.css" />
+    <link rel="stylesheet" href="../_mock.css" />
+    <style>
+      .p-acc a { text-decoration: none; color: inherit; display: block; }
+      .pick .r { cursor: pointer; }
+      /* 書けているときは、下書きの薄墨ではなく本文の色で出す。 */
+      .field .box.written { color: var(--kinari); }
+    </style>
+  </head>
+  <body>
+    <div class="phone" data-mock-id="ALI_ACC_01">
+      <div class="pad p-acc">
+        <a class="label" href="./interrogation.html#turn=12" data-mock-id="ALI_ACC_02">← 聞き込みに戻る</a>
+
+        <div data-mock-id="ALI_ACC_03">
+          <h3>犯人を指し示す</h3>
+          <p class="lead">誰が、どうやって、なぜ。</p>
+        </div>
+
+        <div class="rail-big" id="railBig" data-mock-id="ALI_ACC_04"></div>
+
+        <div class="label">犯人</div>
+        <div class="pick" id="pick" style="margin-top: 6px" data-mock-id="ALI_ACC_05"></div>
+
+        <div class="field" data-mock-id="ALI_ACC_07">
+          <span class="label">殺害方法</span>
+          <div class="box" id="how"></div>
+        </div>
+
+        <div class="field" data-mock-id="ALI_ACC_08">
+          <span class="label">動機</span>
+          <div class="box" id="why"></div>
+        </div>
+
+        <a class="seal" href="./result.html" data-mock-id="ALI_ACC_09">この推理を提出する</a>
+      </div>
+    </div>
+
+    <script src="../_case.js"></script>
+    <script src="../_mock.js"></script>
+    <script>
+      ;(function () {
+        var C = Mock.case
+        var st = Mock.play(Mock.total)
+        var filled = Mock.str('filled', '0') === '1'
+        var pick = Mock.str('who', C.truth.culprit)
+
+        document.getElementById('railBig').innerHTML = Mock.railBig({
+          segments: st.segments,
+          at: C.deadline.at,
+        })
+
+        document.getElementById('pick').innerHTML = C.cast
+          .map(function (p) {
+            return (
+              '<div class="r ' +
+              (p.key === pick ? 'on' : 'muted') +
+              '" data-mock-id="ALI_ACC_06" data-who="' +
+              p.key +
+              '"><span class="dot" style="background:var(--' +
+              (p.key === pick ? 'shu' : p.hue) +
+              ')"></span>' +
+              Mock.esc(p.name) +
+              '</div>'
+            )
+          })
+          .join('')
+
+        var how = document.getElementById('how')
+        var why = document.getElementById('why')
+        how.textContent = filled ? C.truth.how : 'どうやって殺したのか'
+        why.textContent = filled ? C.truth.why : 'なぜ殺したのか'
+        if (filled) {
+          how.classList.add('written')
+          why.classList.add('written')
+        }
+
+        Array.prototype.forEach.call(document.querySelectorAll('[data-who]'), function (el) {
+          el.addEventListener('click', function () {
+            location.hash = 'who=' + el.dataset.who + '&filled=' + (filled ? '1' : '0')
+            location.reload()
+          })
+        })
+
+        Mock.ready()
+      })()
+    </script>
+  </body>
+</html>

@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'bun:test'
+import dayjs from 'dayjs'
 import { formatClock, formatSeconds } from '@/client/lib/format'
 
 describe('formatSeconds', () => {
@@ -17,19 +18,19 @@ describe('formatSeconds', () => {
 
 describe('formatClock', () => {
   test('時と分を出す', () => {
-    const at = new Date(2026, 7, 29, 20, 15).getTime()
+    const at = dayjs('2026-08-29T20:15').valueOf()
 
     expect(formatClock(at)).toBe('20:15')
   })
 
   test('分はゼロ詰めする', () => {
-    const at = new Date(2026, 7, 29, 9, 5).getTime()
+    const at = dayjs('2026-08-29T09:05').valueOf()
 
     expect(formatClock(at)).toBe('9:05')
   })
 
   test('日付をまたいでも時刻だけを見る', () => {
-    const at = new Date(2026, 7, 30, 0, 0).getTime()
+    const at = dayjs('2026-08-30T00:00').valueOf()
 
     expect(formatClock(at)).toBe('0:00')
   })

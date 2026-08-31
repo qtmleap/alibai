@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import type { PlaySession } from '@/server/do/play-session'
 import type { RateLimiter } from '@/server/do/rate-limiter'
+import { llmProviderSchema } from '~/db/llm-catalog'
 
 /**
  * Workers のバインディング。
@@ -54,9 +55,10 @@ const optionalString = z.preprocess(
  */
 const schema = z.object({
   // 役割ごとに使うプロバイダ。3社を混在させてよい。
-  LLM_ACTOR_PROVIDER: z.enum(['anthropic', 'openai', 'google']).default('anthropic'),
-  LLM_JUDGE_PROVIDER: z.enum(['anthropic', 'openai', 'google']).default('anthropic'),
-  LLM_AUTHOR_PROVIDER: z.enum(['anthropic', 'openai', 'google']).default('anthropic'),
+  // 値の正典は db/llm-catalog.ts。ここで列挙し直すと、選択肢と受け入れ値が静かにずれる。
+  LLM_ACTOR_PROVIDER: llmProviderSchema.default('openai'),
+  LLM_JUDGE_PROVIDER: llmProviderSchema.default('openai'),
+  LLM_AUTHOR_PROVIDER: llmProviderSchema.default('openai'),
 
   // 明示するとプロバイダ既定のモデルIDを上書きできる。
   LLM_ACTOR_MODEL: optionalString,
@@ -89,7 +91,14 @@ const schema = z.object({
   QUESTIONS_PER_TURN: z.coerce.number().int().positive().default(1),
 
   /** 1ウィンドウあたりに許すLLM呼び出し回数。 */
-  RATE_LIMIT_MAX_CALLS: z.coerce.number().int().positive().default(60),
+  /*
+    数えるのは**モデル呼び出しの回数**であって、リクエスト数ではない。
+    1回の話題で最大 `2 × 往復数 + 1` 回呼ぶので、リクエストで数えると
+    往復数を増やしたプレイヤーだけが同じ予算で何倍も呼べてしまう。
+
+    既定の 420 は「従来の 60 リクエスト × 既定往復数での 7 呼び出し」を移し替えた値。
+  */
+  RATE_LIMIT_MAX_CALLS: z.coerce.number().int().positive().default(420),
   /** レート制限のウィンドウ幅（秒）。 */
   RATE_LIMIT_WINDOW_SECONDS: z.coerce.number().int().positive().default(3600),
 

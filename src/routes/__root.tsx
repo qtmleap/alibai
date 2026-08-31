@@ -30,6 +30,14 @@ export const Route = createRootRoute({
       { rel: 'icon', href: '/icon.svg', type: 'image/svg+xml' },
       // マニフェストの icons を読まない古い iOS 用。
       { rel: 'apple-touch-icon', href: '/icon-192.png' },
+      // 明朝・ゴシック・等幅の三役を外から借りる。日本語の実体は unicode-range で
+      // 細かく割られて配信されるので、使った字の分だけしか落ちてこない。
+      { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+      { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous' },
+      {
+        rel: 'stylesheet',
+        href: 'https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap',
+      },
       { rel: 'stylesheet', href: appCss },
     ],
   }),

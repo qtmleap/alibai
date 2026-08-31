@@ -12,24 +12,23 @@ import { cn } from '@/client/lib/utils'
   呼び出し側が className で色を上書きしなくて済むよう、既定をこちらへ寄せておく。
 */
 const buttonVariants = cva(
-  "inline-flex shrink-0 items-center justify-center gap-2 text-sm whitespace-nowrap transition-colors outline-none focus-visible:ring-1 focus-visible:ring-slate-400 disabled:pointer-events-none disabled:opacity-40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "inline-flex shrink-0 items-center justify-center gap-2 text-sm whitespace-nowrap transition-colors outline-none focus-visible:ring-1 focus-visible:ring-nezumi disabled:pointer-events-none disabled:opacity-40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
         /** 画面の主たる操作。事件を始める・推理を出す、といった一段目のボタン。 */
         default:
-          'border border-slate-600 font-semibold tracking-widest text-slate-100 hover:border-slate-400',
-        /** 取り返しのつかない操作。 */
-        destructive: 'border border-red-900 tracking-widest text-red-400 hover:border-red-700',
+          'border border-nezumi-dim font-semibold tracking-widest text-kinari hover:border-nezumi',
+        /** 取り返しのつかない操作。朱が出るのはこの variant だけ。 */
+        destructive: 'border border-shu/70 tracking-widest text-shu hover:border-shu',
         /** 沈めた枠。選ばれていない選択肢や、副次的な入口。 */
-        outline:
-          'border border-slate-800 text-slate-500 hover:border-slate-600 hover:text-slate-300',
+        outline: 'border border-sumi-3 text-nezumi-dim hover:border-nezumi-dim hover:text-nezumi',
         /** 丸いアイコンボタン（記・図・推）。 */
-        icon: 'rounded-full border border-slate-700 text-slate-400 hover:border-slate-500 hover:text-slate-200',
+        icon: 'rounded-full border border-keisen text-nezumi hover:border-nezumi-dim hover:text-kinari',
         /** 枠なし。列に並ぶ項目そのものを押させるとき。 */
-        ghost: 'text-slate-400 hover:text-slate-100',
+        ghost: 'text-nezumi hover:text-kinari',
         /** 文中の細いリンク。 */
-        link: 'text-slate-500 underline underline-offset-4 hover:text-slate-300',
+        link: 'text-nezumi-dim underline underline-offset-4 hover:text-nezumi',
       },
       size: {
         /**

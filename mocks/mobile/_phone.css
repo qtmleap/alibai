@@ -1,0 +1,789 @@
+/*
+ * AlibAI モバイル・モックの共有語彙。
+ *
+ * 色と字体は src/client/index.css の @theme を写したもの。ここで新しい色や
+ * 字体を足さない——足すと実装との突き合わせの基準そのものがずれる。
+ *
+ * 元は7画面を1枚に並べた解説ページ（/tmp/alibai-direction.html）だった。
+ * 画面ごとのファイルへ割るにあたり、解説側の枠（.wrap / .screens / .cap など）は
+ * 落とし、.phone を端末の実寸いっぱいに開く形へ変えてある。
+ */
+
+:root {
+  --sumi: #141317;
+  --sumi-2: #1c1a21;
+  --sumi-3: #232028;
+  --keisen: #302c39;
+  --kinari: #e9e4d9;
+  --nezumi: #8e8896;
+  --nezumi-dim: #625d6c;
+
+  --asagi: #5e8b8c;
+  --asagi-fg: #8ab5b5;
+  --fuji: #8079a6;
+  --fuji-fg: #ada6cf;
+  --suou: #96556a;
+  --suou-fg: #c68698;
+  --karashi: #b49a55;
+  --karashi-fg: #d6bd77;
+
+  --shu: #d2452e;
+  --byakuroku: #7fa88a;
+
+  --mincho: "Shippori Mincho B1", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  --gothic: "Zen Kaku Gothic New", "Hiragino Sans", "Noto Sans JP", sans-serif;
+  --mono: "Roboto Mono", ui-monospace, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--sumi);
+  color: var(--kinari);
+  font-family: var(--gothic);
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+}
+
+/* 時刻は等幅で桁を揃える。件数・ターン数・正誤には使わない。 */
+.t {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+/*
+ * 端末の面。解説ページでは 620px の枠だったが、1画面1ファイルにしたので
+ * 実寸（100dvh）いっぱいに開く。
+ */
+.phone {
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--sumi);
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  line-height: 1.75;
+}
+/*
+ * 左右の余白だけ。ここで padding の一括指定を使うと、詳細度で勝ってしまい
+ * .p-brief などが持っている padding-top を残らず 0 に潰す——端末の全画面が
+ * 天井に貼り付いていたのはこれが原因だった。
+ */
+.phone .pad {
+  padding-inline: 18px;
+}
+/* --- 共通の細部 --- */
+.hair {
+  border-bottom: 1px solid var(--keisen);
+}
+.label {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.24em;
+  color: var(--nezumi-dim);
+}
+.muted {
+  color: var(--nezumi);
+}
+.dim {
+  color: var(--nezumi-dim);
+}
+
+/* --- 1 タイトル --- */
+.p-title {
+  padding-top: 46px;
+}
+.p-title h3 {
+  font-family: var(--mincho);
+  font-weight: 700;
+  font-size: 40px;
+  letter-spacing: 0.18em;
+  margin: 0;
+  text-align: center;
+}
+/* 直下の副題だけに効かせる。子孫セレクタだと一覧の行のメタにも降りる。 */
+.p-title > .sub {
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  color: var(--nezumi-dim);
+  margin-top: 10px;
+}
+.case-list {
+  margin-top: 12px;
+  border-top: 1px solid var(--keisen);
+}
+/* 種別・題字・簡易情報を縦に積む。題字が全幅を使えるので、多くは一行で収まる。 */
+/* 一覧は読み物ではないので、地の行間 1.75 を持ち込まない。行ごとに締める。 */
+.case-row {
+  border-bottom: 1px solid var(--keisen);
+  padding: 9px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+/* 種別で並べ、同じ値が続くあいだは繰り返さない（発話の塊と同じ扱い）。 */
+.case-row .cat {
+  font-size: 10px;
+  line-height: 1.4;
+  letter-spacing: 0.16em;
+  color: var(--nezumi-dim);
+}
+.case-row .ttl {
+  font-family: var(--mincho);
+  font-size: 16px;
+  line-height: 1.5;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
+.case-row .sub {
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--nezumi-dim);
+}
+/* 事件の時間帯。等幅なので、所要時間ではなく作中の時刻だと一目で分かる。 */
+.case-row .span {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  color: var(--nezumi);
+}
+
+/* --- 2 事件の記録 --- */
+/* 机と同じく器を送る。下の余白は霞（90px）より厚くとる。 */
+.p-brief {
+  flex: 1;
+  min-height: 0;
+  padding-top: 30px;
+  padding-bottom: 120px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.p-brief::-webkit-scrollbar {
+  display: none;
+}
+.p-brief .crawl {
+  font-family: var(--mincho);
+  font-size: 14.5px;
+  line-height: 2.5;
+  letter-spacing: 0.04em;
+}
+.p-brief .crawl p {
+  margin: 0 0 20px;
+}
+.p-brief .fade {
+  height: 90px;
+  background: linear-gradient(to bottom, transparent, var(--sumi));
+  margin-top: -90px;
+  position: relative;
+}
+
+/* --- 3 概要 --- */
+.p-ov {
+  padding-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 17px;
+}
+.p-ov h3 {
+  font-family: var(--mincho);
+  font-weight: 700;
+  font-size: 19px;
+  letter-spacing: 0.05em;
+  line-height: 1.55;
+  margin: 0;
+}
+
+/* まだ一本も刺さっていない時刻軸。これを埋めるのが、これから始まる仕事。 */
+.rail-empty {
+  position: relative;
+  height: 30px;
+}
+.rail-empty .line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 22px;
+  height: 1px;
+  background: var(--keisen);
+}
+.rail-empty .end {
+  position: absolute;
+  top: 16px;
+  width: 1px;
+  height: 13px;
+  background: var(--nezumi-dim);
+}
+.rail-empty .lb {
+  position: absolute;
+  top: 0;
+}
+
+.cast .r {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--keisen);
+}
+.cast .r:first-child {
+  border-top: 1px solid var(--keisen);
+}
+.cast .col {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.cast .nm {
+  font-size: 13px;
+}
+.cast .ps {
+  font-size: 10.5px;
+  color: var(--nezumi-dim);
+  line-height: 1.6;
+}
+.cast .role {
+  margin-left: auto;
+  flex: none;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--nezumi-dim);
+}
+
+/* 四段階は横に並べ、選んだものだけ罫線と字を起こす。塗りつぶさない。 */
+.modes {
+  display: flex;
+}
+.modes span {
+  flex: 1;
+  text-align: center;
+  padding: 7px 0;
+  font-size: 11.5px;
+  color: var(--nezumi-dim);
+  border-bottom: 1px solid var(--keisen);
+}
+.modes .on {
+  color: var(--kinari);
+  border-bottom-color: var(--kinari);
+}
+
+/* 始める操作。朱は告発のものなので、ここでは使わない。 */
+.go {
+  border: 1px solid var(--nezumi);
+  padding: 11px;
+  text-align: center;
+  font-family: var(--mincho);
+  font-size: 14px;
+  letter-spacing: 0.2em;
+}
+.again {
+  text-align: center;
+  font-size: 11.5px;
+  color: var(--nezumi-dim);
+}
+
+/* --- 4 聞き込み --- */
+.face {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-family: var(--mincho);
+  font-size: 15px;
+  font-weight: 700;
+  background: var(--sumi-2);
+  position: relative;
+}
+.face.on {
+  box-shadow: 0 0 0 1.5px currentColor;
+}
+.int-head {
+  padding: 10px 12px;
+}
+.int-head .row1 {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10.5px;
+  color: var(--nezumi-dim);
+  gap: 8px;
+}
+.int-head .row1 .ttl {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--mincho);
+}
+.int-head .nm {
+  font-size: 14px;
+  font-weight: 500;
+  margin-top: 4px;
+}
+.int-head .pers {
+  font-size: 10.5px;
+  color: var(--nezumi-dim);
+}
+
+/* 時刻軸（帯）— この案の主役 */
+.rail {
+  position: relative;
+  height: 34px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+}
+.rail .line {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  height: 1px;
+  background: var(--keisen);
+}
+.rail .pin {
+  position: absolute;
+  width: 2px;
+  height: 13px;
+  top: 11px;
+}
+.rail .pin.hollow {
+  opacity: 0.32;
+}
+.rail .now {
+  position: absolute;
+  top: 6px;
+  width: 1px;
+  height: 23px;
+  background: var(--kinari);
+}
+.rail .cap {
+  position: absolute;
+  left: 10px;
+  top: 1px;
+}
+.rail .cap2 {
+  position: absolute;
+  right: 10px;
+  top: 1px;
+}
+
+/* 最新の発話を下端に置く。交互とは限らないので、上は溢れるに任せる。 */
+.log {
+  flex: 1;
+  overflow: hidden;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 15px;
+}
+
+/* 発話の塊。同じ人が続けて喋るあいだ、名前は一度きりしか出さない。
+   塊の左に立つ縦罫がその人の顔料で、どこまでが一人の言葉かを示す。 */
+.turn {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding-left: 10px;
+  border-left: 1px solid var(--keisen);
+}
+.turn .who {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+}
+.turn.me .who {
+  color: var(--nezumi-dim);
+}
+.turn .txt {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.95;
+}
+.turn.me .txt {
+  color: var(--nezumi);
+}
+/* まだ続きがある合図。次の一手を待たせるので、色は持たせない。 */
+.beat {
+  color: var(--nezumi-dim);
+  font-size: 10px;
+  margin-left: 5px;
+}
+.int-foot {
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* 訊けそうなことは常には出さない。ログの末尾に畳んでおき、押したときだけ開く。
+   選ぶとそのまま質問が飛ぶので、訊くボタンは押し直さない。 */
+.hint {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--keisen);
+}
+.hint .head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 0;
+  font-size: 11px;
+  color: var(--nezumi-dim);
+}
+.hint .q {
+  padding: 7px 0;
+  border-top: 1px solid var(--keisen);
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--nezumi);
+}
+.askbar {
+  display: flex;
+  gap: 8px;
+}
+.askbar .box {
+  flex: 1;
+  border-bottom: 1px solid var(--keisen);
+  padding: 7px 2px;
+  font-size: 12px;
+  color: var(--nezumi-dim);
+}
+.askbar .btn {
+  border: 1px solid var(--keisen);
+  padding: 7px 14px;
+  font-size: 12px;
+}
+
+/* --- 4 告発 --- */
+.p-acc {
+  padding-top: 22px;
+}
+.p-acc h3 {
+  font-family: var(--mincho);
+  font-size: 21px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  margin: 8px 0 4px;
+}
+.p-acc .lead {
+  font-size: 12px;
+  color: var(--nezumi);
+  margin: 0 0 18px;
+}
+/* 拡大した時刻軸。ここでは目盛りを掴んで動かす */
+.rail-big {
+  position: relative;
+  height: 106px;
+  margin-bottom: 14px;
+}
+.rail-big .lane {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+}
+.rail-big .seg {
+  position: absolute;
+  height: 3px;
+}
+.rail-big .seg.gap {
+  opacity: 0.22;
+}
+.rail-big .who {
+  position: absolute;
+  left: 0;
+  font-size: 10px;
+  transform: translateY(-13px);
+}
+.rail-big .axis {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-top: 1px solid var(--keisen);
+  padding-top: 5px;
+  display: flex;
+  justify-content: space-between;
+}
+.rail-big .mark {
+  position: absolute;
+  top: -4px;
+  bottom: 18px;
+  width: 1.5px;
+  background: var(--shu);
+}
+.rail-big .mark::before {
+  content: "";
+  position: absolute;
+  top: -5px;
+  left: -4px;
+  width: 9px;
+  height: 9px;
+  background: var(--shu);
+  border-radius: 50%;
+}
+.rail-big .mark .at {
+  position: absolute;
+  top: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  color: var(--shu);
+  white-space: nowrap;
+}
+.pick {
+  border-top: 1px solid var(--keisen);
+}
+.pick .r {
+  border-bottom: 1px solid var(--keisen);
+  padding: 10px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+.pick .r .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+}
+.pick .r.on {
+  color: var(--shu);
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 16px;
+}
+.field .box {
+  border: 1px solid var(--keisen);
+  padding: 9px 11px;
+  font-size: 12px;
+  color: var(--nezumi-dim);
+  min-height: 42px;
+}
+.seal {
+  margin-top: 20px;
+  border: 1px solid var(--shu);
+  color: var(--shu);
+  padding: 11px;
+  text-align: center;
+  font-family: var(--mincho);
+  font-size: 14px;
+  letter-spacing: 0.24em;
+}
+
+/* --- 5 結果 --- */
+.p-res {
+  padding-top: 34px;
+}
+.p-res .verdict {
+  font-family: var(--mincho);
+  font-size: 27px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-align: center;
+  color: var(--byakuroku);
+}
+.cmp {
+  position: relative;
+  height: 52px;
+}
+.cmp .line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 26px;
+  height: 1px;
+  background: var(--keisen);
+}
+.cmp .m {
+  position: absolute;
+  top: 14px;
+  width: 1.5px;
+  height: 25px;
+}
+.cmp .m .lb {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 10px;
+}
+.cmp .m.truth {
+  background: var(--byakuroku);
+}
+.cmp .m.truth .lb {
+  top: -15px;
+  color: var(--byakuroku);
+}
+.cmp .m.mine {
+  background: var(--shu);
+}
+.cmp .m.mine .lb {
+  bottom: -16px;
+  color: var(--shu);
+}
+.rows {
+  border-top: 1px solid var(--keisen);
+}
+.rows .r {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--keisen);
+  padding: 7px 0;
+  font-size: 12.5px;
+}
+.rows .r .v {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+.tl {
+  border-top: 1px solid var(--keisen);
+  margin-top: 18px;
+}
+.tl .r {
+  display: flex;
+  gap: 11px;
+  border-bottom: 1px solid var(--keisen);
+  padding: 7px 0;
+  font-size: 12px;
+}
+.tl .r .at {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--nezumi-dim);
+  flex: none;
+}
+
+/* --- 7 設定 --- */
+/* 物語の外にある唯一の画面。時刻軸も演出も持ち込まず、罫線と字だけで組む。 */
+.p-set {
+  padding-top: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.p-set h3 {
+  font-family: var(--mincho);
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: 0.14em;
+  margin: 0;
+}
+.p-set .lead {
+  margin: 5px 0 0;
+  font-size: 10.5px;
+  line-height: 1.7;
+  color: var(--nezumi-dim);
+}
+.p-set .grp {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  border-top: 1px solid var(--keisen);
+  padding-top: 14px;
+}
+.p-set .role {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.p-set .role .nm {
+  font-size: 13px;
+}
+.p-set .role .ps {
+  font-size: 10.5px;
+  line-height: 1.6;
+  color: var(--nezumi-dim);
+}
+.p-set .pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.p-set .trio {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.p-set .fld {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+/* 1行の入力と選択は下線だけ。枠で囲うと箱が増える（決めごと四）。
+   複数行の textarea だけは枠で範囲を示す——どこまで書けるか分からないので。 */
+.p-set .sel,
+.p-set .num {
+  border-bottom: 1px solid var(--keisen);
+  padding: 7px 2px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.p-set .sel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.p-set .sel .v {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.p-set .sel .ar {
+  flex: none;
+  font-size: 8px;
+  color: var(--nezumi-dim);
+}
+/* 何も選んでいない状態。既定と「たまたま既定と同じものを選んだ」を見た目でも分ける。 */
+.p-set .sel.unset {
+  color: var(--nezumi-dim);
+}
+/* 提供元が決まるまでモデルは触れない。枠を地に沈めて、押せないことを枠で言う。 */
+.p-set .sel.locked {
+  color: var(--nezumi-dim);
+  border-color: var(--sumi-3);
+}
+/* 数字は等幅にしない（決めごと三）。ここは時刻ではなく回数なので。 */
+.p-set .num {
+  text-align: right;
+}
+.p-set .sum {
+  font-size: 11px;
+  line-height: 1.8;
+  color: var(--nezumi);
+}
+.p-set .sum b {
+  color: var(--kinari);
+  font-weight: 500;
+}
+.p-set .fine {
+  font-size: 10px;
+  line-height: 1.7;
+  color: var(--nezumi-dim);
+}

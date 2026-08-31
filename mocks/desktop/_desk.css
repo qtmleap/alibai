@@ -1,0 +1,1012 @@
+/*
+ * AlibAI デスクトップ・モックの共有語彙。
+ *
+ * 色と字体は src/client/index.css の @theme を写したもの。ここで新しい色や
+ * 字体を足さない——足すと実装との突き合わせの基準そのものがずれる。
+ *
+ * 机の骨格（上部バー＋左右二分割、左にアリバイ表を据え置き）と、
+ * アリバイ表そのものは既存のデスクトップ案から引き継いでいる。
+ * 作り直したのは右半分の中身だけ。
+ */
+
+:root {
+  --sumi: #141317;
+  --sumi-2: #1a1820;
+  --sumi-3: #232028;
+  --keisen: #302c39;
+  /* 表の升目だけに使う、罫線より一段弱い線。顔料より前に出させない。 */
+  --keisen-faint: #262231;
+  --kinari: #e9e4d9;
+  --nezumi: #8e8896;
+  --nezumi-dim: #625d6c;
+
+  --asagi: #5e8b8c;
+  --asagi-t: #8ab5b5;
+  --fuji: #8079a6;
+  --fuji-t: #ada6cf;
+  --karashi: #b49a55;
+  --karashi-t: #d6bd77;
+  --suou: #96556a;
+  --suou-t: #c68698;
+
+  --shu: #d2452e;
+  --byakuroku: #7fa88a;
+
+  --mincho: "Shippori Mincho B1", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  --gothic: "Zen Kaku Gothic New", "Hiragino Sans", "Noto Sans JP", sans-serif;
+  --mono: "Roboto Mono", ui-monospace, monospace;
+
+  /*
+   * 右半分の実寸。読める行長 40em（560px）＋ 左右の padding 34px。
+   * 左右に割る画面はすべてこの一つの値から幅を採る——机の四画面も、
+   * 机の手前にある「探偵を決める」も。幅の出どころを増やすと必ずずれる。
+   */
+  --work-w: 628px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--sumi);
+  color: var(--kinari);
+  font-family: var(--gothic);
+  font-size: 14px;
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+/* 等幅は盤面の時刻のため。件数や正誤には使わない。 */
+.t {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+.label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  color: var(--nezumi-dim);
+}
+.muted {
+  color: var(--nezumi);
+}
+.dim {
+  color: var(--nezumi-dim);
+}
+
+/* ================= 机 ================= */
+/* 上部バーは薄く、机の面を最大に取る。左は据え置き、右だけが替わる。 */
+.desk {
+  height: 100%;
+  display: grid;
+  grid-template-rows: 46px 1fr;
+}
+.desk > .top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 0 22px;
+  border-bottom: 1px solid var(--keisen);
+}
+.desk > .top .ttl {
+  font-family: var(--mincho);
+  font-size: 14px;
+  letter-spacing: 0.06em;
+}
+.desk > .top .rgt {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  font-size: 12px;
+  color: var(--nezumi-dim);
+}
+/* 計器と並ぶので、唯一の操作には枠を与える。朱はまだ出さない——押した先が告発の画面。 */
+.desk > .top .rgt .act {
+  border: 1px solid var(--keisen);
+  padding: 4px 14px;
+  color: var(--nezumi);
+  background: none;
+  text-decoration: none;
+}
+.desk > .top .back {
+  font-size: 12px;
+  color: var(--nezumi-dim);
+  background: none;
+  border: 0;
+  padding: 0;
+}
+/*
+ * 実寸を持つのは右。会話はある行長を超えると読みにくくなるだけなので上限で止め、
+ * 余った横幅はすべて左の表へ回す——机の主役はあくまで表のほう。
+ * 以前は左を 524px で固定していたが、それだと列が四本入りきらず、
+ * 証言の但し書きが二行に折れていた。
+ */
+.desk > .panes {
+  display: grid;
+  grid-template-columns: 1fr var(--work-w);
+  min-height: 0;
+}
+.board {
+  border-right: 1px solid var(--keisen);
+  padding: 14px 22px 12px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+/* 行長を守るのは .work の役目。中の部品は幅を持たず、これに従う。 */
+.work {
+  padding: 24px 34px 22px;
+  max-width: var(--work-w);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+/* ---- アリバイ表 ---- */
+.board > .bh {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  line-height: 1.4;
+}
+.board > .bh .nm {
+  font-family: var(--mincho);
+  font-size: 14px;
+  letter-spacing: 0.1em;
+}
+
+/* 見出しの列と表の列は同じ定義を使う。ずれると表が表でなくなる。 */
+.cols {
+  display: grid;
+  grid-template-columns: 46px repeat(4, 1fr);
+}
+
+.chart-head {
+  margin-top: 10px;
+}
+.chart-head .c {
+  padding: 0 0 7px 10px;
+  border-bottom: 1px solid var(--keisen);
+}
+.chart-head .c.now {
+  border-bottom-color: currentColor;
+}
+/* 名と肩書は積む。横に流すと列幅で折り返して、見出しが二行の塊になる。 */
+.chart-head .c .who {
+  display: block;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--nezumi);
+}
+.chart-head .c.now .who {
+  color: currentColor;
+}
+.chart-head .c .rl {
+  display: block;
+  font-size: 10px;
+  line-height: 1.5;
+  color: var(--nezumi-dim);
+}
+
+/* 高さは 60分 = 600px で固定。伸縮させると目盛りの間隔が画面ごとに変わる。 */
+.chart {
+  position: relative;
+  height: 600px;
+  flex: none;
+  margin-bottom: 16px;
+}
+.chart .gut {
+  position: relative;
+}
+.chart .col {
+  position: relative;
+  border-left: 1px solid var(--keisen-faint);
+}
+/* 聞き込み中の列だけ、地をわずかに起こす。枠は付けない。 */
+.chart .col.now {
+  background: var(--sumi-2);
+}
+
+.chart .grid {
+  position: absolute;
+  left: 46px;
+  right: 0;
+  height: 1px;
+  background: var(--keisen-faint);
+}
+.chart .gut .at {
+  position: absolute;
+  left: 0;
+  transform: translateY(-50%);
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 10px;
+  color: var(--nezumi-dim);
+}
+.chart .gut .at.edge {
+  color: var(--nezumi);
+}
+
+/* 在所。実線は裏付けあり、破線は本人の申告のみ。 */
+.bar {
+  position: absolute;
+  left: 17px;
+  width: 3px;
+}
+.bar.claim {
+  width: 1px;
+  left: 18px;
+  opacity: 0.55;
+  background: none !important;
+  border-left: 1px dashed currentColor;
+}
+/* はみ出させると隣の列の記述と混ざって、どちらの人の話か分からなくなる。
+   折り返してでも列の中に留める。
+   幅は max-width ではなく実寸で持たせる——親の .bar は 3px しかなく、
+   max-width だとそちらに合わせて一文字ずつ縦に折れる。
+   列幅 140px から、.bar の left:17px と下の left:11px を引いた残りがこの 111px。 */
+.bar .pl {
+  position: absolute;
+  left: 11px;
+  top: 0;
+  width: 111px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--nezumi);
+}
+.bar.solid .pl {
+  color: currentColor;
+}
+.bar .fix {
+  position: absolute;
+  left: 11px;
+  top: 15px;
+  width: 111px;
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: currentColor;
+}
+/* 裏付けの取れた端だけ、目盛りを立てる。 */
+.bar.solid::before {
+  content: "";
+  position: absolute;
+  left: -4px;
+  top: 0;
+  width: 11px;
+  height: 1px;
+  background: currentColor;
+}
+/* 会話のなかでいま指している時刻と対になっている目盛り。 */
+.bar.solid.on {
+  left: 16px;
+  width: 5px;
+}
+.bar.solid.on::before {
+  left: -5px;
+  width: 15px;
+  height: 2px;
+}
+.bar.solid.on .fix {
+  left: 13px;
+}
+
+/* 被害者の刻限。表の全列を横断する唯一の線。 */
+.deadline {
+  position: absolute;
+  left: 46px;
+  right: 0;
+  height: 1px;
+  background: var(--nezumi-dim);
+}
+/* 直の子だけ。子孫まで拾うと、中の .t までもう一段持ち上がって時刻が宙に浮く。 */
+.deadline > span {
+  position: absolute;
+  right: 0;
+  top: -17px;
+  white-space: nowrap;
+  font-family: var(--mincho);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--nezumi);
+}
+.deadline span .t {
+  color: var(--nezumi-dim);
+}
+
+/* 食い違い。表の上でひとつだけ立つ印。 */
+.clash {
+  position: absolute;
+  height: 1px;
+  border-top: 1px dashed var(--nezumi-dim);
+  opacity: 0.8;
+}
+.clash span {
+  position: absolute;
+  right: 0;
+  top: -19px;
+  font-size: 10.5px;
+  color: var(--nezumi);
+  letter-spacing: 0.1em;
+  background: var(--sumi);
+  padding: 0 4px;
+}
+.clash i {
+  position: absolute;
+  top: -3px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  border: 1px solid var(--nezumi);
+  background: var(--sumi);
+}
+
+.legend {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  font-size: 10.5px;
+  line-height: 1.4;
+  color: var(--nezumi-dim);
+}
+.legend b {
+  font-weight: 400;
+  color: var(--nezumi);
+}
+.legend .k {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.legend .k::before {
+  content: "";
+  width: 14px;
+  height: 3px;
+  background: var(--nezumi);
+}
+.legend .k.cl::before {
+  height: 0;
+  border-top: 1px dashed var(--nezumi-dim);
+}
+
+/* ================= 右半分の共通語彙 ================= */
+/*
+ * 右は「机に置いた電話」ではなく「机の上の書類」として組む。
+ * 左が実寸のアリバイ表という濃い面なので、右が一列だと机の上で釣り合わない。
+ */
+
+.wh {
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--keisen);
+  flex: none;
+}
+.wh h2 {
+  font-family: var(--mincho);
+  font-weight: 700;
+  font-size: 26px;
+  letter-spacing: 0.05em;
+  line-height: 1.45;
+  margin: 0;
+}
+/* 導入文は読み物なので行長を締める。ペイン幅いっぱいに流すと目が戻れない。 */
+.wh .lead {
+  margin: 10px 0 0;
+  font-size: 13px;
+  color: var(--nezumi);
+  max-width: 42em;
+  line-height: 1.9;
+}
+
+/* 節の見出し。罫線の上に小さく置くだけで、箱は作らない。 */
+.grp {
+  margin-top: 24px;
+}
+.grp > .label {
+  display: block;
+  padding-bottom: 7px;
+}
+
+/*
+ * 書類を左右に並べるための段組み。
+ * 二列に割るのは「材質の違うものが二種類ある」ときだけで、
+ * 一種類しかないものを見た目のために割らない。
+ */
+.split {
+  display: grid;
+  gap: 0 40px;
+  min-height: 0;
+}
+.split.reading {
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+}
+.split.even {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+/* 二列のあいだは罫線で仕切る。余白だけだと、机の上で紙が二枚に見えない。 */
+.split > .rt {
+  padding-left: 40px;
+  margin-left: -40px;
+  border-left: 1px solid var(--keisen);
+}
+
+/*
+ * 下端の操作。
+ * margin-top:auto で床に着ける。中身が短い画面でも、押す場所が毎回同じ高さに来る。
+ */
+.foot {
+  margin-top: auto;
+  padding-top: 22px;
+  flex: none;
+}
+.go {
+  display: block;
+  width: 100%;
+  border: 1px solid var(--nezumi);
+  background: none;
+  padding: 13px;
+  text-align: center;
+  font-family: var(--mincho);
+  font-size: 15px;
+  letter-spacing: 0.2em;
+  /* a で組むことがあるので、リンクの既定色と下線は持ち込ませない。 */
+  color: inherit;
+  text-decoration: none;
+}
+/* 取り消せない一手だけ朱。ここ以外には出さない。 */
+.go.final {
+  border-color: var(--shu);
+  color: var(--shu);
+}
+.foot .again {
+  display: block;
+  width: 100%;
+  text-align: center;
+  font-size: 12px;
+  color: var(--nezumi-dim);
+  margin-top: 11px;
+  background: none;
+  border: 0;
+}
+.foot .pair {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+}
+.foot .pair .go {
+  letter-spacing: 0.12em;
+  font-size: 14px;
+}
+
+/* ---- 名簿（登場人物） ---- */
+.cast .r {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--keisen);
+}
+.cast .r:first-child {
+  border-top: 1px solid var(--keisen);
+}
+.cast .face {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  flex: none;
+  display: grid;
+  place-items: center;
+  background: var(--sumi-2);
+  font-family: var(--mincho);
+  font-size: 15px;
+  font-weight: 700;
+}
+.cast .face.on {
+  box-shadow: 0 0 0 1.5px currentColor;
+}
+.cast .col2 {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.cast .nm {
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+.cast .ps {
+  font-size: 11.5px;
+  color: var(--nezumi-dim);
+  line-height: 1.6;
+}
+.cast .role {
+  margin-left: auto;
+  flex: none;
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  color: var(--nezumi-dim);
+}
+
+/* ---- 難易度（四択） ---- */
+.modes {
+  display: flex;
+}
+.modes span {
+  flex: 1;
+  text-align: center;
+  padding: 9px 0;
+  font-size: 12.5px;
+  color: var(--nezumi-dim);
+  border-bottom: 1px solid var(--keisen);
+}
+.modes .on {
+  color: var(--kinari);
+  border-bottom-color: var(--kinari);
+}
+.fine {
+  margin: 8px 0 0;
+  font-size: 11.5px;
+  color: var(--nezumi-dim);
+}
+
+/* ---- 聞き込み（右半分） ---- */
+.talk {
+  display: contents;
+}
+.talk-head {
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--keisen);
+  flex: none;
+}
+.talk-head .nm {
+  font-family: var(--mincho);
+  font-size: 20px;
+  letter-spacing: 0.08em;
+}
+.talk-head .ps {
+  font-size: 12px;
+  color: var(--nezumi-dim);
+  margin-top: 3px;
+}
+
+/* 最新の発話を下端に置き、上は溢れるに任せる。切れ口に霞をかけて、
+   途切れではなく「まだ上に続いている」ことを示す。
+   行長は .work の最大幅が決める——ここでは持たない。 */
+.log {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  padding: 20px 0 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 20px;
+}
+.log::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 54px;
+  background: linear-gradient(to bottom, var(--sumi), transparent);
+  pointer-events: none;
+}
+
+.turn {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-left: 14px;
+  border-left: 1px solid var(--keisen);
+}
+.turn .who {
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+}
+.turn.me .who {
+  color: var(--nezumi-dim);
+}
+.turn .txt {
+  margin: 0;
+  font-size: 14px;
+  line-height: 2.05;
+}
+.turn.me .txt {
+  color: var(--nezumi);
+}
+/* 確定した時刻は、その時刻が立つ列の顔料で染める（喋っている人の色ではない）。
+   いま指しているひとつだけ、罫を引いて表の目盛りと対にする。 */
+.tm {
+  color: currentColor;
+}
+.tm.on {
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 1px;
+}
+.beat {
+  color: var(--nezumi-dim);
+  font-size: 11px;
+  margin-left: 6px;
+}
+
+.hint {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--keisen);
+  margin-top: 20px;
+}
+.hint .hd {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 9px 0;
+  font-size: 12px;
+  color: var(--nezumi-dim);
+}
+.hint .q {
+  padding: 9px 0;
+  border-top: 1px solid var(--keisen);
+  font-size: 13px;
+  color: var(--nezumi);
+}
+.askbar {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  margin-top: 16px;
+}
+.askbar .box {
+  flex: 1;
+  border-bottom: 1px solid var(--keisen);
+  padding: 9px 2px;
+  font-size: 13.5px;
+  color: var(--nezumi-dim);
+}
+.askbar .btn {
+  border: 1px solid var(--keisen);
+  padding: 8px 22px;
+  font-size: 13px;
+  flex: none;
+}
+
+/* ================= 右半分・結果 ================= */
+.res .verdict {
+  font-family: var(--mincho);
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  margin: 0;
+  line-height: 1.4;
+}
+.res .sub {
+  font-size: 12.5px;
+  color: var(--nezumi-dim);
+  margin: 6px 0 0;
+}
+.rows {
+  margin-top: 9px;
+  border-top: 1px solid var(--keisen);
+}
+.rows .r {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--keisen);
+  font-size: 13.5px;
+}
+.rows .r .k {
+  color: var(--nezumi);
+}
+.ok {
+  color: var(--byakuroku);
+}
+.res .grp {
+  margin-top: 20px;
+}
+.res .foot {
+  margin-top: auto;
+  display: flex;
+  gap: 12px;
+}
+.res .foot span {
+  flex: 1;
+  border: 1px solid var(--keisen);
+  padding: 11px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--nezumi);
+}
+.res .foot span.main {
+  border-color: var(--nezumi);
+  color: var(--kinari);
+  font-family: var(--mincho);
+  letter-spacing: 0.16em;
+}
+
+/* 結果の表は、同じ列に二本引く。左が聞き取った線、右が実際。
+   ここに文章は載せない——列は 108px しかなく、一文を入れれば隣の列へはみ出して読めなくなる。 */
+.bar.mine {
+  left: 13px;
+  width: 1px;
+  opacity: 0.45;
+  background: none !important;
+  border-left: 1px dashed currentColor;
+}
+.bar.real {
+  left: 26px;
+  width: 3px;
+}
+.bar.real::before {
+  content: none;
+}
+/* 二本がずれた区間。ここだけ言葉を足す。 */
+.gapnote {
+  position: absolute;
+  left: 34px;
+  width: 74px;
+  display: flex;
+  align-items: center;
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: var(--kinari);
+}
+
+.truth {
+  margin-top: 9px;
+}
+.truth .r {
+  display: flex;
+  gap: 16px;
+  align-items: baseline;
+  padding: 4px 0;
+}
+.truth .r .at {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 11.5px;
+  color: var(--nezumi-dim);
+  flex: none;
+}
+.truth .r .tx {
+  font-family: var(--mincho);
+  font-size: 13.5px;
+  letter-spacing: 0.04em;
+  line-height: 1.7;
+}
+.truth .r .tx {
+  color: var(--nezumi);
+}
+.truth .r.key .tx {
+  color: var(--kinari);
+}
+
+/* ================= 事件を選ぶ ================= */
+.sel {
+  height: 100%;
+  padding: 0 60px;
+  display: flex;
+  flex-direction: column;
+}
+.sel .top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 56px 0 30px;
+}
+.sel .top h2 {
+  font-family: var(--mincho);
+  font-weight: 700;
+  font-size: 40px;
+  letter-spacing: 0.2em;
+  margin: 0;
+}
+.sel .top .sub {
+  font-size: 12px;
+  letter-spacing: 0.26em;
+  color: var(--nezumi-dim);
+  margin-top: 10px;
+}
+.sel .top .set {
+  font-size: 12.5px;
+  color: var(--nezumi);
+}
+
+/* ---- 事件の記録（せり上がる本文） ---- */
+.brief {
+  height: 100%;
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+/*
+ * 器そのものを送る。長い記録でも書いている先が見えつづけ、読み終えたあと
+ * 手で上へ戻すこともできる。下の余白は霞（150px）より厚くとって、
+ * 書いている先が霞の下へ潜らないようにする。
+ * 帯は出さない——霞が続きを示しているので、その上に棒を重ねると絵が濁る。
+ */
+.brief .stage {
+  width: 640px;
+  height: 100%;
+  padding-top: 96px;
+  padding-bottom: 180px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.brief .stage::-webkit-scrollbar {
+  display: none;
+}
+.brief .crawl {
+  font-family: var(--mincho);
+  font-size: 17px;
+  line-height: 2.6;
+  letter-spacing: 0.05em;
+}
+.brief .crawl p {
+  margin: 0 0 30px;
+}
+/* 霞は本文だけに掛ける。見出しと操作は上に置く。 */
+.brief .lb {
+  position: absolute;
+  top: 26px;
+  left: 60px;
+  z-index: 2;
+}
+.brief .skip {
+  position: absolute;
+  bottom: 26px;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  text-align: center;
+  font-size: 11.5px;
+  color: var(--nezumi-dim);
+  background: none;
+  border: 0;
+}
+.brief .veil {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 150px;
+  pointer-events: none;
+}
+.brief .veil.up {
+  top: 0;
+  background: linear-gradient(to bottom, var(--sumi), transparent);
+}
+.brief .veil.dn {
+  bottom: 0;
+  background: linear-gradient(to top, var(--sumi), transparent);
+}
+
+/* ---- 設定 ---- */
+.set {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: auto;
+}
+.set .inner {
+  width: 760px;
+  padding: 46px 0 60px;
+}
+.set .back {
+  font-size: 12px;
+  color: var(--nezumi-dim);
+  background: none;
+  border: 0;
+  padding: 0;
+}
+.set h2 {
+  font-family: var(--mincho);
+  font-weight: 700;
+  font-size: 26px;
+  letter-spacing: 0.1em;
+  margin: 18px 0 0;
+}
+.set .lead {
+  font-size: 12.5px;
+  color: var(--nezumi);
+  margin: 8px 0 0;
+}
+.set .grp {
+  margin-top: 34px;
+}
+.set .role {
+  display: grid;
+  grid-template-columns: 248px 1fr;
+  gap: 20px;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--keisen);
+}
+.set .role:first-of-type {
+  border-top: 1px solid var(--keisen);
+}
+.set .role .nm {
+  font-size: 13.5px;
+}
+.set .role .ps {
+  font-size: 11px;
+  color: var(--nezumi-dim);
+  line-height: 1.6;
+}
+.set .pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.set .fld {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.set .sel2 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid var(--keisen);
+  padding: 0 10px;
+  height: 32px;
+  font-size: 12.5px;
+}
+.set .sel2 .ar {
+  color: var(--nezumi-dim);
+  font-size: 9px;
+}
+.set .sel2.unset {
+  color: var(--nezumi);
+}
+.set .sel2.locked {
+  color: var(--nezumi-dim);
+  border-color: var(--sumi-3);
+}
+.set .fine {
+  font-size: 11.5px;
+  color: var(--nezumi-dim);
+  margin: 10px 0 0;
+}
+.set .trio {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-top: 14px;
+}
+.set .num {
+  border: 1px solid var(--keisen);
+  height: 32px;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  font-size: 13px;
+}
+.set .sum {
+  font-size: 12.5px;
+  color: var(--nezumi);
+  margin: 18px 0 0;
+  line-height: 2;
+}
+.set .sum b {
+  color: var(--kinari);
+  font-weight: 500;
+}

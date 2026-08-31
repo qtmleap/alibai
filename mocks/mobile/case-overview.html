@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AlibAI モバイル — 支度</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500&family=Roboto+Mono:wght@400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./_phone.css" />
+    <link rel="stylesheet" href="../_mock.css" />
+    <style>
+      .p-ov a { text-decoration: none; color: inherit; display: block; }
+      /* 名簿の行は押せる。押せるものを div のままにしない。 */
+      .cast button.r { background: none; border: 0; font: inherit; color: inherit; text-align: left; width: 100%; }
+
+      /*
+        押す物は端末の下端へ落とす。名簿の直後に置くと、人数や肩書きの行数で
+        ボタンの高さが毎回変わり、親指の行き先が定まらない。
+        .p-ov はもともと縦の flex なので、高さを持たせて余りを .foot の上へ送るだけでいい。
+      */
+      .p-ov { flex: 1; min-height: 0; }
+      .foot { margin-top: auto; padding-bottom: 24px; display: flex; flex-direction: column; gap: 11px; }
+    </style>
+  </head>
+  <body>
+    <div class="phone" data-mock-id="ALI_OVW_01">
+      <div class="pad p-ov">
+        <a class="label" href="./scenario-select.html" data-mock-id="ALI_OVW_02">← 事件を選ぶ</a>
+
+        <h3 id="ttl" data-mock-id="ALI_OVW_03"></h3>
+
+        <div data-mock-id="ALI_OVW_04">
+          <div class="rail-empty">
+            <span class="lb label t" id="from" style="left: 0"></span>
+            <span class="lb label t" id="to" style="right: 0"></span>
+            <span class="line"></span>
+            <span class="end" style="left: 0"></span>
+            <span class="end" style="right: 0"></span>
+          </div>
+          <div class="dim" id="railLead" style="font-size: 11px"></div>
+        </div>
+
+        <div>
+          <div class="label">まず誰から話を聞くか</div>
+          <div class="cast" id="cast" style="margin-top: 8px" data-mock-id="ALI_OVW_06"></div>
+        </div>
+
+        <div class="foot">
+          <a class="go" id="go" data-mock-id="ALI_OVW_09"></a>
+          <a class="again" href="./briefing.html" data-mock-id="ALI_OVW_10">事件の記録をもう一度読む</a>
+        </div>
+      </div>
+    </div>
+
+    <script src="../_case.js"></script>
+    <script src="../_mock.js"></script>
+    <script>
+      ;(function () {
+        var C = Mock.case
+        var pick = Mock.str('who', C.cast[0].key)
+
+        document.getElementById('ttl').innerHTML = C.titleBreak
+        document.getElementById('from').textContent = C.span.from
+        document.getElementById('to').textContent = C.span.to
+        document.getElementById('railLead').textContent = C.railLead
+
+        document.getElementById('cast').innerHTML = C.cast
+          .concat([C.victim])
+          .map(function (p) {
+            var isVictim = p.key === C.victim.key
+            return (
+              '<button class="r" type="button" data-mock-id="ALI_OVW_07" data-who="' +
+              p.key +
+              '"' +
+              (isVictim ? ' disabled' : '') +
+              '><span class="face' +
+              (pick === p.key ? ' on' : '') +
+              '" style="color:var(--' +
+              p.hue +
+              Mock.lit +
+              '); background:' +
+              p.faceBg +
+              '">' +
+              p.face +
+              '</span><span class="col"><span class="nm"' +
+              (pick === p.key ? ' style="color:var(--' + p.hue + Mock.lit + ')"' : '') +
+              '>' +
+              Mock.esc(p.name) +
+              '</span><span class="ps">' +
+              Mock.esc(isVictim ? p.blurb : p.role + '。' + p.persona) +
+              '</span></span>' +
+              (isVictim ? '<span class="role">被害者</span>' : '') +
+              '</button>'
+            )
+          })
+          .join('')
+
+        var who = Mock.cast[pick]
+        var go = document.getElementById('go')
+        go.textContent = who.name + 'に聞き込みをする'
+        go.href = './interrogation.html#turn=1&who=' + pick
+
+        Array.prototype.forEach.call(document.querySelectorAll('[data-who]'), function (el) {
+          el.addEventListener('click', function () {
+            location.hash = 'who=' + el.dataset.who
+            location.reload()
+          })
+        })
+
+        Mock.ready()
+      })()
+    </script>
+  </body>
+</html>

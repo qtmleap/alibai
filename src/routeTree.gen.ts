@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as DevFloorPlanRouteImport } from './routes/dev/floor-plan'
 import { Route as ScenariosScenarioIdRouteRouteImport } from './routes/scenarios/$scenarioId/route'
 import { Route as SessionsSessionIdRouteRouteImport } from './routes/sessions/$sessionId/route'
@@ -24,6 +25,11 @@ import { Route as SessionsSessionIdResultRouteImport } from './routes/sessions/$
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DevFloorPlanRoute = DevFloorPlanRouteImport.update({
@@ -84,6 +90,7 @@ const SessionsSessionIdResultRoute = SessionsSessionIdResultRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/settings': typeof SettingsRoute
   '/scenarios/$scenarioId': typeof ScenariosScenarioIdRouteRouteWithChildren
   '/sessions/$sessionId': typeof SessionsSessionIdRouteRouteWithChildren
   '/dev/floor-plan': typeof DevFloorPlanRoute
@@ -97,6 +104,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/settings': typeof SettingsRoute
   '/dev/floor-plan': typeof DevFloorPlanRoute
   '/scenarios/$scenarioId/briefing': typeof ScenariosScenarioIdBriefingRoute
   '/scenarios/$scenarioId/detective': typeof ScenariosScenarioIdDetectiveRoute
@@ -109,6 +117,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/settings': typeof SettingsRoute
   '/scenarios/$scenarioId': typeof ScenariosScenarioIdRouteRouteWithChildren
   '/sessions/$sessionId': typeof SessionsSessionIdRouteRouteWithChildren
   '/dev/floor-plan': typeof DevFloorPlanRoute
@@ -124,6 +133,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/settings'
     | '/scenarios/$scenarioId'
     | '/sessions/$sessionId'
     | '/dev/floor-plan'
@@ -137,6 +147,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/settings'
     | '/dev/floor-plan'
     | '/scenarios/$scenarioId/briefing'
     | '/scenarios/$scenarioId/detective'
@@ -148,6 +159,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/settings'
     | '/scenarios/$scenarioId'
     | '/sessions/$sessionId'
     | '/dev/floor-plan'
@@ -162,6 +174,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  SettingsRoute: typeof SettingsRoute
   ScenariosScenarioIdRouteRoute: typeof ScenariosScenarioIdRouteRouteWithChildren
   SessionsSessionIdRouteRoute: typeof SessionsSessionIdRouteRouteWithChildren
   DevFloorPlanRoute: typeof DevFloorPlanRoute
@@ -174,6 +187,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dev/floor-plan': {
@@ -289,6 +309,7 @@ const SessionsSessionIdRouteRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  SettingsRoute: SettingsRoute,
   ScenariosScenarioIdRouteRoute: ScenariosScenarioIdRouteRouteWithChildren,
   SessionsSessionIdRouteRoute: SessionsSessionIdRouteRouteWithChildren,
   DevFloorPlanRoute: DevFloorPlanRoute,

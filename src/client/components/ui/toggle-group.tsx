@@ -41,7 +41,8 @@ function ToggleGroup({
       data-spacing={spacing}
       style={gapStyle}
       className={cn(
-        'group/toggle-group flex w-fit items-center gap-[--spacing(var(--gap))] rounded-md data-[spacing=default]:data-[variant=outline]:shadow-xs',
+        // segment は等分の目盛りなので、幅は内容ではなく親に合わせる。
+        'group/toggle-group flex w-fit items-center gap-[--spacing(var(--gap))] rounded-md data-[variant=segment]:w-full data-[spacing=default]:data-[variant=outline]:shadow-xs',
         className,
       )}
       {...props}
