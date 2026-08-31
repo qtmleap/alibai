@@ -1,13 +1,20 @@
 {
   "name": "AlibAI",
-  "dockerComposeFile": ["compose.yaml"],
+  "dockerComposeFile": [
+    "compose.yaml"
+  ],
   "service": "app",
   "workspaceFolder": "/home/vscode/app",
   "shutdownAction": "stopCompose",
   "remoteUser": "vscode",
-  "forwardPorts": [5173],
+  "forwardPorts": [
+    5173
+  ],
   "portsAttributes": {
-    "5173": { "label": "AlibAI (Vite + Hono)", "onAutoForward": "notify" }
+    "5173": {
+      "label": "AlibAI (Vite + Hono)",
+      "onAutoForward": "notify"
+    }
   },
   "remoteEnv": {
     "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}",
@@ -33,7 +40,7 @@
     "ghcr.io/devcontainers/features/github-cli:1": {},
     "ghcr.io/shyim/devcontainers-features/bun:0": {},
     "ghcr.io/devcontainers/features/node:1.5.0": {
-      "version": "26.5.0"
+      "version": "26.8.1"
     },
     "ghcr.io/stu-bell/devcontainer-features/claude-code:0": {
       "version": "latest"
