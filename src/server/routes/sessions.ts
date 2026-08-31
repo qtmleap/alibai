@@ -21,7 +21,7 @@ import { EXAMINATION_RULES, GAME_RULES } from '@/server/game/rules'
 import { scoreSession } from '@/server/game/scoring'
 import { streamNpcReply } from '@/server/llm/actor'
 import { gradeDeduction } from '@/server/llm/deduction'
-import { streamExamination } from '@/server/llm/examiner'
+import { composeExaminationFocus, streamExamination } from '@/server/llm/examiner'
 import { createFilterState, FALLBACK_REPLY, feedChunk, finalizeFilter } from '@/server/llm/filter'
 import { generateQuestion, type TopicExchange } from '@/server/llm/interviewer'
 import { judgeTurn } from '@/server/llm/judge'
@@ -798,14 +798,26 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
     )
 
     for (const _round of rounds) {
-      const interviewer = await generateQuestion({
-        env,
-        choice: choices.actor,
-        detective,
-        characterName: subject.name,
-        topic: askInput.topic,
-        exchanges: collected.exchanges,
-      })
+      /*
+        探偵の一手。聞き込みなら相手への質問、検分なら「何を確かめるか」の独り言。
+        検分でも質問を作らせると「涼子さん、〜はありますか？」と死者に話しかける画になる。
+      */
+      const interviewer = examining
+        ? await composeExaminationFocus({
+            env,
+            choice: choices.actor,
+            detective,
+            topic: askInput.topic,
+            exchanges: collected.exchanges,
+          }).then((result) => ({ ...result, question: result.focus }))
+        : await generateQuestion({
+            env,
+            choice: choices.actor,
+            detective,
+            characterName: subject.name,
+            topic: askInput.topic,
+            exchanges: collected.exchanges,
+          })
 
       collected.usages.push(
         toUsageRow({

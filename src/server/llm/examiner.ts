@@ -1,8 +1,68 @@
-import { type ModelMessage, streamText } from 'ai'
+import {
+  generateText,
+  type LanguageModelUsage,
+  type ModelMessage,
+  type ProviderMetadata,
+  streamText,
+} from 'ai'
 import type { Env } from '@/server/env'
-import { buildDetectiveBlock } from '@/server/llm/detective'
+import { EXAMINATION_INTENT_RULES } from '@/server/game/rules'
+import { buildDetectiveBlock, buildDetectiveSelfBlock } from '@/server/llm/detective'
+import type { TopicExchange } from '@/server/llm/interviewer'
 import { cacheHint, type LlmChoice, resolveModel } from '@/server/llm/provider'
 import type { Detective } from '~/db/detective'
+
+export type ExaminationFocusResult = {
+  /** これから何を確かめるか。モデルが何も返さなければ空文字。 */
+  focus: string
+  usage: LanguageModelUsage
+  providerMetadata: ProviderMetadata | undefined
+  model: string
+}
+
+/**
+ * 何を確かめに行くかを一言にする。
+ *
+ * 聞き込みの `generateQuestion` と同じ位置に立つが、別の関数にしてある。
+ * あちらは「目の前の人物へ質問を投げる」ための役で、そのまま使うと
+ * 「涼子さん、〜はありますか？」と死者に話しかけることになる。
+ */
+export const composeExaminationFocus = async (params: {
+  env: Env
+  choice: LlmChoice
+  detective: Detective | undefined
+  /** プレイヤーが指定した調べどころ。 */
+  topic: string
+  /** ここまでの検分。同じ場所を二度調べさせないために渡す。 */
+  exchanges: TopicExchange[]
+}): Promise<ExaminationFocusResult> => {
+  // 調べどころはプレイヤー由来の文字列なので、必ず user ロールに閉じ込める。
+  const result = await generateText({
+    model: resolveModel(params.env, params.choice),
+    system:
+      params.detective === undefined
+        ? EXAMINATION_INTENT_RULES
+        : `${EXAMINATION_INTENT_RULES}\n\n${buildDetectiveSelfBlock(params.detective)}`,
+    messages: [
+      {
+        role: 'user',
+        content: `次の調べどころを確かめてください。\n\n調べどころ: ${params.topic}`,
+      },
+      ...params.exchanges.flatMap((exchange): ModelMessage[] => [
+        { role: 'assistant', content: exchange.question },
+        { role: 'user', content: `検分の結果: ${exchange.answer}` },
+      ]),
+    ],
+    maxOutputTokens: 256,
+  })
+
+  return {
+    focus: result.text.trim(),
+    usage: result.usage,
+    providerMetadata: result.providerMetadata,
+    model: result.response.modelId,
+  }
+}
 
 export type ExaminationContext = {
   env: Env
