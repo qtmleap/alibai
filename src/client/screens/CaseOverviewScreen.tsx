@@ -19,6 +19,7 @@ import { createSession, describeError } from '@/client/lib/api'
 import { activeDetective, loadDetectiveStore, toDetective } from '@/client/lib/detective-store'
 import { loadGameMode, saveGameMode } from '@/client/lib/game-mode-store'
 import type { CreateSessionResponse, GameMode, ScenarioDetail } from '@/client/lib/schemas'
+import { railSpanMinutes } from '@/client/lib/time-rail'
 import { GAME_MODE_LABELS, GAME_MODE_NOTES, GAME_MODES } from '~/db/game-mode'
 
 /** 節の見出し。等幅なのは書式であって時刻ではないので、値には使わない。 */
@@ -59,6 +60,10 @@ export const CaseOverviewScreen = ({
   onBack,
 }: Props) => {
   const inProgress = activeSessionId !== undefined
+  const span =
+    scenario.timeWindow === null
+      ? undefined
+      : railSpanMinutes(scenario.timeWindow.start, scenario.timeWindow.end)
   const [starting, setStarting] = useState(false)
   const [error, setError] = useState<string | undefined>(undefined)
   // 探偵の設定画面が localStorage に書いた選択を読む。名乗らずに始めた場合は undefined。
@@ -134,7 +139,17 @@ export const CaseOverviewScreen = ({
         これから供述で埋めていく遊びなのだと、最初の一問より前に分かる。
       */}
       {scenario.timeWindow !== null && (
-        <TimeRail start={scenario.timeWindow.start} end={scenario.timeWindow.end} />
+        <section className="flex flex-col gap-1.5">
+          <TimeRail start={scenario.timeWindow.start} end={scenario.timeWindow.end} />
+          {/*
+            幅を数字でも言い直す。両端の時刻だけだと長さが直感で掴めない。
+            この一行を出すのはここだけ——聞き込みに入れば軸は毎画面に出るので、
+            そのたびに同じ説明を読ませる意味が無い。
+          */}
+          {span !== undefined && (
+            <p className="text-[11px] text-nezumi-dim">この{span}分を、説明しきる</p>
+          )}
+        </section>
       )}
 
       {/*

@@ -1,6 +1,7 @@
 import { useId, useState } from 'react'
 import { surfaceOf } from '@/client/components/CharacterAvatar'
 import { SessionReference } from '@/client/components/SessionReference'
+import { TimeRail } from '@/client/components/TimeRail'
 import { Button } from '@/client/components/ui/button'
 import { Textarea } from '@/client/components/ui/textarea'
 import type { UseInterrogation } from '@/client/hooks/useInterrogation'
@@ -79,6 +80,14 @@ export const AccusationScreen = ({
         </h1>
         <p className="mt-1 text-nezumi text-xs">誰が、どうやって、なぜ。</p>
       </header>
+
+      {/*
+        指し示す前に、もう一度この幅を見せる。埋めきれなかった時間がどこかを
+        考える画面なので、聞き込みと同じ軸が同じ形で出ている必要がある。
+      */}
+      {scenario.timeWindow !== null && (
+        <TimeRail start={scenario.timeWindow.start} end={scenario.timeWindow.end} />
+      )}
 
       {/*
         人物は枠に入れず、行として並べる。選んだ相手は文字の色で示す。

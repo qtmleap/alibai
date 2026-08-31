@@ -3,6 +3,7 @@ import { CaseNoteButton } from '@/client/components/CaseNote'
 import { CharacterAvatar, inkOf } from '@/client/components/CharacterAvatar'
 import { ChatLog } from '@/client/components/ChatLog'
 import { FloorPlanMap } from '@/client/components/FloorPlan'
+import { TimeRail } from '@/client/components/TimeRail'
 import { TurnAnnounce } from '@/client/components/TurnAnnounce'
 import { Badge } from '@/client/components/ui/badge'
 import { Button } from '@/client/components/ui/button'
@@ -260,6 +261,17 @@ export const InterrogationScreen = ({
               {activeCharacter === undefined ? '' : activeCharacter.publicIntroduction}
             </span>
           </div>
+
+          {/*
+            支度の画面で見せた軸を、聞き込みのあいだも同じ場所に置いておく。
+            相手を切り替えても軸は動かないので、埋めていく先が一つだと分かる。
+            header の中に入れてあるのは、会話が伸びても目盛りが流れていかないため。
+          */}
+          {scenario.timeWindow !== null && (
+            <div className="mt-2">
+              <TimeRail start={scenario.timeWindow.start} end={scenario.timeWindow.end} />
+            </div>
+          )}
         </header>
 
         {/* key にターン番号を入れて、ターンが進むたびに作り直す */}
