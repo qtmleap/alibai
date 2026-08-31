@@ -28,6 +28,21 @@ export type ScenarioDetail = {
   characters: { id: string; name: string; publicIntroduction: string }[]
 }
 
+const PUBLIC_INTRODUCTION_FALLBACK = 'この事件の関係者。'
+
+/**
+ * D1 の schema migration がコードより遅れていると、SQLite の DQS 互換挙動により
+ * 存在しない `"public_introduction"` が列エラーではなく文字列リテラルとして返ることがある。
+ * そのまま UI に出すと「人物名public_introduction」になってしまうので、公開情報として
+ * 安全な定型文へ倒す。migration 済み・backfill 前の空文字も同じ扱いにする。
+ */
+export const normalizePublicIntroduction = (value: string): string => {
+  const trimmed = value.trim()
+  return trimmed === '' || trimmed === 'public_introduction'
+    ? PUBLIC_INTRODUCTION_FALLBACK
+    : trimmed
+}
+
 /** 公開シナリオの一覧。読みは多いが滅多に書き換わらないので KV から返す。 */
 export const listScenarios = (kv: KVNamespace, db: Db): Promise<PublishedScenario[]> =>
   loadPublishedScenarios(kv, db)
@@ -73,14 +88,19 @@ export const findScenarioDetail = async (
     return undefined
   }
 
-  const characterRows = await db
-    .select({
-      id: characters.id,
-      name: characters.name,
-      publicIntroduction: characters.publicIntroduction,
-    })
-    .from(characters)
-    .where(eq(characters.scenarioId, scenarioId))
+  const characterRows = (
+    await db
+      .select({
+        id: characters.id,
+        name: characters.name,
+        publicIntroduction: characters.publicIntroduction,
+      })
+      .from(characters)
+      .where(eq(characters.scenarioId, scenarioId))
+  ).map((character) => ({
+    ...character,
+    publicIntroduction: normalizePublicIntroduction(character.publicIntroduction),
+  }))
 
   /*
     図面はここで読み替えてから返す。

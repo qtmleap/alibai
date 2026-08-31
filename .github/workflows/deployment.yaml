@@ -35,6 +35,14 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile --ignore-scripts
 
+      # Workerだけ先に更新すると、古いD1 schemaを新コードが読む状態になる。
+      # migrationに失敗したらここで止め、互換性のないWorkerを公開しない。
+      - name: Apply D1 migrations
+        run: bun run db:migrate:remote
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
       - name: Build
         run: bun run build
 

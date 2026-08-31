@@ -18,7 +18,7 @@
     "db:seed:apply": "wrangler d1 execute alibai --local --file=db/seed.sql",
     "db:seed:apply:remote": "wrangler d1 execute alibai --remote --file=db/seed.sql",
     "db:author": "bun run db/generate-scenario.ts",
-    "deploy": "vite build && wrangler deploy"
+    "deploy": "bun run db:migrate:remote && vite build && wrangler deploy"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^2",
