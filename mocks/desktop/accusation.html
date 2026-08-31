@@ -49,7 +49,9 @@
         font-size: 13.5px; line-height: 1.95; color: var(--kinari);
       }
       .writing textarea::placeholder { color: var(--nezumi-dim); }
-      .writing .hint { margin: 8px 0 0; font-size: 11.5px; color: var(--nezumi-dim); line-height: 1.7; }
+      /* 二列に割ると但し書きの最終行に「りに。」だけが落ちる。二行を均して泣き別れを避ける
+         （pretty は和文では効かない。balance は数行までの短い塊にしか掛からないが、ここは二行）。 */
+      .writing .hint { margin: 8px 0 0; font-size: 11.5px; color: var(--nezumi-dim); line-height: 1.7; text-wrap: balance; }
       .back { text-decoration: none; }
     </style>
   </head>

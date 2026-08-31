@@ -16,34 +16,59 @@
         支度。
         モバイルでは「事件の記録」が独立した画面で、支度からは
         「もう一度読む」で戻る作りだった。机の上ではその往復が要らない——
-        記録を左に開いたまま、右で誰から聞くかと難易度を決められる。
+        記録を左に開いたまま、右で誰から聞くかを決められる。
         だからこの画面から「もう一度読む」は消えている。
       */
 
-      /* 記録は読み物。行長を締め、段落の間だけを空ける。 */
-      .record { overflow-y: auto; min-height: 0; padding-right: 26px; }
+      /*
+        右半分は一列に積む。
+        以前は記録と名簿を左右に割っていたが、左の表を実寸で広げた分ここが狭まり、
+        二列にすると記録が一行十四字まで痩せて読めなくなった。
+        割るのをやめ、読む物（記録）を柱に、決める物（名簿・CTA）を床側へ重ねる。
+      */
+
+      /* 記録は読み物。行長を締め、段落の間だけを空ける。ここだけが縦に伸び縮みする。 */
+      .record { flex: 1; min-height: 0; overflow-y: auto; padding: 20px 26px 4px 0; }
       .record p { margin: 0 0 15px; font-size: 13.5px; line-height: 2.05; color: var(--nezumi); max-width: 34em; }
       .record p:first-child { color: var(--nezumi-dim); font-size: 12.5px; letter-spacing: 0.06em; }
       .record p:last-child { margin-bottom: 0; }
       /* 記録のなかの時刻だけは等幅にせず地の文のまま。読みがそこで切れるため。 */
       .record em { font-style: normal; color: var(--kinari); }
 
-      /* 右列は選ぶための面。名簿が上、難易度とCTAは一塊で床に着く。 */
-      .split.reading { flex: 1; min-height: 0; padding-top: 20px; }
-      .split.reading > .rt { display: flex; flex-direction: column; min-height: 0; }
-
       /*
-        余った縦は名簿と難易度のあいだへ送る。
-        難易度とCTAのあいだに空けると、選んだ直後に押す物が遠のいて、
-        繋がっているはずの二つが切り離されて見える。
+        決める側は縮ませない。記録が長くても、押す物が痩せて消えることはない。
+        名簿の上だけ罫を引いて、読む面と決める面の境をひとつ作る。
       */
-      .rt .decide { margin-top: auto; }
-      .rt .decide .foot { margin-top: 0; padding-top: 18px; }
+      .work > .grp, .work > .foot { flex: none; }
+      .work > .grp { border-top: 1px solid var(--keisen); padding-top: 18px; position: relative; }
+      /*
+        記録は入りきらず、罫のところで断ち切れる。切れ口に霞をかけて、
+        途切れではなく「まだ下に続いている」ことを示す——聞き込みの記録欄と同じ手。
+      */
+      .work > .grp::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        /* 基準はパディングボックスなので、100% だけだと罫の上に乗って線を消してしまう。 */
+        bottom: calc(100% + 1px);
+        height: 46px;
+        background: linear-gradient(to top, var(--sumi), transparent);
+        pointer-events: none;
+      }
+      /*
+        名簿を一列に積むと四人で三百px を占め、記録が二行しか残らなかった。
+        横は余っているので二列に畳む——空いているほうへ逃がして、縦は読み物に返す。
+      */
+      .work > .grp .cast { display: grid; grid-template-columns: 1fr 1fr; column-gap: 30px; }
+      /* 上端の罫は一行目の二枡ぶん。既定の :first-child だけだと右が欠ける。 */
+      .work > .grp .cast .r:nth-child(-n + 2) { border-top: 1px solid var(--keisen); }
+      /* 名簿を選んだ直後に押すものなので、間を空けずすぐ下に置く。 */
+      .work > .foot { margin-top: 0; padding-top: 18px; }
 
-      /* 名簿の行は押せる。難易度は _desk.css が span で組んであるので span のまま扱う。 */
+      /* 名簿の行は押せる。押せるものを div のままにしない。 */
       button.r { background: none; border: 0; font: inherit; color: inherit; text-align: left; width: 100%; }
       button.r[disabled] { opacity: 1; }
-      .modes span { cursor: pointer; }
       .back, .go { text-decoration: none; }
     </style>
   </head>
@@ -81,30 +106,18 @@
             <p class="lead" id="lead"></p>
           </div>
 
-          <div class="split reading">
-            <div class="lt record" data-mock-id="ALI_OVW_05">
-              <span class="label" style="display: block; padding-bottom: 12px">事件の記録</span>
-              <div id="record"></div>
-            </div>
+          <div class="record" data-mock-id="ALI_OVW_05">
+            <span class="label" style="display: block; padding-bottom: 12px">事件の記録</span>
+            <div id="record"></div>
+          </div>
 
-            <div class="rt">
-              <div class="grp" style="margin-top: 0">
-                <span class="label">まず誰から話を聞くか</span>
-                <div class="cast" id="cast" data-mock-id="ALI_OVW_06"></div>
-              </div>
+          <div class="grp">
+            <span class="label">まず誰から話を聞くか</span>
+            <div class="cast" id="cast" data-mock-id="ALI_OVW_06"></div>
+          </div>
 
-              <div class="decide">
-                <div class="grp">
-                  <span class="label">手がかりの見え方</span>
-                  <div class="modes" id="modes" data-mock-id="ALI_OVW_08"></div>
-                  <p class="fine" id="fine"></p>
-                </div>
-
-                <div class="foot">
-                  <a class="go" id="go" href="./interrogation.html#turn=1" data-mock-id="ALI_OVW_09"></a>
-                </div>
-              </div>
-            </div>
+          <div class="foot">
+            <a class="go" id="go" href="./interrogation.html#turn=1" data-mock-id="ALI_OVW_09"></a>
           </div>
         </div>
       </div>
@@ -115,7 +128,6 @@
     <script>
       ;(function () {
         var C = Mock.case
-        var modeKey = Mock.str('mode', 'normal')
         var pick = Mock.str('who', C.cast[0].key)
 
         document.getElementById('ttl').textContent = C.title
@@ -163,34 +175,15 @@
           })
           .join('')
 
-        document.getElementById('modes').innerHTML = C.modes
-          .map(function (m) {
-            return '<span class="' + (m.key === modeKey ? 'on' : '') + '" data-mode="' + m.key + '">' + m.name + '</span>'
-          })
-          .join('')
-
-        var mode = C.modes.filter(function (m) {
-          return m.key === modeKey
-        })[0]
-        document.getElementById('fine').textContent = mode.fine
-
         var who = Mock.cast[pick]
         var go = document.getElementById('go')
         go.textContent = who.name + 'に聞き込みをする'
         go.href = './interrogation.html#turn=1&who=' + pick
 
-        var reload = function (next) {
-          location.hash = 'mode=' + next.mode + '&who=' + next.who
-          location.reload()
-        }
         Array.prototype.forEach.call(document.querySelectorAll('[data-who]'), function (el) {
           el.addEventListener('click', function () {
-            reload({ mode: modeKey, who: el.dataset.who })
-          })
-        })
-        Array.prototype.forEach.call(document.querySelectorAll('[data-mode]'), function (el) {
-          el.addEventListener('click', function () {
-            reload({ mode: el.dataset.mode, who: pick })
+            location.hash = 'who=' + el.dataset.who
+            location.reload()
           })
         })
 

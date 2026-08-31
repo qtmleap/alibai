@@ -563,8 +563,8 @@ export const InterrogationScreen = ({
         </div>
       </header>
 
-      {/* 机は左右に割り、端末は一列のまま積む。 */}
-      <div className="flex min-h-0 flex-1 flex-col lg:grid lg:grid-cols-[524px_1fr]">
+      {/* 机は左右に割り、端末は一列のまま積む。実寸を持つのは右。左が余りを飲む。 */}
+      <div className="flex min-h-0 flex-1 flex-col lg:grid lg:grid-cols-[1fr_628px]">
         <section
           aria-label="アリバイ表"
           className="hidden lg:flex lg:min-h-0 lg:flex-col lg:border-keisen lg:border-r lg:px-[22px] lg:pt-[14px] lg:pb-3"
@@ -645,7 +645,7 @@ export const InterrogationScreen = ({
         <div className="shrink-0 lg:hidden">{tools('border-keisen border-b px-3 py-1.5')}</div>
 
         <div className="flex min-h-0 flex-1 flex-col lg:min-h-0 lg:px-[34px] lg:pt-6 lg:pb-[22px]">
-          <div className="hidden lg:block lg:shrink-0 lg:border-keisen lg:border-b lg:pb-[14px]">
+          <div className="hidden lg:block lg:max-w-[560px] lg:shrink-0 lg:border-keisen lg:border-b lg:pb-[14px]">
             {nameplate(
               'font-mincho text-[20px] tracking-[0.08em]',
               'mt-[3px] text-[12px] text-nezumi-dim',

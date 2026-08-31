@@ -33,6 +33,26 @@ type Item =
   | { kind: 'block'; id: string; role: 'user' | 'assistant'; lines: Line[] }
 
 /**
+ * ひとつの発言を、空行の位置で行に割る。
+ *
+ * NPCは息継ぎのある喋り方をするよう指示されていて（`@/server/game/rules`）、
+ * 塊のあいだが空行で来る。割るのをここに置いてあるのは、流れてくる最中の返答も
+ * 読み直した履歴も同じ1本のテキストだから。積む側で割ると、リロードを挟んだ
+ * 前後で行の分かれ方が変わる。
+ *
+ * 改行が続いても区切りは1つと数える。塊のあいだを空行1つで区切るか2つで区切るかは
+ * モデルの気分で揺れるが、読み手にとっては同じ「間」でしかない。
+ */
+const splitLines = (text: string): string[] =>
+  text
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
+
+const linesOf = (turn: ChatTurn): Line[] =>
+  splitLines(turn.text).map((text, index) => ({ id: `${turn.id}:${index}`, text }))
+
+/**
  * 続けて喋った分をひと塊にまとめる。
  *
  * 表示のための純関数なので、ここに通信も状態も持たせない。
@@ -46,24 +66,22 @@ export const groupTurns = (turns: ChatTurn[]): Item[] => {
       continue
     }
 
+    const lines = linesOf(turn)
+
     // 返答待ちのあいだ積まれている空の行は、中身が届くまで置かない。
-    if (turn.role === 'assistant' && turn.text.length === 0) {
+    // 最初の一文字が改行だったときも同じ扱いにしたいので、割った結果で見る。
+    if (turn.role === 'assistant' && lines.length === 0) {
       continue
     }
 
     const last = items[items.length - 1]
 
     if (last !== undefined && last.kind === 'block' && last.role === turn.role) {
-      last.lines.push({ id: turn.id, text: turn.text })
+      last.lines.push(...lines)
       continue
     }
 
-    items.push({
-      kind: 'block',
-      id: turn.id,
-      role: turn.role,
-      lines: [{ id: turn.id, text: turn.text }],
-    })
+    items.push({ kind: 'block', id: turn.id, role: turn.role, lines })
   }
 
   return items

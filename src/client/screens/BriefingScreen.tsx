@@ -41,38 +41,50 @@ export const BriefingScreen = ({ scenario, onRead }: Props) => {
   const paragraphs = useMemo(() => toParagraphs(scenario.briefing), [scenario.briefing])
 
   return (
-    <div className="screen-enter relative flex min-h-dvh flex-col bg-sumi px-[18px] pt-[30px] text-kinari lg:px-0 lg:pt-0">
+    <div className="screen-enter relative flex h-dvh flex-col overflow-hidden bg-sumi text-kinari lg:items-center">
       {/*
-        記録の見出し。端末では本文の頭に流れの中で置き、デスクトップでは画面の左上へ逃がす。
-        本文の段の上に居座らせると 640px の段が見出しのぶんだけ下がり、上下の霞が非対称になる。
-        霞より上（z-20）に置くのは、霞が本文にだけ掛かるものだから。
+        器そのものを、この下の段だけ overflow-y-auto で送る。長い記録でも書いている先が
+        霞の下へ潜らず、追いきれる。器の外（見出し・霞・読み飛ばし）は送らない。
+        スクロールバーは出さない——見出しの視認性ではなく、罫線と余白で組む意匠に
+        棒が一本混じるのが浮くため。
       */}
-      <h1 className="z-20 font-mono text-[9.5px] text-nezumi-dim leading-[1.75] tracking-[0.24em] lg:absolute lg:top-[26px] lg:left-[60px] lg:text-[10px]">
+      <div className="min-h-0 flex-1 overflow-y-auto px-[18px] pt-[30px] [scrollbar-width:none] lg:mx-auto lg:w-[640px] lg:flex-none lg:px-0 lg:pt-[96px] lg:pb-[180px] [&::-webkit-scrollbar]:hidden">
+        {/*
+          記録の見出し。端末では本文の頭に流れの中で置き、器と一緒に送る。デスクトップでは
+          画面の左上に逃がし、器の外（霞より上、z-20）に固定して送らせない。
+        */}
+        <h1 className="font-mono text-[9.5px] text-nezumi-dim leading-[1.75] tracking-[0.24em] lg:hidden">
+          記録
+        </h1>
+
+        {/*
+          語りの組み。本格ミステリの文庫はゴシックで組まないので、地の文だけを明朝にして
+          会話とUIのゴシックから切り離す。デスクトップは画面から目までの距離が遠いぶん
+          字を起こし、行間と字送りも広げる。同じ組みのままだと痩せて読みにくい。
+        */}
+        <div className="mt-[26px] font-mincho text-[14.5px] leading-[2.5] tracking-[0.04em] lg:mt-0 lg:text-[17px] lg:leading-[2.6] lg:tracking-[0.05em]">
+          {paragraphs.map((paragraph) => (
+            <p key={paragraph} className="mb-5 whitespace-pre-wrap last:mb-0 lg:mb-[30px]">
+              {paragraph}
+            </p>
+          ))}
+        </div>
+      </div>
+
+      {/* デスクトップの見出し。器の外に固定し、送っても動かない。 */}
+      <h1 className="absolute top-[26px] left-[60px] z-20 hidden font-mono text-[10px] text-nezumi-dim leading-[1.75] tracking-[0.24em] lg:block">
         記録
       </h1>
 
       {/*
-        語りの組み。本格ミステリの文庫はゴシックで組まないので、地の文だけを明朝にして
-        会話とUIのゴシックから切り離す。デスクトップは画面から目までの距離が遠いぶん
-        字を起こし、行間と字送りも広げる。同じ組みのままだと痩せて読みにくい。
-      */}
-      <div className="mt-[26px] font-mincho text-[14.5px] leading-[2.5] tracking-[0.04em] lg:mx-auto lg:mt-0 lg:w-[640px] lg:pt-[96px] lg:text-[17px] lg:leading-[2.6] lg:tracking-[0.05em]">
-        {paragraphs.map((paragraph) => (
-          <p key={paragraph} className="mb-5 whitespace-pre-wrap last:mb-0 lg:mb-[30px]">
-            {paragraph}
-          </p>
-        ))}
-      </div>
-
-      {/*
         端末の霞は本文の末尾に重ねる一枚だけ。画面の下端に置くと、本文と読み飛ばしの
-        あいだの空きに掛かるだけで何も霞まない。負の margin で本文の裾に食い込ませ、
-        読み終わりがそのまま闇へ落ちるように見せる。
+        あいだの空きに掛かるだけで何も霞まない。負の margin で器の裾に食い込ませ、
+        送られてきた文がそのまま闇へ落ちるように見せる。
       */}
       <div className="pointer-events-none relative -mt-[90px] h-[90px] bg-gradient-to-b from-transparent to-sumi lg:hidden" />
 
       {/*
-        デスクトップの霞は画面の上下に据える。本文は 96px から始まるので、
+        デスクトップの霞は画面の上下に据える。器は 96px から始まるので、
         一行目が薄闇の中から立ち上がってくる。150px あるのは、90px では細い帯にしか見えず、
         字が線で切られたように出入りするため。
       */}

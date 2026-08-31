@@ -211,7 +211,7 @@
      * 表の上でひとつだけの印なので、条件が揃うまで出さない。
      */
     if (opts.clash) {
-      var top = (toMin('18:36') - SPAN.from) * PX_PER_MIN
+      const top = (toMin('18:36') - SPAN.from) * PX_PER_MIN
       html +=
         '<span class="clash" style="top:' +
         top +
@@ -408,14 +408,11 @@
              * 最大の終わりを取ると、離れた後半の線（牧野なら 19:08 の郵便窓口）を拾って
              * 区間が一点に潰れ、註が死亡推定の線の上に落ちる。
              */
-            var overlapEnd = toMin(s.from)
-            mine
+            const overlapEnd = mine
               .filter((m) => m.who === p.key && m.kind === 'solid')
               .filter((m) => toMin(m.from) < toMin(s.to) && toMin(m.to) > toMin(s.from))
-              .forEach((m) => {
-                overlapEnd = Math.max(overlapEnd, Math.min(toMin(m.to), toMin(s.to)))
-              })
-            var gapTop = (overlapEnd - SPAN.from) * PX_PER_MIN
+              .reduce((acc, m) => Math.max(acc, Math.min(toMin(m.to), toMin(s.to))), toMin(s.from))
+            const gapTop = (overlapEnd - SPAN.from) * PX_PER_MIN
             html +=
               '<span class="gapnote" style="top:' +
               gapTop +
@@ -453,6 +450,87 @@
     var h = Math.floor(min / 60)
     var m = min % 60
     return (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m
+  }
+
+  /*
+   * 記録の読み上げ。
+   *
+   * 一字ずつ現し、書いている先が器の底に着いたらせり上げる。読み上げという名前の
+   * 画面なのに全文が最初から出ていて、しかも長いと最後の段落が霞の下へ潜ったまま
+   * 取り出せなかった。器を送るのは書いている先を追うためで、演出のためではない。
+   *
+   * 中身は innerHTML を一度組んでから、テキストノードだけを空にして戻していく。
+   * 一文字ずつ足し算で組み立てると <em> のような印が壊れる。
+   *
+   * #done=1 と「動きを控える」設定では最初から全文を出す。storyboard の一覧や
+   * 画面の撮影で、毎回ちがう途中経過が写らないように。
+   */
+  var readOut = (el, html, opts = {}) => {
+    el.innerHTML = html
+    var scroller = opts.scroller === undefined ? el : opts.scroller
+
+    var parts = []
+    var walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null)
+    var node = walk.nextNode()
+    for (; node; node = walk.nextNode()) {
+      parts.push({ node: node, text: node.nodeValue })
+      node.nodeValue = ''
+    }
+
+    var showAll = () => {
+      parts.forEach((p) => {
+        p.node.nodeValue = p.text
+      })
+      scroller.scrollTop = scroller.scrollHeight
+    }
+
+    var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (params.done === '1' || reduced) {
+      showAll()
+      return { finish: showAll }
+    }
+
+    /* 自分で上へ戻した人を引き戻さない。底の近くにいるあいだだけ追う。 */
+    var stick = true
+    scroller.addEventListener('scroll', () => {
+      stick = scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight < 40
+    })
+
+    var speed = opts.speed === undefined ? 46 : opts.speed
+    var at = 0
+    var k = 0
+    var timer = null
+
+    var step = () => {
+      /* 空になった段落は読み飛ばす。while は使えないので for で数える。 */
+      for (; at < parts.length && k >= parts[at].text.length; at += 1) {
+        k = 0
+      }
+      if (at >= parts.length) {
+        timer = null
+        return
+      }
+      var ch = parts[at].text.charAt(k)
+      parts[at].node.nodeValue += ch
+      k += 1
+      if (stick) scroller.scrollTop = scroller.scrollHeight
+
+      /* 息継ぎ。句点で長く、読点で少し、段落の切れ目でもう一拍。 */
+      var wait = speed
+      if (k >= parts[at].text.length) wait = speed * 11
+      else if ('。！？'.indexOf(ch) >= 0) wait = speed * 8
+      else if ('、」—'.indexOf(ch) >= 0) wait = speed * 3
+      timer = setTimeout(step, wait)
+    }
+    timer = setTimeout(step, 420)
+
+    return {
+      finish: () => {
+        if (timer) clearTimeout(timer)
+        timer = null
+        showAll()
+      },
+    }
   }
 
   /*
@@ -539,6 +617,7 @@
     log: log,
     compare: compare,
     clock: clock,
+    readOut: readOut,
     ids: setIds,
     refresh: draw,
     // 各画面の最後に呼ぶ。ハッシュで #ids=1 が来ていたら最初から出す。

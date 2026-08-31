@@ -35,6 +35,13 @@
   --mincho: "Shippori Mincho B1", "Hiragino Mincho ProN", "Yu Mincho", serif;
   --gothic: "Zen Kaku Gothic New", "Hiragino Sans", "Noto Sans JP", sans-serif;
   --mono: "Roboto Mono", ui-monospace, monospace;
+
+  /*
+   * 右半分の実寸。読める行長 40em（560px）＋ 左右の padding 34px。
+   * 左右に割る画面はすべてこの一つの値から幅を採る——机の四画面も、
+   * 机の手前にある「探偵を決める」も。幅の出どころを増やすと必ずずれる。
+   */
+  --work-w: 628px;
 }
 
 * {
@@ -125,9 +132,15 @@ select {
   border: 0;
   padding: 0;
 }
+/*
+ * 実寸を持つのは右。会話はある行長を超えると読みにくくなるだけなので上限で止め、
+ * 余った横幅はすべて左の表へ回す——机の主役はあくまで表のほう。
+ * 以前は左を 524px で固定していたが、それだと列が四本入りきらず、
+ * 証言の但し書きが二行に折れていた。
+ */
 .desk > .panes {
   display: grid;
-  grid-template-columns: 524px 1fr;
+  grid-template-columns: 1fr var(--work-w);
   min-height: 0;
 }
 .board {
@@ -137,8 +150,10 @@ select {
   flex-direction: column;
   min-height: 0;
 }
+/* 行長を守るのは .work の役目。中の部品は幅を持たず、これに従う。 */
 .work {
   padding: 24px 34px 22px;
+  max-width: var(--work-w);
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -241,17 +256,16 @@ select {
   background: none !important;
   border-left: 1px dashed currentColor;
 }
-/* 列幅は 108px しかない。はみ出させると隣の列の記述と混ざって、
-   どちらの人の話か分からなくなる。折り返してでも列の中に留める。 */
-/* 列幅は 108px しかない。はみ出させると隣の列の記述と混ざって、
-   どちらの人の話か分からなくなる。折り返してでも列の中に留める。
+/* はみ出させると隣の列の記述と混ざって、どちらの人の話か分からなくなる。
+   折り返してでも列の中に留める。
    幅は max-width ではなく実寸で持たせる——親の .bar は 3px しかなく、
-   max-width だとそちらに合わせて一文字ずつ縦に折れる。 */
+   max-width だとそちらに合わせて一文字ずつ縦に折れる。
+   列幅 140px から、.bar の left:17px と下の left:11px を引いた残りがこの 111px。 */
 .bar .pl {
   position: absolute;
   left: 11px;
   top: 0;
-  width: 78px;
+  width: 111px;
   font-size: 11px;
   line-height: 1.5;
   color: var(--nezumi);
@@ -263,7 +277,7 @@ select {
   position: absolute;
   left: 11px;
   top: 15px;
-  width: 78px;
+  width: 111px;
   font-family: var(--mono);
   font-variant-numeric: tabular-nums;
   font-size: 10.5px;
@@ -572,7 +586,7 @@ select {
 
 /* 最新の発話を下端に置き、上は溢れるに任せる。切れ口に霞をかけて、
    途切れではなく「まだ上に続いている」ことを示す。
-   行長を 40em で止めるのは幅を余らせているのではなく、会話が読める長さを守るため。 */
+   行長は .work の最大幅が決める——ここでは持たない。 */
 .log {
   position: relative;
   flex: 1;
@@ -583,7 +597,6 @@ select {
   flex-direction: column;
   justify-content: flex-end;
   gap: 20px;
-  max-width: 40em;
 }
 .log::after {
   content: "";
@@ -638,7 +651,6 @@ select {
   flex-direction: column;
   border-top: 1px solid var(--keisen);
   margin-top: 20px;
-  max-width: 40em;
 }
 .hint .hd {
   display: flex;
@@ -659,7 +671,6 @@ select {
   gap: 12px;
   align-items: flex-end;
   margin-top: 16px;
-  max-width: 40em;
 }
 .askbar .box {
   flex: 1;
@@ -673,11 +684,6 @@ select {
   padding: 8px 22px;
   font-size: 13px;
   flex: none;
-}
-
-/* ================= 右半分・告発 ================= */
-.acc {
-  max-width: 640px;
 }
 
 /* ================= 右半分・結果 ================= */
@@ -831,9 +837,22 @@ select {
   display: flex;
   justify-content: center;
 }
+/*
+ * 器そのものを送る。長い記録でも書いている先が見えつづけ、読み終えたあと
+ * 手で上へ戻すこともできる。下の余白は霞（150px）より厚くとって、
+ * 書いている先が霞の下へ潜らないようにする。
+ * 帯は出さない——霞が続きを示しているので、その上に棒を重ねると絵が濁る。
+ */
 .brief .stage {
   width: 640px;
+  height: 100%;
   padding-top: 96px;
+  padding-bottom: 180px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.brief .stage::-webkit-scrollbar {
+  display: none;
 }
 .brief .crawl {
   font-family: var(--mincho);

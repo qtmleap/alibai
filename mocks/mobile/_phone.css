@@ -166,8 +166,17 @@ textarea {
 }
 
 /* --- 2 事件の記録 --- */
+/* 机と同じく器を送る。下の余白は霞（90px）より厚くとる。 */
 .p-brief {
+  flex: 1;
+  min-height: 0;
   padding-top: 30px;
+  padding-bottom: 120px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.p-brief::-webkit-scrollbar {
+  display: none;
 }
 .p-brief .crawl {
   font-family: var(--mincho);

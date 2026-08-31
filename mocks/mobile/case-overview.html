@@ -16,7 +16,14 @@
       .p-ov a { text-decoration: none; color: inherit; display: block; }
       /* 名簿の行は押せる。押せるものを div のままにしない。 */
       .cast button.r { background: none; border: 0; font: inherit; color: inherit; text-align: left; width: 100%; }
-      .modes span { cursor: pointer; }
+
+      /*
+        押す物は端末の下端へ落とす。名簿の直後に置くと、人数や肩書きの行数で
+        ボタンの高さが毎回変わり、親指の行き先が定まらない。
+        .p-ov はもともと縦の flex なので、高さを持たせて余りを .foot の上へ送るだけでいい。
+      */
+      .p-ov { flex: 1; min-height: 0; }
+      .foot { margin-top: auto; padding-bottom: 24px; display: flex; flex-direction: column; gap: 11px; }
     </style>
   </head>
   <body>
@@ -42,14 +49,10 @@
           <div class="cast" id="cast" style="margin-top: 8px" data-mock-id="ALI_OVW_06"></div>
         </div>
 
-        <div>
-          <div class="label">手がかりの見え方</div>
-          <div class="modes" id="modes" style="margin-top: 8px" data-mock-id="ALI_OVW_08"></div>
-          <div class="dim" id="fine" style="font-size: 10.5px; margin-top: 7px"></div>
+        <div class="foot">
+          <a class="go" id="go" data-mock-id="ALI_OVW_09"></a>
+          <a class="again" href="./briefing.html" data-mock-id="ALI_OVW_10">事件の記録をもう一度読む</a>
         </div>
-
-        <a class="go" id="go" data-mock-id="ALI_OVW_09"></a>
-        <a class="again" href="./briefing.html" data-mock-id="ALI_OVW_10">事件の記録をもう一度読む</a>
       </div>
     </div>
 
@@ -58,7 +61,6 @@
     <script>
       ;(function () {
         var C = Mock.case
-        var modeKey = Mock.str('mode', 'normal')
         var pick = Mock.str('who', C.cast[0].key)
 
         document.getElementById('ttl').innerHTML = C.titleBreak
@@ -97,33 +99,15 @@
           })
           .join('')
 
-        document.getElementById('modes').innerHTML = C.modes
-          .map(function (m) {
-            return '<span class="' + (m.key === modeKey ? 'on' : '') + '" data-mode="' + m.key + '">' + m.name + '</span>'
-          })
-          .join('')
-
-        document.getElementById('fine').textContent = C.modes.filter(function (m) {
-          return m.key === modeKey
-        })[0].fine
-
         var who = Mock.cast[pick]
         var go = document.getElementById('go')
         go.textContent = who.name + 'に聞き込みをする'
         go.href = './interrogation.html#turn=1&who=' + pick
 
-        var reload = function (mode, w) {
-          location.hash = 'mode=' + mode + '&who=' + w
-          location.reload()
-        }
         Array.prototype.forEach.call(document.querySelectorAll('[data-who]'), function (el) {
           el.addEventListener('click', function () {
-            reload(modeKey, el.dataset.who)
-          })
-        })
-        Array.prototype.forEach.call(document.querySelectorAll('[data-mode]'), function (el) {
-          el.addEventListener('click', function () {
-            reload(el.dataset.mode, pick)
+            location.hash = 'who=' + el.dataset.who
+            location.reload()
           })
         })
 

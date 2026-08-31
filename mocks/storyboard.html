@@ -165,10 +165,10 @@
         <h2><span class="pfx">ALI_BRF</span>事件の記録</h2>
         <p class="note">机の手前。ここだけ表を出さず、本文がせり上がる。読み終えると支度の画面で机が組み上がる。</p>
         <div class="state">
-          <div class="cap"><span class="nm">読み上げ</span><span class="hash">—</span></div>
+          <div class="cap"><span class="nm">読み上げ（読み終えたところ）</span><span class="hash">#done=1</span></div>
           <div class="pair">
-            <div class="paper desk"><iframe src="./desktop/briefing.html"></iframe></div>
-            <div class="paper phone"><iframe src="./mobile/briefing.html"></iframe></div>
+            <div class="paper desk"><iframe src="./desktop/briefing.html#done=1"></iframe></div>
+            <div class="paper phone"><iframe src="./mobile/briefing.html#done=1"></iframe></div>
           </div>
         </div>
       </section>
@@ -178,19 +178,13 @@
         <p class="note">
           表はまだ白紙。線を引くのがこれから始まる仕事だと、先に見せておく。
           机では記録を左に開いたまま右で決められるので、端末にある「もう一度読む」が要らない。
+          手がかりの見え方はこの画面では選ばない——最初に一度決めるものなので、ここに毎回出さない。
         </p>
         <div class="state">
-          <div class="cap"><span class="nm">Normal</span><span class="hash">#mode=normal</span></div>
+          <div class="cap"><span class="nm">誰から聞くかを決める</span><span class="hash">—</span></div>
           <div class="pair">
-            <div class="paper desk"><iframe src="./desktop/case-overview.html#mode=normal"></iframe></div>
-            <div class="paper phone"><iframe src="./mobile/case-overview.html#mode=normal"></iframe></div>
-          </div>
-        </div>
-        <div class="state">
-          <div class="cap"><span class="nm">No Hope（手がかりを出さない）</span><span class="hash">#mode=nohope</span></div>
-          <div class="pair">
-            <div class="paper desk"><iframe src="./desktop/case-overview.html#mode=nohope"></iframe></div>
-            <div class="paper phone"><iframe src="./mobile/case-overview.html#mode=nohope"></iframe></div>
+            <div class="paper desk"><iframe src="./desktop/case-overview.html"></iframe></div>
+            <div class="paper phone"><iframe src="./mobile/case-overview.html"></iframe></div>
           </div>
         </div>
       </section>

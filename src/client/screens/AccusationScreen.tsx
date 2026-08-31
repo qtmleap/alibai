@@ -187,7 +187,7 @@ export const AccusationScreen = ({
         className={
           timeWindow === null
             ? 'flex min-h-0 flex-1 flex-col'
-            : 'flex min-h-0 flex-1 flex-col lg:grid lg:grid-cols-[524px_1fr]'
+            : 'flex min-h-0 flex-1 flex-col lg:grid lg:grid-cols-[1fr_628px]'
         }
       >
         {timeWindow === null ? null : (
@@ -408,6 +408,9 @@ const Field = ({
       // 書くほどに伸びると、下にある提出ボタンが逃げていく。高さは段組みが決める。
       className="field-sizing-fixed min-h-[42px] resize-none px-[11px] py-[9px] text-[12px] lg:min-h-0 lg:flex-1 lg:px-4 lg:py-[14px] lg:text-[13.5px] lg:leading-[1.95]"
     />
-    <p className="hidden pt-2 text-[11.5px] text-nezumi-dim leading-[1.7] lg:block">{hint}</p>
+    {/* 二列に割ると但し書きの最終行に一文字だけが落ちる。二行を均して泣き別れを避ける。 */}
+    <p className="hidden pt-2 text-[11.5px] text-nezumi-dim leading-[1.7] lg:block lg:text-balance">
+      {hint}
+    </p>
   </div>
 )

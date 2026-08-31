@@ -14,13 +14,11 @@ import {
   AlertDialogTrigger,
 } from '@/client/components/ui/alert-dialog'
 import { Button } from '@/client/components/ui/button'
-import { ToggleGroup, ToggleGroupItem } from '@/client/components/ui/toggle-group'
 import { createSession, describeError } from '@/client/lib/api'
 import { activeDetective, loadDetectiveStore, toDetective } from '@/client/lib/detective-store'
-import { loadGameMode, saveGameMode } from '@/client/lib/game-mode-store'
-import type { CreateSessionResponse, GameMode, ScenarioDetail } from '@/client/lib/schemas'
+import { loadGameMode } from '@/client/lib/game-mode-store'
+import type { CreateSessionResponse, ScenarioDetail } from '@/client/lib/schemas'
 import { railSpanMinutes } from '@/client/lib/time-rail'
-import { GAME_MODE_LABELS, GAME_MODE_NOTES, GAME_MODES } from '~/db/game-mode'
 
 /** 節の見出し。等幅なのは書式であって時刻ではないので、値には使わない。 */
 const LEGEND =
@@ -91,11 +89,16 @@ type Props = {
  *
  * 机の上では左右に割る。左はまだ一本も線の立っていないアリバイ表で、聞き込みが
  * 始まる前から据え置く——何も置かれていない表を先に見せておくと、これから何を
- * 埋めていく遊びなのかが、最初の一問より前に分かる。右が支度の面で、記録を読み
- * ながら誰から聞くかと難易度を決められる。
+ * 埋めていく遊びなのかが、最初の一問より前に分かる。右が支度の面で、上から
+ * 記録・名簿・開始と一列に積む。記録だけが縦に伸び縮みしてここだけスクロールし、
+ * 入りきらないときは切れ口に霞をかけて続きがあることを示す。
  *
  * 端末では一列。表を出す幅が無いので時刻軸だけを置き、記録は別の画面に譲って
  * 「もう一度読む」への導線を残す。
+ *
+ * 手がかりの見え方（難易度）はここでは選べない。事件ごとに選び直すものではなく、
+ * 事件を選ぶ前に一度だけ決めるものなので、選択は ScenarioSelectScreen 側にある。
+ * ここでは前回の選択を読んで開始時にそのまま使うだけ。
  *
  * セッション開始（POST /api/sessions）はこの画面の「聞き込みを始める」で行う。
  * ここより前で作ってしまうと、記録を読んでいる時間まで solvedSeconds に乗る。
@@ -118,8 +121,8 @@ export const CaseOverviewScreen = ({
   // 探偵の設定画面が localStorage に書いた選択を読む。名乗らずに始めた場合は undefined。
   const [stored] = useState(() => activeDetective(loadDetectiveStore()))
   const detective = stored === undefined ? undefined : toDetective(stored)
-  // 前回選んだ難易度から始める。事件ごとに選び直すものではない。
-  const [mode, setMode] = useState<GameMode>(() => loadGameMode())
+  // 難易度は事件を選ぶ前に決めたもの。ここでは読むだけで、選び直しはしない。
+  const [mode] = useState(() => loadGameMode())
   /*
    * まず誰から聞くか。
    *
@@ -150,11 +153,6 @@ export const CaseOverviewScreen = ({
           },
         ]
 
-  const chooseMode = (next: GameMode) => {
-    setMode(next)
-    saveGameMode(next)
-  }
-
   const handleStart = () => {
     setStarting(true)
     setError(undefined)
@@ -176,7 +174,7 @@ export const CaseOverviewScreen = ({
         : `${chosen.name}に聞き込みをする`
 
   return (
-    <div className="screen-enter mx-auto flex min-h-dvh max-w-md flex-col gap-[17px] bg-sumi px-[18px] py-6 text-kinari lg:grid lg:h-dvh lg:max-w-none lg:grid-cols-[524px_minmax(0,1fr)] lg:grid-rows-[46px_minmax(0,1fr)] lg:gap-0 lg:p-0">
+    <div className="screen-enter mx-auto flex min-h-dvh max-w-md flex-col gap-[17px] bg-sumi px-[18px] py-6 text-kinari lg:grid lg:h-dvh lg:max-w-none lg:grid-cols-[minmax(0,1fr)_628px] lg:grid-rows-[46px_minmax(0,1fr)] lg:gap-0 lg:p-0">
       {/*
         上部バーは薄く、机の面を最大に取る。降りる口はここひとつ。押した瞬間に
         落ちると事故になるので、AlertDialog で必ず一度確かめる。
@@ -282,158 +280,116 @@ export const CaseOverviewScreen = ({
           </div>
         )}
 
-        <div className="contents lg:grid lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:gap-x-10 lg:pt-5">
-          {/*
-            事件の記録。机の上では読みながら選べるので、別の画面へ往復しなくていい。
-            行長を 34em で締めるのは、ここが唯一の読み物だから。
-          */}
-          <div className="hidden lg:block lg:min-h-0 lg:overflow-y-auto lg:pr-[26px]">
-            <span className={`${LEGEND} pb-3`}>事件の記録</span>
-            <div className="flex flex-col gap-[15px]">
-              {paragraphs.map((paragraph, index) => (
-                <p
-                  key={paragraph}
-                  className={
-                    index === 0
-                      ? 'max-w-[34em] text-[12.5px] text-nezumi-dim leading-[2.05] tracking-[0.06em]'
-                      : 'max-w-[34em] text-[13.5px] text-nezumi leading-[2.05]'
-                  }
-                >
-                  {paragraph}
-                </p>
-              ))}
-            </div>
+        {/*
+          事件の記録。机の上では読みながら選べるので、別の画面へ往復しなくていい。
+          行長を 34em で締めるのは、ここが唯一の読み物だから。ここだけが縦に
+          伸び縮みしてスクロールする——左の名簿と開始ボタンは記録の長さで動かない。
+        */}
+        <div className="hidden lg:flex lg:min-h-0 lg:flex-1 lg:flex-col lg:overflow-y-auto lg:pt-5 lg:pr-[26px] lg:pb-1">
+          <span className={`${LEGEND} pb-3`}>事件の記録</span>
+          <div className="flex flex-col gap-[15px]">
+            {paragraphs.map((paragraph, index) => (
+              <p
+                key={paragraph}
+                className={
+                  index === 0
+                    ? 'max-w-[34em] text-[12.5px] text-nezumi-dim leading-[2.05] tracking-[0.06em]'
+                    : 'max-w-[34em] text-[13.5px] text-nezumi leading-[2.05]'
+                }
+              >
+                {paragraph}
+              </p>
+            ))}
           </div>
+        </div>
 
-          {/* 二列のあいだは罫線で仕切る。余白だけだと、机の上で紙が二枚に見えない。 */}
-          <div className="contents lg:-ml-10 lg:flex lg:min-h-0 lg:flex-col lg:border-keisen lg:border-l lg:pl-10">
-            {/*
-              名前を並べるだけだと、誰に会うのかは分かっても、どんな相手かが分からない。
-              顔料と一言を添えて、聞き込みの相手として頭に入る形にする。
-            */}
-            <div>
-              <h2 className={`${LEGEND} pb-2 lg:pb-[7px]`}>まず誰から話を聞くか</h2>
-              <ul className="flex flex-col border-keisen border-t">
-                {scenario.characters.map((character, index) => (
-                  <li key={character.id} className="border-keisen border-b">
-                    <button
-                      type="button"
-                      onClick={() => setFirstTarget(character.id)}
-                      aria-pressed={character.id === firstTarget}
-                      className="flex w-full items-center gap-2.5 py-[7px] text-left lg:gap-3 lg:py-2.5"
-                    >
-                      <CharacterAvatar
-                        name={character.name}
-                        index={index}
-                        active={character.id === firstTarget}
-                      />
-                      <span className="flex min-w-0 flex-col gap-px">
-                        <span
-                          className={`text-[13px] leading-[1.75] lg:text-[13.5px] lg:leading-[1.5] ${inkOf(index)}`}
-                        >
-                          {character.name}
-                        </span>
-                        <span className="text-[10.5px] text-nezumi-dim leading-[1.6] lg:text-[11.5px]">
-                          {character.publicIntroduction}
-                        </span>
-                      </span>
-                    </button>
-                  </li>
-                ))}
-
-                {/*
-                  亡くなった人も同じ列に並べる。別枠にすると、事件のあいだ誰がその場に
-                  いたのかという一覧が二つに割れる。話しかけられないことは右端のラベルと、
-                  押せないことで足りている。
-                */}
-                {scenario.victim !== null && (
-                  <li className="border-keisen border-b">
-                    <button
-                      type="button"
-                      disabled
-                      className="flex w-full items-center gap-2.5 py-[7px] text-left lg:gap-3 lg:py-2.5"
-                    >
-                      <CharacterAvatar
-                        name={scenario.victim.name}
-                        index={scenario.characters.length}
-                      />
-                      <span className="flex min-w-0 flex-col gap-px">
-                        <span
-                          className={`text-[13px] leading-[1.75] lg:text-[13.5px] lg:leading-[1.5] ${inkOf(scenario.characters.length)}`}
-                        >
-                          {scenario.victim.name}
-                        </span>
-                        <span className="text-[10.5px] text-nezumi-dim leading-[1.6] lg:text-[11.5px]">
-                          {scenario.victim.introduction}
-                        </span>
-                      </span>
-                      <span className="ml-auto shrink-0 text-[10px] text-nezumi-dim tracking-[0.1em] lg:text-[10.5px]">
-                        被害者
-                      </span>
-                    </button>
-                  </li>
-                )}
-              </ul>
-            </div>
-
-            {/*
-              余った縦は名簿と難易度のあいだへ送る。難易度と開始のあいだに空けると、
-              選んだ直後に押す物が遠のいて、繋がっているはずの二つが切り離されて見える。
-            */}
-            <div className="contents lg:mt-auto lg:block">
-              {/*
-                難易度は「事件の難しさ」ではなく「どこまで教えてもらうか」の選択。
-                始めたら変えられないので、聞き込みに入る直前のここで決める。
-              */}
-              <fieldset disabled={inProgress} className="lg:mt-6">
-                <legend className={`${LEGEND} pb-2 lg:pb-[7px]`}>
-                  手がかりの見え方{inProgress ? '（この事件では変えられません）' : ''}
-                </legend>
-                {/* 四段階は順に並ぶものなので、横に等分して選んだものだけ起こす。 */}
-                <ToggleGroup
-                  type="single"
-                  variant="segment"
-                  value={mode}
-                  onValueChange={(value) => {
-                    const picked = GAME_MODES.find((option) => option === value)
-
-                    if (picked !== undefined) {
-                      chooseMode(picked)
-                    }
-                  }}
+        {/*
+          名前を並べるだけだと、誰に会うのかは分かっても、どんな相手かが分からない。
+          顔料と一言を添えて、聞き込みの相手として頭に入る形にする。
+          机の上では記録の直下、罫線で区切って置く。記録が入りきらないときは、
+          罫のところで断ち切れる——切れ口に霞をかけて、途切れではなく続きがある
+          ことを示す(聞き込みの記録欄と同じ手)。
+        */}
+        <div className="lg:relative lg:mt-6 lg:flex-none lg:border-keisen lg:border-t lg:pt-[18px] lg:before:pointer-events-none lg:before:absolute lg:before:inset-x-0 lg:before:bottom-full lg:before:h-[46px] lg:before:bg-gradient-to-t lg:before:from-sumi lg:before:to-transparent lg:before:content-['']">
+          <h2 className={`${LEGEND} pb-2 lg:pb-[7px]`}>まず誰から話を聞くか</h2>
+          {/* 一列に積むと四人で三百px を占め、記録が二行しか残らない。机の上だけ二列に畳む。 */}
+          <ul className="flex flex-col border-keisen border-t lg:grid lg:grid-cols-2 lg:gap-x-[30px]">
+            {scenario.characters.map((character, index) => (
+              <li key={character.id} className="border-keisen border-b">
+                <button
+                  type="button"
+                  onClick={() => setFirstTarget(character.id)}
+                  aria-pressed={character.id === firstTarget}
+                  className="flex w-full items-center gap-2.5 py-[7px] text-left lg:gap-3 lg:py-2.5"
                 >
-                  {GAME_MODES.map((option) => (
-                    <ToggleGroupItem key={option} value={option}>
-                      {GAME_MODE_LABELS[option]}
-                    </ToggleGroupItem>
-                  ))}
-                </ToggleGroup>
-                <p className="mt-[7px] text-[10.5px] text-nezumi-dim leading-[1.75] lg:mt-2 lg:text-[11.5px]">
-                  {GAME_MODE_NOTES[mode]}
-                </p>
-              </fieldset>
-
-              {error !== undefined && <p className="text-nezumi text-sm">{error}</p>}
-
-              <div className="contents lg:block lg:pt-[18px]">
-                <Button
-                  size="block"
-                  onClick={inProgress ? onResume : handleStart}
-                  disabled={starting}
-                >
-                  {startLabel}
-                </Button>
-              </div>
-            </div>
+                  <CharacterAvatar
+                    name={character.name}
+                    index={index}
+                    active={character.id === firstTarget}
+                  />
+                  <span className="flex min-w-0 flex-col gap-px">
+                    <span
+                      className={`text-[13px] leading-[1.75] lg:text-[13.5px] lg:leading-[1.5] ${inkOf(index)}`}
+                    >
+                      {character.name}
+                    </span>
+                    <span className="text-[10.5px] text-nezumi-dim leading-[1.6] lg:text-[11.5px]">
+                      {character.publicIntroduction}
+                    </span>
+                  </span>
+                </button>
+              </li>
+            ))}
 
             {/*
-              記録は端末では別の画面なので、戻る道を残す。
-              机の上では左に開いたままなので、この往復は要らない。
+              亡くなった人も同じ列に並べる。別枠にすると、事件のあいだ誰がその場に
+              いたのかという一覧が二つに割れる。話しかけられないことは右端のラベルと、
+              押せないことで足りている。
             */}
-            <Button variant="ghost" size="sm" onClick={onBack} className="lg:hidden">
-              事件の記録をもう一度読む
+            {scenario.victim !== null && (
+              <li className="border-keisen border-b">
+                <button
+                  type="button"
+                  disabled
+                  className="flex w-full items-center gap-2.5 py-[7px] text-left lg:gap-3 lg:py-2.5"
+                >
+                  <CharacterAvatar name={scenario.victim.name} index={scenario.characters.length} />
+                  <span className="flex min-w-0 flex-col gap-px">
+                    <span
+                      className={`text-[13px] leading-[1.75] lg:text-[13.5px] lg:leading-[1.5] ${inkOf(scenario.characters.length)}`}
+                    >
+                      {scenario.victim.name}
+                    </span>
+                    <span className="text-[10.5px] text-nezumi-dim leading-[1.6] lg:text-[11.5px]">
+                      {scenario.victim.introduction}
+                    </span>
+                  </span>
+                  <span className="ml-auto shrink-0 text-[10px] text-nezumi-dim tracking-[0.1em] lg:text-[10.5px]">
+                    被害者
+                  </span>
+                </button>
+              </li>
+            )}
+          </ul>
+        </div>
+
+        {/* 名簿を選んだ直後に押すものなので、間を空けずすぐ下に置く。 */}
+        <div className="flex-none lg:mt-0 lg:pt-[18px]">
+          {error !== undefined && <p className="text-nezumi text-sm">{error}</p>}
+
+          <div className="contents lg:block">
+            <Button size="block" onClick={inProgress ? onResume : handleStart} disabled={starting}>
+              {startLabel}
             </Button>
           </div>
+
+          {/*
+            記録は端末では別の画面なので、戻る道を残す。
+            机の上では上に開いたままなので、この往復は要らない。
+          */}
+          <Button variant="ghost" size="sm" onClick={onBack} className="lg:hidden">
+            事件の記録をもう一度読む
+          </Button>
         </div>
       </div>
     </div>

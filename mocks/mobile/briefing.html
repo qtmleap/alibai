@@ -41,11 +41,15 @@
       ;(function () {
         var C = Mock.case
         document.getElementById('no').textContent = '記録　' + C.no
-        document.getElementById('crawl').innerHTML = C.brief
-          .map(function (p) {
-            return '<p>' + p + '</p>'
-          })
-          .join('')
+        Mock.readOut(
+          document.getElementById('crawl'),
+          C.brief
+            .map(function (p) {
+              return '<p>' + p + '</p>'
+            })
+            .join(''),
+          { scroller: document.querySelector('.p-brief') },
+        )
         Mock.ready()
       })()
     </script>

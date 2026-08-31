@@ -15,35 +15,39 @@
       /*
         誰として調べるか。
 
-        机はまだ組み上がっていない——表が立つのは支度の画面からで、ここはその手前。
-        だから .desk の骨格は借りず、設定と同じ「中央に据えた紙」で組む。
+        表が立つのは支度の画面からで、ここはその手前。だから左に置くのはアリバイ表では
+        なく探偵の名簿だが、割り方は机と同じにする——区切りの位置も右の行長も
+        （--work-w から採る）。支度へ進んだ瞬間に縦罫が横へ飛ぶと、
+        同じ机に座り直した感じが切れる。
 
-        ただし一列にはしない。この画面には材質の違うものが二つある——選ぶための名簿と、
+        一列にしないのは、この画面に材質の違うものが二つあるから——選ぶための名簿と、
         一人ぶんの人物像。左右に割れば、直しているあいだも名簿が視界から消えない。
         端末では割れないので入れ替えるが、机では両方を出しておける。
       */
 
       .det {
         height: 100%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        overflow-y: auto;
-      }
-      .det .inner {
-        width: 1100px;
-        flex: 1;
+        display: grid;
+        grid-template-columns: 1fr var(--work-w);
         min-height: 0;
-        padding: 40px 0 48px;
-        display: flex;
-        flex-direction: column;
       }
       /* リンクの既定の青と下線は持ち込ませない。枠と字の明るさだけで格を分ける。 */
       .det a { text-decoration: none; }
       .back { font-size: 12.5px; color: var(--nezumi); flex: none; }
-      /* 左右とも縦に積む。左は .foot を床に着ける必要があるので高さを食わせる。 */
-      .det .split { flex: 1; min-height: 0; margin-top: 22px; }
-      .det .lt, .det .rt { display: flex; flex-direction: column; min-height: 0; }
+      /* 戻るリンクと見出しのあいだ。机では上部バーがこの間合いを持っている。 */
+      .det .wh { margin-top: 22px; }
+      /* 区切りは左列が持つ。机では .board の border-right がこれにあたる。 */
+      .det > .lt {
+        border-right: 1px solid var(--keisen);
+        padding: 34px 34px 26px 22px;
+      }
+      .det > .rt { padding: 34px 34px 26px; }
+      .det > .lt, .det > .rt {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        overflow-y: auto;
+      }
       /*
         姿見は一人ぶんしかないので、上に詰めると下に机半分ぶんの空白が残る。
         天地の真ん中に置けば、空きが「足りなかった」ではなく「そう置いた」に見える。
@@ -118,7 +122,7 @@
         年ごろは七つあり、注記まで抱えている。等分に割ると「見た目からは測れない」が
         入らないので、ここだけ中身なりの幅で折り返す。性別は四つなので .modes のまま。
       */
-      .ages { display: flex; flex-wrap: wrap; column-gap: 24px; }
+      .ages { display: flex; flex-wrap: wrap; column-gap: 24px; row-gap: 10px; }
       .ages span {
         padding: 8px 0; font-size: 12.5px; color: var(--nezumi-dim);
         border-bottom: 1px solid var(--keisen);
@@ -129,39 +133,35 @@
   </head>
   <body>
     <div class="det" data-mock-id="ALI_DET_01">
-      <div class="inner">
+      <div class="lt">
         <a class="back" href="./scenario-select.html" data-mock-id="ALI_DET_02">←　シナリオを選び直す</a>
 
-        <div class="split even">
-          <div class="lt">
-            <div class="wh" data-mock-id="ALI_DET_03">
-              <h2 id="ttl"></h2>
-              <p class="lead">
-                誰として、この事件を調べますか。<br />
-                選んだ人物像は聞き込みの相手にも伝わり、呼びかけ方や態度が変わります。
-              </p>
-            </div>
+        <div class="wh" data-mock-id="ALI_DET_03">
+          <h2 id="ttl"></h2>
+          <p class="lead">
+            誰として、この事件を調べますか。<br />
+            選んだ人物像は聞き込みの相手にも伝わり、呼びかけ方や態度が変わります。
+          </p>
+        </div>
 
-            <div class="grp">
-              <span class="label">探偵</span>
-              <div class="cast roster" id="roster" data-mock-id="ALI_DET_04"></div>
-              <p class="fine" id="none" data-mock-id="ALI_DET_17" hidden>
-                まだ探偵がいません。作るか、名乗らずに始めることもできます。
-              </p>
-              <button class="add" type="button" data-go="form=new" data-mock-id="ALI_DET_07">
-                ＋ 新しい探偵をつくる
-              </button>
-            </div>
+        <div class="grp">
+          <span class="label">探偵</span>
+          <div class="cast roster" id="roster" data-mock-id="ALI_DET_04"></div>
+          <p class="fine" id="none" data-mock-id="ALI_DET_17" hidden>
+            まだ探偵がいません。作るか、名乗らずに始めることもできます。
+          </p>
+          <button class="add" type="button" data-go="form=new" data-mock-id="ALI_DET_07">
+            ＋ 新しい探偵をつくる
+          </button>
+        </div>
 
-            <div class="foot">
-              <a class="go" id="cta" href="./briefing.html" data-mock-id="ALI_DET_08"></a>
-              <a class="again" href="./briefing.html" data-mock-id="ALI_DET_09">名乗らずに始める</a>
-            </div>
-          </div>
-
-          <div class="rt" id="rt"></div>
+        <div class="foot">
+          <a class="go" id="cta" href="./briefing.html" data-mock-id="ALI_DET_08"></a>
+          <a class="again" href="./briefing.html" data-mock-id="ALI_DET_09">名乗らずに始める</a>
         </div>
       </div>
+
+      <div class="rt" id="rt"></div>
     </div>
 
     <script src="../_case.js"></script>

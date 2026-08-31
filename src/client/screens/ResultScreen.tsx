@@ -48,7 +48,7 @@ type Props = {
 }
 
 /** 節の見出し。等幅なのは書式であって時刻ではないので、値には持ち込まない。 */
-const LEGEND = 'font-mono text-[10px] tracking-[0.24em] text-nezumi-dim'
+const LEGEND = 'font-mono text-[10px] tracking-[0.24em] text-nezumi-dim leading-[1.8]'
 
 /** 盤面の時刻。等幅で書かれていたらそれは時刻、という規則をここでも守る。 */
 const AT = 'font-mono tabular-nums'
@@ -117,7 +117,7 @@ const footOf = (main: boolean): string =>
 
 /** 判定・記録の1行。項目名と値を罫線で区切って並べるだけにする。 */
 const Row = ({ label, children }: { label: string; children: ReactNode }) => (
-  <div className="flex items-baseline justify-between gap-4 border-keisen border-b py-[9px] text-[13.5px]">
+  <div className="flex items-baseline justify-between gap-4 border-keisen border-b py-[9px] text-[13.5px] leading-[1.8]">
     <span className="text-nezumi">{label}</span>
     <span className="text-right">{children}</span>
   </div>
@@ -195,7 +195,7 @@ export const ResultScreen = ({ accuseResult, board, onRetry, onRestart }: Props)
         className={
           board === undefined
             ? 'flex min-h-0 flex-1 flex-col'
-            : 'flex min-h-0 flex-1 flex-col lg:grid lg:grid-cols-[524px_1fr]'
+            : 'flex min-h-0 flex-1 flex-col lg:grid lg:grid-cols-[1fr_628px]'
         }
       >
         {board === undefined ? null : (
