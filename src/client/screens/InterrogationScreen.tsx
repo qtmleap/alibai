@@ -3,6 +3,7 @@ import { AlibiChart, type AlibiPerson, type AlibiSegment } from '@/client/compon
 import { CaseNoteDialog } from '@/client/components/CaseNote'
 import { edgeOf, inkOf, surfaceOf } from '@/client/components/CharacterAvatar'
 import { FloorPlanMap } from '@/client/components/FloorPlan'
+import { NewFactBand } from '@/client/components/NewFactBand'
 import { TurnAnnounce } from '@/client/components/TurnAnnounce'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/client/components/ui/dialog'
 import type { ChatTurn, UseInterrogation } from '@/client/hooks/useInterrogation'
@@ -334,6 +335,7 @@ export const InterrogationScreen = ({
     conversations,
     suggestedQuestions,
     discoveries,
+    revelations,
     hint,
     setHint,
     askingCharacterId,
@@ -348,6 +350,12 @@ export const InterrogationScreen = ({
   const [serverState, setServerState] = useState<SessionState | undefined>(undefined)
   // 訊けそうなことは畳める。既定は開いたまま——次の一手が見えているほうが手が止まらない。
   const [hintsOpen, setHintsOpen] = useState(true)
+  /*
+   * 帯に出す新事実。画面に入った時点で持っているぶんは出さない——
+   * 戻ってくるたびに既知の手掛かりを知らされても、何も増えていない。
+   */
+  const seenFacts = useRef({ discoveries: discoveries.length, revelations: revelations.length })
+  const [newFact, setNewFact] = useState<{ key: number; text: string } | undefined>(undefined)
   const [noteOpen, setNoteOpen] = useState(false)
   // 見取り図は常時出さない。会話の領域を削るほうが痛いので、見たいときだけ開く。
   const [mapOpen, setMapOpen] = useState(false)
@@ -363,6 +371,31 @@ export const InterrogationScreen = ({
     (sum, turns) => turns.reduce((count, turn) => count + turn.text.length, sum),
     0,
   )
+
+  /*
+   * 増えた手掛かりを一つだけ帯に出す。二つ以上増えた回でも重ねない——
+   * 読み終える前に次が来ると、どちらも読めないまま消える。
+   * 掴んだ手掛かりを証拠より先に採るのは、あちらのほうが words になっているため。
+   */
+  useEffect(() => {
+    const grewRevelation = revelations.length > seenFacts.current.revelations
+    const grewDiscovery = discoveries.length > seenFacts.current.discoveries
+    const lastRevelation = revelations[revelations.length - 1]
+    const lastDiscovery = discoveries[discoveries.length - 1]
+
+    seenFacts.current = { discoveries: discoveries.length, revelations: revelations.length }
+
+    const text =
+      grewRevelation && lastRevelation !== undefined
+        ? lastRevelation.title
+        : grewDiscovery && lastDiscovery !== undefined
+          ? lastDiscovery.label
+          : undefined
+
+    if (text !== undefined) {
+      setNewFact({ key: discoveries.length + revelations.length, text })
+    }
+  }, [discoveries, revelations])
 
   /*
    * 最新の発話を下端に置く。
@@ -571,7 +604,9 @@ export const InterrogationScreen = ({
   )
 
   return (
-    <div className="screen-enter flex h-dvh flex-col overflow-hidden bg-sumi text-[13px] text-kinari leading-[1.75] lg:text-[14px] lg:leading-[1.8]">
+    // 記録を読み終えて、その場に入る敷居。強く動かすのは全画面を通してここ一度だけで、
+    // 他の動きは合図に徹する。他の画面は screen-enter（1.03倍）のまま。
+    <div className="dive flex h-dvh flex-col overflow-hidden bg-sumi text-[13px] text-kinari leading-[1.75] lg:text-[14px] lg:leading-[1.8]">
       {/* 上部バーは題字と計器だけ。机の面をできるだけ広く残す。 */}
       <header className="shrink-0 border-keisen border-b px-3 py-2.5 lg:h-[46px] lg:px-[22px] lg:py-0">
         <div className="flex items-center justify-between gap-2 text-[10.5px] text-nezumi-dim lg:h-full lg:gap-5 lg:text-[12px]">
@@ -774,6 +809,8 @@ export const InterrogationScreen = ({
               aria-hidden="true"
               className="pointer-events-none absolute inset-x-0 top-0 hidden h-[54px] bg-gradient-to-b from-sumi to-transparent lg:block"
             />
+
+            {newFact !== undefined && <NewFactBand key={newFact.key} text={newFact.text} />}
           </div>
 
           {error !== undefined && <p className="px-3 text-nezumi text-sm lg:px-0">{error}</p>}
@@ -790,17 +827,29 @@ export const InterrogationScreen = ({
                 <span>訊けそうなこと</span>
                 <span aria-hidden="true">{hintsOpen ? '▲' : '▼'}</span>
               </button>
-              {hintsOpen &&
-                suggestionsToShow.map((suggestion) => (
-                  <button
-                    key={suggestion}
-                    type="button"
-                    onClick={() => setInputText(suggestion)}
-                    className="block w-full border-keisen border-t py-[7px] text-left text-[12px] text-nezumi leading-[1.7] lg:py-[9px] lg:text-[13px]"
-                  >
-                    {suggestion}
-                  </button>
-                ))}
+              {/*
+                開くときは高さそのものを動かす。中身を透かせるだけだと、
+                下の入力欄が動かないまま文字だけ現れて、飛んで見える。
+                閉じるときは動かさない——自分で畳んだものが、ゆっくり閉じるのを
+                待たされる理由がない。畳んだ先を DOM に残さないので、
+                見えない選択肢へタブで入ってしまうこともない。
+              */}
+              {hintsOpen && (
+                <div className="fold-open grid grid-rows-[1fr]">
+                  <div className="flex min-h-0 flex-col overflow-hidden">
+                    {suggestionsToShow.map((suggestion) => (
+                      <button
+                        key={suggestion}
+                        type="button"
+                        onClick={() => setInputText(suggestion)}
+                        className="block w-full border-keisen border-t py-[7px] text-left text-[12px] text-nezumi leading-[1.7] lg:py-[9px] lg:text-[13px]"
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

@@ -116,9 +116,24 @@ const footOf = (main: boolean): string =>
     ? 'flex-1 border border-nezumi p-[11px] text-center font-mincho text-[13px] text-kinari tracking-[0.16em]'
     : 'flex-1 border border-keisen p-[11px] text-center text-[13px] text-nezumi'
 
-/** 判定・記録の1行。項目名と値を罫線で区切って並べるだけにする。 */
-const Row = ({ label, children }: { label: string; children: ReactNode }) => (
-  <div className="flex items-baseline justify-between gap-4 border-keisen border-b py-[7px] text-[12.5px] leading-[1.75] lg:py-[9px] lg:text-[13.5px] lg:leading-[1.8]">
+/**
+ * 上から順に出すときの刻み。
+ *
+ * 一度に出すと読む順が決まらず、遅すぎると結果を待たされている気分になる。
+ */
+const ROW_STAGGER_MS = 200
+
+/**
+ * 判定・記録の1行。項目名と値を罫線で区切って並べるだけにする。
+ *
+ * `at` は上から何番目か。渡さなければ他と一緒に出る——順に読ませたいのは
+ * 判定の三行だけで、記録は表として一度に見えたほうが早い。
+ */
+const Row = ({ label, at = 0, children }: { label: string; at?: number; children: ReactNode }) => (
+  <div
+    className="row-in flex items-baseline justify-between gap-4 border-keisen border-b py-[7px] text-[12.5px] leading-[1.75] lg:py-[9px] lg:text-[13.5px] lg:leading-[1.8]"
+    style={{ animationDelay: `${at * ROW_STAGGER_MS}ms` }}
+  >
     <span className="text-nezumi">{label}</span>
     <span className="text-right">{children}</span>
   </div>
@@ -266,14 +281,14 @@ export const ResultScreen = ({ accuseResult, board, onRetry, onRestart }: Props)
           */}
           <Group label="判定">
             <div className="border-keisen border-t">
-              <Row label="犯人">
+              <Row label="犯人" at={0}>
                 {correct ? `${truth.culpritName}　` : ''}
                 <Mark correct={correct} />
               </Row>
-              <Row label="殺害方法">
+              <Row label="殺害方法" at={1}>
                 <Mark correct={result.methodCorrect} />
               </Row>
-              <Row label="動機">
+              <Row label="動機" at={2}>
                 {result.motiveCorrect ? (
                   <Mark correct={true} />
                 ) : (

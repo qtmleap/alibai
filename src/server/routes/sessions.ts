@@ -13,6 +13,7 @@ import {
 import type { Db } from '@/server/db/client'
 import { createDb } from '@/server/db/client'
 import type { Bindings, Env } from '@/server/env'
+import { type AlibiSegment, alibiSegmentsOf } from '@/server/game/alibi'
 import { remainingHints } from '@/server/game/hints'
 import { acceptRevealedRevelationIds } from '@/server/game/revelations'
 import { GAME_RULES } from '@/server/game/rules'
@@ -144,6 +145,77 @@ const loadTruth = async (db: Db, scenarioId: string): Promise<Truth | undefined>
     motive: truthRow.motive,
     timeline: truthRow.timeline,
   }
+}
+
+/**
+ * 時刻表に引ける線を、発見済みの手掛かりから組み立てる。
+ *
+ * 真相そのもの（timeline_events）は読むが、返すのはプレイヤーが辿り着いた分だけ。
+ * 絞り込みは alibiSegmentsOf に閉じているので、ここは材料を揃えるだけにする。
+ *
+ * 時刻軸の右端が無いシナリオでは何も返さない。端が無いと線の終わりを決められず、
+ * 描いても軸の外へ流れる。
+ */
+const loadAlibiSegments = async (
+  db: Db,
+  scenarioId: string,
+  discoveredEvidenceIds: string[],
+  discoveredRevelationIds: string[],
+): Promise<AlibiSegment[]> => {
+  const [truthRows, scenarioRows] = await Promise.all([
+    db
+      .select({ timelineEvents: scenarioTruths.timelineEvents })
+      .from(scenarioTruths)
+      .where(eq(scenarioTruths.scenarioId, scenarioId))
+      .limit(1),
+    db
+      .select({ timeEnd: scenarios.timeEnd })
+      .from(scenarios)
+      .where(eq(scenarios.id, scenarioId))
+      .limit(1),
+  ])
+
+  const events = truthRows[0]?.timelineEvents
+  const end = scenarioRows[0]?.timeEnd
+
+  if (events === undefined || events.length === 0 || end === null || end === undefined) {
+    return []
+  }
+
+  const [evidenceRows, revelationRows] = await Promise.all([
+    discoveredEvidenceIds.length === 0
+      ? Promise.resolve([])
+      : db
+          .select({ supports: evidences.supports })
+          .from(evidences)
+          .where(
+            and(eq(evidences.scenarioId, scenarioId), inArray(evidences.id, discoveredEvidenceIds)),
+          ),
+    discoveredRevelationIds.length === 0
+      ? Promise.resolve([])
+      : db
+          .select({
+            subjectType: revelations.subjectType,
+            subjectId: revelations.subjectId,
+            relatedFacts: revelations.relatedFacts,
+          })
+          .from(revelations)
+          .where(
+            and(
+              eq(revelations.scenarioId, scenarioId),
+              inArray(revelations.id, discoveredRevelationIds),
+            ),
+          ),
+  ])
+
+  return alibiSegmentsOf({
+    events,
+    end,
+    clues: {
+      revelations: revelationRows,
+      evidenceSupports: evidenceRows.flatMap((row) => row.supports),
+    },
+  })
 }
 
 /**
@@ -356,6 +428,13 @@ sessionRoutes.get('/api/sessions/:id', validateSessionId, withEnv, async (c) => 
     発見済みは必ず DO の snapshot から取る。discoveries / revelation_discoveries の
     行から数えると、DO への記録は成功して DB の insert が落ちた回でずれる。
   */
+  const alibiSegments = await loadAlibiSegments(
+    db,
+    scenarioId,
+    snapshot.discoveredEvidenceIds,
+    snapshot.discoveredRevelationIds,
+  )
+
   const subjects = await loadHintSubjects(c.env.SCENARIO_CACHE, db, scenarioId)
   const hint = remainingHints({
     mode: meta.mode,
@@ -386,6 +465,7 @@ sessionRoutes.get('/api/sessions/:id', validateSessionId, withEnv, async (c) => 
       category: row.category,
       subject: { type: row.subjectType, id: row.subjectId },
     })),
+    alibiSegments,
     turn: turnStateOf(snapshot.questionCount, limits.maxTurns, limits.questionsPerTurn),
   })
 })
@@ -847,6 +927,18 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
       const questionCount =
         persisted.questionCount === undefined ? snapshot.questionCount : persisted.questionCount
 
+      /*
+        線は毎回まとめて返す。増えた分だけを送ると、受け取る側が積み上げを持つことになり、
+        リロードで組み直した表と食い違う。表の側は key で見分けるので、
+        既に立っている線が送り直されても動き直さない。
+      */
+      const alibiSegments = await loadAlibiSegments(
+        db,
+        scenarioId,
+        snapshot.discoveredEvidenceIds,
+        snapshot.discoveredRevelationIds,
+      )
+
       await stream.writeSSE({
         event: 'judgement',
         data: JSON.stringify({
@@ -860,6 +952,7 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
           })),
           contradictionPointedOut: judgement.contradictionPointedOut,
           suggestedQuestions: judgement.suggestedQuestions,
+          alibiSegments,
           questionCount,
           turn: turnStateOf(questionCount, limits.maxTurns, limits.questionsPerTurn),
         }),

@@ -37,6 +37,7 @@ function PlaySession() {
     discoveries: state.discoveries,
     revelations: state.revelations,
     hint: state.hint,
+    alibiSegments: state.alibiSegments,
     questionCount: state.questionCount,
     turn: state.turn,
   })

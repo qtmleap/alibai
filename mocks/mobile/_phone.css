@@ -385,6 +385,8 @@ textarea {
 
 /* 最新の発話を下端に置く。交互とは限らないので、上は溢れるに任せる。 */
 .log {
+  /* 新事実の帯を会話へ被せるための基準。位置取りだけで、並びは変わらない。 */
+  position: relative;
   flex: 1;
   overflow: hidden;
   padding: 12px;
@@ -392,6 +394,50 @@ textarea {
   flex-direction: column;
   justify-content: flex-end;
   gap: 15px;
+}
+
+/*
+ * 新事実の帯。聞き込みのあいだ記録は画面上にないので、増えたことは被せて知らせる。
+ * 箱は作らず、二本の罫線と薄い覆いだけ。操作を塞がないので pointer-events は殺す。
+ */
+.newfact {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 9px 12px;
+  border-top: 1px solid var(--asagi);
+  border-bottom: 1px solid var(--asagi);
+  background: rgba(20, 19, 23, 0.93);
+  pointer-events: none;
+}
+.newfact .k {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.24em;
+  color: var(--asagi-fg);
+}
+.newfact .v {
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/*
+ * 訊けそうなことの開閉。高さそのものを動かすので、中身は grid の行に入れる。
+ * 透かせるだけだと、下の入力欄が動かないまま文字だけ現れて飛んで見える。
+ */
+.hint .fold {
+  display: grid;
+  grid-template-rows: 1fr;
+}
+.hint .fold .inner {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 /* 発話の塊。同じ人が続けて喋るあいだ、名前は一度きりしか出さない。

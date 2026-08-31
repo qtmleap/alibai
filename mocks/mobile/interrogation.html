@@ -11,6 +11,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./_phone.css" />
+    <link rel="stylesheet" href="../_motion.css" />
     <link rel="stylesheet" href="../_mock.css" />
     <style>
       .int-head a { text-decoration: none; color: inherit; }
@@ -30,7 +31,8 @@
     </style>
   </head>
   <body>
-    <div class="phone" data-mock-id="ALI_INT_01">
+    <!-- 八 入り込む。記録を読み終えて、その場に入る敷居。強く動かすのはここだけ。 -->
+    <div class="phone dive" data-mock-id="ALI_INT_01">
       <div class="int-head hair" data-mock-id="ALI_INT_02">
         <div class="row1">
           <a class="ttl" href="./case-overview.html">←　概要に戻る</a>
@@ -77,18 +79,68 @@
         document.getElementById('who').style.color = 'var(--' + me.hue + Mock.lit + ')'
         document.getElementById('pers').textContent = me.persona
 
-        document.getElementById('rail').innerHTML = Mock.rail({ segments: st.segments })
+        var rail = document.getElementById('rail')
+        rail.innerHTML = Mock.rail({ segments: st.segments })
+
+        /*
+          一 目盛りが立つ／二 疑問。
+          裏付けの取れた印は軸から伸び上がり、申告だけの印は行き過ぎて戻り、淡いまま残る。
+          印は中に字を持たないので、拡大をそのまま当ててよい。
+        */
+        Array.prototype.forEach.call(rail.querySelectorAll('.pin'), function (pin, i) {
+          pin.classList.add(pin.classList.contains('hollow') ? 'waver' : 'pin-rise', 'origin-bottom')
+          pin.style.animationDelay = 90 * i + 'ms'
+        })
+
+        // 最後に裏付けが取れた一本。印が立ち終わってから添う。
+        var now = rail.querySelector('.now')
+        if (now) {
+          now.classList.add('pin-rise', 'origin-bottom')
+          now.style.animationDelay = 90 * st.segments.length + 'ms'
+        }
 
         // 訊けそうなことはログの末尾に畳んである。会話はその上に積む。
         var hint = document.getElementById('hint')
-        document.getElementById('log').insertAdjacentHTML('afterbegin', Mock.log(st.log.slice(-8)))
+        var log = document.getElementById('log')
+        log.insertAdjacentHTML('afterbegin', Mock.log(st.log.slice(-8)))
+
+        /*
+          九 選択肢が開く。畳んであるものが開くので、高さそのものを動かす。
+          grid の行を 0fr から起こすため、質問はひとつの器に入れてから包む。
+        */
         hint.insertAdjacentHTML(
           'beforeend',
-          st.hints
-            .map(function (q) {
-              return '<span class="q" data-mock-id="ALI_INT_09">' + Mock.esc(q) + '</span>'
-            })
-            .join(''),
+          '<span class="fold fold-open"><span class="inner">' +
+            st.hints
+              .map(function (q) {
+                return '<span class="q" data-mock-id="ALI_INT_09">' + Mock.esc(q) + '</span>'
+              })
+              .join('') +
+            '</span></span>',
+        )
+
+        /*
+          五 発話が続く。一文ずつ置いていく。間は 0.8 秒——読み終わる前に次が来ると急かされる。
+          直近の三行だけを動かす。前から積まれている行まで動かすと、
+          画面を開くたびに会話全体が湧き上がって見え、どれが新しいのか分からなくなる。
+        */
+        var lines = Array.prototype.slice.call(log.querySelectorAll('.turn .txt')).slice(-3)
+        lines.forEach(function (line, i) {
+          line.classList.add('line-in')
+          line.style.animationDelay = 800 * i + 'ms'
+        })
+
+        /*
+          四 新事実発見。増えたのは事実であって手柄ではないので、祝わない。
+          実装では 2.6 秒で引くが、モックは静止画としても見るので出したままにする
+          （引くところは mocks/effects/band.html で見る）。
+        */
+        log.insertAdjacentHTML(
+          'beforeend',
+          '<span class="newfact line-in" style="animation-delay: 2400ms" data-mock-id="ALI_INT_12">' +
+            '<span class="k">新事実</span>' +
+            '<span class="v">牧野は午後六時三十五分に店を出たと述べた</span>' +
+            '</span>',
         )
 
         Mock.ready()

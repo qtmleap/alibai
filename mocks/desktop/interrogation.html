@@ -10,11 +10,14 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./_desk.css" />
+    <link rel="stylesheet" href="../_motion.css" />
     <link rel="stylesheet" href="../_mock.css" />
   </head>
   <body>
     <!-- 左のアリバイ表が主役。右は対話なので行長を締める——ここは幅を余らせているのではなく、読める行長を守っている。 -->
-    <div class="desk" data-mock-id="ALI_INT_01">
+    <!-- 八 入り込む。記録を読み終えて、その場に入る敷居。強く動かすのはこの一度だけ。 -->
+    <div class="desk dive" data-mock-id="ALI_INT_01">
+      <span class="enter-veil unveil"></span>
       <div class="top" data-mock-id="ALI_INT_02">
         <span class="ttl" id="ttl"></span>
         <div class="rgt">
@@ -40,6 +43,16 @@
           <div class="talk-head" data-mock-id="ALI_INT_05">
             <div class="nm" id="who"></div>
             <div class="ps" id="pers"></div>
+          </div>
+
+          <!--
+            四 新事実発見。記録は聞き込み中に画面上にないので、増えたことを帯で被せて知らせる。
+            箱にはせず、二本の罫線と薄い覆いだけ。実装では 2.6 秒で引くが、
+            モックは静止画としても読まれるので出したまま置いてある。
+          -->
+          <div class="newfact" data-mock-id="ALI_INT_15">
+            <span class="k t">新事実</span>
+            <span class="v">牧野は午後六時三十五分に店を出たと述べた</span>
           </div>
 
           <div class="log" id="log" data-mock-id="ALI_INT_06"></div>
@@ -97,6 +110,70 @@
             })
             .join(''),
         )
+
+        /*
+         * 一 目盛りが立つ／二 疑問。
+         *
+         * 塗りを内側の帯へ移してから伸ばす。字を含む .bar ごと拡大すると、
+         * 伸びているあいだ在所と時刻が縦に潰れる。
+         * 裏の取れた線は伸び上がり、申告だけの線は行き過ぎて戻り、淡いまま残る。
+         */
+        Array.prototype.forEach.call(document.querySelectorAll('#chart .bar'), function (bar) {
+          var solid = bar.classList.contains('solid')
+          var fill = document.createElement('span')
+          fill.className = 'fill origin-top ' + (solid ? 'pin-rise' : 'waver')
+          fill.style.background = bar.style.background
+          bar.style.background = ''
+          bar.insertBefore(fill, bar.firstChild)
+
+          // 時刻は帯より遅れて添う。先に線が立ち、それから時刻が出る。
+          var fix = bar.querySelector('.fix')
+          if (fix) {
+            fix.classList.add('line-in')
+            fix.style.animationDelay = '150ms'
+          }
+        })
+
+        /*
+         * 三 ひらめき。噛み合わない区間へ線が左から引かれる。
+         * 両端の丸と札は引き終わり（180ms 待って 520ms）を待ってから置く。
+         * 線が伸びきる前に端の印だけが宙に浮くのを避けるため。
+         */
+        var clash = document.querySelector('#chart .clash')
+        if (clash) {
+          clash.classList.add('draw', 'origin-left')
+          Array.prototype.forEach.call(clash.children, function (mark) {
+            mark.classList.add('line-in')
+            mark.style.animationDelay = '700ms'
+          })
+        }
+
+        /*
+         * 五 発話が続く。いま届いた返答だけ、一文ずつ置いていく。間は 0.8 秒。
+         * 読み返している古い塊まで動かすと、画面に入るたび全部が波打つ。
+         */
+        var turns = document.querySelectorAll('#log .turn')
+        var newest = turns[turns.length - 1]
+        if (newest) {
+          Array.prototype.forEach.call(newest.querySelectorAll('.txt'), function (line, index) {
+            line.classList.add('line-in')
+            line.style.animationDelay = 100 + index * 800 + 'ms'
+          })
+        }
+
+        /*
+         * 九 選択肢が開く。高さそのものを動かすので、grid の行を 0fr から開く。
+         * 中身を透かせるだけだと、下の入力欄が動かないまま文字だけ現れて飛んで見える。
+         */
+        var fold = document.createElement('span')
+        fold.className = 'fold fold-open'
+        var inner = document.createElement('span')
+        inner.className = 'fold-inner'
+        Array.prototype.forEach.call(document.querySelectorAll('#hint .q'), function (q) {
+          inner.appendChild(q)
+        })
+        fold.appendChild(inner)
+        document.getElementById('hint').appendChild(fold)
 
         // 列見出しを押すと、その人に相手を替える。
         Array.prototype.forEach.call(document.querySelectorAll('[data-who]'), function (el) {

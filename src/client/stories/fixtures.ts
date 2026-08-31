@@ -182,6 +182,8 @@ export const INTERROGATION_SEED: InterrogationSeed = {
   ],
   revelations: [],
   hint: { mode: 'normal', places: 3, people: 4 },
+  // 線は story ごとに違うものを見たいので、種には持たせず画面へ直に渡す。
+  alibiSegments: [],
   questionCount: 3,
   turn: {
     turn: 4,

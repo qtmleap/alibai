@@ -96,6 +96,42 @@ select {
   height: 100%;
   display: grid;
   grid-template-rows: 46px 1fr;
+  /* 入り（八）の覆いを重ねる先。位置を作るだけで、格子の組みは動かない。 */
+  position: relative;
+}
+/*
+ * 八 入り込む。墨の中から浮かび上がる一枚。
+ * 引き終わりは opacity 0 なので、静止した姿には何も残らない。操作は塞がない。
+ */
+.desk > .enter-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background: var(--sumi);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/*
+ * 四 新事実発見。増えたことを帯で被せて知らせる。
+ * 箱は作らず、二本の罫線と薄い覆いだけ。祝わない——増えたのは事実であって手柄ではない。
+ */
+.newfact {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 9px 0;
+  border-top: 1px solid var(--asagi);
+  border-bottom: 1px solid var(--asagi);
+}
+.newfact .k {
+  font-size: 9.5px;
+  letter-spacing: 0.24em;
+  color: var(--asagi-t);
+}
+.newfact .v {
+  font-size: 12.5px;
+  line-height: 1.6;
 }
 .desk > .top {
   display: flex;
@@ -256,6 +292,24 @@ select {
   background: none !important;
   border-left: 1px dashed currentColor;
 }
+/*
+ * 線を動かす画面だけ、塗りを内側の帯（.fill）へ移す。
+ * 帯は上端から伸びるので、字を含む .bar ごと動かすと在所と時刻が縦に潰れる。
+ *
+ * 帯を挟むかどうかは画面ごと（挟むのは聞き込みだけ）。挟まない画面でも
+ * 同じ見た目になるよう、素の .bar 側の指定はそのまま残し、
+ * 帯があるときにだけ持ち場を明け渡す。
+ */
+.bar > .fill {
+  position: absolute;
+  inset: 0;
+}
+.bar.claim:has(> .fill) {
+  border-left: 0;
+}
+.bar.claim > .fill {
+  border-left: 1px dashed currentColor;
+}
 /* はみ出させると隣の列の記述と混ざって、どちらの人の話か分からなくなる。
    折り返してでも列の中に留める。
    幅は max-width ではなく実寸で持たせる——親の .bar は 3px しかなく、
@@ -285,7 +339,8 @@ select {
   color: currentColor;
 }
 /* 裏付けの取れた端だけ、目盛りを立てる。 */
-.bar.solid::before {
+.bar.solid::before,
+.bar.solid > .fill::before {
   content: "";
   position: absolute;
   left: -4px;
@@ -294,12 +349,17 @@ select {
   height: 1px;
   background: currentColor;
 }
+/* 帯があるときは、目盛りも帯に付けて線と一緒に立ち上がらせる。二重に出さない。 */
+.bar.solid:has(> .fill)::before {
+  content: none;
+}
 /* 会話のなかでいま指している時刻と対になっている目盛り。 */
 .bar.solid.on {
   left: 16px;
   width: 5px;
 }
-.bar.solid.on::before {
+.bar.solid.on::before,
+.bar.solid.on > .fill::before {
   left: -5px;
   width: 15px;
   height: 2px;
@@ -660,6 +720,20 @@ select {
   font-size: 12px;
   color: var(--nezumi-dim);
 }
+/*
+ * 畳んであるものが開く（九）。高さそのものを動かすので、行の寸法を持つ grid に包む。
+ * .hint は縦の flex なので、中は改めて縦に積み直す——包まないと候補が一行に繋がる。
+ */
+.hint .fold {
+  display: grid;
+  grid-template-rows: 1fr;
+}
+.hint .fold-inner {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
 .hint .q {
   padding: 9px 0;
   border-top: 1px solid var(--keisen);
@@ -859,6 +933,22 @@ select {
   font-size: 17px;
   line-height: 2.6;
   letter-spacing: 0.05em;
+}
+/*
+ * せり上げ（#brief=crawl）。器を送るのではなく本文そのものを流すので、
+ * 台は動かさず、本文を浮かせて絶対位置に置く。
+ * 送りと違って読む速さをこちらが決めてしまうため、既定にはしない。
+ */
+.brief.crawling .stage {
+  padding: 0;
+  overflow: hidden;
+  position: relative;
+}
+.brief.crawling .crawl {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
 }
 .brief .crawl p {
   margin: 0 0 30px;

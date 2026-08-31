@@ -3,6 +3,7 @@ import { index, integer, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlit
 import type { Detective } from './detective'
 import type { FloorPlanInput } from './floor-plan'
 import type { ScenarioEvidenceSource, ScenarioRevelationSource } from './scenario-definition'
+import type { TimelineEvent } from './timeline-event'
 
 /**
  * プレイヤーが演じる探偵の形と検証は db/detective.ts が正典。
@@ -113,6 +114,19 @@ export const scenarioTruths = sqliteTable('scenario_truths', {
   method: text('method'),
   motive: text('motive'),
   timeline: text('timeline', { mode: 'json' }).notNull(),
+  /**
+   * 同じ出来事を、時刻表が読める構造のまま持ったもの。
+   *
+   * timeline とは別列にしてある。あちらは結末画面が読む `{time, event}` の読み物で、
+   * 形を変えると結末だけが静かに壊れる。読み物と盤面は要求が違うので、混ぜない。
+   *
+   * 既定が空配列なのは、この列より前に焼かれたシナリオ行があるため。
+   * 空なら時刻表は白紙のまま——プレイに支障は無い。
+   */
+  timelineEvents: text('timeline_events', { mode: 'json' })
+    .$type<TimelineEvent[]>()
+    .notNull()
+    .default([]),
   /** 出力フィルタが漏洩検知に使う秘匿キーワード */
   secretKeywords: text('secret_keywords', { mode: 'json' }).$type<string[]>().notNull(),
 })
@@ -159,6 +173,13 @@ export const evidences = sqliteTable(
       .$type<ScenarioEvidenceSource[]>()
       .notNull()
       .default([]),
+    /**
+     * この証拠が裏付ける事実（authoring のローカル fact ID）。
+     *
+     * 時刻表がこれを読む。証拠は revelation より頻繁に見つかるので、
+     * ここを持たないと線がほとんど増えない。
+     */
+    supports: text('supports', { mode: 'json' }).$type<string[]>().notNull().default([]),
   },
   (table) => [index('evidences_scenario_id_idx').on(table.scenarioId)],
 )

@@ -6,7 +6,8 @@ import {
   type ScenarioRevelationSource,
 } from './scenario-definition'
 import type { characters, evidences, revelations, scenarios, scenarioTruths } from './schema'
-import { timeWindowOf } from './time-window'
+import { formatClock, minutesOf, timeWindowOf } from './time-window'
+import { kindOfEvent } from './timeline-event'
 
 /**
  * Authoring 用のシナリオ定義を、実行時テーブルの行へ分解する。
@@ -93,6 +94,7 @@ const compileDefinition = (
     definition.characters.map((character) => [character.id, character.name]),
   )
   const factStatements = new Map(definition.facts.map((fact) => [fact.id, fact.statement]))
+  const factKinds = new Map(definition.facts.map((fact) => [fact.id, fact.kind]))
 
   /**
    * ローカルIDの引き当て。
@@ -184,6 +186,9 @@ const compileDefinition = (
     label: evidence.label,
     revealCondition: evidence.reveal.condition,
     sources: evidence.sources.map(mapEvidenceSource),
+    // 時刻表が読む。証拠は revelation より頻繁に見つかるので、
+    // これを落とすと発見しても線がほとんど増えない。
+    supports: evidence.supports,
   }))
 
   const compiledRevelations = definition.revelations.map((revelation) => ({
@@ -221,6 +226,37 @@ const compileDefinition = (
   }))
 
   /*
+    同じ出来事を、時刻表が読める構造のまま別列へ。読み物（上の timeline）と
+    盤面は求めるものが違うので、片方を潰してもう片方に使わせない。
+
+    `at` をここで HH:mm へ揃えるのは、authoring が ISO 8601 も許しているため。
+    時刻表は分単位でしか読まないので、読む側ごとに書式を判定させる理由が無い。
+    揃えられない書式（ここに来る時点でスキーマは通っている）は落とす——
+    軸に置けない線を持っていても、描く段で困るだけ。
+
+    在所は authoring の location をそのまま写す。43本中42本が書いていないので、
+    多くは空になる。空でも線は引ける（時刻は分かっている）ので、それでよい。
+  */
+  const timelineEvents = definition.timeline.flatMap((event) => {
+    const minutes = minutesOf(event.at)
+
+    if (minutes === undefined) {
+      return []
+    }
+
+    return [
+      {
+        id: event.id,
+        at: formatClock(minutes),
+        place: event.location === undefined ? '' : event.location,
+        participants: event.participants.map(characterUuid),
+        facts: event.facts,
+        kind: kindOfEvent(event.facts.map((id) => factKinds.get(id))),
+      },
+    ]
+  })
+
+  /*
     時刻軸の両端。timeline から外枠だけを取り出して scenarios 側へ焼く。
     真相のテーブルに入れないのは、これがプレイ開始前に見せてよい情報だから
     ——事件の記録が「午後六時半から七時十五分まで」と語っているのと同じ幅で、
@@ -254,6 +290,7 @@ const compileDefinition = (
       method: definition.solution.method,
       motive: definition.solution.motive,
       timeline,
+      timelineEvents,
       secretKeywords: definition.solution.secretKeywords,
     },
   }

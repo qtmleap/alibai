@@ -11,6 +11,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./_phone.css" />
+    <link rel="stylesheet" href="../_motion.css" />
     <link rel="stylesheet" href="../_mock.css" />
     <style>
       /* 判決は当たりのときだけ緑。外したときは地の色のまま、字だけで言う。 */
@@ -34,7 +35,7 @@
     </style>
   </head>
   <body>
-    <div class="phone" data-mock-id="ALI_RES_01">
+    <div class="phone screen-enter" data-mock-id="ALI_RES_01">
       <div class="pad p-res">
         <div class="verdict" id="verdict" data-mock-id="ALI_RES_02"></div>
 
@@ -94,6 +95,18 @@
             return '<div class="r"><span class="muted">' + r[0] + '</span><span>' + r[1] + '</span></div>'
           })
           .join('')
+
+        /*
+          十 判定が出る。上から順に 0.2 秒ずつ。
+          一度に出すと読む順が決まらず、遅すぎると結果を待たされている気分になる。
+        */
+        Array.prototype.forEach.call(
+          document.querySelectorAll('#judge .r'),
+          function (row, i) {
+            row.classList.add('row-in')
+            row.style.animationDelay = 200 * i + 'ms'
+          },
+        )
 
         document.getElementById('record').innerHTML = [
           [win ? '解決タイム' : 'かかった時間', '<span class="v">' + Mock.clock(Mock.total) + '</span>'],

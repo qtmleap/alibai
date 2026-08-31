@@ -18,7 +18,7 @@ const ISO_CLOCK = /T(\d{2}):(\d{2})/
 export type TimeWindow = { start: string; end: string }
 
 /** `HH:mm` と ISO 8601 のどちらでも受ける（authoring 側がどちらも許している）。 */
-const minutesOf = (at: string): number | undefined => {
+export const minutesOf = (at: string): number | undefined => {
   const clock = CLOCK.exec(at)
   const matched = clock === null ? ISO_CLOCK.exec(at) : clock
 
@@ -29,7 +29,7 @@ const minutesOf = (at: string): number | undefined => {
   return Number(matched[1]) * 60 + Number(matched[2])
 }
 
-const format = (minutes: number): string => {
+export const formatClock = (minutes: number): string => {
   const wrapped = ((minutes % DAY_MINUTES) + DAY_MINUTES) % DAY_MINUTES
   const hours = Math.floor(wrapped / 60)
 
@@ -64,5 +64,5 @@ export const timeWindowOf = (events: { at: string }[]): TimeWindow | undefined =
     return undefined
   }
 
-  return { start: format(floorOut(from)), end: format(ceilOut(to)) }
+  return { start: formatClock(floorOut(from)), end: formatClock(ceilOut(to)) }
 }

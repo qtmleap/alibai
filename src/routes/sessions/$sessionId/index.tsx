@@ -28,6 +28,8 @@ function Interrogation() {
       sessionId={state.sessionId}
       detectiveName={state.detectiveName}
       interrogation={interrogation}
+      // 刻限と食い違いはまだサーバから出ていないので、線だけを渡す。
+      alibi={{ segments: interrogation.alibiSegments }}
       onAccuse={() =>
         navigate({ to: '/sessions/$sessionId/accuse', params: { sessionId: state.sessionId } })
       }

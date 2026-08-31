@@ -97,6 +97,23 @@ export const revelationCardSchema = z.object({
   }),
 })
 
+/**
+ * 時刻表に引く線。
+ *
+ * 形は src/client/components/AlibiChart.tsx の `AlibiSegment` と揃えてある
+ * ——あちらが表示の正典なので、ここは受け取る形を写しているだけ。
+ * サーバは発見済みの手掛かりから引ける分しか返さないので、聞き込みが進むほど増える。
+ */
+export const alibiSegmentSchema = z.object({
+  who: z.string().nonempty(),
+  from: z.string().nonempty(),
+  to: z.string().nonempty(),
+  kind: z.enum(['solid', 'claim']),
+  // 空を許す（在所の分かっていない出来事がある）。上限は表の列幅に収まる長さ。
+  place: z.string().max(60),
+  fix: z.string().nonempty().optional(),
+})
+
 export const sessionStateSchema = z.object({
   sessionId: z.uuid(),
   scenarioId: z.uuid(),
@@ -112,6 +129,8 @@ export const sessionStateSchema = z.object({
   finished: z.boolean(),
   discoveries: z.array(discoverySchema),
   revelations: z.array(revelationCardSchema),
+  /** 既定を空にしてあるのは、この機能より前のサーバが返さないため。 */
+  alibiSegments: z.array(alibiSegmentSchema).default([]),
   turn: turnStateSchema,
 })
 
@@ -121,6 +140,8 @@ export const judgementSchema = z.object({
   revealedRevelations: z.array(revelationCardSchema),
   contradictionPointedOut: z.boolean(),
   suggestedQuestions: z.array(z.string().nonempty()),
+  /** 増えた分ではなく、その時点で引ける線すべて。表はこれで置き換える。 */
+  alibiSegments: z.array(alibiSegmentSchema).default([]),
   questionCount: z.number().int(),
   turn: turnStateSchema,
 })
@@ -253,6 +274,7 @@ export type ScenarioDetail = z.infer<typeof scenarioDetailSchema>
 export type CreateSessionResponse = z.infer<typeof createSessionResponseSchema>
 export type Discovery = z.infer<typeof discoverySchema>
 export type RevelationCard = z.infer<typeof revelationCardSchema>
+export type AlibiSegmentData = z.infer<typeof alibiSegmentSchema>
 export type TurnState = z.infer<typeof turnStateSchema>
 export type SessionState = z.infer<typeof sessionStateSchema>
 export type Judgement = z.infer<typeof judgementSchema>

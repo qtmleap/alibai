@@ -10,6 +10,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./_desk.css" />
+    <link rel="stylesheet" href="../_motion.css" />
     <link rel="stylesheet" href="../_mock.css" />
     <style>
       /* 下端の二つは押せる。span のまま扱うのは、枠と字の組みが _desk.css にあるため。 */
@@ -18,7 +19,7 @@
   </head>
   <body>
     <!-- 表は同じ列に二本引く。左が聞き取った線、右が実際。ずれた区間にだけ言葉を足す。 -->
-    <div class="desk" data-mock-id="ALI_RES_01">
+    <div class="desk screen-enter" data-mock-id="ALI_RES_01">
       <div class="top">
         <span class="ttl" id="ttl"></span>
         <div class="rgt"><span id="state"></span><span class="t" id="clock"></span></div>
@@ -187,6 +188,18 @@
               .join('')
           : '<div class="r"><span class="tx">真相は伏せたままです。もう一度この事件を開けば、' +
             '聞き取った証言はそのまま残ります。</span></div>'
+
+        /*
+         * 十 判定が出る。上から順に 0.2 秒ずつ。
+         * 一度に出すと読む順が決まらず、遅すぎると結果を待たされている気分になる。
+         */
+        Array.prototype.forEach.call(
+          document.querySelectorAll('#marks .r'),
+          function (row, index) {
+            row.classList.add('row-in')
+            row.style.animationDelay = index * 200 + 'ms'
+          },
+        )
 
         // 迷宮入りのときは、押してほしいのが「もう一度」のほう。
         document.getElementById(win ? 'next' : 'again').classList.add('main')
