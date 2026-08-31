@@ -17,8 +17,21 @@ export const Route = createRootRoute({
       { charSet: 'UTF-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1.0, viewport-fit=cover' },
       { title: 'AlibAI' },
+      // ホーム画面から開いたときブラウザの殻を外す。display: standalone を読まない
+      // 古い iOS はこの2枚だけが頼りで、black-translucent は
+      // viewport-fit=cover と対で効く（時計の下まで墨で塗る）。
+      { name: 'theme-color', content: '#141317' },
+      { name: 'mobile-web-app-capable', content: 'yes' },
+      { name: 'apple-mobile-web-app-capable', content: 'yes' },
+      { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
     ],
-    links: [{ rel: 'stylesheet', href: appCss }],
+    links: [
+      { rel: 'manifest', href: '/manifest.webmanifest' },
+      { rel: 'icon', href: '/icon.svg', type: 'image/svg+xml' },
+      // マニフェストの icons を読まない古い iOS 用。
+      { rel: 'apple-touch-icon', href: '/icon-192.png' },
+      { rel: 'stylesheet', href: appCss },
+    ],
   }),
   shellComponent: ({ children }: { children: ReactNode }) => (
     <html lang="ja">
