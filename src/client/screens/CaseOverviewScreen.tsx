@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { CharacterAvatar, inkOf } from '@/client/components/CharacterAvatar'
 import { FloorPlanMap } from '@/client/components/FloorPlan'
+import { TimeRail } from '@/client/components/TimeRail'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -129,6 +130,14 @@ export const CaseOverviewScreen = ({
       )}
 
       {/*
+        軸は聞き込みに入る前から見せる。まだ何も刺さっていない空の軸を先に置くと、
+        これから供述で埋めていく遊びなのだと、最初の一問より前に分かる。
+      */}
+      {scenario.timeWindow !== null && (
+        <TimeRail start={scenario.timeWindow.start} end={scenario.timeWindow.end} />
+      )}
+
+      {/*
         名前を並べるだけだと、誰に会うのかは分かっても、どんな相手かが分からない。
         顔料と一言を添えて、聞き込みの相手として頭に入る形にする。
       */}
@@ -158,7 +167,12 @@ export const CaseOverviewScreen = ({
         難易度は「事件の難しさ」ではなく「どこまで教えてもらうか」の選択。
         始めたら変えられないので、聞き込みに入る直前のここで決める。
       */}
-      <fieldset className="mt-auto flex flex-col gap-2" disabled={inProgress}>
+      {/*
+        床に貼り付けない。人数の少ない事件では、名簿と難易度のあいだに
+        画面の半分ほどの空きができて、二つが無関係な塊に見えていた。
+        上から順に置いて、余りは末尾にまとめて残す。
+      */}
+      <fieldset className="flex flex-col gap-2" disabled={inProgress}>
         <legend className={LEGEND}>
           手がかりの見え方{inProgress ? '（この事件では変えられません）' : ''}
         </legend>

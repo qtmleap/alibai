@@ -6,6 +6,7 @@ import {
   type ScenarioRevelationSource,
 } from './scenario-definition'
 import type { characters, evidences, revelations, scenarios, scenarioTruths } from './schema'
+import { timeWindowOf } from './time-window'
 
 /**
  * Authoring 用のシナリオ定義を、実行時テーブルの行へ分解する。
@@ -219,6 +220,14 @@ const compileDefinition = (
         : event.description,
   }))
 
+  /*
+    時刻軸の両端。timeline から外枠だけを取り出して scenarios 側へ焼く。
+    真相のテーブルに入れないのは、これがプレイ開始前に見せてよい情報だから
+    ——事件の記録が「午後六時半から七時十五分まで」と語っているのと同じ幅で、
+    ここで隠しても意味が無い。中身（何が起きたか）は truth 側に残す。
+  */
+  const window = timeWindowOf(definition.timeline)
+
   return {
     scenario: {
       id: scenarioId,
@@ -227,6 +236,8 @@ const compileDefinition = (
       briefing: definition.briefing,
       floorPlan: definition.floorPlan,
       category: definition.meta.category,
+      timeStart: window === undefined ? null : window.start,
+      timeEnd: window === undefined ? null : window.end,
       isPublished: options.isPublished,
       difficulty: definition.meta.difficulty,
       estimatedMinutes: definition.meta.estimatedMinutes,

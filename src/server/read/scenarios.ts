@@ -21,6 +21,8 @@ export type ScenarioDetail = {
   synopsis: string
   category: string
   briefing: string
+  /** 事件が動いていた時間の幅。軸を引けないシナリオもあるので null あり。 */
+  timeWindow: { start: string; end: string } | null
   /** 既定値を埋めたあとの形。列そのものの型（入力側）ではない。 */
   floorPlan: FloorPlan | null
   difficulty: number
@@ -75,6 +77,10 @@ export const findScenarioDetail = async (
       // そもそもプレイヤーが読むのはシナリオを選んだ後で十分。
       briefing: scenarios.briefing,
       floorPlan: scenarios.floorPlan,
+      // 時刻軸の両端。コンパイル時に timeline から焼いた値で、真相そのものは含まない
+      // （db/time-window.ts）。ここで scenario_truths を引かずに済むのはそのため。
+      timeStart: scenarios.timeStart,
+      timeEnd: scenarios.timeEnd,
       difficulty: scenarios.difficulty,
       estimatedMinutes: scenarios.estimatedMinutes,
     })
@@ -116,6 +122,11 @@ export const findScenarioDetail = async (
     ...scenario,
     // 読み替えられない図面は、図なしとして返す。ここで投げると事件そのものが開けなくなる。
     floorPlan: floorPlan === undefined ? null : floorPlan,
+    // 片端しか無い行は軸を引けない。両方揃ったときだけ幅として渡す。
+    timeWindow:
+      scenario.timeStart === null || scenario.timeEnd === null
+        ? null
+        : { start: scenario.timeStart, end: scenario.timeEnd },
     characters: characterRows,
   }
 }

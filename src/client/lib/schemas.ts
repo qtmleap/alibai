@@ -45,6 +45,11 @@ export const scenarioDetailSchema = scenarioSummarySchema.omit({ characterCount:
   // ゲームマスターがプレイヤーに事件を語って聞かせる導入文。空行区切りの段落。
   briefing: z.string().nonempty(),
   floorPlan: floorPlanSchema.nullable(),
+  /**
+   * 事件が動いていた時間の幅。時刻軸の両端になる。
+   * 真相ではなく、事件の記録が語っているのと同じ幅（db/time-window.ts）。
+   */
+  timeWindow: z.object({ start: z.string(), end: z.string() }).nullable(),
   characters: z.array(characterSchema),
 })
 

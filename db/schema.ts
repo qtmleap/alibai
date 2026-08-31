@@ -61,6 +61,18 @@ export const scenarios = sqliteTable('scenarios', {
   floorPlan: text('floor_plan', { mode: 'json' }).$type<FloorPlanInput>(),
   /** シナリオの傾向。一覧でタイトルの横に出す短いラベル。 */
   category: text('category').notNull().default(''),
+  /**
+   * 事件が動いていた時間の幅（`HH:mm`）。時刻軸の両端になる。
+   *
+   * timeline から求めた値をコンパイル時に焼く（db/time-window.ts）。幅そのものは
+   * 事件の記録に書かれていて真相ではないが、それを求める元の timeline は
+   * scenario_truths にある。ここに置いておけば、クライアント向けの読みが
+   * 真相のテーブルへ触りに行かずに済む。
+   *
+   * 幅を持たない行があり得るので nullable。軸を引かずに描くのは画面側の役目。
+   */
+  timeStart: text('time_start'),
+  timeEnd: text('time_end'),
   authorId: text('author_id'),
   isPublished: integer('is_published', { mode: 'boolean' }).notNull().default(false),
   difficulty: integer('difficulty').notNull().default(3),
