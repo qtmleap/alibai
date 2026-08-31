@@ -11,55 +11,88 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./_phone.css" />
+    <link rel="stylesheet" href="../_mock.css" />
+    <style>
+      .int-head a { text-decoration: none; color: inherit; }
+      .int-head .row1 .acc { color: var(--nezumi); flex: none; }
+
+      /*
+        _phone.css の帯は 34px で、両端の時刻と目盛りが同じ高さの帯を奪い合う。
+        白紙のうちは気づかないが、18:23 のように端寄りの時刻が確定した途端、
+        印が「18:20」の字を貫く。帯を一段深くして、見出しの下に印の道を作る。
+      */
+      .rail { height: 46px; }
+      .rail .cap, .rail .cap2 { top: 0; }
+      /* 線も明示的に置く。flex の中央任せだと、帯を深くした途端に印とずれる。 */
+      .rail .line { top: 28px; }
+      .rail .pin { top: 22px; }
+      .rail .now { top: 18px; height: 22px; }
+    </style>
   </head>
   <body>
-  <div class="phone">
-      <div class="int-head hair">
+    <div class="phone" data-mock-id="ALI_INT_01">
+      <div class="int-head hair" data-mock-id="ALI_INT_02">
         <div class="row1">
-          <span class="ttl">←　概要に戻る</span>
-          <span style="flex:none">4/12　<span class="t">08:41</span></span>
+          <a class="ttl" href="./case-overview.html">←　概要に戻る</a>
+          <span style="flex: none" id="count"></span>
+          <a class="acc" href="./accusation.html" data-mock-id="ALI_INT_03">告発</a>
         </div>
-        <div class="nm" style="color:var(--asagi-t)">牧野千尋</div>
-        <div class="pers">生真面目で、話しはじめると止まらない</div>
+        <div class="nm" id="who" data-mock-id="ALI_INT_05"></div>
+        <div class="pers" id="pers"></div>
       </div>
 
-      <div class="rail hair">
-        <span class="cap label t">18:20</span><span class="cap2 label t">19:20</span>
-        <span class="line"></span>
-        <span class="pin hollow" style="left:14%; background:var(--fuji)"></span>
-        <span class="pin" style="left:34%; background:var(--fuji)"></span>
-        <span class="pin" style="left:41%; background:var(--asagi)"></span>
-        <span class="pin hollow" style="left:56%; background:var(--suou)"></span>
-        <span class="pin" style="left:76%; background:var(--asagi)"></span>
-        <span class="now" style="left:76%"></span>
-      </div>
+      <div class="rail hair" id="rail" data-mock-id="ALI_INT_04"></div>
 
-      <div class="log">
-        <div class="turn me">
-          <span class="who">探偵</span>
-          <p class="txt">郵便局に行った時刻を、もう一度</p>
-        </div>
-        <div class="turn" style="border-left-color:var(--asagi)">
-          <span class="who" style="color:var(--asagi-t)">牧野千尋</span>
-          <p class="txt">午後六時三十五分には店を出ています。発送があったので。</p>
-          <p class="txt">窓口の受付は<span style="color:var(--asagi-t)">午後七時八分</span>でした。レシートも残っています。</p>
-          <p class="txt">……三十分以上かかる道のりでしたけど。</p>
-          <p class="txt">雨でしたから。<span class="beat">▼</span></p>
-        </div>
-
-        <div class="hint">
+      <div class="log" id="log" data-mock-id="ALI_INT_06">
+        <div class="hint" id="hint" data-mock-id="ALI_INT_08">
           <span class="head">訊けそうなこと<span>▲</span></span>
-          <span class="q">レシートを見せてもらえますか</span>
-          <span class="q">黒田さんとは話しましたか</span>
         </div>
       </div>
 
-      <div class="int-foot" style="border-top:1px solid var(--keisen)">
+      <div class="int-foot" style="border-top: 1px solid var(--keisen)">
         <div class="askbar">
-          <span class="box">何について訊く？</span>
-          <span class="btn">訊く</span>
+          <span class="box" data-mock-id="ALI_INT_10">何について訊く？</span>
+          <span class="btn" data-mock-id="ALI_INT_11">訊く</span>
         </div>
       </div>
-  </div>
+    </div>
+
+    <script src="../_case.js"></script>
+    <script src="../_mock.js"></script>
+    <script>
+      ;(function () {
+        var C = Mock.case
+        var st = Mock.play(Mock.num('turn', 4))
+        var me = Mock.cast[st.current]
+
+        document.getElementById('count').innerHTML =
+          st.turn +
+          '/' +
+          C.turns +
+          '　<span class="t">' +
+          Mock.clock(st.turn) +
+          '</span>'
+
+        document.getElementById('who').textContent = me.name
+        document.getElementById('who').style.color = 'var(--' + me.hue + Mock.lit + ')'
+        document.getElementById('pers').textContent = me.persona
+
+        document.getElementById('rail').innerHTML = Mock.rail({ segments: st.segments })
+
+        // 訊けそうなことはログの末尾に畳んである。会話はその上に積む。
+        var hint = document.getElementById('hint')
+        document.getElementById('log').insertAdjacentHTML('afterbegin', Mock.log(st.log.slice(-8)))
+        hint.insertAdjacentHTML(
+          'beforeend',
+          st.hints
+            .map(function (q) {
+              return '<span class="q" data-mock-id="ALI_INT_09">' + Mock.esc(q) + '</span>'
+            })
+            .join(''),
+        )
+
+        Mock.ready()
+      })()
+    </script>
   </body>
 </html>

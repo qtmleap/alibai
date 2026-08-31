@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AlibAI モバイル — 探偵を決める</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500&family=Roboto+Mono:wght@400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./_phone.css" />
+    <link rel="stylesheet" href="../_mock.css" />
+    <style>
+      /*
+        誰として調べるか。
+
+        机では名簿と人物像を左右に並べられるが、この幅では割れない。素直に入れ替える。
+        つくっているあいだ名簿は消えるが、二つを同時に見せようとすれば、
+        どちらも読めない大きさになる。
+      */
+      .p-det { padding-top: 26px; display: flex; flex-direction: column; gap: 16px; }
+      .p-det h3 {
+        font-family: var(--mincho); font-weight: 700;
+        font-size: 19px; letter-spacing: 0.05em; line-height: 1.55; margin: 0;
+      }
+      .p-det .lead { margin: 7px 0 0; font-size: 11.5px; line-height: 1.8; color: var(--nezumi); }
+
+      /* ---- 名簿 ---- */
+      /* 選択は塗らずに左端の一本で。行の頭を全行そろえるため、枠ではなく内側の影で引く。 */
+      .roster .r { align-items: flex-start; padding-left: 12px; }
+      .roster .r.on { box-shadow: inset 2px 0 0 var(--kinari); }
+      .roster .pick {
+        display: flex; flex-direction: column; gap: 1px; min-width: 0;
+        background: none; border: 0; padding: 0; text-align: left;
+        color: inherit; font: inherit;
+      }
+      .roster .nm { font-size: 13px; color: var(--nezumi); }
+      .roster .r.on .nm { color: var(--kinari); }
+      .roster .ps { font-size: 10.5px; color: var(--nezumi-dim); line-height: 1.6; }
+      /* 消すほうは一段沈める。並べて置くと押し間違える。 */
+      .roster .acts { margin-left: auto; flex: none; display: flex; gap: 12px; padding-top: 2px; }
+      .roster .acts span { font-size: 11px; color: var(--nezumi); }
+      .roster .acts span + span { color: var(--nezumi-dim); }
+
+      .add {
+        align-self: flex-start;
+        background: none; border: 0; padding: 0;
+        font-size: 12px; letter-spacing: 0.06em; color: var(--nezumi);
+      }
+      .fine { margin: 0; font-size: 11px; color: var(--nezumi-dim); line-height: 1.7; }
+
+      /* ---- つくる／編集する ---- */
+      .grp { display: flex; flex-direction: column; gap: 6px; }
+      .line { border-bottom: 1px solid var(--keisen); padding: 6px 0; font-size: 13px; }
+      .line.ph { color: var(--nezumi-dim); }
+      /*
+        年ごろは七つあり、注記まで抱えている。等分に割ると「見た目からは測れない」が
+        入らないので、ここだけ中身なりの幅で折り返す。性別は四つなので .modes のまま。
+      */
+      .ages { display: flex; flex-wrap: wrap; column-gap: 18px; }
+      .ages span {
+        padding: 6px 0; font-size: 11.5px; color: var(--nezumi-dim);
+        border-bottom: 1px solid var(--keisen);
+      }
+      .ages span .n { margin-left: 6px; font-size: 9.5px; }
+      .ages .on { color: var(--kinari); border-bottom-color: var(--kinari); }
+
+      /* ---- 下端の操作 ---- */
+      /* リンクの既定の青と下線は持ち込ませない。枠と字の明るさだけで格を分ける。 */
+      .phone a { color: inherit; text-decoration: none; }
+      .foot { margin-top: auto; padding-bottom: 24px; display: flex; flex-direction: column; gap: 11px; }
+      .foot .again { color: var(--nezumi); }
+      .foot .again.dim { color: var(--nezumi-dim); }
+      /* 押せない一手は枠ごと沈める。字だけ薄くすると、枠が押せると言い続ける。 */
+      .go.off { color: var(--nezumi-dim); border-color: var(--keisen); }
+      .again { display: block; }
+    </style>
+  </head>
+  <body>
+    <div class="phone" data-mock-id="ALI_DET_01">
+      <div class="pad p-det" id="body"></div>
+      <div class="pad foot" id="foot"></div>
+    </div>
+
+    <script src="../_case.js"></script>
+    <script src="../_mock.js"></script>
+    <script>
+      ;(function () {
+        // 探偵は事件のデータではない——遊ぶ人の持ち物なので、_case.js には置かずここに素で持つ。
+        var PEOPLE = [
+          {
+            name: '日下部 灯',
+            attr: '壮年 ・ 女性',
+            look: '背の低い痩身。読みかけの文庫をいつも外套の右に入れている。',
+          },
+          {
+            name: '甲斐 透',
+            attr: '老齢 ・ 男性',
+            look: '白髪を短く刈った長身。杖はつくが足取りは速い。',
+          },
+          // 容姿を書かないまま保存できる。行が一段短くなる見え方をここで確かめる。
+          { name: '灰かぶり', attr: '年齢不詳 ・ 明かさない', look: '' },
+        ]
+
+        var AGES = [
+          { name: '子供', note: '12歳ごろまで' },
+          { name: '十代', note: '13〜19歳ごろ' },
+          { name: '若者', note: '20代' },
+          { name: '壮年', note: '30〜40代' },
+          { name: '初老', note: '50〜60代' },
+          { name: '老齢', note: '70代以上' },
+          { name: '年齢不詳', note: '見た目からは測れない' },
+        ]
+        var GENDERS = ['男性', '女性', 'どちらでもない', '明かさない']
+
+        var empty = Mock.str('empty', '0') === '1'
+        var form = Mock.str('form', '')
+        var people = empty ? [] : PEOPLE
+        var picked = people[0]
+
+        var choices = function (items, on) {
+          return items
+            .map(function (i, n) {
+              return (
+                '<span class="' +
+                (n === on ? 'on' : '') +
+                '">' +
+                Mock.esc(i.name || i) +
+                (i.note ? '<span class="n">' + Mock.esc(i.note) + '</span>' : '') +
+                '</span>'
+              )
+            })
+            .join('')
+        }
+
+        var body = document.getElementById('body')
+        var foot = document.getElementById('foot')
+
+        if (form) {
+          var editing = form === 'edit'
+          // 新規は「年齢不詳・明かさない」から始まる。決めていないなら決めないまま遊べる。
+          body.innerHTML =
+            '<h3>' +
+            (editing ? '探偵を編集する' : '探偵をつくる') +
+            '</h3>' +
+            '<div class="grp" data-mock-id="ALI_DET_11">' +
+            '<span class="label">名前</span>' +
+            '<div class="line' +
+            (editing ? '' : ' ph') +
+            '" data-mock-id="ALI_DET_12">' +
+            Mock.esc(editing ? PEOPLE[0].name : '例：日下部 灯') +
+            '</div></div>' +
+            '<div class="grp"><span class="label">年ごろ</span>' +
+            '<div class="ages" data-mock-id="ALI_DET_13">' +
+            choices(AGES, editing ? 3 : 6) +
+            '</div></div>' +
+            '<div class="grp"><span class="label">性別</span>' +
+            '<div class="modes" data-mock-id="ALI_DET_14">' +
+            choices(GENDERS, editing ? 1 : 3) +
+            '</div></div>' +
+            '<div class="field"><span class="label">容姿</span>' +
+            '<div class="box" data-mock-id="ALI_DET_15">' +
+            Mock.esc(
+              editing
+                ? PEOPLE[0].look
+                : '例：くたびれたコートを着た長身。目つきが鋭く、口数は少ない。',
+            ) +
+            '</div></div>'
+
+          // 名前が空のあいだは保存できない。全部を必須にすると遊び始めるまでが遠い。
+          // やめるは枠を持たせない——保存が沈んでいるあいだ、枠つきの取り消しが主役に見えてしまう。
+          foot.innerHTML =
+            '<div data-mock-id="ALI_DET_16">' +
+            '<span class="go' +
+            (editing ? '' : ' off') +
+            '" style="display:block">保存する</span></div>' +
+            (editing ? '' : '<p class="fine" style="text-align:center">名前が決まると保存できます。</p>') +
+            '<span class="again" data-go="">やめる</span>'
+        } else {
+          body.innerHTML =
+            '<div data-mock-id="ALI_DET_03"><h3>' +
+            Mock.esc(Mock.case.title) +
+            '</h3><p class="lead">誰として、この事件を調べますか。<br />' +
+            '選んだ人物像は聞き込みの相手にも伝わり、呼びかけ方や態度が変わります。</p></div>' +
+            (empty
+              ? '<p class="fine" data-mock-id="ALI_DET_17">まだ探偵がいません。作るか、名乗らずに始めることもできます。</p>'
+              : '<div class="cast roster" data-mock-id="ALI_DET_04">' +
+                people
+                  .map(function (p) {
+                    var look = p.look ? '<span class="ps">' + Mock.esc(p.look) + '</span>' : ''
+                    return (
+                      '<div class="r' +
+                      (p === picked ? ' on' : '') +
+                      '" data-mock-id="ALI_DET_05"><button class="pick" type="button">' +
+                      '<span class="nm">' +
+                      Mock.esc(p.name) +
+                      '</span><span class="ps">' +
+                      Mock.esc(p.attr) +
+                      '</span>' +
+                      look +
+                      '</button><span class="acts" data-mock-id="ALI_DET_06">' +
+                      '<span data-go="form=edit">編集</span><span>削除</span></span></div>'
+                    )
+                  })
+                  .join('') +
+                '</div>') +
+            '<button class="add" type="button" data-go="form=new" data-mock-id="ALI_DET_07">＋ 新しい探偵をつくる</button>'
+
+          foot.innerHTML =
+            '<a class="go' +
+            (picked ? '' : ' off') +
+            '" ' +
+            (picked ? 'href="./briefing.html" ' : '') +
+            'data-mock-id="ALI_DET_08">' +
+            Mock.esc(picked ? picked.name + ' で事件に向かう' : '探偵を選んでください') +
+            '</a>' +
+            '<a class="again" href="./briefing.html" data-mock-id="ALI_DET_09">名乗らずに始める</a>' +
+            '<a class="again dim" href="./scenario-select.html" data-mock-id="ALI_DET_02">シナリオを選び直す</a>'
+        }
+
+        // 押下の模擬はハッシュを書いて読み直す。このモック群の型どおり。
+        Array.prototype.forEach.call(document.querySelectorAll('[data-go]'), function (el) {
+          el.addEventListener('click', function () {
+            location.hash = el.dataset.go + (empty ? '&empty=1' : '')
+            location.reload()
+          })
+        })
+
+        Mock.ready()
+      })()
+    </script>
+  </body>
+</html>

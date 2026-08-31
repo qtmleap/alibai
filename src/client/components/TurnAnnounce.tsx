@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { playSe } from '@/client/lib/sound'
 
 type Props = {
   turn: number
@@ -27,6 +28,9 @@ export const TurnAnnounce = ({ turn, maxTurns }: Props) => {
    * 「なぜ必要なのか」がコードから読み取れなくなる。
    */
   useEffect(() => {
+    // 扉が一つ閉まる。数字が出るのと同時に鳴らすので、出し直しの契約（key）にそのまま乗る。
+    playSe('turn')
+
     const timer = setTimeout(() => setVisible(false), VISIBLE_MS)
 
     return () => clearTimeout(timer)

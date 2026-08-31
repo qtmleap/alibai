@@ -10,6 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500&family=Roboto+Mono:wght@400&display=swap"
       rel="stylesheet"
     />
+    <link rel="stylesheet" href="../_mock.css" />
     <style>
       /*
         src/client/index.css の @theme をそのまま写したもの。
@@ -80,13 +81,27 @@
       /*
         件数は総数を出す。ページ内の件数に置き換えると、
         「全部でいくつあるのか」を知る手がかりが画面から消える。
+        設定への入口は件数と同じ行の右端に置く。行をもう一本増やさない。
       */
-      .total {
+      .bar {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
         padding-bottom: 0.5rem;
+      }
+
+      .total {
+        margin: 0;
         font-family: var(--mono);
         font-size: 9.5px;
         color: var(--nezumi-dim);
         letter-spacing: 0.24em;
+      }
+
+      .bar a {
+        font-size: 11.5px;
+        color: var(--nezumi);
+        text-decoration: none;
       }
 
       .list {
@@ -114,6 +129,7 @@
         color: inherit;
         font: inherit;
         cursor: pointer;
+        text-decoration: none;
       }
 
       .row .cat {
@@ -186,84 +202,73 @@
     </style>
   </head>
   <body>
-    <div class="screen">
-      <header class="head">
+    <div class="screen" data-mock-id="ALI_SEL_01">
+      <header class="head" data-mock-id="ALI_SEL_02">
         <h1>AlibAI</h1>
         <p>聞き込みで、犯人を指し示す</p>
       </header>
 
-      <p class="total">43件</p>
+      <div class="bar">
+        <p class="total" id="total" data-mock-id="ALI_SEL_03"></p>
+        <a href="./settings.html" data-mock-id="ALI_SEL_04">設定</a>
+      </div>
 
-      <ul class="list">
-        <li>
-          <button class="row" type="button">
-            <span class="cat">SFクローズドサークル</span>
-            <span class="title">世代船、三つの夜明け</span>
-            <span class="meta">3人　★★★★★　約15分</span>
-          </button>
-        </li>
-        <li>
-          <button class="row" type="button">
-            <span class="title">火星基地、遅れて届いた返事</span>
-            <span class="meta">3人　★★★★★　約15分</span>
-          </button>
-        </li>
-        <li>
-          <button class="row" type="button">
-            <span class="cat">クローズドサークル</span>
-            <span class="title">台風のデータセンター、無人の保守窓</span>
-            <span class="meta">4人　★★★★★　約15分</span>
-          </button>
-        </li>
-        <li>
-          <button class="row" type="button">
-            <span class="title">台風圏の洋上基地、自律飛行の十八分</span>
-            <span class="meta">4人　★★★★★　約18分</span>
-          </button>
-        </li>
-        <li>
-          <button class="row" type="button">
-            <span class="title">吹雪のロッジ、青席のアリバイ</span>
-            <span class="meta">4人　★★★★　約15分</span>
-          </button>
-        </li>
-        <li>
-          <button class="row" type="button">
-            <span class="title">崖上ホテル、磨りガラスの人影</span>
-            <span class="meta">3人　★★★★★　約15分</span>
-          </button>
-        </li>
-        <li>
-          <button class="row" type="button">
-            <span class="title">崩落の時計博物館、十一分早い八時半</span>
-            <span class="meta">4人　★★★★★　約18分</span>
-          </button>
-        </li>
-        <li>
-          <button class="row" type="button">
-            <span class="title">崩落洞窟、歩き続ける位置タグ</span>
-            <span class="meta">4人　★★★★★　約18分</span>
-          </button>
-        </li>
-        <li>
-          <button class="row" type="button">
-            <span class="title">嵐の天象館、ガラスの向こうの目撃者</span>
-            <span class="meta">3人　★★★★★　約15分</span>
-          </button>
-        </li>
-        <li>
-          <button class="row" type="button">
-            <span class="title">嵐の山宿、二階を歩く杖</span>
-            <span class="meta">3人　★★★★★　約15分</span>
-          </button>
-        </li>
-      </ul>
+      <ul class="list" id="list" data-mock-id="ALI_SEL_05"></ul>
 
-      <nav class="pager" aria-label="ページ送り">
-        <button type="button" disabled>前へ</button>
-        <span class="at">1 / 5</span>
-        <button type="button">次へ</button>
+      <nav class="pager" aria-label="ページ送り" data-mock-id="ALI_SEL_07">
+        <button type="button" id="prev">前へ</button>
+        <span class="at" id="at"></span>
+        <button type="button" id="next">次へ</button>
       </nav>
     </div>
+
+    <script src="../_case.js"></script>
+    <script src="../_mock.js"></script>
+    <script>
+      ;(function () {
+        var PER = 10
+        var pages = Math.ceil(CASES.length / PER)
+        var page = Math.min(pages, Math.max(1, Mock.num('page', 1)))
+        var slice = CASES.slice((page - 1) * PER, page * PER)
+
+        document.getElementById('total').textContent = CASES.length + '件'
+        document.getElementById('at').textContent = page + ' / ' + pages
+
+        // 種別で並べてあるので、同じ値が続くあいだは繰り返さない（発話の塊と同じ扱い）。
+        var prevCat = null
+        document.getElementById('list').innerHTML = slice
+          .map(function (c) {
+            var cat = c.cat === prevCat ? '' : '<span class="cat">' + Mock.esc(c.cat) + '</span>'
+            prevCat = c.cat
+            return (
+              '<li><a class="row" href="./detective.html" data-mock-id="ALI_SEL_06">' +
+              cat +
+              '<span class="title">' +
+              Mock.esc(c.title) +
+              '</span><span class="meta">' +
+              Mock.esc(c.meta) +
+              '</span></a></li>'
+            )
+          })
+          .join('')
+
+        var go = function (n) {
+          location.hash = 'page=' + n
+          location.reload()
+        }
+        var prev = document.getElementById('prev')
+        var next = document.getElementById('next')
+        prev.disabled = page === 1
+        next.disabled = page === pages
+        prev.addEventListener('click', function () {
+          go(page - 1)
+        })
+        next.addEventListener('click', function () {
+          go(page + 1)
+        })
+
+        Mock.ready()
+      })()
+    </script>
   </body>
 </html>

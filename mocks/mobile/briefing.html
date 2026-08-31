@@ -11,18 +11,43 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./_phone.css" />
+    <link rel="stylesheet" href="../_mock.css" />
+    <style>
+      /* 読み飛ばしは端末の下端へ落とす。本文に重ねると、最後の一行の上に字が乗る。 */
+      .skip {
+        margin-top: auto;
+        padding-bottom: 26px;
+        text-align: center;
+        font-size: 11.5px;
+        color: var(--nezumi-dim);
+        text-decoration: none;
+        display: block;
+      }
+    </style>
   </head>
   <body>
-  <div class="phone">
-    <div class="pad p-brief">
-      <div class="label">記録　0001</div>
-      <div class="crawl" style="margin-top:26px">
-        <p>——事件の記録を読み上げます。</p>
-        <p>午後七時十五分、商店街の古書店「青雨堂」で、店主の水野英治が店の奥で死亡しているのが見つかりました。外は夕方から激しい雨。閉店時刻は午後六時半でしたが、店内には高価な初版本の商談があり、何人かが遅くまで出入りしていました。</p>
-        <p>事件に関わるのは三人です。店員の牧野千尋、常連の収集家・黒田征司、向かいの喫茶店主・瀬名真琴。</p>
+    <div class="phone" data-mock-id="ALI_BRF_01">
+      <div class="pad p-brief">
+        <div class="label" id="no" data-mock-id="ALI_BRF_02"></div>
+        <div class="crawl" id="crawl" style="margin-top: 26px" data-mock-id="ALI_BRF_03"></div>
       </div>
+      <div class="fade"></div>
+      <a class="skip" href="./case-overview.html" data-mock-id="ALI_BRF_04">タップで読み飛ばす</a>
     </div>
-    <div class="fade"></div>
-  </div>
+
+    <script src="../_case.js"></script>
+    <script src="../_mock.js"></script>
+    <script>
+      ;(function () {
+        var C = Mock.case
+        document.getElementById('no').textContent = '記録　' + C.no
+        document.getElementById('crawl').innerHTML = C.brief
+          .map(function (p) {
+            return '<p>' + p + '</p>'
+          })
+          .join('')
+        Mock.ready()
+      })()
+    </script>
   </body>
 </html>

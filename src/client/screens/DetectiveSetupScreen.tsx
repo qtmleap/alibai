@@ -16,6 +16,7 @@ import {
   upsertDetective,
 } from '@/client/lib/detective-store'
 import type { Detective, ScenarioDetail } from '@/client/lib/schemas'
+import { playSe } from '@/client/lib/sound'
 import {
   AGE_GROUP_LABELS,
   AGE_GROUP_NOTES,
@@ -71,6 +72,15 @@ export const DetectiveSetupScreen = ({ scenario, onDecided, onBack }: Props) => 
 
   const updateDraft = (patch: Partial<Draft>) =>
     setDraft((current) => (current === undefined ? current : { ...current, ...patch }))
+
+  /**
+   * 事件へ向かう一押し。名乗って行く道と名乗らずに行く道の両方がここを通る。
+   * 押した手の中で鳴るので、ブラウザの自動再生の制限にも掛からない。
+   */
+  const goToCase = () => {
+    playSe('challenge')
+    onDecided()
+  }
 
   const handleSaveDraft = () => {
     if (draft === undefined) {
@@ -294,12 +304,7 @@ export const DetectiveSetupScreen = ({ scenario, onDecided, onBack }: Props) => 
         ＋ 新しい探偵をつくる
       </Button>
 
-      <Button
-        size="block"
-        className="mt-auto"
-        onClick={onDecided}
-        disabled={selected === undefined}
-      >
+      <Button size="block" className="mt-auto" onClick={goToCase} disabled={selected === undefined}>
         {selected === undefined ? '探偵を選んでください' : `${selected.name} で事件に向かう`}
       </Button>
 
@@ -308,7 +313,7 @@ export const DetectiveSetupScreen = ({ scenario, onDecided, onBack }: Props) => 
         size="sm"
         onClick={() => {
           update(clearActiveDetective(store))
-          onDecided()
+          goToCase()
         }}
       >
         名乗らずに始める

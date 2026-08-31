@@ -11,57 +11,124 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./_phone.css" />
+    <link rel="stylesheet" href="../_mock.css" />
+    <style>
+      .p-ov a { text-decoration: none; color: inherit; display: block; }
+      /* 名簿の行は押せる。押せるものを div のままにしない。 */
+      .cast button.r { background: none; border: 0; font: inherit; color: inherit; text-align: left; width: 100%; }
+      .modes span { cursor: pointer; }
+    </style>
   </head>
   <body>
-  <div class="phone">
-    <div class="pad p-ov">
-      <h3>雨の古書店、<br>十九時八分のレシート</h3>
+    <div class="phone" data-mock-id="ALI_OVW_01">
+      <div class="pad p-ov">
+        <a class="label" href="./scenario-select.html" data-mock-id="ALI_OVW_02">← 事件を選ぶ</a>
 
-      <div>
-        <div class="rail-empty">
-          <span class="lb label t" style="left:0">18:20</span>
-          <span class="lb label t" style="right:0">19:20</span>
-          <span class="line"></span>
-          <span class="end" style="left:0"></span>
-          <span class="end" style="right:0"></span>
+        <h3 id="ttl" data-mock-id="ALI_OVW_03"></h3>
+
+        <div data-mock-id="ALI_OVW_04">
+          <div class="rail-empty">
+            <span class="lb label t" id="from" style="left: 0"></span>
+            <span class="lb label t" id="to" style="right: 0"></span>
+            <span class="line"></span>
+            <span class="end" style="left: 0"></span>
+            <span class="end" style="right: 0"></span>
+          </div>
+          <div class="dim" id="railLead" style="font-size: 11px"></div>
         </div>
-        <div class="dim" style="font-size:11px">この一時間を、説明しきる</div>
-      </div>
 
-      <div>
-        <div class="label">まず誰から話を聞くか</div>
-        <div class="cast" style="margin-top:8px">
-          <div class="r">
-            <span class="face on" style="color:var(--asagi-t); background:#1f2a2a">牧</span>
-            <span class="col"><span class="nm" style="color:var(--asagi-t)">牧野千尋</span><span class="ps">店員。生真面目で、話しはじめると止まらない</span></span>
-          </div>
-          <div class="r">
-            <span class="face" style="color:var(--fuji-t); background:#221f2b">黒</span>
-            <span class="col"><span class="nm">黒田征司</span><span class="ps">常連の収集家。初版本の商談に来ていた</span></span>
-          </div>
-          <div class="r">
-            <span class="face" style="color:var(--suou-t); background:#271d22">瀬</span>
-            <span class="col"><span class="nm">瀬名真琴</span><span class="ps">向かいの喫茶店主。雨脚を見ていた</span></span>
-          </div>
-          <div class="r">
-            <span class="face" style="color:var(--karashi-t); background:#2a2418">水</span>
-            <span class="col"><span class="nm">水野英治</span><span class="ps">青雨堂店主</span></span>
-            <span class="role">被害者</span>
-          </div>
+        <div>
+          <div class="label">まず誰から話を聞くか</div>
+          <div class="cast" id="cast" style="margin-top: 8px" data-mock-id="ALI_OVW_06"></div>
         </div>
-      </div>
 
-      <div>
-        <div class="label">手がかりの見え方</div>
-        <div class="modes" style="margin-top:8px">
-          <span>Easy</span><span class="on">Normal</span><span>Hard</span><span>No Hope</span>
+        <div>
+          <div class="label">手がかりの見え方</div>
+          <div class="modes" id="modes" style="margin-top: 8px" data-mock-id="ALI_OVW_08"></div>
+          <div class="dim" id="fine" style="font-size: 10.5px; margin-top: 7px"></div>
         </div>
-        <div class="dim" style="font-size:10.5px; margin-top:7px">場所と人物、それぞれの合計だけが見える</div>
-      </div>
 
-      <div class="go">牧野千尋に聞き込みをする</div>
-      <div class="again">事件の記録をもう一度読む</div>
+        <a class="go" id="go" data-mock-id="ALI_OVW_09"></a>
+        <a class="again" href="./briefing.html" data-mock-id="ALI_OVW_10">事件の記録をもう一度読む</a>
+      </div>
     </div>
-  </div>
+
+    <script src="../_case.js"></script>
+    <script src="../_mock.js"></script>
+    <script>
+      ;(function () {
+        var C = Mock.case
+        var modeKey = Mock.str('mode', 'normal')
+        var pick = Mock.str('who', C.cast[0].key)
+
+        document.getElementById('ttl').innerHTML = C.titleBreak
+        document.getElementById('from').textContent = C.span.from
+        document.getElementById('to').textContent = C.span.to
+        document.getElementById('railLead').textContent = C.railLead
+
+        document.getElementById('cast').innerHTML = C.cast
+          .concat([C.victim])
+          .map(function (p) {
+            var isVictim = p.key === C.victim.key
+            return (
+              '<button class="r" type="button" data-mock-id="ALI_OVW_07" data-who="' +
+              p.key +
+              '"' +
+              (isVictim ? ' disabled' : '') +
+              '><span class="face' +
+              (pick === p.key ? ' on' : '') +
+              '" style="color:var(--' +
+              p.hue +
+              Mock.lit +
+              '); background:' +
+              p.faceBg +
+              '">' +
+              p.face +
+              '</span><span class="col"><span class="nm"' +
+              (pick === p.key ? ' style="color:var(--' + p.hue + Mock.lit + ')"' : '') +
+              '>' +
+              Mock.esc(p.name) +
+              '</span><span class="ps">' +
+              Mock.esc(isVictim ? p.blurb : p.role + '。' + p.persona) +
+              '</span></span>' +
+              (isVictim ? '<span class="role">被害者</span>' : '') +
+              '</button>'
+            )
+          })
+          .join('')
+
+        document.getElementById('modes').innerHTML = C.modes
+          .map(function (m) {
+            return '<span class="' + (m.key === modeKey ? 'on' : '') + '" data-mode="' + m.key + '">' + m.name + '</span>'
+          })
+          .join('')
+
+        document.getElementById('fine').textContent = C.modes.filter(function (m) {
+          return m.key === modeKey
+        })[0].fine
+
+        var who = Mock.cast[pick]
+        var go = document.getElementById('go')
+        go.textContent = who.name + 'に聞き込みをする'
+        go.href = './interrogation.html#turn=1&who=' + pick
+
+        var reload = function (mode, w) {
+          location.hash = 'mode=' + mode + '&who=' + w
+          location.reload()
+        }
+        Array.prototype.forEach.call(document.querySelectorAll('[data-who]'), function (el) {
+          el.addEventListener('click', function () {
+            reload(modeKey, el.dataset.who)
+          })
+        })
+        Array.prototype.forEach.call(document.querySelectorAll('[data-mode]'), function (el) {
+          el.addEventListener('click', function () {
+            reload(el.dataset.mode, pick)
+          })
+        })
+
+        Mock.ready()
+      })()
+    </script>
   </body>
 </html>

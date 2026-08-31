@@ -10,117 +10,104 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./_desk.css" />
+    <link rel="stylesheet" href="../_mock.css" />
   </head>
   <body>
     <!-- 左のアリバイ表が主役。右は対話なので行長を締める——ここは幅を余らせているのではなく、読める行長を守っている。 -->
-        <div class="desk">
-          <div class="top">
-            <span class="ttl">雨の古書店、十九時八分のレシート</span>
-            <div class="rgt"><span>4 / 12 ターン</span><span class="t">08:41</span><span class="act">告発する</span></div>
+    <div class="desk" data-mock-id="ALI_INT_01">
+      <div class="top" data-mock-id="ALI_INT_02">
+        <span class="ttl" id="ttl"></span>
+        <div class="rgt">
+          <span id="turns"></span><span class="t" id="clock"></span>
+          <a class="act" href="./accusation.html" data-mock-id="ALI_INT_03">告発する</a>
+        </div>
+      </div>
+      <div class="panes">
+        <div class="board" data-mock-id="ALI_INT_04">
+          <div class="bh">
+            <span class="nm">アリバイ表</span>
+            <span class="label t" id="bspan"></span>
           </div>
-          <div class="panes">
-            <div class="board">
-              <div class="bh">
-                <span class="nm">アリバイ表</span>
-                <span class="label t">18:20 – 19:20</span>
-              </div>
-              <div class="cols chart-head">
-                <span></span>
-                <span class="c now" style="color:var(--asagi-t)"><span class="who">牧野千尋</span><span class="rl">聞き込み中</span></span>
-                <span class="c" style="color:var(--fuji-t)"><span class="who">黒田征司</span><span class="rl">収集家</span></span>
-                <span class="c" style="color:var(--suou-t)"><span class="who">瀬名真琴</span><span class="rl">喫茶店主</span></span>
-                <span class="c" style="color:var(--karashi-t)"><span class="who">水野英治</span><span class="rl">被害者</span></span>
-              </div>
-              <div class="cols chart">
-                <span class="grid" style="top:0"></span>
-                <span class="grid" style="top:100px"></span>
-                <span class="grid" style="top:200px"></span>
-                <span class="grid" style="top:300px"></span>
-                <span class="grid" style="top:400px"></span>
-                <span class="grid" style="top:500px"></span>
-                <span class="grid" style="top:600px"></span>
-                <span class="gut">
-                  <span class="at edge" style="top:0">18:20</span>
-                  <span class="at" style="top:100px">18:30</span>
-                  <span class="at" style="top:200px">18:40</span>
-                  <span class="at" style="top:300px">18:50</span>
-                  <span class="at" style="top:400px">19:00</span>
-                  <span class="at" style="top:500px">19:10</span>
-                  <span class="at edge" style="top:600px">19:20</span>
-                </span>
-
-                <span class="col now" style="color:var(--asagi-t)">
-                  <span class="bar solid" style="top:0; height:160px; background:var(--asagi)"><span class="pl">店内</span></span>
-                  <span class="bar claim" style="top:160px; height:320px; color:var(--asagi)"><span class="pl">郵便局へ、雨のなかを</span></span>
-                  <span class="bar solid on" style="top:480px; height:60px; background:var(--asagi)"><span class="pl">郵便窓口</span><span class="fix">19:08　受付</span></span>
-                </span>
-
-                <span class="col" style="color:var(--fuji-t)">
-                  <span class="bar solid" style="top:30px; height:180px; background:var(--fuji)"><span class="pl">店内</span><span class="fix">18:23　来店</span></span>
-                  <span class="bar claim" style="top:210px; height:390px; color:var(--fuji)"><span class="pl">帰宅したと申告</span></span>
-                </span>
-
-                <span class="col" style="color:var(--suou-t)">
-                  <span class="bar claim" style="top:0; height:520px; color:var(--suou)"><span class="pl">向かいの喫茶店</span></span>
-                  <span class="bar solid" style="top:520px; height:80px; background:var(--suou)"><span class="pl">青雨堂</span><span class="fix">19:12　通報</span></span>
-                </span>
-
-                <span class="col" style="color:var(--karashi-t)">
-                  <span class="bar solid" style="top:0; height:300px; background:var(--karashi)"><span class="pl">店の奥</span></span>
-                </span>
-
-                <span class="deadline" style="top:300px"><span>死亡推定　<span class="t">18:50</span></span></span>
-                <span class="clash" style="top:160px; left:63px; width:217px">
-                  <i style="left:-3px"></i><i style="right:-3px"></i>
-                  <span>食い違い</span>
-                </span>
-              </div>
-              <div class="legend">
-                <span class="k"><b>実線</b>　裏付けあり</span>
-                <span class="k cl"><b>破線</b>　本人の申告のみ</span>
-              </div>
-            </div>
-
-            <div class="work">
-              <div class="talk-head">
-                <div class="nm" style="color:var(--asagi-t)">牧野千尋</div>
-                <div class="ps">店員。生真面目で、話しはじめると止まらない</div>
-              </div>
-
-              <div class="log">
-                <div class="turn me">
-                  <span class="who">探偵</span>
-                  <p class="txt">閉店したあと、店に残っていたのは誰ですか。</p>
-                </div>
-                <div class="turn" style="border-left-color:var(--asagi)">
-                  <span class="who" style="color:var(--asagi-t)">牧野千尋</span>
-                  <p class="txt">わたしと、店長と、黒田さんです。黒田さんは初版本の話で<span class="tm" style="color:var(--fuji-t)">六時二十三分</span>ごろに見えました。</p>
-                  <p class="txt">わたしは奥の帳場にいましたから、そのあたりはよく覚えています。</p>
-                </div>
-                <div class="turn me">
-                  <span class="who">探偵</span>
-                  <p class="txt">店を出たあと、まっすぐ郵便局へ向かったんですね。</p>
-                </div>
-                <div class="turn" style="border-left-color:var(--asagi)">
-                  <span class="who" style="color:var(--asagi-t)">牧野千尋</span>
-                  <p class="txt">はい。発送があったので、午後六時三十六分には店を出ています。</p>
-                  <p class="txt">窓口の受付は<span class="tm on" style="color:var(--asagi-t)">午後七時八分</span>でした。レシートも残っています。</p>
-                  <p class="txt">……三十分以上かかる道のりでしたけど。雨でしたから。<span class="beat">▼</span></p>
-                </div>
-              </div>
-
-              <div class="hint">
-                <div class="hd"><span>訊けそうなこと</span><span>▲</span></div>
-                <span class="q">レシートを見せてもらえますか</span>
-                <span class="q">瀬名さんは、あなたが出ていくのを見ていないそうです</span>
-              </div>
-
-              <div class="askbar">
-                <span class="box">何について訊く？</span>
-                <span class="btn">訊く</span>
-              </div>
-            </div>
+          <div class="cols chart-head" id="head"></div>
+          <div class="cols chart" id="chart"></div>
+          <div class="legend">
+            <span class="k"><b>実線</b>　裏付けあり</span>
+            <span class="k cl"><b>破線</b>　本人の申告のみ</span>
           </div>
         </div>
+
+        <div class="work">
+          <div class="talk-head" data-mock-id="ALI_INT_05">
+            <div class="nm" id="who"></div>
+            <div class="ps" id="pers"></div>
+          </div>
+
+          <div class="log" id="log" data-mock-id="ALI_INT_06"></div>
+
+          <div class="hint" id="hint" data-mock-id="ALI_INT_08">
+            <div class="hd"><span>訊けそうなこと</span><span>▲</span></div>
+          </div>
+
+          <div class="askbar">
+            <span class="box" data-mock-id="ALI_INT_10">何について訊く？</span>
+            <span class="btn" data-mock-id="ALI_INT_11">訊く</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="../_case.js"></script>
+    <script src="../_mock.js"></script>
+    <script>
+      ;(function () {
+        var C = Mock.case
+        // 一枚だけ開いて撮ったときに白紙にならないよう、既定を中盤に置く。
+        var st = Mock.play(Mock.num('turn', 4))
+        var me = Mock.cast[st.current]
+
+        document.getElementById('ttl').textContent = C.title
+        document.getElementById('turns').textContent = st.turn + ' / ' + C.turns + ' ターン'
+        // 経過時間。ターン数から作った見せかけで、意味のある数字ではない。
+        document.getElementById('clock').textContent = Mock.clock(st.turn)
+        document.getElementById('bspan').textContent = C.span.from + ' – ' + C.span.to
+
+        document.getElementById('head').innerHTML = Mock.chartHead({
+          active: st.current,
+          activeLabel: '聞き込み中',
+        })
+        document.getElementById('chart').innerHTML = Mock.chart({
+          segments: st.segments,
+          active: st.current,
+          clash: st.clash,
+          litFix: '19:08　受付',
+        })
+
+        document.getElementById('who').textContent = me.name
+        document.getElementById('who').style.color = 'var(--' + me.hue + Mock.lit + ')'
+        document.getElementById('pers').textContent = me.role + '。' + me.persona
+
+        // 直近の三塊だけ残す。上は溢れるに任せ、切れ口は CSS の霞が引き受ける。
+        document.getElementById('log').innerHTML = Mock.log(st.log.slice(-6))
+        // .hint は縦の flex。包む箱を挟むと候補が一行に繋がるので、直の子として並べる。
+        document.getElementById('hint').insertAdjacentHTML(
+          'beforeend',
+          st.hints
+            .map(function (q) {
+              return '<span class="q" data-mock-id="ALI_INT_09">' + Mock.esc(q) + '</span>'
+            })
+            .join(''),
+        )
+
+        // 列見出しを押すと、その人に相手を替える。
+        Array.prototype.forEach.call(document.querySelectorAll('[data-who]'), function (el) {
+          el.addEventListener('click', function () {
+            location.hash = 'turn=' + st.turn + '&who=' + el.dataset.who
+            location.reload()
+          })
+        })
+
+        Mock.ready()
+      })()
+    </script>
   </body>
 </html>

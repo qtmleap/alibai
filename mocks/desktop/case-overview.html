@@ -10,6 +10,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./_desk.css" />
+    <link rel="stylesheet" href="../_mock.css" />
     <style>
       /*
         支度。
@@ -38,15 +39,21 @@
       */
       .rt .decide { margin-top: auto; }
       .rt .decide .foot { margin-top: 0; padding-top: 18px; }
+
+      /* 名簿の行は押せる。難易度は _desk.css が span で組んであるので span のまま扱う。 */
+      button.r { background: none; border: 0; font: inherit; color: inherit; text-align: left; width: 100%; }
+      button.r[disabled] { opacity: 1; }
+      .modes span { cursor: pointer; }
+      .back, .go { text-decoration: none; }
     </style>
   </head>
   <body>
-    <div class="desk">
+    <div class="desk" data-mock-id="ALI_OVW_01">
       <div class="top">
-        <button class="back" type="button">←　事件を選ぶ</button>
+        <a class="back" href="./scenario-select.html" data-mock-id="ALI_OVW_02">←　事件を選ぶ</a>
         <div class="rgt">
-          <span>全12ターン</span>
-          <span>約10分</span>
+          <span id="turns"></span>
+          <span id="est"></span>
         </div>
       </div>
 
@@ -55,54 +62,13 @@
           左の板は聞き込みが始まる前から据え置く。まだ何も置かれていない表を
           先に見せておくと、これから何を埋めていく遊びなのかが分かる。
         -->
-        <div class="board">
+        <div class="board" data-mock-id="ALI_OVW_04">
           <div class="bh">
             <span class="nm">アリバイ表</span>
-            <span class="label t">18:20 − 19:20</span>
+            <span class="label t" id="bspan"></span>
           </div>
-
-          <div class="cols chart-head">
-            <div></div>
-            <div class="c" style="color: var(--asagi-t)">
-              <span class="who">牧野千尋</span><span class="rl">店員</span>
-            </div>
-            <div class="c" style="color: var(--fuji-t)">
-              <span class="who">黒田征司</span><span class="rl">収集家</span>
-            </div>
-            <div class="c" style="color: var(--suou-t)">
-              <span class="who">瀬名真琴</span><span class="rl">喫茶店主</span>
-            </div>
-            <div class="c" style="color: var(--karashi-t)">
-              <span class="who">水野英治</span><span class="rl">被害者</span>
-            </div>
-          </div>
-
-          <div class="chart cols">
-            <div class="gut">
-              <span class="at edge" style="top: 0">18:20</span>
-              <span class="at" style="top: 100px">18:30</span>
-              <span class="at" style="top: 200px">18:40</span>
-              <span class="at" style="top: 300px">18:50</span>
-              <span class="at" style="top: 400px">19:00</span>
-              <span class="at" style="top: 500px">19:10</span>
-              <span class="at edge" style="top: 600px">19:20</span>
-            </div>
-            <div class="col"></div>
-            <div class="col"></div>
-            <div class="col"></div>
-            <div class="col"></div>
-
-            <div class="grid" style="top: 100px"></div>
-            <div class="grid" style="top: 200px"></div>
-            <div class="grid" style="top: 300px"></div>
-            <div class="grid" style="top: 400px"></div>
-            <div class="grid" style="top: 500px"></div>
-
-            <div class="deadline" style="top: 300px">
-              <span><span class="t">18:50</span>　死亡推定</span>
-            </div>
-          </div>
-
+          <div class="cols chart-head" id="head"></div>
+          <div class="chart cols" id="chart"></div>
           <div class="legend">
             <span class="k"><b>実線</b></span><span>裏付けあり</span>
             <span class="k cl"><b>破線</b></span><span>本人の申告のみ</span>
@@ -110,79 +76,32 @@
         </div>
 
         <div class="work">
-          <div class="wh">
-            <h2>雨の古書店、十九時八分のレシート</h2>
-            <p class="lead">閉店後の一時間。この六十分を、誰かひとりだけが説明しきれずにいます。</p>
+          <div class="wh" data-mock-id="ALI_OVW_03">
+            <h2 id="ttl"></h2>
+            <p class="lead" id="lead"></p>
           </div>
 
           <div class="split reading">
-            <div class="lt record">
+            <div class="lt record" data-mock-id="ALI_OVW_05">
               <span class="label" style="display: block; padding-bottom: 12px">事件の記録</span>
-              <p>——事件の記録を読み上げます。</p>
-              <p>
-                午後七時十五分、商店街の古書店「青雨堂」で、店主の水野英治が店の奥で死亡しているのが
-                見つかりました。外は夕方から激しい雨。閉店時刻は午後六時半でしたが、店内には高価な
-                初版本の商談があり、何人かが遅くまで出入りしていました。
-              </p>
-              <p>
-                事件に関わるのは三人です。店員の牧野千尋、常連の収集家・黒田征司、向かいの喫茶店主・
-                瀬名真琴。牧野は「<em>六時三十五分</em>には発送のため郵便局へ出た」と話し、黒田は
-                「閉店後は店の奥へ入っていない」と言い、瀬名は「店内の揉め事は何も知らない」と
-                答えています。
-              </p>
-              <p>
-                雨の日の商店街では、誰がどこにいたかが意外によく見えます。時刻の入った記録と三人の
-                証言を照らし合わせ、嘘の理由と事件の真相を分けて考えてください。
-              </p>
+              <div id="record"></div>
             </div>
 
             <div class="rt">
               <div class="grp" style="margin-top: 0">
                 <span class="label">まず誰から話を聞くか</span>
-                <div class="cast">
-                  <div class="r" style="color: var(--asagi-t)">
-                    <span class="face on">牧</span>
-                    <span class="col2">
-                      <span class="nm">牧野千尋</span>
-                      <span class="ps">店員。書誌と発送手順には強い</span>
-                    </span>
-                  </div>
-                  <div class="r" style="color: var(--fuji-t)">
-                    <span class="face">黒</span>
-                    <span class="col2">
-                      <span class="nm">黒田征司</span>
-                      <span class="ps">収集家。初版本の商談に来ていた</span>
-                    </span>
-                  </div>
-                  <div class="r" style="color: var(--suou-t)">
-                    <span class="face">瀬</span>
-                    <span class="col2">
-                      <span class="nm">瀬名真琴</span>
-                      <span class="ps">向かいの喫茶店主。雨脚を見ていた</span>
-                    </span>
-                  </div>
-                  <div class="r" style="color: var(--karashi-t)">
-                    <span class="face">水</span>
-                    <span class="col2">
-                      <span class="nm">水野英治</span>
-                      <span class="ps">青雨堂店主</span>
-                    </span>
-                    <span class="role">被害者</span>
-                  </div>
-                </div>
+                <div class="cast" id="cast" data-mock-id="ALI_OVW_06"></div>
               </div>
 
               <div class="decide">
                 <div class="grp">
                   <span class="label">手がかりの見え方</span>
-                  <div class="modes">
-                    <span>Easy</span><span class="on">Normal</span><span>Hard</span><span>No Hope</span>
-                  </div>
-                  <p class="fine">場所と人物、それぞれの合計だけが見えます。</p>
+                  <div class="modes" id="modes" data-mock-id="ALI_OVW_08"></div>
+                  <p class="fine" id="fine"></p>
                 </div>
 
                 <div class="foot">
-                  <button class="go" type="button">牧野千尋に聞き込みをする</button>
+                  <a class="go" id="go" href="./interrogation.html#turn=1" data-mock-id="ALI_OVW_09"></a>
                 </div>
               </div>
             </div>
@@ -190,5 +109,93 @@
         </div>
       </div>
     </div>
+
+    <script src="../_case.js"></script>
+    <script src="../_mock.js"></script>
+    <script>
+      ;(function () {
+        var C = Mock.case
+        var modeKey = Mock.str('mode', 'normal')
+        var pick = Mock.str('who', C.cast[0].key)
+
+        document.getElementById('ttl').textContent = C.title
+        document.getElementById('lead').textContent = C.lead
+        document.getElementById('bspan').textContent = C.span.from + ' − ' + C.span.to
+        document.getElementById('turns').textContent = '全' + C.turns + 'ターン'
+        document.getElementById('est').textContent = '約10分'
+
+        document.getElementById('record').innerHTML = C.briefLong
+          .map(function (p) {
+            return '<p>' + p + '</p>'
+          })
+          .join('')
+
+        // 表はまだ白紙。線を引くのはこれから始まる聞き込みの仕事。
+        document.getElementById('head').innerHTML = Mock.chartHead({})
+        document.getElementById('chart').innerHTML = Mock.chart({ segments: [] })
+
+        document.getElementById('cast').innerHTML = C.cast
+          .concat([C.victim])
+          .map(function (p) {
+            var isVictim = p.key === C.victim.key
+            return (
+              '<button class="r" type="button" style="color:var(--' +
+              p.hue +
+              Mock.lit +
+              ')" data-mock-id="ALI_OVW_07" data-who="' +
+              p.key +
+              '"' +
+              (isVictim ? ' disabled' : '') +
+              '>' +
+              '<span class="face' +
+              (pick === p.key ? ' on' : '') +
+              '">' +
+              p.face +
+              '</span>' +
+              '<span class="col2"><span class="nm">' +
+              Mock.esc(p.name) +
+              '</span><span class="ps">' +
+              Mock.esc(p.blurb) +
+              '</span></span>' +
+              (isVictim ? '<span class="role">被害者</span>' : '') +
+              '</button>'
+            )
+          })
+          .join('')
+
+        document.getElementById('modes').innerHTML = C.modes
+          .map(function (m) {
+            return '<span class="' + (m.key === modeKey ? 'on' : '') + '" data-mode="' + m.key + '">' + m.name + '</span>'
+          })
+          .join('')
+
+        var mode = C.modes.filter(function (m) {
+          return m.key === modeKey
+        })[0]
+        document.getElementById('fine').textContent = mode.fine
+
+        var who = Mock.cast[pick]
+        var go = document.getElementById('go')
+        go.textContent = who.name + 'に聞き込みをする'
+        go.href = './interrogation.html#turn=1&who=' + pick
+
+        var reload = function (next) {
+          location.hash = 'mode=' + next.mode + '&who=' + next.who
+          location.reload()
+        }
+        Array.prototype.forEach.call(document.querySelectorAll('[data-who]'), function (el) {
+          el.addEventListener('click', function () {
+            reload({ mode: modeKey, who: el.dataset.who })
+          })
+        })
+        Array.prototype.forEach.call(document.querySelectorAll('[data-mode]'), function (el) {
+          el.addEventListener('click', function () {
+            reload({ mode: el.dataset.mode, who: pick })
+          })
+        })
+
+        Mock.ready()
+      })()
+    </script>
   </body>
 </html>

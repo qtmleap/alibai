@@ -116,6 +116,7 @@ select {
   padding: 4px 14px;
   color: var(--nezumi);
   background: none;
+  text-decoration: none;
 }
 .desk > .top .back {
   font-size: 12px;
@@ -301,10 +302,12 @@ select {
   height: 1px;
   background: var(--nezumi-dim);
 }
-.deadline span {
+/* 直の子だけ。子孫まで拾うと、中の .t までもう一段持ち上がって時刻が宙に浮く。 */
+.deadline > span {
   position: absolute;
   right: 0;
   top: -17px;
+  white-space: nowrap;
   font-family: var(--mincho);
   font-size: 11px;
   letter-spacing: 0.08em;
@@ -448,6 +451,9 @@ select {
   font-family: var(--mincho);
   font-size: 15px;
   letter-spacing: 0.2em;
+  /* a で組むことがあるので、リンクの既定色と下線は持ち込ませない。 */
+  color: inherit;
+  text-decoration: none;
 }
 /* 取り消せない一手だけ朱。ここ以外には出さない。 */
 .go.final {

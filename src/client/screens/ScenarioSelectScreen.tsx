@@ -84,30 +84,37 @@ export const ScenarioSelectScreen = ({
   return (
     <div className="screen-enter mx-auto flex min-h-dvh max-w-md flex-col bg-sumi px-5 text-kinari lg:max-w-[1240px] lg:px-10 lg:pb-[90px]">
       {/*
-        設定は絶対配置。行として積むと題字の上の余白が削れるか、その分だけ画面が伸びる。
-        遊びの外側にある操作なので、題字の間合いを動かさずに端へ寄せる。
+        件数と設定は同じ行に置く。行をもう一本増やさない。
+        件数は総数を出す——ページ内の件数に置き換えると、全部でいくつあるのかを知る
+        手がかりが画面から消える。
 
-        机の上では横幅が余るので、題字を左に寄せて絶対配置をやめ、件数と並べて右端に置く。
-        中央に据えたままだと、題字の左右に何も無い帯が二本できる。
+        狭い幅ではその行が題字の下に来て、机の上（lg以上）では題字の右端へ回る。
+        机では横幅が余るので、題字を左に寄せないと左右に何も無い帯が二本できる。
       */}
-      <header className="relative flex flex-col items-center gap-2.5 pt-24 pb-16 lg:flex-row lg:items-baseline lg:justify-between lg:pt-[72px] lg:pb-[30px]">
+      <header className="flex flex-col pt-24 lg:flex-row lg:items-baseline lg:justify-between lg:pt-[72px] lg:pb-[30px]">
         <div className="flex flex-col items-center gap-2.5 lg:items-start">
-          <h1 className="font-bold font-mincho text-4xl tracking-[0.18em] lg:text-[42px]">
+          {/*
+            題字の行送りは机の上だけ広い。狭い幅では題字と副題が一塊に見えてほしいが、
+            机では上に余白があるぶん、詰まっていると窮屈に見える。
+          */}
+          <h1 className="font-bold font-mincho text-4xl tracking-[0.18em] lg:text-[42px] lg:leading-[1.8]">
             AlibAI
           </h1>
-          <p className="text-[11px] text-nezumi-dim tracking-[0.3em]">聞き込みで、犯人を指し示す</p>
+          <p className="text-[11px] text-nezumi-dim tracking-[0.3em] lg:leading-[1.8]">
+            聞き込みで、犯人を指し示す
+          </p>
         </div>
-        <div className="absolute top-2 right-0 lg:static lg:flex lg:items-baseline lg:gap-[26px]">
-          {/* 件数は一覧の直前にも出ているが、そちらは狭い幅のためのもの。ここは机の上だけ。 */}
+        <div className="flex items-baseline justify-between pt-16 pb-2 lg:gap-[26px] lg:pt-0 lg:pb-0">
           {scenarios.length > 0 && (
-            <span className="hidden font-mono text-[10px] text-nezumi-dim tracking-[0.24em] lg:inline">
+            <span className="font-mono text-[9.5px] text-nezumi-dim tracking-[0.24em] lg:text-[10px] lg:leading-[1.8]">
               {scenarios.length}件
             </span>
           )}
+          {/* 件数が出ない（0件の）ときも、設定は右端に留める。 */}
           <button
             type="button"
             onClick={onSettings}
-            className="-mr-2 px-2 py-3 font-mono text-[9.5px] text-nezumi-dim tracking-[0.24em] lg:mr-0 lg:px-0 lg:py-0 lg:font-gothic lg:text-[12.5px] lg:text-nezumi lg:tracking-normal"
+            className="ml-auto text-[11.5px] text-nezumi lg:text-[12.5px] lg:leading-[1.8]"
           >
             設定
           </button>
@@ -117,12 +124,6 @@ export const ScenarioSelectScreen = ({
       {scenarios.length === 0 && (
         <p className="text-center text-nezumi-dim text-xs tracking-widest">
           遊べる事件がまだありません
-        </p>
-      )}
-
-      {scenarios.length > 0 && (
-        <p className="pb-2 font-mono text-[9.5px] text-nezumi-dim tracking-[0.24em] lg:hidden">
-          {scenarios.length}件
         </p>
       )}
 
@@ -163,8 +164,8 @@ export const ScenarioSelectScreen = ({
                   <span
                     className={
                       repeatsCategory
-                        ? 'hidden text-[10px] text-nezumi-dim leading-[1.4] tracking-[0.16em] lg:block'
-                        : 'text-[10px] text-nezumi-dim leading-[1.4] tracking-[0.16em]'
+                        ? 'hidden text-[10px] text-nezumi-dim leading-[1.4] tracking-[0.16em] lg:block lg:leading-[1.5]'
+                        : 'text-[10px] text-nezumi-dim leading-[1.4] tracking-[0.16em] lg:leading-[1.5]'
                     }
                   >
                     {scenario.category}
@@ -173,7 +174,7 @@ export const ScenarioSelectScreen = ({
                 <span className="font-medium font-mincho text-base leading-[1.5] tracking-[0.03em] lg:text-[15px]">
                   {scenario.title}
                 </span>
-                <span className="text-[11px] text-nezumi-dim leading-[1.45]">
+                <span className="text-[11px] text-nezumi-dim leading-[1.45] lg:leading-[1.5]">
                   {loadingId === scenario.id
                     ? '読み込み中…'
                     : `${scenario.characterCount}人　${difficultyLabel(scenario.difficulty)}　約${scenario.estimatedMinutes}分`}

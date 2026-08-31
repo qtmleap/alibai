@@ -10,113 +10,196 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./_desk.css" />
+    <link rel="stylesheet" href="../_mock.css" />
+    <style>
+      /* 下端の二つは押せる。span のまま扱うのは、枠と字の組みが _desk.css にあるため。 */
+      .res .foot span { cursor: pointer; }
+    </style>
   </head>
   <body>
     <!-- 表は同じ列に二本引く。左が聞き取った線、右が実際。ずれた区間にだけ言葉を足す。 -->
-        <div class="desk">
-          <div class="top">
-            <span class="ttl">雨の古書店、十九時八分のレシート</span>
-            <div class="rgt"><span>解決</span><span class="t">08:41</span></div>
+    <div class="desk" data-mock-id="ALI_RES_01">
+      <div class="top">
+        <span class="ttl" id="ttl"></span>
+        <div class="rgt"><span id="state"></span><span class="t" id="clock"></span></div>
+      </div>
+      <div class="panes">
+        <div class="board" data-mock-id="ALI_RES_03">
+          <div class="bh">
+            <span class="nm" id="bttl"></span>
+            <span class="label t" id="bspan"></span>
           </div>
-          <div class="panes">
-            <div class="board">
-              <div class="bh">
-                <span class="nm">青雨堂にいた時間</span>
-                <span class="label t">18:20 – 19:20</span>
-              </div>
-              <div class="cols chart-head">
-                <span></span>
-                <span class="c" style="color:var(--asagi-t)"><span class="who">牧野千尋</span><span class="rl ok">犯人</span></span>
-                <span class="c" style="color:var(--fuji-t)"><span class="who">黒田征司</span><span class="rl">収集家</span></span>
-                <span class="c" style="color:var(--suou-t)"><span class="who">瀬名真琴</span><span class="rl">喫茶店主</span></span>
-                <span class="c" style="color:var(--karashi-t)"><span class="who">水野英治</span><span class="rl">被害者</span></span>
-              </div>
-              <div class="cols chart">
-                <span class="grid" style="top:0"></span>
-                <span class="grid" style="top:100px"></span>
-                <span class="grid" style="top:200px"></span>
-                <span class="grid" style="top:300px"></span>
-                <span class="grid" style="top:400px"></span>
-                <span class="grid" style="top:500px"></span>
-                <span class="grid" style="top:600px"></span>
-                <span class="gut">
-                  <span class="at edge" style="top:0">18:20</span>
-                  <span class="at" style="top:100px">18:30</span>
-                  <span class="at" style="top:200px">18:40</span>
-                  <span class="at" style="top:300px">18:50</span>
-                  <span class="at" style="top:400px">19:00</span>
-                  <span class="at" style="top:500px">19:10</span>
-                  <span class="at edge" style="top:600px">19:20</span>
-                </span>
+          <div class="cols chart-head" id="head"></div>
+          <div class="cols chart" id="chart"></div>
+          <div class="legend" id="legend"></div>
+        </div>
 
-                <span class="col" style="color:var(--asagi-t)">
-                  <span class="bar mine" style="top:0; height:160px"></span>
-                  <span class="bar real" style="top:0; height:300px; background:var(--asagi)"></span>
-                  <span class="gapnote" style="top:160px; height:140px">申告より<br>14分ぶん長い</span>
-                </span>
+        <div class="work res">
+          <div data-mock-id="ALI_RES_02">
+            <p class="verdict" id="verdict"></p>
+            <p class="sub" id="sub"></p>
+          </div>
 
-                <span class="col" style="color:var(--fuji-t)">
-                  <span class="bar mine" style="top:30px; height:180px"></span>
-                  <span class="bar real" style="top:30px; height:255px; background:var(--fuji)"></span>
-                </span>
+          <div class="grp">
+            <span class="label">判定</span>
+            <div class="rows" id="marks" data-mock-id="ALI_RES_04"></div>
+          </div>
 
-                <span class="col" style="color:var(--suou-t)">
-                  <span class="bar mine" style="top:190px; height:90px"></span>
-                  <span class="bar mine" style="top:520px; height:80px"></span>
-                  <span class="bar real" style="top:190px; height:90px; background:var(--suou)"></span>
-                  <span class="bar real" style="top:520px; height:80px; background:var(--suou)"></span>
-                </span>
+          <div class="grp">
+            <span class="label">記録</span>
+            <div class="rows" id="record" data-mock-id="ALI_RES_05"></div>
+          </div>
 
-                <span class="col" style="color:var(--karashi-t)">
-                  <span class="bar real" style="top:0; height:300px; background:var(--karashi)"></span>
-                </span>
+          <div class="grp" id="truthgrp">
+            <span class="label" id="truthlabel">真相</span>
+            <div class="truth" id="truth" data-mock-id="ALI_RES_06"></div>
+          </div>
 
-                <span class="deadline" style="top:300px"><span>死亡　<span class="t">18:50</span></span></span>
-              </div>
-              <div class="legend">
-                <span class="k cl"><b>破線</b>　申告</span>
-                <span class="k"><b>実線</b>　実際</span>
-              </div>
-            </div>
-
-            <div class="work res">
-              <p class="verdict">事件解決</p>
-              <p class="sub">牧野千尋を送検しました。</p>
-
-              <div class="grp">
-                <span class="label">判定</span>
-                <div class="rows">
-                  <div class="r"><span class="k">犯人</span><span>牧野千尋　<span class="ok">正解</span></span></div>
-                  <div class="r"><span class="k">殺害方法</span><span class="ok">正解</span></div>
-                  <div class="r"><span class="k">動機</span><span class="muted">惜しい</span></div>
-                </div>
-              </div>
-
-              <div class="grp">
-                <span class="label">記録</span>
-                <div class="rows">
-                  <div class="r"><span class="k">解決タイム</span><span class="t">08:41</span></div>
-                  <div class="r"><span class="k">質問回数</span><span>9回</span></div>
-                  <div class="r"><span class="k">発見した証拠</span><span>6個</span></div>
-                </div>
-              </div>
-
-              <div class="grp">
-                <span class="label">真相</span>
-                <div class="truth">
-                  <div class="r"><span class="at">18:28</span><span class="tx">黒田が水野に、記録に残さない現金取引を持ちかける</span></div>
-                  <div class="r"><span class="at">18:37</span><span class="tx">水野がすり替えに気づき、牧野を問い詰める</span></div>
-                  <div class="r key"><span class="at">18:50</span><span class="tx">牧野が店の奥で水野を襲う</span></div>
-                  <div class="r"><span class="at">19:08</span><span class="tx">牧野が郵便窓口で小包を発送する</span></div>
-                </div>
-              </div>
-
-              <div class="foot">
-                <span>この事件をもう一度</span>
-                <span class="main">次の事件へ</span>
-              </div>
-            </div>
+          <div class="foot" data-mock-id="ALI_RES_07">
+            <span id="again">この事件をもう一度</span>
+            <span id="next">次の事件へ</span>
           </div>
         </div>
+      </div>
+    </div>
+
+    <script src="../_case.js"></script>
+    <script src="../_mock.js"></script>
+    <script>
+      ;(function () {
+        var C = Mock.case
+        var st = Mock.play(Mock.total)
+        /*
+         * 三つの結び。
+         *   #win=1     解決。真相を開く
+         *   #win=near  犯人は当てたが、方法と動機が届かなかった
+         *   #win=0     犯人を外した
+         * 後ろの二つはどちらも迷宮入りで、真相を開かない——開いてしまうと、
+         * もう一度やる理由がその場でなくなる。
+         */
+        var outcome = Mock.str('win', '1')
+        var win = outcome === '1'
+        var culprit = Mock.cast[C.truth.culprit]
+        // 犯人を外した回だけ、真犯人ではない誰かを送検したことにする。
+        var accused =
+          outcome === '0'
+            ? Mock.cast[
+                C.cast.filter(function (p) {
+                  return p.key !== C.truth.culprit
+                })[0].key
+              ]
+            : culprit
+
+        document.getElementById('ttl').textContent = C.title
+        document.getElementById('state').textContent = win ? '解決' : '迷宮入り'
+        document.getElementById('bspan').textContent = C.span.from + ' – ' + C.span.to
+        // 迷宮入りでは表の見出しも変える。「実際」を出さない以上、聞き取った時間の表でしかない。
+        document.getElementById('bttl').textContent = win
+          ? C.place + 'にいた時間'
+          : C.place + 'で聞き取った時間'
+
+        document.getElementById('clock').textContent = Mock.clock(st.turn)
+
+        /*
+         * 解決したときだけ、申告と実際を重ねて見せる。
+         * 迷宮入りで実線を引くと、そこに真相がまるごと描かれてしまう——
+         * 伏せているのは文章だけではない。列見出しの「犯人」も同じ理由で出さない。
+         */
+        document.getElementById('head').innerHTML = Mock.chartHead({
+          roleOf: function (p) {
+            return win && p.key === C.truth.culprit ? '犯人' : p.role
+          },
+          okOf: function (p) {
+            return win && p.key === C.truth.culprit
+          },
+        })
+        document.getElementById('chart').innerHTML = win
+          ? Mock.compare()
+          : Mock.chart({ segments: st.segments })
+        document.getElementById('legend').innerHTML = win
+          ? '<span class="k cl"><b>破線</b>　申告</span><span class="k"><b>実線</b>　実際</span>'
+          : '<span class="k"><b>実線</b>　裏付けあり</span><span class="k cl"><b>破線</b>　本人の申告のみ</span>'
+
+        document.getElementById('verdict').textContent = win ? '事件解決' : '迷宮入り'
+        document.getElementById('sub').textContent = win
+          ? accused.name + 'を送検しました。'
+          : outcome === 'near'
+            ? '犯人は言い当てましたが、筋書きが立ちませんでした。'
+            : accused.name + 'を送検し、取り逃がしました。'
+
+        // 正解にだけ .ok（--byakuroku）。誤りには色を足さず地のまま置く。
+        var mark = function (ok) {
+          return ok ? '<span class="ok">正解</span>' : '<span>誤り</span>'
+        }
+        /*
+         * 何を外したかは返す。返さないと、次の一手が推理ではなく当てずっぽうになる。
+         * 返さないのは「では正解は何だったのか」だけ。
+         */
+        document.getElementById('marks').innerHTML =
+          '<div class="r"><span class="k">犯人</span><span>' +
+          Mock.esc(accused.name) +
+          '　' +
+          mark(outcome !== '0') +
+          '</span></div>' +
+          '<div class="r"><span class="k">殺害方法</span>' +
+          mark(win) +
+          '</div>' +
+          '<div class="r"><span class="k">動機</span>' +
+          (win ? '<span class="muted">惜しい</span>' : mark(false)) +
+          '</div>'
+
+        // 見つけた証拠は、裏付けの取れた線の数そのもの。数字を別に持たない。
+        var found = st.segments.filter(function (s) {
+          return s.kind === 'solid'
+        }).length
+        document.getElementById('record').innerHTML =
+          '<div class="r"><span class="k">' +
+          (win ? '解決タイム' : 'かかった時間') +
+          '</span><span class="t">' +
+          document.getElementById('clock').textContent +
+          '</span></div>' +
+          '<div class="r"><span class="k">質問回数</span><span>' +
+          st.turn +
+          '回</span></div>' +
+          '<div class="r"><span class="k">発見した証拠</span><span>' +
+          found +
+          '個</span></div>'
+
+        /*
+         * 真相は解決したときだけ開く。
+         * 迷宮入りでは、同じ場所に「まだ開いていない」ことだけを置く——節ごと消すと、
+         * 何が足りずに終わったのかが画面から分からなくなる。
+         */
+        document.getElementById('truthlabel').textContent = win ? '真相' : 'この先'
+        document.getElementById('truth').innerHTML = win
+          ? C.truth.timeline
+              .map(function (t) {
+                return (
+                  '<div class="r' +
+                  (t.key ? ' key' : '') +
+                  '"><span class="at">' +
+                  t.at +
+                  '</span><span class="tx">' +
+                  Mock.esc(t.text) +
+                  '</span></div>'
+                )
+              })
+              .join('')
+          : '<div class="r"><span class="tx">真相は伏せたままです。もう一度この事件を開けば、' +
+            '聞き取った証言はそのまま残ります。</span></div>'
+
+        // 迷宮入りのときは、押してほしいのが「もう一度」のほう。
+        document.getElementById(win ? 'next' : 'again').classList.add('main')
+
+        document.getElementById('again').addEventListener('click', function () {
+          location.href = './case-overview.html'
+        })
+        document.getElementById('next').addEventListener('click', function () {
+          location.href = './scenario-select.html'
+        })
+
+        Mock.ready()
+      })()
+    </script>
   </body>
 </html>

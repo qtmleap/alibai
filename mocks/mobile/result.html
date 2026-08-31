@@ -11,34 +11,123 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./_phone.css" />
+    <link rel="stylesheet" href="../_mock.css" />
+    <style>
+      /* 判決は当たりのときだけ緑。外したときは地の色のまま、字だけで言う。 */
+      .p-res .verdict.miss { color: var(--kinari); }
+      .p-res .foot { display: flex; gap: 10px; margin-top: 22px; }
+      .p-res .foot a {
+        flex: 1;
+        border: 1px solid var(--keisen);
+        padding: 10px;
+        text-align: center;
+        font-size: 12px;
+        color: var(--nezumi);
+        text-decoration: none;
+      }
+      .p-res .foot a.main {
+        border-color: var(--nezumi);
+        color: var(--kinari);
+        font-family: var(--mincho);
+        letter-spacing: 0.16em;
+      }
+    </style>
   </head>
   <body>
-  <div class="phone">
-    <div class="pad p-res">
-      <div class="verdict">事件解決</div>
+    <div class="phone" data-mock-id="ALI_RES_01">
+      <div class="pad p-res">
+        <div class="verdict" id="verdict" data-mock-id="ALI_RES_02"></div>
 
-      <div class="label" style="margin-top:26px">判定</div>
-      <div class="rows" style="margin-top:6px">
-        <div class="r"><span class="muted">犯人</span><span>牧野千尋　<span style="color:var(--byakuroku)">正解</span></span></div>
-        <div class="r"><span class="muted">殺害方法</span><span style="color:var(--byakuroku)">正解</span></div>
-        <div class="r"><span class="muted">動機</span><span class="muted">惜しい</span></div>
-      </div>
+        <div class="label" style="margin-top: 22px">指した時刻</div>
+        <div class="cmp" id="cmp" style="margin-top: 6px" data-mock-id="ALI_RES_03"></div>
 
-      <div class="label" style="margin-top:22px">記録</div>
-      <div class="rows" style="margin-top:6px">
-        <div class="r"><span class="muted">解決タイム</span><span class="v">08:41</span></div>
-        <div class="r"><span class="muted">質問回数</span><span>9回</span></div>
-        <div class="r"><span class="muted">発見した証拠</span><span>6個</span></div>
-      </div>
+        <div class="label">判定</div>
+        <div class="rows" id="judge" style="margin-top: 6px" data-mock-id="ALI_RES_04"></div>
 
-      <div class="label" style="margin-top:22px">真相</div>
-      <div class="tl" style="margin-top:6px">
-        <div class="r"><span class="at">18:28</span><span class="muted">黒田が水野に、記録に残さない現金取引を持ちかける</span></div>
-        <div class="r"><span class="at">18:37</span><span class="muted">水野がすり替えに気づき、牧野を問い詰める</span></div>
-        <div class="r"><span class="at">18:50</span><span>牧野が店の奥で水野を襲う</span></div>
-        <div class="r"><span class="at">19:08</span><span class="muted">牧野が郵便窓口で小包を発送する</span></div>
+        <div class="label" style="margin-top: 22px" id="recordlabel">記録</div>
+        <div class="rows" id="record" style="margin-top: 6px" data-mock-id="ALI_RES_05"></div>
+
+        <div class="label" style="margin-top: 22px" id="truthlabel">真相</div>
+        <div class="tl" id="truth" style="margin-top: 6px" data-mock-id="ALI_RES_06"></div>
+
+        <div class="foot" data-mock-id="ALI_RES_07">
+          <a id="again" href="./case-overview.html">この事件をもう一度</a>
+          <a id="next" href="./scenario-select.html">次の事件へ</a>
+        </div>
       </div>
     </div>
-  </div>
+
+    <script src="../_case.js"></script>
+    <script src="../_mock.js"></script>
+    <script>
+      ;(function () {
+        var C = Mock.case
+        /*
+         * #win=1 解決 / #win=near 犯人は当てたが筋書きが立たず / #win=0 犯人を外した。
+         * 後ろの二つは迷宮入りで、真相を開かない——開けば、もう一度やる理由が消える。
+         */
+        var outcome = Mock.str('win', '1')
+        var win = outcome === '1'
+        var culprit = Mock.cast[C.truth.culprit]
+        // 犯人を外した回だけ、隣の列の人を指してしまったことにする。
+        var named = outcome === '0' ? Mock.cast[C.cast[1].key] : culprit
+
+        var v = document.getElementById('verdict')
+        v.textContent = win ? '事件解決' : '迷宮入り'
+        if (!win) v.classList.add('miss')
+
+        // 迷宮入りでは真相の目盛りを引かない。自分の指した一本だけを残す。
+        document.getElementById('cmp').innerHTML = Mock.cmp({
+          truth: win ? C.deadline.at : null,
+          mine: win ? C.deadline.at : '18:36',
+        })
+
+        var ok = function (t) {
+          return '<span style="color:var(--byakuroku)">' + t + '</span>'
+        }
+        document.getElementById('judge').innerHTML = [
+          ['犯人', Mock.esc(named.name) + '　' + (outcome === '0' ? '誤り' : ok('正解'))],
+          ['殺害方法', win ? ok('正解') : '誤り'],
+          ['動機', win ? '<span class="muted">惜しい</span>' : '誤り'],
+        ]
+          .map(function (r) {
+            return '<div class="r"><span class="muted">' + r[0] + '</span><span>' + r[1] + '</span></div>'
+          })
+          .join('')
+
+        document.getElementById('record').innerHTML = [
+          [win ? '解決タイム' : 'かかった時間', '<span class="v">' + Mock.clock(Mock.total) + '</span>'],
+          ['質問回数', Mock.total + '回'],
+          ['発見した証拠', '6個'],
+        ]
+          .map(function (r) {
+            return '<div class="r"><span class="muted">' + r[0] + '</span><span>' + r[1] + '</span></div>'
+          })
+          .join('')
+
+        // 真相は解決したときだけ。伏せる回は、同じ場所に次への道だけを置く。
+        document.getElementById('truthlabel').textContent = win ? '真相' : 'この先'
+        document.getElementById('truth').innerHTML = win
+          ? C.truth.timeline
+              .map(function (t) {
+                return (
+                  '<div class="r"><span class="at">' +
+                  t.at +
+                  '</span><span' +
+                  (t.key ? '' : ' class="muted"') +
+                  '>' +
+                  Mock.esc(t.text) +
+                  '</span></div>'
+                )
+              })
+              .join('')
+          : '<div class="r"><span class="muted">真相は伏せたままです。もう一度この事件を開けば、聞き取った証言はそのまま残ります。</span></div>'
+
+        // 迷宮入りのときは、押してほしいのが「もう一度」のほう。
+        document.getElementById(win ? 'next' : 'again').classList.add('main')
+
+        Mock.ready()
+      })()
+    </script>
   </body>
 </html>

@@ -61,7 +61,7 @@ reports            UGC通報
 
 **`scenario_truths` の分離。** 真相・犯人・時系列・秘匿キーワードを `scenarios` から切り出しています。テーブルを分けておけば、クライアント向けのクエリで誤って真相を JOIN する事故を構造的に防げます。Actor 向けのプロンプト組み立てでも参照しません。
 
-**`characters` は公開紹介とNPC内部情報を分離する。** `public_introduction` だけがプレイヤー向けで、Actor のプロンプトには使いません。`personality` / `knowledge` / `secrets` / `goals` / `lies` / `memories` の6列が、そのNPCのプロンプトになる最大範囲です。他人物の秘密や真相はここに入りません。
+**`characters` は公開紹介とNPC内部情報を分離する。** `public_introduction` だけがプレイヤー向けで、Actor の人物固有情報には使いません。Actor のキャラクターシートは、全員が共有する `scenarios.briefing` と、そのNPC自身の `personality` / `knowledge` / `secrets` / `goals` / `lies` / `memories` の6列から組み立てます。他人物の秘密や真相はここに入りません。
 
 **`play_sessions.user_id` が nullable。** 匿名プレイを一級市民として扱うためです。「URLから即プレイ」を掲げる以上、ログイン壁は致命的になります。
 
@@ -111,7 +111,7 @@ DO は1インスタンスへの操作が直列化されるため、この競合�
 
 | キー | 内容 | TTL |
 | --- | --- | --- |
-| `character:{id}` | 組み立て済みキャラクターシート | 3600秒 |
+| `character:v2:{id}` | 公開事件記録を含む組み立て済みキャラクターシート | 3600秒 |
 | `scenarios:published` | 公開シナリオ一覧（JSON） | 60秒 |
 
 キャラクターシートは会話中まったく変化しないので、毎ターン DB を叩くのは無駄です。`loadCharacterSheet()` が KV → DB の順に引き、DB から取った場合は Markdown に組み立てて KV へ書き戻します。

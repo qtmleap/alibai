@@ -10,21 +10,37 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./_desk.css" />
+    <link rel="stylesheet" href="../_mock.css" />
+    <style>
+      /* 読み飛ばしはリンク。下線と既定色は持ち込ませない。 */
+      .brief .skip { text-decoration: none; color: var(--nezumi-dim); }
+    </style>
   </head>
   <body>
     <!-- 机の手前。ここだけ表を出さず、本文がせり上がる。読み終えると支度の画面で机が組み上がる。 -->
-        <div class="brief">
-          <span class="lb label">記録　0001</span>
-          <div class="stage">
-            <div class="crawl">
-              <p>——事件の記録を読み上げます。</p>
-              <p>午後七時十五分、商店街の古書店「青雨堂」で、店主の水野英治が店の奥で死亡しているのが見つかりました。外は夕方から激しい雨。閉店時刻は午後六時半でしたが、店内には高価な初版本の商談があり、何人かが遅くまで出入りしていました。</p>
-              <p>事件に関わるのは三人です。店員の牧野千尋、常連の収集家・黒田征司、向かいの喫茶店主・瀬名真琴。</p>
-            </div>
-          </div>
-          <div class="veil up"></div>
-          <div class="veil dn"></div>
-          <div class="skip">クリックで読み飛ばす</div>
-        </div>
+    <div class="brief" data-mock-id="ALI_BRF_01">
+      <span class="lb label" id="no" data-mock-id="ALI_BRF_02"></span>
+      <div class="stage">
+        <div class="crawl" id="crawl" data-mock-id="ALI_BRF_03"></div>
+      </div>
+      <div class="veil up"></div>
+      <div class="veil dn"></div>
+      <a class="skip" href="./case-overview.html" data-mock-id="ALI_BRF_04">クリックで読み飛ばす</a>
+    </div>
+
+    <script src="../_case.js"></script>
+    <script src="../_mock.js"></script>
+    <script>
+      ;(function () {
+        var C = Mock.case
+        document.getElementById('no').textContent = '記録　' + C.no
+        document.getElementById('crawl').innerHTML = C.brief
+          .map(function (p) {
+            return '<p>' + p + '</p>'
+          })
+          .join('')
+        Mock.ready()
+      })()
+    </script>
   </body>
 </html>

@@ -10,6 +10,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./_desk.css" />
+    <link rel="stylesheet" href="../_mock.css" />
     <style>
       /*
         告発。
@@ -49,116 +50,110 @@
       }
       .writing textarea::placeholder { color: var(--nezumi-dim); }
       .writing .hint { margin: 8px 0 0; font-size: 11.5px; color: var(--nezumi-dim); line-height: 1.7; }
+      .back { text-decoration: none; }
     </style>
   </head>
   <body>
-    <div class="desk">
+    <div class="desk" data-mock-id="ALI_ACC_01">
       <div class="top">
-        <button class="back" type="button">←　聞き込みに戻る</button>
-        <div class="rgt"><span>11 / 12 ターン</span><span class="t">21:04</span></div>
+        <a class="back" href="./interrogation.html#turn=12" data-mock-id="ALI_ACC_02">←　聞き込みに戻る</a>
+        <div class="rgt"><span id="turns"></span><span class="t" id="clock"></span></div>
       </div>
       <div class="panes">
-            <div class="board">
-              <div class="bh">
-                <span class="nm">アリバイ表</span>
-                <span class="label t">18:20 – 19:20</span>
-              </div>
-              <div class="cols chart-head">
-                <span></span>
-                <span class="c" style="color:var(--asagi-t)"><span class="who">牧野千尋</span><span class="rl">店員</span></span>
-                <span class="c" style="color:var(--fuji-t)"><span class="who">黒田征司</span><span class="rl">収集家</span></span>
-                <span class="c" style="color:var(--suou-t)"><span class="who">瀬名真琴</span><span class="rl">喫茶店主</span></span>
-                <span class="c" style="color:var(--karashi-t)"><span class="who">水野英治</span><span class="rl">被害者</span></span>
-              </div>
-              <div class="cols chart">
-                <span class="grid" style="top:0"></span>
-                <span class="grid" style="top:100px"></span>
-                <span class="grid" style="top:200px"></span>
-                <span class="grid" style="top:300px"></span>
-                <span class="grid" style="top:400px"></span>
-                <span class="grid" style="top:500px"></span>
-                <span class="grid" style="top:600px"></span>
-                <span class="gut">
-                  <span class="at edge" style="top:0">18:20</span>
-                  <span class="at" style="top:100px">18:30</span>
-                  <span class="at" style="top:200px">18:40</span>
-                  <span class="at" style="top:300px">18:50</span>
-                  <span class="at" style="top:400px">19:00</span>
-                  <span class="at" style="top:500px">19:10</span>
-                  <span class="at edge" style="top:600px">19:20</span>
-                </span>
-
-                <span class="col" style="color:var(--asagi-t)">
-                  <span class="bar solid" style="top:0; height:160px; background:var(--asagi)"><span class="pl">店内</span></span>
-                  <span class="bar claim" style="top:160px; height:320px; color:var(--asagi)"><span class="pl">郵便局へ</span></span>
-                  <span class="bar solid" style="top:480px; height:60px; background:var(--asagi)"><span class="pl">郵便窓口</span><span class="fix">19:08　受付</span></span>
-                </span>
-
-                <span class="col" style="color:var(--fuji-t)">
-                  <span class="bar solid" style="top:30px; height:180px; background:var(--fuji)"><span class="pl">店内</span></span>
-                  <span class="bar solid" style="top:210px; height:70px; background:var(--fuji)"><span class="pl">裏の路地</span><span class="fix">18:41　忘れ傘</span></span>
-                  <span class="bar claim" style="top:280px; height:320px; color:var(--fuji)"><span class="pl">帰宅したと申告</span></span>
-                </span>
-
-                <span class="col" style="color:var(--suou-t)">
-                  <span class="bar claim" style="top:0; height:190px; color:var(--suou)"><span class="pl">向かいの喫茶店</span></span>
-                  <span class="bar solid" style="top:190px; height:90px; background:var(--suou)"><span class="pl">青雨堂の軒先</span><span class="fix">18:39　雨宿り</span></span>
-                  <span class="bar claim" style="top:280px; height:240px; color:var(--suou)"><span class="pl">喫茶店に戻る</span></span>
-                  <span class="bar solid" style="top:520px; height:80px; background:var(--suou)"><span class="pl">青雨堂</span><span class="fix">19:12　通報</span></span>
-                </span>
-
-                <span class="col" style="color:var(--karashi-t)">
-                  <span class="bar solid" style="top:0; height:300px; background:var(--karashi)"><span class="pl">店の奥</span></span>
-                </span>
-
-                <span class="deadline" style="top:300px"><span>死亡推定　<span class="t">18:50</span></span></span>
-              </div>
-              <div class="legend">
-                <span class="k"><b>実線</b>　裏付けあり</span>
-                <span class="k cl"><b>破線</b>　本人の申告のみ</span>
-              </div>
-            </div>
-
+        <div class="board" data-mock-id="ALI_ACC_04">
+          <div class="bh">
+            <span class="nm">アリバイ表</span>
+            <span class="label t" id="bspan"></span>
+          </div>
+          <div class="cols chart-head" id="head"></div>
+          <div class="cols chart" id="chart"></div>
+          <div class="legend">
+            <span class="k"><b>実線</b>　裏付けあり</span>
+            <span class="k cl"><b>破線</b>　本人の申告のみ</span>
+          </div>
+        </div>
 
         <div class="work">
-          <div class="wh">
+          <div class="wh" data-mock-id="ALI_ACC_03">
             <h2>犯人を指し示す</h2>
             <p class="lead">誰が、どうやって、なぜ。提出すると取り消せません。</p>
           </div>
 
           <div class="grp">
             <span class="label">犯人</span>
-            <div class="suspects">
-              <button class="on" type="button" style="color: var(--asagi-t)">
-                <span class="face">牧</span><span class="nm">牧野千尋</span>
-              </button>
-              <button type="button" style="color: var(--fuji-t)">
-                <span class="face">黒</span><span class="nm">黒田征司</span>
-              </button>
-              <button type="button" style="color: var(--suou-t)">
-                <span class="face">瀬</span><span class="nm">瀬名真琴</span>
-              </button>
-            </div>
+            <div class="suspects" id="suspects" data-mock-id="ALI_ACC_05"></div>
           </div>
 
           <div class="split even writing">
-            <div class="lt fld">
+            <div class="lt fld" data-mock-id="ALI_ACC_07">
               <span class="label">殺害方法</span>
-              <textarea placeholder="どうやって殺したのか"></textarea>
+              <textarea id="how" placeholder="どうやって殺したのか"></textarea>
               <p class="hint">表の実線と破線が食い違う時間帯を手がかりに。</p>
             </div>
-            <div class="rt fld">
+            <div class="rt fld" data-mock-id="ALI_ACC_08">
               <span class="label">動機</span>
-              <textarea placeholder="なぜ殺したのか"></textarea>
+              <textarea id="why" placeholder="なぜ殺したのか"></textarea>
               <p class="hint">聞き出した秘密のうち、殺すに足るものはどれか。</p>
             </div>
           </div>
 
           <div class="foot">
-            <button class="go final" type="button">この推理を提出する</button>
+            <a class="go final" href="./result.html" data-mock-id="ALI_ACC_09">この推理を提出する</a>
           </div>
         </div>
       </div>
     </div>
+
+    <script src="../_case.js"></script>
+    <script src="../_mock.js"></script>
+    <script>
+      ;(function () {
+        var C = Mock.case
+        var st = Mock.play(Mock.total)
+        // 書き上げた状態を見るときは #filled=1。既定は指名だけ済んだところ。
+        var filled = Mock.str('filled', '0') === '1'
+        var pick = Mock.str('who', C.truth.culprit)
+
+        document.getElementById('turns').textContent = st.turn - 1 + ' / ' + C.turns + ' ターン'
+        document.getElementById('clock').textContent = Mock.clock(st.turn - 1)
+        document.getElementById('bspan').textContent = C.span.from + ' – ' + C.span.to
+
+        document.getElementById('head').innerHTML = Mock.chartHead({})
+        document.getElementById('chart').innerHTML = Mock.chart({ segments: st.segments })
+
+        document.getElementById('suspects').innerHTML = C.cast
+          .map(function (p) {
+            return (
+              '<button type="button" class="' +
+              (p.key === pick ? 'on' : '') +
+              '" style="color:var(--' +
+              p.hue +
+              Mock.lit +
+              ')" data-mock-id="ALI_ACC_06" data-who="' +
+              p.key +
+              '"><span class="face">' +
+              p.face +
+              '</span><span class="nm">' +
+              Mock.esc(p.name) +
+              '</span></button>'
+            )
+          })
+          .join('')
+
+        if (filled) {
+          document.getElementById('how').value = C.truth.how
+          document.getElementById('why').value = C.truth.why
+        }
+
+        Array.prototype.forEach.call(document.querySelectorAll('[data-who]'), function (el) {
+          el.addEventListener('click', function () {
+            location.hash = 'who=' + el.dataset.who + '&filled=' + (filled ? '1' : '0')
+            location.reload()
+          })
+        })
+
+        Mock.ready()
+      })()
+    </script>
   </body>
 </html>

@@ -16,6 +16,8 @@
   --color-sumi-3: #232028;
   /* 区切りはこの一色だけ。箱を作らず、罫線で分ける。 */
   --color-keisen: #302c39;
+  /* 例外はアリバイ表の升目。罫線より一段弱くしないと、格子が顔料より前に出る。 */
+  --color-keisen-faint: #262231;
   --color-kinari: #e9e4d9;
   --color-nezumi: #8e8896;
   --color-nezumi-dim: #625d6c;

@@ -80,8 +80,13 @@ textarea {
   font-size: 13px;
   line-height: 1.75;
 }
+/*
+ * 左右の余白だけ。ここで padding の一括指定を使うと、詳細度で勝ってしまい
+ * .p-brief などが持っている padding-top を残らず 0 に潰す——端末の全画面が
+ * 天井に貼り付いていたのはこれが原因だった。
+ */
 .phone .pad {
-  padding: 0 18px;
+  padding-inline: 18px;
 }
 /* --- 共通の細部 --- */
 .hair {
