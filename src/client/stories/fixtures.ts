@@ -1,4 +1,5 @@
 import type { ChatTurn, InterrogationSeed } from '@/client/hooks/useInterrogation'
+import type { DetectiveStore } from '@/client/lib/detective-store'
 import type {
   AccuseResult,
   LlmSettingsResponse,
@@ -258,6 +259,31 @@ export const ACCUSE_WRONG: AccuseResult = {
     methodComment: '裏口は雨で塞がっており、通れません。',
     motiveComment: '取引は断られていません。むしろ成立しかけていました。',
   },
+}
+
+/**
+ * ALI_DET のための探偵の作り置き。mocks 各所の detective.html にある PEOPLE と同じ3人で揃えてある。
+ * 灰かぶりは容姿を書かずに保存できることを確かめるための行。
+ */
+export const DETECTIVES: DetectiveStore = {
+  profiles: [
+    {
+      id: 'akari',
+      name: '日下部 灯',
+      ageGroup: 'adult',
+      gender: 'female',
+      appearance: '背の低い痩身。読みかけの文庫をいつも外套の右に入れている。',
+    },
+    {
+      id: 'tohru',
+      name: '甲斐 透',
+      ageGroup: 'elder',
+      gender: 'male',
+      appearance: '白髪を短く刈った長身。杖はつくが足取りは速い。',
+    },
+    { id: 'ash', name: '灰かぶり', ageGroup: 'unknown', gender: 'unknown', appearance: '' },
+  ],
+  activeId: 'akari',
 }
 
 /** Google だけキー未設定。選べない提供元がある状態を見る。 */
