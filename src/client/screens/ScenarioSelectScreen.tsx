@@ -37,6 +37,14 @@ const difficultyLabel = (difficulty: number): string => '★'.repeat(difficulty)
  *
  * 上を大きく空けているのは、いきなり一覧から始めないため。暗い画面に題字だけが
  * 置かれている時間があると、これから何かが始まるという構えができる。
+ *
+ * 机の上（lg以上）では三列に並べ、ページを送らない。全43件が三画面弱に収まるので
+ * スクロールのほうが速く、番号で送ると「探している事件がどのページにあったか」を
+ * 覚えていない人が戻れなくなる。
+ *
+ * 幅で件数が変わるが、画面の出し分けは幅を測る前に決まらない。この画面はSSRで描くので
+ * useMediaQuery の類で分けると初回描画とハイドレーションがずれる。そこで常に全件を出し、
+ * 現在のページの外にある行だけを狭い幅で伏せる。
  */
 export const ScenarioSelectScreen = ({
   scenarios,
@@ -57,7 +65,10 @@ export const ScenarioSelectScreen = ({
   const [pending, setPending] = useState<ScenarioSummary | undefined>(undefined)
   const [mode, setMode] = useState<GameMode>(() => loadGameMode())
 
-  const { items, current, total } = paginate(scenarios, page, SCENARIOS_PER_PAGE)
+  // 切り出した配列ではなく範囲だけを受け取る。並べるのは常に全件で、
+  // この範囲に入らない行を狭い幅で伏せるのがページ送りの実体になる。
+  const { current, total } = paginate(scenarios, page, SCENARIOS_PER_PAGE)
+  const pageStart = (current - 1) * SCENARIOS_PER_PAGE
 
   const start = () => {
     if (pending === undefined) {
@@ -71,21 +82,36 @@ export const ScenarioSelectScreen = ({
   }
 
   return (
-    <div className="screen-enter mx-auto flex min-h-dvh max-w-md flex-col bg-sumi px-5 text-kinari">
+    <div className="screen-enter mx-auto flex min-h-dvh max-w-md flex-col bg-sumi px-5 text-kinari lg:max-w-[1240px] lg:px-10 lg:pb-[90px]">
       {/*
         設定は絶対配置。行として積むと題字の上の余白が削れるか、その分だけ画面が伸びる。
         遊びの外側にある操作なので、題字の間合いを動かさずに端へ寄せる。
+
+        机の上では横幅が余るので、題字を左に寄せて絶対配置をやめ、件数と並べて右端に置く。
+        中央に据えたままだと、題字の左右に何も無い帯が二本できる。
       */}
-      <header className="relative flex flex-col items-center gap-2.5 pt-24 pb-16">
-        <button
-          type="button"
-          onClick={onSettings}
-          className="-mr-2 absolute top-2 right-0 px-2 py-3 font-mono text-[9.5px] text-nezumi-dim tracking-[0.24em]"
-        >
-          設定
-        </button>
-        <h1 className="font-bold font-mincho text-4xl tracking-[0.18em]">AlibAI</h1>
-        <p className="text-[11px] text-nezumi-dim tracking-[0.3em]">聞き込みで、犯人を指し示す</p>
+      <header className="relative flex flex-col items-center gap-2.5 pt-24 pb-16 lg:flex-row lg:items-baseline lg:justify-between lg:pt-[72px] lg:pb-[30px]">
+        <div className="flex flex-col items-center gap-2.5 lg:items-start">
+          <h1 className="font-bold font-mincho text-4xl tracking-[0.18em] lg:text-[42px]">
+            AlibAI
+          </h1>
+          <p className="text-[11px] text-nezumi-dim tracking-[0.3em]">聞き込みで、犯人を指し示す</p>
+        </div>
+        <div className="absolute top-2 right-0 lg:static lg:flex lg:items-baseline lg:gap-[26px]">
+          {/* 件数は一覧の直前にも出ているが、そちらは狭い幅のためのもの。ここは机の上だけ。 */}
+          {scenarios.length > 0 && (
+            <span className="hidden font-mono text-[10px] text-nezumi-dim tracking-[0.24em] lg:inline">
+              {scenarios.length}件
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={onSettings}
+            className="-mr-2 px-2 py-3 font-mono text-[9.5px] text-nezumi-dim tracking-[0.24em] lg:mr-0 lg:px-0 lg:py-0 lg:font-gothic lg:text-[12.5px] lg:text-nezumi lg:tracking-normal"
+          >
+            設定
+          </button>
+        </div>
       </header>
 
       {scenarios.length === 0 && (
@@ -95,7 +121,7 @@ export const ScenarioSelectScreen = ({
       )}
 
       {scenarios.length > 0 && (
-        <p className="pb-2 font-mono text-[9.5px] text-nezumi-dim tracking-[0.24em]">
+        <p className="pb-2 font-mono text-[9.5px] text-nezumi-dim tracking-[0.24em] lg:hidden">
           {scenarios.length}件
         </p>
       )}
@@ -103,36 +129,59 @@ export const ScenarioSelectScreen = ({
       {/*
         種別・題字・簡易情報を縦に積む。題字が全幅を使えるので、多くは一行で収まる。
         一覧は読み物ではないので、行ごとに行間を締める。
+
+        机の上では三列。行の高さは中身に任せ、セルの下辺の罫線だけで分ける。
       */}
-      <ul className="flex flex-col border-keisen border-t">
-        {items.map((scenario, index) => (
-          <li key={scenario.id} className="border-keisen border-b">
-            <button
-              type="button"
-              onClick={() => setPending(scenario)}
-              disabled={loadingId !== undefined}
-              className="flex w-full flex-col gap-[3px] py-[9px] text-left disabled:opacity-40"
+      <ul className="flex flex-col border-keisen border-t lg:grid lg:grid-cols-3 lg:gap-x-11">
+        {scenarios.map((scenario, index) => {
+          const onPage = index >= pageStart && index < pageStart + SCENARIOS_PER_PAGE
+          // 前の行が別のページにあるなら繰り返しにはならないので、ページの先頭では必ず出す。
+          const repeatsCategory =
+            index !== pageStart && scenarios[index - 1]?.category === scenario.category
+
+          return (
+            <li
+              key={scenario.id}
+              className={
+                onPage ? 'border-keisen border-b' : 'hidden border-keisen border-b lg:block'
+              }
             >
-              {/*
-                同じ分類が続くあいだは繰り返さない。3行続けて「殺人」と書いても
-                読み手が得るものは無く、題字の手前で毎回目が止まるだけ。
-              */}
-              {scenario.category.length > 0 && items[index - 1]?.category !== scenario.category && (
-                <span className="text-[10px] text-nezumi-dim leading-[1.4] tracking-[0.16em]">
-                  {scenario.category}
+              <button
+                type="button"
+                onClick={() => setPending(scenario)}
+                disabled={loadingId !== undefined}
+                className="flex w-full flex-col gap-[3px] py-[9px] text-left disabled:opacity-40 lg:gap-0.5 lg:py-[13px]"
+              >
+                {/*
+                  同じ分類が続くあいだは繰り返さない。3行続けて「殺人」と書いても
+                  読み手が得るものは無く、題字の手前で毎回目が止まるだけ。
+
+                  ただし格子では省かない。上から順に読むとは限らないので、
+                  どのセルも単独で何の事件か分かる必要がある。
+                */}
+                {scenario.category.length > 0 && (
+                  <span
+                    className={
+                      repeatsCategory
+                        ? 'hidden text-[10px] text-nezumi-dim leading-[1.4] tracking-[0.16em] lg:block'
+                        : 'text-[10px] text-nezumi-dim leading-[1.4] tracking-[0.16em]'
+                    }
+                  >
+                    {scenario.category}
+                  </span>
+                )}
+                <span className="font-medium font-mincho text-base leading-[1.5] tracking-[0.03em] lg:text-[15px]">
+                  {scenario.title}
                 </span>
-              )}
-              <span className="font-medium font-mincho text-base leading-[1.5] tracking-[0.03em]">
-                {scenario.title}
-              </span>
-              <span className="text-[11px] text-nezumi-dim leading-[1.45]">
-                {loadingId === scenario.id
-                  ? '読み込み中…'
-                  : `${scenario.characterCount}人　${difficultyLabel(scenario.difficulty)}　約${scenario.estimatedMinutes}分`}
-              </span>
-            </button>
-          </li>
-        ))}
+                <span className="text-[11px] text-nezumi-dim leading-[1.45]">
+                  {loadingId === scenario.id
+                    ? '読み込み中…'
+                    : `${scenario.characterCount}人　${difficultyLabel(scenario.difficulty)}　約${scenario.estimatedMinutes}分`}
+                </span>
+              </button>
+            </li>
+          )
+        })}
       </ul>
 
       {/*
@@ -144,9 +193,14 @@ export const ScenarioSelectScreen = ({
 
         端のページでもボタンを消さずに薄くするのは、消すと行が組み替わって、
         押そうとしていた側のボタンが指の下から動くため。
+
+        机の上では全件が並んでいるので、送る先が無い。
       */}
       {total > 1 && (
-        <nav aria-label="ページ送り" className="flex items-center justify-between pt-5 pb-16">
+        <nav
+          aria-label="ページ送り"
+          className="flex items-center justify-between pt-5 pb-16 lg:hidden"
+        >
           <button
             type="button"
             onClick={() => onPageChange(current - 1)}

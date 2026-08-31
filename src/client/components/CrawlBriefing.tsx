@@ -44,8 +44,9 @@ export const CrawlBriefing = ({ briefing, paragraphs, onFinished }: Props) => {
   if (stopped) {
     return (
       // 止めたあとは読み物として組む。中央寄せをやめるのは、行頭が揃っていないと
-      // 何行も続く本文で目が次の行の頭を探すことになるため。段落間は 20px。
-      <div className="flex flex-col gap-5 py-2">
+      // 何行も続く本文で目が次の行の頭を探すことになるため。段落間は 20px
+      // （デスクトップは字も行間も大きいので 30px。同じ空きだと段落の切れ目が消える）。
+      <div className="flex flex-col gap-5 py-2 lg:gap-[30px]">
         {paragraphs.map((paragraph, index) => (
           <p
             // biome-ignore lint/suspicious/noArrayIndexKey: 本文から作る静的な配列で、並び替え・削除が無い
@@ -68,7 +69,7 @@ export const CrawlBriefing = ({ briefing, paragraphs, onFinished }: Props) => {
           片方だけ変えると間合いが崩れる（PARAGRAPH_PAUSE_SECONDS と対）。
         */}
         <div
-          className="absolute inset-x-0 flex flex-col gap-8 px-2 [animation:briefing-crawl_linear_forwards]"
+          className="absolute inset-x-0 flex flex-col gap-8 px-2 [animation:briefing-crawl_linear_forwards] lg:gap-[30px] lg:px-0"
           style={{ animationDuration: `${duration}s` }}
         >
           {paragraphs.map((paragraph, index) => (
@@ -84,8 +85,10 @@ export const CrawlBriefing = ({ briefing, paragraphs, onFinished }: Props) => {
 
         {/* 上下を地に溶かして、文字が闇から現れて闇へ消えるように見せる。
             切れ目を作らないのが役目なので、途中に濃度の段は置かない。 */}
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-[90px] bg-gradient-to-b from-sumi to-transparent" />
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[90px] bg-gradient-to-t from-sumi to-transparent" />
+        {/* デスクトップでは 150px まで伸ばす。窓が同じ 70dvh でも画面が大きいぶん、
+            90px では霞が細い帯にしか見えず、字が線で切られたように出入りする。 */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-[90px] bg-gradient-to-b from-sumi to-transparent lg:h-[150px]" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[90px] bg-gradient-to-t from-sumi to-transparent lg:h-[150px]" />
       </div>
 
       <Button

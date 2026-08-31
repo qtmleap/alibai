@@ -30,11 +30,22 @@ import { clampLimits, modelCallsPerTopic } from '@/shared/turns'
  * 遊びの外側にある唯一の画面なので、ここだけは演出を持ち込まない。時刻軸も引かない
  * ——ターン数や往復は回数であって盤面の時刻ではなく、同じ帯で描けば軸の意味が薄まる。
  * 同じ理由で数字も等幅にしない。
+ *
+ * 広い画面（lg）では机（左のアリバイ表）を出さない。物語の外にある画面なので、
+ * 他のデスクトップ画面のような二分割にすると、ここまで盤面の続きに見えてしまう。
+ * 代わりに内容幅を 760px で止めて中央に置き、余った横幅は
+ * 「ラベル左・操作右」に使う——縦に積んだままだと、行がひたすら間延びする。
  */
 
 /** 節の見出し。等幅なのは書式であって時刻ではないので、値には使わない。 */
 const LEGEND = 'font-mono text-[9.5px] tracking-[0.24em] text-nezumi-dim'
+/**
+ * 小さい補足。広い画面での寸法はここに焼き込まず、使う場所で足す。
+ * 同じ `lg:text-*` を二つ重ねると、どちらが勝つかは生成CSSの順序次第になる。
+ */
 const FINE = 'text-[10px] leading-[1.7] text-nezumi-dim'
+/** 節に付く補足。役割の説明より一段大きい。 */
+const FINE_LG = `${FINE} lg:text-[11.5px]`
 
 /** 未選択を表す値。Select は空文字を値にできないので、明示的な番人を置く。 */
 const UNSET = '__unset__'
@@ -75,46 +86,55 @@ export const SettingsScreen = ({ load = fetchLlmSettings, onBack }: Props) => {
   }
 
   return (
-    <div className="screen-enter mx-auto flex min-h-dvh max-w-md flex-col gap-[18px] bg-sumi px-5 py-6 text-kinari">
+    <div className="screen-enter mx-auto flex min-h-dvh max-w-md flex-col gap-[18px] bg-sumi px-5 py-6 text-kinari lg:max-w-[760px] lg:gap-[34px] lg:px-0 lg:pt-[46px] lg:pb-[60px]">
       <header>
         <button type="button" onClick={onBack} className={LEGEND}>
           ← 事件を選ぶ
         </button>
-        <h1 className="pt-4 font-bold font-mincho text-xl tracking-[0.14em]">設定</h1>
-        <p className="pt-1.5 text-[10.5px] text-nezumi-dim leading-[1.7]">
+        <h1 className="pt-4 font-bold font-mincho text-xl tracking-[0.14em] lg:pt-[18px] lg:text-[26px]">
+          設定
+        </h1>
+        <p className="pt-1.5 text-[10.5px] text-nezumi-dim leading-[1.7] lg:pt-2 lg:text-[12.5px]">
           この端末にだけ保存されます。サーバには残らず、あなたのプレイにだけ効きます。
         </p>
       </header>
 
       {failed ? (
-        <p className={`border-keisen border-t pt-4 ${FINE}`}>
+        <p className={`border-keisen border-t pt-4 ${FINE_LG}`}>
           設定の選択肢を取得できませんでした。しばらくしてから開き直してください。
         </p>
       ) : undefined}
 
       {catalog === undefined ? undefined : (
         <>
-          <section className="flex flex-col gap-[13px] border-keisen border-t pt-[14px]">
+          {/*
+            節の区切りは、狭い画面では見出しの上の一本。広い画面では役割そのものが
+            行になり、行ごとの罫線が区切りを兼ねるので、上の一本は引かない
+            ——二重に引くと、行の集まりが囲われた箱に見える。
+          */}
+          <section className="flex flex-col gap-[13px] border-keisen border-t pt-[14px] lg:gap-[7px] lg:border-t-0 lg:pt-0">
             <h2 className={LEGEND}>使うモデル</h2>
 
-            {catalog.roles.map((role) => (
-              <RoleFields
-                key={role.id}
-                role={role}
-                catalog={catalog}
-                value={settings.llm[role.id]}
-                onChange={(next) => updateRole(role.id, next)}
-              />
-            ))}
+            <div className="flex flex-col gap-[13px] lg:gap-0 lg:border-keisen lg:border-t">
+              {catalog.roles.map((role) => (
+                <RoleFields
+                  key={role.id}
+                  role={role}
+                  catalog={catalog}
+                  value={settings.llm[role.id]}
+                  onChange={(next) => updateRole(role.id, next)}
+                />
+              ))}
+            </div>
 
             <UnavailableNote catalog={catalog} />
           </section>
 
-          <section className="flex flex-col gap-[13px] border-keisen border-t pt-[14px]">
+          <section className="flex flex-col gap-[13px] border-keisen border-t pt-[14px] lg:gap-[7px] lg:border-t-0 lg:pt-0">
             <h2 className={LEGEND}>進行</h2>
-            <p className={FINE}>新しく始める事件から効きます。進行中のものは変わりません。</p>
+            <p className={FINE_LG}>新しく始める事件から効きます。進行中のものは変わりません。</p>
 
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-2 lg:gap-[18px] lg:pt-[7px]">
               <LimitField
                 label="ターン数"
                 value={settings.limits.maxTurns}
@@ -166,7 +186,7 @@ export const SettingsScreen = ({ load = fetchLlmSettings, onBack }: Props) => {
  * 上限がある本当の理由が1プレイのコストだから。
  */
 const Budget = ({ settings, max }: { settings: Settings; max: number }) => (
-  <p className="text-[11px] text-nezumi leading-[1.8]">
+  <p className="text-[11px] text-nezumi leading-[1.8] lg:pt-[11px] lg:text-[12.5px] lg:leading-[2]">
     {settings.limits.maxTurns}ターン × {settings.limits.questionsPerTurn}問 ＝{' '}
     <b className="font-medium text-kinari">
       全部で{settings.limits.maxTurns * settings.limits.questionsPerTurn}問
@@ -190,7 +210,7 @@ const UnavailableNote = ({ catalog }: { catalog: LlmSettingsResponse }) => {
   }
 
   return (
-    <p className={FINE}>
+    <p className={FINE_LG}>
       {missing.map((entry) => entry.label).join('・')} は APIキーが未設定のため選べません。
     </p>
   )
@@ -212,13 +232,15 @@ const RoleFields = ({
     provider === undefined ? [] : catalog.providers.find((entry) => entry.id === provider)?.models
 
   return (
-    <div className="flex flex-col gap-[7px]">
+    // 広い画面ではラベル左・操作右の一行。左を固定幅にしてあるのは、役割名の長短で
+    // セレクトの左端が揃わなくなると、二つの役割が別の作りに見えるため。
+    <div className="flex flex-col gap-[7px] lg:grid lg:grid-cols-[248px_1fr] lg:items-center lg:gap-5 lg:border-keisen lg:border-b lg:py-[14px]">
       <div>
-        <div className="text-[13px]">{role.label}</div>
-        <div className={FINE}>{role.note}</div>
+        <div className="text-[13px] lg:text-[13.5px]">{role.label}</div>
+        <div className={`${FINE} lg:text-[11px]`}>{role.note}</div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-2 lg:gap-[14px]">
         {/*
           Select の外側が label ではなく div なのは、SelectTrigger が label と
           結びつく種類の要素ではないため。名前は aria-label で渡す。
@@ -313,7 +335,9 @@ const LimitField = ({
         min={1}
         max={max}
         value={value}
-        className="text-right"
+        // 広い画面では欄が伸びる。右寄せのままだと値がラベルから離れて、
+        // どの数字がどの項目のものか分からなくなる。
+        className="text-right lg:text-left"
         onChange={(event) => {
           const next = Number.parseInt(event.target.value, 10)
 

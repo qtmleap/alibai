@@ -232,7 +232,7 @@ export const TypewriterBriefing = ({ paragraphs, soundOn, onFinished }: Props) =
             （stickToTail / scrollToParagraph）、基準が親へ移ると送り先がずれる。 */}
         <div
           ref={windowRef}
-          className="pointer-events-none relative flex h-[46dvh] w-full flex-col gap-5 overflow-hidden px-1"
+          className="pointer-events-none relative flex h-[46dvh] w-full flex-col gap-5 overflow-hidden px-1 lg:gap-[30px] lg:px-0"
         >
           {/*
             読み返し用の当たり判定は段落の本文そのもの。Button は中身を一行に詰めて
@@ -263,7 +263,8 @@ export const TypewriterBriefing = ({ paragraphs, soundOn, onFinished }: Props) =
           下端には掛けない。書かれている行は窓の下端に貼り付いているので（stickToTail）、
           そこを霞ませると、いま読んでいる場所がいちばん読めなくなる。
         */}
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-[90px] bg-gradient-to-b from-sumi to-transparent" />
+        {/* 霞は流し読みと同じ厚みに揃える。デスクトップだけ 150px。 */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-[90px] bg-gradient-to-b from-sumi to-transparent lg:h-[150px]" />
       </div>
 
       {/*
@@ -280,7 +281,11 @@ export const TypewriterBriefing = ({ paragraphs, soundOn, onFinished }: Props) =
         そのときだけは戻り口を出しておかないと、帰り道が無くなる。
       */}
       {(!readThrough || reviewing) && (
-        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-10 flex flex-col items-center gap-1 pb-5 text-xs text-nezumi-dim">
+        /*
+          デスクトップでは下端の中央に読み飛ばしが座るので、その上へ一段よける。
+          端末では読み飛ばしが右下にいるため、ぶつからず今の高さのままでよい。
+        */
+        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-10 flex flex-col items-center gap-1 pb-5 text-xs text-nezumi-dim lg:pb-14">
           {waitingForNext && <span className="animate-bounce text-nezumi-dim">▼</span>}
 
           {reviewing ? (
