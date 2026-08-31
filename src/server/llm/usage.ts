@@ -1,6 +1,5 @@
 import type { LanguageModelUsage, ProviderMetadata } from 'ai'
-import type { Env } from '@/server/env'
-import { type LlmRole, providerOf } from '@/server/llm/provider'
+import type { LlmChoice, LlmRole } from '@/server/llm/provider'
 import type { llmUsages } from '~/db/schema'
 
 /**
@@ -28,7 +27,11 @@ const cacheCreationTokens = (metadata: ProviderMetadata | undefined): number => 
 }
 
 export type UsageInput = {
-  env: Env
+  /**
+   * その呼び出しで実際に使った組み合わせ。env から引き直さないこと。
+   * プレイヤーが画面でプロバイダを差し替えている場合、env の値は実態と食い違う。
+   */
+  choice: LlmChoice
   role: LlmRole
   /** 実際に応答したモデル。設定値ではなくレスポンスの modelId を渡すこと。 */
   model: string
@@ -43,7 +46,7 @@ export const toUsageRow = (input: UsageInput): typeof llmUsages.$inferInsert => 
   sessionId: input.sessionId,
   scenarioId: input.scenarioId,
   role: input.role,
-  provider: providerOf(input.env, input.role),
+  provider: input.choice.provider,
   model: input.model,
   inputTokens: tokenCount(input.usage.inputTokens),
   outputTokens: tokenCount(input.usage.outputTokens),

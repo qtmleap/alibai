@@ -23,6 +23,12 @@
       "~/db/*": ["./db/*"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "db/**/*.ts"],
+  "include": [
+    ".storybook/**/*.ts",
+    ".storybook/**/*.tsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "db/**/*.ts"
+  ],
   "exclude": ["node_modules", "dist"]
 }

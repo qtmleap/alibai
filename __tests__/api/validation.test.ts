@@ -205,3 +205,49 @@ describe('POST /api/sessions/:id/accuse', () => {
     expect(res.status).toBe(400)
   })
 })
+
+describe('POST /api/sessions/:id/ask のモデル指定', () => {
+  const askBody = (llm: unknown) => ({
+    sessionId: SESSION_ID,
+    characterId: CHARACTER_ID,
+    topic: 'アリバイについて',
+    llm,
+  })
+
+  test('提供元が列挙の外なら 400（3値で安定しているので厳格に見る）', async () => {
+    const res = await postJson(
+      `/api/sessions/${SESSION_ID}/ask`,
+      askBody({
+        actor: { provider: 'nope' },
+      }),
+    )
+
+    expect(res.status).toBe(400)
+  })
+
+  /*
+    知らないモデルIDでは弾かない。localStorage に古い設定が残っているだけの
+    プレイヤーを事件の途中で締め出すことになるので、サーバ側で既定へ落とす。
+    ここでは「400 にはならない」ことだけを確かめる（先へ進むとバインディングに触る）。
+  */
+  test('知らないモデルIDでは 400 にしない', async () => {
+    const res = await postJson(
+      `/api/sessions/${SESSION_ID}/ask`,
+      askBody({
+        actor: { provider: 'openai', model: 'gpt-imaginary-9' },
+      }),
+    )
+
+    expect(res.status).not.toBe(400)
+  })
+
+  test('llm を省いても 400 にしない（この機能を知らないクライアント向け）', async () => {
+    const res = await postJson(`/api/sessions/${SESSION_ID}/ask`, {
+      sessionId: SESSION_ID,
+      characterId: CHARACTER_ID,
+      topic: 'アリバイについて',
+    })
+
+    expect(res.status).not.toBe(400)
+  })
+})

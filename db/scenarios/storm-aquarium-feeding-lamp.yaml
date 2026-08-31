@@ -1,0 +1,363 @@
+schemaVersion: 1
+id: storm-aquarium-feeding-lamp
+meta:
+  title: 海浜水族館、高潮の夜
+  synopsis: "午前零時十二分、海浜水族館の検疫準備室で、飼育部長の江波慎吾が死亡しているのが見つかりました。高潮で正面道路は通行止めとなり、防潮シャッターも閉鎖。午後十一時半以降、館内へ出入りした者はいません。"
+  category: クローズドサークル
+  difficulty: 5
+  estimatedMinutes: 15
+  tags: [水族館, 暴風, 自動給餌, アリバイ]
+victim:
+  name: 江波慎吾
+  introduction: 海浜水族館飼育部長
+briefing: |-
+  ——事件の記録を読み上げます。
+
+  閉館後の海浜水族館では、客が帰ってからも生き物の世話が続きます。水槽の状態確認、治療中の個体の観察、潜水設備の整備など、夜間にしかできない仕事も少なくありません。その夜もバックヤードでは複数の担当者が勤務していました。
+
+  飼育部長の江波慎吾は、多くの水槽と飼育スタッフをまとめる責任者です。展示の華やかさの裏で、生き物の健康や設備の安全を守る立場にあり、その日も閉館後まで館内に残っていました。
+
+  江波慎吾は生き物の健康を第一に考える研究熱心な飼育部長でした。飼育手順には厳格で部下と衝突することもありましたが、自ら夜間対応に入る姿勢から、現場では責任を逃げない上司として信頼されていました。
+
+  海岸では高潮への警戒が強まり、正面道路は通行止めとなりました。防潮シャッターも閉じられ、午後十一時半以降、水族館へ出入りした者はいません。館内の者たちは外の状況が落ち着くまで待機することになります。
+
+  午前零時十二分、検疫準備室で江波慎吾が死亡しているのが発見されました。その夜に残っていたのは、魚類担当の森下莉央、獣医師の榊原直、潜水設備担当の御子柴徹、夜間警備の相良芳江です。
+
+  高潮に閉ざされた水族館で、閉館後の作業中に何が起きたのか。四人から江波の最後の勤務について話を聞いてください。
+floorPlan: null
+facts:
+  - id: morishita-aquarist
+    statement: 森下莉央は深海魚展示を担当する飼育員である
+    kind: other
+  - id: sakakibara-vet
+    statement: 榊原直は館内生物の健康管理を担当する獣医師である
+    kind: other
+  - id: mikoshiba-diver
+    statement: 御子柴徹は潜水作業と水槽設備の保守を担当している
+    kind: other
+  - id: sagara-security
+    statement: 相良芳江は閉館後の展示通路とバックヤードを巡回する警備員である
+    kind: other
+  - id: morishita-falsified-records
+    statement: 森下莉央は担当水槽で続いた生体の損失を少なく見せるため、飼育記録の数値を書き換えていた
+    kind: motive
+    secret: true
+  - id: enami-found-fraud
+    statement: 江波慎吾は事件当日、森下莉央による飼育記録の改ざんを発見した
+    kind: motive
+    secret: true
+  - id: enami-planned-report
+    statement: 江波慎吾は翌朝、森下莉央の記録改ざんを館長へ報告し、担当から外す予定だった
+    kind: motive
+    secret: true
+  - id: feeder-auto-capable
+    statement: 深海水槽の給餌装置には設定した間隔で自動運転する機能がある
+    kind: physical
+  - id: feeding-lamp-motor-linked
+    statement: 深海水槽の青い給餌灯は人のボタン操作ではなく、給餌装置のモーターが動作するたびに自動点灯する
+    kind: physical
+  - id: morishita-set-auto-feeder
+    statement: 23時51分、森下莉央は深海水槽の給餌装置を四分間隔の自動運転に設定した
+    kind: physical
+    secret: true
+  - id: feeder-cycled
+    statement: 23時55分、23時59分、00時03分、00時07分に給餌装置が自動で作動し、青い給餌灯が点いた
+    kind: physical
+  - id: morishita-left-station
+    statement: 23時57分ごろ、森下莉央は給餌操作台を離れた
+    kind: truth
+    secret: true
+  - id: sagara-saw-morishita
+    statement: 00時02分ごろ、相良芳江は検疫準備室へ続くバックヤード通路で森下莉央を見た
+    kind: observation
+  - id: morishita-killed-enami
+    statement: 00時05分ごろ、森下莉央は検疫準備室で江波慎吾を襲い死亡させた
+    kind: truth
+    secret: true
+  - id: morishita-returned
+    statement: 00時09分ごろ、森下莉央は深海水槽の給餌操作台へ戻った
+    kind: truth
+    secret: true
+  - id: sakakibara-hid-stock
+    statement: 榊原直は期限管理の不備を隠すため、処分予定だった薬品在庫の記録を後から修正していた
+    kind: other
+    secret: true
+  - id: mikoshiba-private-camera
+    statement: 御子柴徹は許可を得ずに水槽内へ私物カメラを設置していた
+    kind: other
+    secret: true
+  - id: sagara-skipped-round
+    statement: 相良芳江は23時45分の西展示区画の巡回を省略して休憩していた
+    kind: other
+    secret: true
+  - id: body-found
+    statement: 00時12分、御子柴徹が検疫準備室で江波慎吾の死を発見した
+    kind: observation
+
+timeline:
+  - id: feeder-set
+    at: "23:51"
+    participants: [morishita]
+    facts: [feeder-auto-capable, feeding-lamp-motor-linked, morishita-set-auto-feeder]
+    description: 森下が給餌装置を四分間隔の自動運転へ切り替える。
+  - id: first-cycle
+    at: "23:55"
+    participants: []
+    facts: [feeder-cycled]
+    description: 自動給餌装置が作動し、展示側から見える青い給餌灯が点く。
+  - id: morishita-leaves
+    at: "23:57"
+    participants: [morishita]
+    facts: [morishita-left-station]
+    description: 森下が給餌操作台を離れ、バックヤードへ向かう。
+  - id: sagara-sighting
+    at: "00:02"
+    participants: [morishita, sagara]
+    facts: [sagara-saw-morishita]
+    description: 相良が検疫準備室へ続く通路で森下を目撃する。
+  - id: enami-death
+    at: "00:05"
+    participants: [morishita]
+    facts: [morishita-killed-enami]
+    description: 森下が検疫準備室で江波を襲い、江波は死亡する。
+  - id: morishita-return
+    at: "00:09"
+    participants: [morishita]
+    facts: [morishita-returned]
+    description: 森下が深海水槽の給餌操作台へ戻る。
+  - id: discovery
+    at: "00:12"
+    participants: [mikoshiba, morishita, sakakibara, sagara]
+    facts: [body-found]
+    description: 御子柴が検疫準備室で江波の死を発見する。
+characters:
+  - id: morishita
+    name: 森下莉央
+    role: suspect
+    publicIntroduction: "生き物の状態変化には鋭いが、責任を問われると防御的になる飼育員。"
+    personality: 生き物の状態変化には鋭いが、責任を問われると防御的になる飼育員。担当展示への愛着が強く、給餌灯を自分のアリバイとして強調する。
+    goals:
+      - 飼育記録を改ざんしたことを隠したい
+      - 青い給餌灯が点いていた時間は自分も操作台にいたと思わせたい
+    knowledge: [morishita-aquarist, feeder-auto-capable, feeding-lamp-motor-linked, feeder-cycled, body-found]
+    secrets:
+      - fact: morishita-falsified-records
+        disclosure: pressured
+      - fact: enami-found-fraud
+        disclosure: pressured
+      - fact: enami-planned-report
+        disclosure: pressured
+      - fact: morishita-set-auto-feeder
+        disclosure: pressured
+      - fact: morishita-left-station
+        disclosure: never
+      - fact: morishita-killed-enami
+        disclosure: never
+      - fact: morishita-returned
+        disclosure: never
+    lies:
+      - id: morishita-feeding-alibi
+        about: morishita-left-station
+        claim: 23時55分から00時10分までずっと給餌操作台にいました。四分おきに私が操作して、そのたび青い灯りが点いたはずです
+        strategy: maintain-until-contradicted
+      - id: morishita-no-auto
+        about: morishita-set-auto-feeder
+        claim: 今夜は自動給餌を使っていません。全部手動操作でした
+        strategy: maintain-until-contradicted
+    memories:
+      - id: removal-threat
+        about: enami-planned-report
+        detail: 江波から翌朝に担当を外すと言われ、担当水槽を取り上げられる恐怖が先に立った。
+    relationships:
+      - character: sakakibara
+        relation: 飼育チームの同僚
+        attitude: 記録の細かさに厳しく、普段から苦手意識がある
+  - id: sakakibara
+    name: 榊原直
+    role: suspect
+    publicIntroduction: "几帳面で理屈っぽい獣医師。"
+    personality: 几帳面で理屈っぽい獣医師。在庫管理ミスが表に出るのを恐れているが、給餌設備の基本仕様は把握している。
+    goals:
+      - 在庫記録を後から修正したことを隠したい
+      - 給餌灯が人の在席を証明しないことは正確に説明する
+    knowledge: [sakakibara-vet, feeding-lamp-motor-linked, feeder-auto-capable, body-found]
+    secrets:
+      - fact: sakakibara-hid-stock
+        disclosure: pressured
+    lies:
+      - id: sakakibara-no-stock-edit
+        about: sakakibara-hid-stock
+        claim: 処分予定の薬品在庫記録を後から直したことはありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: lamp-spec
+        about: feeding-lamp-motor-linked
+        detail: 青い灯りは操作ボタンではなくモーターの作動信号につながっているので、自動運転でも同じように点くと知っている。
+    relationships: []
+  - id: mikoshiba
+    name: 御子柴徹
+    role: suspect
+    publicIntroduction: "豪放で口数の多い潜水設備担当。"
+    personality: 豪放で口数の多い潜水設備担当。無断の私物カメラを隠したいが、給餌装置の整備も担当しており機械の挙動には詳しい。
+    goals:
+      - 私物カメラの無断設置を隠したい
+      - 自動給餌の動作については技術的に正確に答える
+    knowledge: [mikoshiba-diver, feeder-auto-capable, feeding-lamp-motor-linked, body-found]
+    secrets:
+      - fact: mikoshiba-private-camera
+        disclosure: pressured
+    lies:
+      - id: mikoshiba-no-camera
+        about: mikoshiba-private-camera
+        claim: 水槽内に私物の撮影機材は置いていません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: interval-setting
+        about: morishita-set-auto-feeder
+        detail: 事件の少し前、森下から自動運転の間隔を四分にする設定方法を聞かれた。
+    relationships: []
+  - id: sagara
+    name: 相良芳江
+    role: witness
+    publicIntroduction: "落ち着いた夜間警備員。"
+    personality: 落ち着いた夜間警備員。巡回を一回省略したことだけは隠したいが、零時すぎにバックヤードで森下とすれ違った記憶は鮮明。
+    goals:
+      - 西展示区画の巡回を省略したことを隠したい
+      - 00時02分ごろの森下の目撃は正確に話したい
+    knowledge: [sagara-security, sagara-saw-morishita, feeder-cycled, body-found]
+    secrets:
+      - fact: sagara-skipped-round
+        disclosure: pressured
+    lies:
+      - id: sagara-no-skip
+        about: sagara-skipped-round
+        claim: 今夜の定時巡回は一度も抜かしていません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: backyard-morishita
+        about: sagara-saw-morishita
+        detail: 00時02分ごろ、給餌中のはずの森下が検疫準備室側から歩いてきたので妙だと思った。
+    relationships: []
+revelations:
+  - id: feeding-lamp-not-presence
+    title: 青い灯りは在席証明ではない
+    text: 給餌灯は給餌装置のモーター作動に連動しており、自動運転でも同じように点灯する。灯りが見えたことは森下が操作台にいた証明にならない。
+    category: alibi
+    subject: { type: character, id: morishita }
+    sources:
+      - type: character
+        id: sakakibara
+        revealCondition: 榊原に青い給餌灯が何を検知して点くのか尋ね、自動運転でも点灯することを確認した。
+        requires:
+          revelations: []
+          evidences: [feeder-controller-log]
+      - type: character
+        id: mikoshiba
+        revealCondition: 御子柴に給餌装置の自動運転とランプの連動を尋ね、人の操作と点灯を切り分けた。
+        requires:
+          revelations: []
+          evidences: [feeder-controller-log]
+    relatedFacts: [feeder-auto-capable, feeding-lamp-motor-linked, morishita-set-auto-feeder, feeder-cycled, morishita-left-station]
+  - id: morishita-motive
+    title: 翌朝に外される担当
+    text: 江波は森下の飼育記録改ざんを見つけ、翌朝に館長へ報告して森下を担当展示から外す予定だった。
+    category: motive
+    subject: { type: character, id: morishita }
+    sources:
+      - type: character
+        id: morishita
+        revealCondition: 森下に江波が確認していた飼育記録と翌朝の対応を追及し、担当を失う恐れを明確にした。
+        requires:
+          revelations: [feeding-lamp-not-presence]
+          evidences: [husbandry-record-diff]
+      - type: character
+        id: sakakibara
+        revealCondition: 榊原に江波が問題視していた飼育記録を尋ね、館長への報告予定を確認した。
+        requires:
+          revelations: []
+          evidences: [husbandry-record-diff]
+    relatedFacts: [morishita-falsified-records, enami-found-fraud, enami-planned-report]
+evidences:
+  - id: feeder-controller-log
+    label: 深海水槽の自動給餌設定
+    description: 23時51分に四分間隔の自動運転へ切り替えられ、指定間隔で給餌装置と青い灯りが動作している。
+    reveal:
+      mode: conversation
+      condition: 森下、榊原、御子柴のいずれかに給餌灯の点灯条件と自動運転設定を具体的に尋ねたら開示する。
+    sources:
+      - { type: character, id: morishita }
+      - { type: character, id: sakakibara }
+      - { type: character, id: mikoshiba }
+    supports: [feeder-auto-capable, feeding-lamp-motor-linked, morishita-set-auto-feeder, feeder-cycled]
+    contradicts: ["lie:morishita-feeding-alibi", "lie:morishita-no-auto"]
+  - id: backyard-sighting
+    label: 零時二分のバックヤード目撃
+    description: 相良は00時02分ごろ、検疫準備室へ続く通路で森下とすれ違っている。
+    reveal:
+      mode: conversation
+      condition: 相良に23時55分から00時05分ごろの巡回経路と会った人物を尋ねたら開示する。
+    sources:
+      - { type: character, id: sagara }
+    supports: [sagara-saw-morishita]
+    contradicts: ["lie:morishita-feeding-alibi"]
+  - id: husbandry-record-diff
+    label: 飼育記録の版差分
+    description: 森下の担当水槽だけ過去の記録と当日の記録で数値が不自然に変わり、江波が翌朝の報告予定を書き残している。
+    reveal:
+      mode: conversation
+      condition: 森下か榊原に江波が事件直前に調べていた飼育記録について尋ね、改ざんの可能性を追及したら開示する。
+    sources:
+      - { type: character, id: morishita }
+      - { type: character, id: sakakibara }
+    supports: [morishita-falsified-records, enami-found-fraud, enami-planned-report]
+    contradicts: []
+  - id: stock-edit-history
+    label: 榊原の在庫修正履歴
+    description: 榊原が処分予定在庫の記録を後から修正していたことが分かるが、検疫準備室の事件とは別件である。
+    reveal:
+      mode: conversation
+      condition: 榊原に在庫記録を後から直していないか尋ね、否定を検証したら開示する。
+    sources:
+      - { type: character, id: sakakibara }
+    supports: [sakakibara-hid-stock]
+    contradicts: ["lie:sakakibara-no-stock-edit"]
+  - id: private-camera
+    label: 御子柴の私物カメラ
+    description: 水槽内から御子柴の私物カメラが見つかるが、検疫準備室の事件とは結びつかない。
+    reveal:
+      mode: conversation
+      condition: 御子柴に水槽内へ私物機材を置いていないか尋ね、否定を検証したら開示する。
+    sources:
+      - { type: character, id: mikoshiba }
+    supports: [mikoshiba-private-camera]
+    contradicts: ["lie:mikoshiba-no-camera"]
+  - id: skipped-round
+    label: 相良の巡回抜け
+    description: 23時45分の西展示区画の巡回記録だけ位置確認がなく、相良が休憩していたことが分かる。
+    reveal:
+      mode: conversation
+      condition: 相良に定時巡回を一度も省略していないか確認し、23時45分の記録を検証したら開示する。
+    sources:
+      - { type: character, id: sagara }
+    supports: [sagara-skipped-round]
+    contradicts: ["lie:sagara-no-skip"]
+solution:
+  culprit: morishita
+  summary: 森下は担当水槽の損失を少なく見せるため飼育記録を改ざんしており、江波に見抜かれて翌朝に館長へ報告され、担当から外される予定だった。森下は給餌装置を四分間隔の自動運転へ設定し、青い給餌灯が定期的に点く状況を作った。給餌操作台を離れ、00時02分には相良が検疫準備室側の通路で森下を目撃している。江波を襲った後に操作台へ戻った。灯りは人の操作ではなくモーターの作動に連動していた。
+  method: 四分間隔の自動給餌で青い給餌灯を点かせ続け、それを在席証明に見せかけて給餌場所を離れた
+  motive: 飼育記録の改ざんが発覚し、翌朝の報告で担当展示と職務上の信用を失うことを恐れたため
+  requiredFacts: [morishita-falsified-records, enami-planned-report, feeder-auto-capable, feeding-lamp-motor-linked, morishita-set-auto-feeder, morishita-left-station, sagara-saw-morishita, morishita-killed-enami]
+  secretKeywords:
+    - 犯人は森下
+    - 森下が犯人
+    - 森下が江波を襲
+    - 私が江波を襲
+    - 自動給餌でアリバイを偽装
+quality:
+  expectedQuestionCount:
+    min: 12
+    max: 24
+  requiredEvidence:
+    min: 3
+  redHerrings: [sakakibara-hid-stock, mikoshiba-private-camera, sagara-skipped-round]
+  notes: 複数人が見られる青い給餌灯を客観証拠に見せつつ、装置の作動と人の在席を分ける。相良の独立した目撃を合わせて森下へ収束させる。

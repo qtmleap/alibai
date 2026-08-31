@@ -146,7 +146,7 @@ test('GET /api/health responds ok', async () => {
 ```bash
 bun run dev          # Vite 開発サーバ（workerd 上で動く。DO も KV もそのまま使える）
 bun run build        # tsc --noEmit + vite build
-bun run deploy       # vite build + wrangler deploy
+bun run deploy       # D1 migration → vite build → wrangler deploy（migration失敗時は公開しない）
 
 bun run typecheck    # 型チェックのみ
 bun run lint         # Biome check

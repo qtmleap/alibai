@@ -1,0 +1,294 @@
+schemaVersion: 1
+id: generation-ship-staggered-dawn
+meta:
+  title: 世代船アステリア、居住リングの夜
+  synopsis: "2312年、恒星間世代船《アステリア》。外部航行中のため、居住リングから船外へ出ることはできません。 生態系主任ミラ・ヴォスが種子保管区で死亡しました。"
+  category: SFクローズドサークル
+  difficulty: 5
+  estimatedMinutes: 15
+  tags: [2312年, 世代船, 人工昼夜, 時刻]
+victim:
+  name: ミラ・ヴォス
+  introduction: 恒星間世代船《アステリア》生態系主任
+briefing: |-
+  ——事件の記録を読み上げます。
+
+  2312年。恒星間世代船《アステリア》は、何世代にもわたる航海を続けています。船内の居住リングには農業区、医療区、居住区、工業区があり、そこで生まれた人々の多くは地上の空を見たことがありません。昼と夜も船内設備によって人工的に作られています。
+
+  生態系主任ミラ・ヴォスは、船内で循環する食料と植物資源を管理する責任者でした。長い航海では一つの作物や種子の損失も重大な問題になり得るため、農業部門と医療部門、電力部門との調整を日常的に行っていました。
+
+  ミラ・ヴォスは船内の食料と生態系を支える責任の重さを誰より意識していた人物です。穏やかな物腰ながら管理基準には厳格で、世代をまたいで続く農業区の職員からは、生活を守る専門家として深く信頼されていました。
+
+  《アステリア》は通常航行中で、外部の船と接触する予定はありません。居住リングにいる人々にとって、この巨大な船そのものが世界のすべてです。その日も各区画では普段どおりの勤務が続いていました。
+
+  その最中、種子保管区でミラ・ヴォスが死亡しているのが発見されます。事情を聞けるのは、農業主任のセラ・イワノフ、電力管制官のダリオ・ケイン、医療技師のユナ・パクです。
+
+  閉ざされた世代船の中で、生態系主任の最後の勤務に何があったのか。三人の話から、その一日の出来事を組み立ててください。
+floorPlan: null
+facts:
+  - id: sera-agriculture
+    statement: セラ・イワノフは農業区画と種子保管設備を管理する主任である
+    kind: other
+  - id: dario-power
+    statement: ダリオ・ケインは船内電力と照明周期を管理する管制官である
+    kind: other
+  - id: yuna-medical
+    statement: ユナ・パクは居住リングの医療技師である
+    kind: other
+  - id: staggered-circadian-cycles
+    statement: 船内では電力負荷を分散するため農業区、中央区、医療区の人工昼夜周期がそれぞれ二十分ずつずれている
+    kind: physical
+  - id: agriculture-dawn-0600-local
+    statement: 事件当日の農業区の人工06時00分は船内標準時05時40分だった
+    kind: physical
+  - id: central-dawn-0600-local
+    statement: 事件当日の中央区の人工06時00分は船内標準時06時00分だった
+    kind: physical
+  - id: medical-dawn-0600-local
+    statement: 事件当日の医療区の人工06時00分は船内標準時06時20分だった
+    kind: physical
+  - id: sera-seed-diversion
+    statement: セラ・イワノフは希少種子を非公式な私的栽培区へ回していた
+    kind: motive
+    secret: true
+  - id: mira-found-diversion
+    statement: ミラ・ヴォスは事件当日、セラによる希少種子の流用を発見した
+    kind: motive
+    secret: true
+  - id: mira-would-audit
+    statement: 船内標準時05時45分、ミラはセラに中央評議会へ流用を報告すると告げた
+    kind: motive
+    secret: true
+  - id: dario-saw-sera-0552
+    statement: 船内標準時05時52分ごろ、ダリオ・ケインは中央区から種子保管区へ向かう連絡路でセラを見た
+    kind: observation
+  - id: sera-killed-mira
+    statement: 船内標準時05時57分ごろ、セラ・イワノフは種子保管区でミラを襲い死亡させた
+    kind: truth
+    secret: true
+  - id: sera-claimed-after-six
+    statement: セラ・イワノフは農業区の人工06時05分からずっと農業区にいたと主張した
+    kind: testimony
+  - id: dario-hidden-overload
+    statement: ダリオ・ケインは規定を超える電力を個人工作室へ割り当てていた
+    kind: other
+    secret: true
+  - id: yuna-private-medication
+    statement: ユナ・パクは手続き外で友人へ医療用品を融通していた
+    kind: other
+    secret: true
+  - id: body-found-0628
+    statement: 船内標準時06時28分、ユナ・パクが種子保管区でミラの死を発見した
+    kind: observation
+timeline:
+  - id: mira-confronts-sera
+    at: "05:45"
+    participants: [sera]
+    facts: [sera-seed-diversion, mira-found-diversion, mira-would-audit]
+    description: ミラが希少種子の流用をセラへ突きつけ、中央評議会への報告を告げる。
+  - id: dario-sees-sera
+    at: "05:52"
+    participants: [sera, dario]
+    facts: [dario-saw-sera-0552]
+    description: ダリオが種子保管区へ向かう連絡路でセラを見かける。
+  - id: mira-death
+    at: "05:57"
+    participants: [sera]
+    facts: [sera-killed-mira]
+    description: セラが種子保管区でミラを襲う。
+  - id: agriculture-six
+    at: "06:00"
+    participants: [sera]
+    facts: [agriculture-dawn-0600-local, sera-claimed-after-six]
+    description: 船内標準時ではすでに06時00分だが、セラは農業区の人工06時05分を基準に自分の行動を説明する。
+  - id: medical-six
+    at: "06:20"
+    participants: [yuna]
+    facts: [medical-dawn-0600-local]
+    description: 医療区が人工06時00分を迎える。
+  - id: discovery
+    at: "06:28"
+    participants: [sera, dario, yuna]
+    facts: [body-found-0628]
+    description: ユナが種子保管区でミラの死を発見する。
+characters:
+  - id: sera
+    name: セラ・イワノフ
+    role: suspect
+    publicIntroduction: "有能な農業主任。"
+    personality: 有能な農業主任。自分の区画時間で物事を話す癖があり、「六時過ぎには農業区にいた」と繰り返す。希少種子の管理を問われると強く反発する。
+    goals:
+      - 希少種子の流用を隠したい
+      - 農業区の人工06時を事件時刻より後だと思わせたい
+    knowledge: [sera-agriculture, staggered-circadian-cycles, agriculture-dawn-0600-local, sera-claimed-after-six, body-found-0628]
+    secrets:
+      - fact: sera-seed-diversion
+        disclosure: pressured
+      - fact: mira-found-diversion
+        disclosure: pressured
+      - fact: mira-would-audit
+        disclosure: pressured
+      - fact: sera-killed-mira
+        disclosure: never
+    lies:
+      - id: sera-six-alibi
+        about: sera-claimed-after-six
+        claim: 農業区の06時05分にはもう作物棚の点検をしていました。だから六時前後の種子保管区には行けません
+        strategy: maintain-until-contradicted
+      - id: sera-no-diversion
+        about: sera-seed-diversion
+        claim: 希少種子を正式な割当外へ回したことはありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: sera-audit-threat
+        about: mira-would-audit
+        detail: ミラに「中央区が朝になったら評議会へ送る」と言われ、時間がないと感じた。
+    relationships:
+      - character: dario
+        relation: 同僚
+        attitude: 全区画の時間差を正確に知っているので警戒している
+      - character: yuna
+        relation: 同僚
+        attitude: 医療区の時間感覚が自分とずれているので話が噛み合わないことが多い
+  - id: dario
+    name: ダリオ・ケイン
+    role: witness
+    publicIntroduction: "電力管制官。"
+    personality: 船内標準時で考える電力管制官。区画時間を標準時へ換算するのが習慣になっている。個人工作室への電力流用は隠したい。
+    goals:
+      - 個人工作室への規定外電力を隠したい
+      - 05時52分のセラの目撃を標準時で正確に伝えたい
+    knowledge: [dario-power, staggered-circadian-cycles, agriculture-dawn-0600-local, central-dawn-0600-local, medical-dawn-0600-local, dario-saw-sera-0552, body-found-0628]
+    secrets:
+      - fact: dario-hidden-overload
+        disclosure: pressured
+    lies:
+      - id: dario-no-overload
+        about: dario-hidden-overload
+        claim: 個人工作室へ規定外の電力を回したことはない
+        strategy: maintain-until-contradicted
+    memories:
+      - id: dario-sera-crossing
+        about: dario-saw-sera-0552
+        detail: 標準時05時52分、農業区の朝表示なら06時12分ごろのセラと連絡路ですれ違った。
+    relationships:
+      - character: sera
+        relation: 同僚
+        attitude: 区画時間を都合よく使っているように見える
+      - character: yuna
+        relation: 同僚
+        attitude: 医療区時間で話すので換算しないと混乱する
+  - id: yuna
+    name: ユナ・パク
+    role: suspect
+    publicIntroduction: "穏やかな医療技師。"
+    personality: 穏やかな医療技師。患者の生活周期に合わせて医療区時間で話す。友人へ医療用品を融通した件は隠したい。
+    goals:
+      - 手続き外の医療用品融通を隠したい
+      - 自分が発見した時刻を標準時へ正しく直したい
+    knowledge: [yuna-medical, staggered-circadian-cycles, medical-dawn-0600-local, body-found-0628]
+    secrets:
+      - fact: yuna-private-medication
+        disclosure: pressured
+    lies:
+      - id: yuna-no-private-supply
+        about: yuna-private-medication
+        claim: 手続き外で医療用品を渡したことはありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: yuna-discovery-clock
+        about: body-found-0628
+        detail: 医療区時計では06時08分だったが、標準時表示では06時28分だったのを覚えている。
+    relationships:
+      - character: sera
+        relation: 同僚
+        attitude: 農業区の時刻で話すので二十分ずれることを意識している
+      - character: dario
+        relation: 同僚
+        attitude: 時刻換算については最も信用できる
+revelations:
+  - id: three-sixes
+    title: 三つの06時00分
+    text: 農業区、中央区、医療区では人工昼夜周期がずれており、同じ「06時00分」が別々の船内標準時を指す。
+    category: timeline
+    subject: { type: event, id: agriculture-six }
+    sources:
+      - type: character
+        id: dario
+        revealCondition: ダリオに三つの区画の06時00分を船内標準時へ換算してもらった。
+        requires:
+          revelations: []
+          evidences: [circadian-schedule]
+    relatedFacts: [staggered-circadian-cycles, agriculture-dawn-0600-local, central-dawn-0600-local, medical-dawn-0600-local]
+  - id: sera-alibi-shifts
+    title: セラの「六時過ぎ」は事件前後を隠す
+    text: セラが農業区06時05分と言う時刻は船内標準時05時45分に相当し、事件時刻より前から始まる幅広い表現だった。標準時05時52分には種子保管区へ向かう姿を見られている。
+    category: alibi
+    subject: { type: character, id: sera }
+    sources:
+      - type: character
+        id: dario
+        revealCondition: 区画時間の差を確認した後、セラの06時05分を標準時へ換算し、05時52分の目撃と並べた。
+        requires:
+          revelations: [three-sixes]
+          evidences: [dario-route-log]
+    relatedFacts: [sera-claimed-after-six, dario-saw-sera-0552]
+evidences:
+  - id: circadian-schedule
+    label: 区画別の人工昼夜スケジュール
+    description: 農業区06時00分は標準時05時40分、中央区06時00分は06時00分、医療区06時00分は06時20分に対応する。
+    reveal:
+      mode: conversation
+      condition: ダリオかユナに区画ごとの人工昼夜が同時か尋ね、標準時への換算表を確認したら開示する。
+    sources:
+      - { type: character, id: dario }
+      - { type: character, id: yuna }
+    supports: [staggered-circadian-cycles, agriculture-dawn-0600-local, central-dawn-0600-local, medical-dawn-0600-local]
+    contradicts: ["lie:sera-six-alibi"]
+  - id: dario-route-log
+    label: 電力巡回の位置記録
+    description: ダリオの巡回記録と本人の証言から、標準時05時52分に種子保管区へ向かうセラを見たことが確認できる。
+    reveal:
+      mode: conversation
+      condition: ダリオに標準時05時台の巡回中に誰を見たか尋ねたら開示する。
+    sources:
+      - { type: character, id: dario }
+    supports: [dario-saw-sera-0552]
+    contradicts: ["lie:sera-six-alibi"]
+  - id: seed-audit
+    label: 希少種子の監査記録
+    description: セラ管理の希少種子だけ在庫と割当先が合わず、ミラが中央評議会への報告を準備している。
+    reveal:
+      mode: conversation
+      condition: セラかダリオにミラが事件直前に確認していた種子在庫を尋ねたら開示する。
+    sources:
+      - { type: character, id: sera }
+      - { type: character, id: dario }
+    supports: [sera-seed-diversion, mira-found-diversion, mira-would-audit]
+    contradicts: ["lie:sera-no-diversion"]
+  - id: yuna-private-supply
+    label: 手続き外の医療用品
+    description: ユナが友人へ融通した用品の記録が見つかるが、種子保管区の事件とは独立している。
+    reveal:
+      mode: conversation
+      condition: ユナに在庫差について追及したら開示する。
+    sources:
+      - { type: character, id: yuna }
+    supports: [yuna-private-medication]
+    contradicts: ["lie:yuna-no-private-supply"]
+solution:
+  culprit: sera
+  summary: 犯人はセラ・イワノフ。希少種子の流用をミラに見抜かれ、中央評議会へ報告されるのを恐れた。セラは農業区の人工時刻を使って「06時05分には農業区にいた」と語り、聞き手が船内標準時の06時05分だと思うよう誘導した。しかし農業区の06時00分は標準時05時40分で、農業区06時05分は標準時05時45分にすぎない。標準時05時52分にはダリオが種子保管区へ向かうセラを目撃し、05時57分ごろ事件が起きている。区画ごとの複数の朝を一つの時系列へ換算するとアリバイは消える。
+  method: 区画ごとにずれた人工昼夜時刻を同一の時計時刻のように語り、事件時刻との前後関係を誤認させた
+  motive: 希少種子の不正流用が中央評議会へ報告されるのを防ぐため
+  requiredFacts: [staggered-circadian-cycles, agriculture-dawn-0600-local, dario-saw-sera-0552, sera-seed-diversion, mira-would-audit, sera-killed-mira, sera-claimed-after-six]
+  secretKeywords:
+    - 犯人はセラ
+    - セラがミラを襲
+    - 区画時間でアリバイ
+    - 私がミラを襲
+quality:
+  expectedQuestionCount: { min: 10, max: 22 }
+  requiredEvidence: { min: 3 }
+  redHerrings: [dario-hidden-overload, yuna-private-medication]
+  notes: 同じ「06時」という自然言語が別の標準時を指す未来社会の時刻トリック。換算表と独立した目撃を組み合わせて解く。

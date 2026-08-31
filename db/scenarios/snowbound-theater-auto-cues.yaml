@@ -1,0 +1,388 @@
+schemaVersion: 1
+id: snowbound-theater-auto-cues
+meta:
+  title: 小劇場白燕座、雪封じの夜
+  synopsis: "午後十時三十六分、市外れの小劇場「白燕座」の演出控室で、演出家の瀬尾雅人が死亡しているのが見つかりました。午後九時半から大雪で道路が封鎖され、劇場内に残っていたのは瀬尾を含め五人だけです。"
+  category: クローズドサークル
+  difficulty: 4
+  estimatedMinutes: 15
+  tags: [劇場, 大雪, 照明キュー, 自動進行]
+victim:
+  name: 瀬尾雅人
+  introduction: 小劇場「白燕座」演出家
+briefing: |-
+  ——事件の記録を読み上げます。
+
+  市外れの小劇場「白燕座」では、新作公演の初日を前に通し稽古が続いていました。客席に観客はいなくても、舞台上では俳優、照明、衣装、舞台機構の担当者が本番と同じ順序で動きます。稽古が長引けば、深夜まで劇場に残ることも珍しくありません。
+
+  演出家の瀬尾雅人は、今回の公演を率いる中心人物でした。俳優の演技から照明のタイミングまで細かく指示し、初日を目前にしたその夜も修正を重ねていました。
+
+  瀬尾雅人は演出に厳格で、稽古場では辛口な言葉も多い演出家として知られていました。それでも作品への情熱と役者の可能性を引き出す力は高く評価され、彼の舞台にもう一度立ちたいと慕う俳優もいました。
+
+  午後九時半から大雪となり、劇場周辺の道路は封鎖されました。公共交通も止まり、残っていた者たちは劇場内で天候の回復を待ちながら稽古と片づけを続けます。
+
+  午後十時三十六分、演出控室で瀬尾雅人が死亡しているのが見つかりました。その夜に残っていたのは、舞台監督の国枝美冬、主演俳優の柊真琴、衣装担当の鳥羽香、舞台機構担当の笹井徹です。
+
+  初日前夜の劇場で、稽古の裏側に何が起きていたのか。四人からその夜の進行と瀬尾とのやり取りを聞いてください。
+floorPlan: null
+facts:
+  - id: kunieda-stage-manager
+    statement: 国枝美冬は舞台進行と照明キュー管理を担当する舞台監督である
+    kind: other
+  - id: hiiragi-actor
+    statement: 柊真琴は公演の主演俳優である
+    kind: other
+  - id: toba-costume
+    statement: 鳥羽香は衣装管理と客席側からの通し確認を担当している
+    kind: other
+  - id: sasai-rigging
+    statement: 笹井徹は舞台機構と吊り物設備を担当する技術者である
+    kind: other
+  - id: kunieda-falsified-overtime
+    statement: 国枝美冬は存在しない外部スタッフ名義を使い、残業費の一部を架空請求していた
+    kind: motive
+    secret: true
+  - id: seo-found-false-overtime
+    statement: 瀬尾雅人は事件当日、国枝美冬の残業費請求に実在しないスタッフ名が含まれることを発見した
+    kind: motive
+    secret: true
+  - id: seo-planned-report
+    statement: 瀬尾雅人は翌朝、国枝美冬の架空請求を劇場運営会社へ報告し、公演の進行担当から外す予定だった
+    kind: motive
+    secret: true
+  - id: cue-console-auto-mode
+    statement: 調光卓には通し稽古用に、設定済みの時刻間隔で照明キューを自動進行させる機能がある
+    kind: physical
+  - id: kunieda-set-auto-cues
+    statement: 21時57分、国枝美冬は22時00分から二十分間の照明キューを自動進行へ設定した
+    kind: physical
+    secret: true
+  - id: cues-ran-automatically
+    statement: 22時00分から22時20分まで、照明キューは調光卓への手動入力なしで設定順に自動進行した
+    kind: physical
+  - id: kunieda-left-console
+    statement: 22時03分ごろ、国枝美冬は調光卓を離れた
+    kind: truth
+    secret: true
+  - id: sasai-saw-kunieda-2210
+    statement: 22時10分ごろ、笹井徹は演出控室へ続く舞台袖通路で国枝美冬を見た
+    kind: observation
+  - id: kunieda-killed-seo
+    statement: 22時14分ごろ、国枝美冬は演出控室で瀬尾雅人を襲い死亡させた
+    kind: truth
+    secret: true
+  - id: kunieda-returned-console
+    statement: 22時19分ごろ、国枝美冬は調光卓へ戻った
+    kind: truth
+    secret: true
+  - id: toba-saw-light-changes
+    statement: 22時00分から22時20分の間、鳥羽香は客席から照明が台本どおり切り替わり続けるのを見た
+    kind: observation
+  - id: hiiragi-hid-script-leak
+    statement: 柊真琴は公開前の改稿台本を知人へ送っていた
+    kind: other
+    secret: true
+  - id: toba-hid-costume-damage
+    statement: 鳥羽香は高価な衣装を傷めたことを報告せず、自分で補修して隠していた
+    kind: other
+    secret: true
+  - id: sasai-bypassed-inspection
+    statement: 笹井徹は舞台機構の定期点検を一項目省略し、実施済みとして記録していた
+    kind: other
+    secret: true
+  - id: body-found-2236
+    statement: 22時36分、柊真琴が演出控室で瀬尾雅人の死を発見した
+    kind: observation
+
+timeline:
+  - id: auto-cues-set
+    at: "21:57"
+    participants: [kunieda]
+    facts: [cue-console-auto-mode, kunieda-set-auto-cues]
+    description: 国枝が二十分間の照明キューを自動進行へ設定する。
+  - id: cues-start
+    at: "22:00"
+    participants: [kunieda, toba]
+    facts: [cues-ran-automatically, toba-saw-light-changes]
+    description: 調光卓が自動進行を開始し、舞台照明が設定順に切り替わる。
+  - id: kunieda-leaves
+    at: "22:03"
+    participants: [kunieda]
+    facts: [kunieda-left-console]
+    description: 国枝が照明キューを動かしたまま調光卓を離れる。
+  - id: sasai-sighting
+    at: "22:10"
+    participants: [kunieda, sasai]
+    facts: [sasai-saw-kunieda-2210]
+    description: 笹井が演出控室へ続く舞台袖通路で国枝を目撃する。
+  - id: seo-death
+    at: "22:14"
+    participants: [kunieda]
+    facts: [kunieda-killed-seo]
+    description: 国枝が演出控室で瀬尾を襲い、瀬尾は死亡する。
+  - id: kunieda-return
+    at: "22:19"
+    participants: [kunieda]
+    facts: [kunieda-returned-console]
+    description: 国枝が調光卓へ戻る。
+  - id: cues-end
+    at: "22:20"
+    participants: [kunieda, toba]
+    facts: [cues-ran-automatically]
+    description: 自動進行の照明キューが最後まで終了する。
+  - id: discovery
+    at: "22:36"
+    participants: [hiiragi, kunieda, toba, sasai]
+    facts: [body-found-2236]
+    description: 柊が演出控室で瀬尾の死を発見する。
+
+characters:
+  - id: kunieda
+    name: 国枝美冬
+    role: suspect
+    publicIntroduction: "段取りに厳しく、舞台上の出来事を秒単位で管理する舞台監督。"
+    personality: 段取りに厳しく、舞台上の出来事を秒単位で管理する舞台監督。照明が予定どおり進んだ事実を自分の操作記録のように語り、自動進行機能について尋ねられると話をそらす。
+    goals:
+      - 架空スタッフ名義の残業費請求を隠したい
+      - 二十分続いた照明変化を、自分が調光卓に居続けた証拠として通したい
+    knowledge: [kunieda-stage-manager, cue-console-auto-mode, cues-ran-automatically, toba-saw-light-changes, body-found-2236]
+    secrets:
+      - fact: kunieda-falsified-overtime
+        disclosure: pressured
+      - fact: seo-found-false-overtime
+        disclosure: pressured
+      - fact: seo-planned-report
+        disclosure: pressured
+      - fact: kunieda-set-auto-cues
+        disclosure: pressured
+      - fact: kunieda-left-console
+        disclosure: never
+      - fact: kunieda-killed-seo
+        disclosure: never
+      - fact: kunieda-returned-console
+        disclosure: never
+    lies:
+      - id: kunieda-console-alibi
+        about: kunieda-left-console
+        claim: 22時から20分まで調光卓を離れていません。照明が台本どおり進んだのは私が一つずつキューを出していたからです
+        strategy: maintain-until-contradicted
+      - id: kunieda-no-auto-cues
+        about: kunieda-set-auto-cues
+        claim: 今夜の通し確認では自動進行を使っていません。全部手動でした
+        strategy: maintain-until-contradicted
+    memories:
+      - id: removal-threat
+        about: seo-planned-report
+        detail: 瀬尾から「明朝、運営会社へ出す。次の公演から進行は外れてもらう」と言われ、劇場での立場が終わると思った。
+    relationships:
+      - character: sasai
+        relation: 舞台技術の同僚
+        attitude: 舞台袖の人の動きをよく見ているので警戒している
+      - character: toba
+        relation: 通し確認の同僚
+        attitude: 客席から照明変化を見ていたので、自分のアリバイを補強してくれると思っている
+  - id: hiiragi
+    name: 柊真琴
+    role: suspect
+    publicIntroduction: "感情表現の大きい主演俳優。"
+    personality: 感情表現の大きい主演俳優。改稿台本を知人へ送ったことを隠したいが、舞台機器の仕組みには詳しくない。瀬尾と配役を巡って口論していた。
+    goals:
+      - 公開前の台本を外部へ送ったことを隠したい
+      - 瀬尾との口論だけで疑われたくない
+    knowledge: [hiiragi-actor, body-found-2236]
+    secrets:
+      - fact: hiiragi-hid-script-leak
+        disclosure: pressured
+    lies:
+      - id: hiiragi-no-script-leak
+        about: hiiragi-hid-script-leak
+        claim: 改稿台本を外部の人へ送ったことはありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: seo-angry-at-kunieda
+        about: seo-found-false-overtime
+        detail: 事件前、瀬尾が国枝に「実在しない名前で請求するのは演出の都合じゃ済まない」と言っていたのを聞いた。
+    relationships: []
+  - id: toba
+    name: 鳥羽香
+    role: witness
+    publicIntroduction: "細部を見る衣装担当。"
+    personality: 細部を見る衣装担当。衣装の損傷を隠したいが、客席から照明が二十分間切り替わった事実は正確に話す。ただし誰が調光卓を操作していたかは見えていない。
+    goals:
+      - 衣装を傷めて隠したことを秘密にしたい
+      - 照明が台本どおり変わったことと、操作者を見ていないことを分けて話したい
+    knowledge: [toba-costume, toba-saw-light-changes, cues-ran-automatically, body-found-2236]
+    secrets:
+      - fact: toba-hid-costume-damage
+        disclosure: pressured
+    lies:
+      - id: toba-no-costume-damage
+        about: toba-hid-costume-damage
+        claim: 今夜、衣装を傷めて自分で隠したことはありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: lights-but-no-operator
+        about: toba-saw-light-changes
+        detail: 客席から照明の変化は全部見えたが、調光卓は後方の壁際で人影までは見えなかった。
+    relationships: []
+  - id: sasai
+    name: 笹井徹
+    role: witness
+    publicIntroduction: "舞台機構の挙動に詳しい技術者。"
+    personality: 舞台機構の挙動に詳しい技術者。点検省略を隠したいが、22時10分の国枝の目撃と調光卓の自動進行機能は正確に説明できる。
+    goals:
+      - 舞台機構の定期点検を一項目省略したことを隠したい
+      - 22時10分の国枝の目撃と自動進行機能は正確に話したい
+    knowledge: [sasai-rigging, sasai-saw-kunieda-2210, cue-console-auto-mode, body-found-2236]
+    secrets:
+      - fact: sasai-bypassed-inspection
+        disclosure: pressured
+    lies:
+      - id: sasai-no-skipped-check
+        about: sasai-bypassed-inspection
+        claim: 定期点検を省略して実施済みと記録した項目はありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: wing-kunieda
+        about: sasai-saw-kunieda-2210
+        detail: 22時10分ごろ、調光卓にいるはずの国枝が演出控室側の舞台袖通路を急いで歩いていた。
+    relationships: []
+
+revelations:
+  - id: cues-do-not-prove-operator
+    title: 照明キューは無人でも進む
+    text: 調光卓には設定済みのキューを時刻間隔で自動進行させる機能があり、舞台照明が変化し続けても国枝が卓にいたことは証明しない。
+    category: alibi
+    subject: { type: character, id: kunieda }
+    sources:
+      - type: character
+        id: sasai
+        revealCondition: 笹井に通し稽古で照明キューを自動進行できるか尋ね、手動操作が不要な機能を確認した。
+        requires:
+          revelations: []
+          evidences: [cue-console-history]
+      - type: character
+        id: toba
+        revealCondition: 鳥羽に照明変化は見たが調光卓の操作者まで見ていたか尋ね、観察の範囲を切り分けた。
+        requires:
+          revelations: []
+          evidences: [cue-console-history]
+    relatedFacts: [cue-console-auto-mode, kunieda-set-auto-cues, cues-ran-automatically, kunieda-left-console, toba-saw-light-changes]
+  - id: kunieda-wing-contradiction
+    title: キュー中のはずの舞台袖
+    text: 22時10分ごろ、笹井は演出控室へ続く舞台袖通路で国枝を目撃しており、調光卓を離れなかったという説明と両立しない。
+    category: timeline
+    subject: { type: event, id: sasai-sighting }
+    sources:
+      - type: character
+        id: sasai
+        revealCondition: 笹井に22時前後の舞台袖で会った人物を尋ね、国枝の目撃時刻を具体化した。
+        requires:
+          revelations: [cues-do-not-prove-operator]
+          evidences: [wing-sighting]
+    relatedFacts: [kunieda-left-console, sasai-saw-kunieda-2210]
+  - id: kunieda-overtime-motive
+    title: 翌朝に発覚する架空スタッフ
+    text: 瀬尾は国枝の残業費請求に実在しないスタッフ名が含まれることを見抜き、翌朝に運営会社へ報告して国枝を公演進行から外す予定だった。
+    category: motive
+    subject: { type: character, id: kunieda }
+    sources:
+      - type: character
+        id: kunieda
+        revealCondition: 国枝に瀬尾が確認していた残業費請求と翌朝の担当変更を追及し、進行担当を外される恐れを明確にした。
+        requires:
+          revelations: [kunieda-wing-contradiction]
+          evidences: [overtime-name-check]
+      - type: character
+        id: hiiragi
+        revealCondition: 柊に事件前の瀬尾と国枝の口論内容を尋ね、実在しないスタッフ名の請求へ話をつなげた。
+        requires:
+          revelations: []
+          evidences: [overtime-name-check]
+    relatedFacts: [kunieda-falsified-overtime, seo-found-false-overtime, seo-planned-report]
+
+evidences:
+  - id: cue-console-history
+    label: 調光卓の自動進行履歴
+    description: 21時57分に二十分間の自動進行が設定され、22時00分から20分まで手動キュー入力なしで照明が切り替わっている。
+    reveal:
+      mode: conversation
+      condition: 国枝、笹井、鳥羽のいずれかに22時台の照明キューが手動だったか、自動進行履歴を含めて尋ねたら開示する。
+    sources:
+      - { type: character, id: kunieda }
+      - { type: character, id: sasai }
+      - { type: character, id: toba }
+    supports: [cue-console-auto-mode, kunieda-set-auto-cues, cues-ran-automatically, toba-saw-light-changes]
+    contradicts: ["lie:kunieda-console-alibi", "lie:kunieda-no-auto-cues"]
+  - id: wing-sighting
+    label: 二十二時十分の舞台袖目撃
+    description: 笹井は22時10分ごろ、演出控室へ続く舞台袖通路で国枝を見ている。
+    reveal:
+      mode: conversation
+      condition: 笹井に22時05分から15分ごろ舞台袖で誰を見たか尋ねたら開示する。
+    sources:
+      - { type: character, id: sasai }
+    supports: [sasai-saw-kunieda-2210]
+    contradicts: ["lie:kunieda-console-alibi"]
+  - id: overtime-name-check
+    label: 架空スタッフを含む残業費一覧
+    description: 国枝の請求に実在しないスタッフ名が複数含まれ、瀬尾が翌朝の運営会社報告と進行担当変更を記している。
+    reveal:
+      mode: conversation
+      condition: 国枝か柊に瀬尾が事件前に問題視していた残業費請求について尋ね、スタッフ名の実在性を追及したら開示する。
+    sources:
+      - { type: character, id: kunieda }
+      - { type: character, id: hiiragi }
+    supports: [kunieda-falsified-overtime, seo-found-false-overtime, seo-planned-report]
+    contradicts: []
+  - id: script-leak-message
+    label: 柊の改稿台本送信履歴
+    description: 柊が公開前の改稿台本を知人へ送っていたことが分かるが、演出控室の事件とは独立している。
+    reveal:
+      mode: conversation
+      condition: 柊に改稿台本を外部へ送っていないか尋ね、否定を続けたら開示する。
+    sources:
+      - { type: character, id: hiiragi }
+    supports: [hiiragi-hid-script-leak]
+    contradicts: ["lie:hiiragi-no-script-leak"]
+  - id: costume-repair
+    label: 鳥羽が隠した衣装補修
+    description: 鳥羽が高価な衣装を傷め、自分で補修して報告しなかったことが分かるが、事件とは別件である。
+    reveal:
+      mode: conversation
+      condition: 鳥羽に今夜衣装を傷めて隠していないか尋ね、補修跡を確認したら開示する。
+    sources:
+      - { type: character, id: toba }
+    supports: [toba-hid-costume-damage]
+    contradicts: ["lie:toba-no-costume-damage"]
+  - id: rigging-check-gap
+    label: 笹井の点検省略記録
+    description: 笹井が舞台機構の点検を一項目省略していたことが分かるが、瀬尾の死亡とは無関係である。
+    reveal:
+      mode: conversation
+      condition: 笹井に定期点検を省略していないか尋ね、実施記録を検証したら開示する。
+    sources:
+      - { type: character, id: sasai }
+    supports: [sasai-bypassed-inspection]
+    contradicts: ["lie:sasai-no-skipped-check"]
+
+solution:
+  culprit: kunieda
+  summary: 犯人は国枝美冬。実在しない外部スタッフ名義で残業費を架空請求していたことを瀬尾に見抜かれ、翌朝に運営会社へ報告され公演進行から外される予定だった。国枝は21時57分に二十分間の照明キューを自動進行へ設定した。22時から舞台照明は台本どおり切り替わり続け、鳥羽も客席からそれを見ていたが、調光卓には手動入力がなかった。国枝本人は22時03分ごろ卓を離れ、22時10分には笹井が演出控室側の舞台袖で目撃している。22時14分ごろ瀬尾を襲い、22時19分ごろ調光卓へ戻った。照明の変化は舞台監督の在席ではなく、自動進行機能の動作を示していた。
+  method: 通し稽古用の照明キューを自動進行させ、客席から見える連続した照明変化を在席証明に見せかけて演出控室へ移動した
+  motive: 架空スタッフ名義の残業費請求が発覚し、翌朝の報告で公演進行の担当と信用を失うことを恐れたため
+  requiredFacts: [kunieda-falsified-overtime, seo-planned-report, cue-console-auto-mode, kunieda-set-auto-cues, cues-ran-automatically, kunieda-left-console, sasai-saw-kunieda-2210, kunieda-killed-seo]
+  secretKeywords:
+    - 犯人は国枝
+    - 国枝が犯人
+    - 国枝が瀬尾を襲
+    - 私が瀬尾を襲
+    - 自動キューでアリバイを偽装
+quality:
+  expectedQuestionCount:
+    min: 11
+    max: 23
+  requiredEvidence:
+    min: 3
+  redHerrings: [hiiragi-hid-script-leak, toba-hid-costume-damage, sasai-bypassed-inspection]
+  notes: 観客から見える照明変化を人の手動操作と誤認させる。鳥羽の『照明は見たが操作者は見ていない』という観察範囲と、笹井の舞台袖目撃を重ねてアリバイを崩す。

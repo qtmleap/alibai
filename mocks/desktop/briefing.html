@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <title>AlibAI デスクトップ — 事件の記録</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500&family=Roboto+Mono:wght@400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./_desk.css" />
+    <link rel="stylesheet" href="../_mock.css" />
+    <style>
+      /* 読み飛ばしはリンク。下線と既定色は持ち込ませない。 */
+      .brief .skip { text-decoration: none; color: var(--nezumi-dim); }
+    </style>
+  </head>
+  <body>
+    <!-- 机の手前。ここだけ表を出さず、本文がせり上がる。読み終えると支度の画面で机が組み上がる。 -->
+    <div class="brief" data-mock-id="ALI_BRF_01">
+      <span class="lb label" id="no" data-mock-id="ALI_BRF_02"></span>
+      <div class="stage">
+        <div class="crawl" id="crawl" data-mock-id="ALI_BRF_03"></div>
+      </div>
+      <div class="veil up"></div>
+      <div class="veil dn"></div>
+      <a class="skip" href="./case-overview.html" data-mock-id="ALI_BRF_04">クリックで読み飛ばす</a>
+    </div>
+
+    <script src="../_case.js"></script>
+    <script src="../_mock.js"></script>
+    <script>
+      ;(function () {
+        var C = Mock.case
+        document.getElementById('no').textContent = '記録　' + C.no
+        Mock.readOut(
+          document.getElementById('crawl'),
+          C.brief
+            .map(function (p) {
+              return '<p>' + p + '</p>'
+            })
+            .join(''),
+          { scroller: document.querySelector('.brief .stage') },
+        )
+        Mock.ready()
+      })()
+    </script>
+  </body>
+</html>

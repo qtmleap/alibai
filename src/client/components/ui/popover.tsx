@@ -24,7 +24,7 @@ function PopoverContent({
         align={align}
         sideOffset={sideOffset}
         className={cn(
-          'z-50 w-72 origin-(--radix-popover-content-transform-origin) border border-slate-700 bg-slate-900 p-3 text-slate-100 shadow-xl outline-hidden data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0',
+          'z-50 w-72 origin-(--radix-popover-content-transform-origin) border border-keisen bg-sumi-2 p-3 text-kinari shadow-xl outline-hidden data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0',
           className,
         )}
         {...props}
@@ -55,7 +55,7 @@ function PopoverDescription({ className, ...props }: ComponentProps<'p'>) {
   return (
     <p
       data-slot="popover-description"
-      className={cn('text-xs text-slate-400', className)}
+      className={cn('text-xs text-nezumi', className)}
       {...props}
     />
   )

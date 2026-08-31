@@ -16,7 +16,7 @@ type Props = {
 const CaseNoteBody = ({ briefing }: Props) => (
   <div className="flex max-h-[70dvh] flex-col gap-4 overflow-y-auto">
     {splitParagraphs(briefing).map((paragraph) => (
-      <p key={paragraph} className="text-sm leading-relaxed text-slate-300">
+      <p key={paragraph} className="text-sm leading-relaxed text-nezumi">
         {paragraph}
       </p>
     ))}

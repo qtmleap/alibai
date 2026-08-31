@@ -73,12 +73,13 @@
   // APIキーは vars ではなく secret に入れる。
   //   wrangler secret put ANTHROPIC_API_KEY
   "vars": {
-    "LLM_ACTOR_PROVIDER": "anthropic",
-    "LLM_JUDGE_PROVIDER": "anthropic",
-    "LLM_AUTHOR_PROVIDER": "anthropic",
+    "LLM_ACTOR_PROVIDER": "openai",
+    "LLM_JUDGE_PROVIDER": "openai",
+    "LLM_AUTHOR_PROVIDER": "openai",
     "MAX_TURNS": "5",
     "QUESTIONS_PER_TURN": "1",
-    "RATE_LIMIT_MAX_CALLS": "60",
+    // 数えるのはモデル呼び出しの回数。1つの話題で最大 2×往復数+1 回消費する。
+    "RATE_LIMIT_MAX_CALLS": "420",
     "RATE_LIMIT_WINDOW_SECONDS": "3600",
     // 会話ログの保持日数。llm_usages はこの対象外で残り続ける。
     "RETENTION_DAYS": "90"

@@ -79,6 +79,7 @@ const makeMinimal = (): ScenarioDefinitionInput => ({
     {
       id: 'alpha',
       name: 'アルファ',
+      publicIntroduction: '設備担当のアルファ。',
       personality: '淡々としている。',
       goals: ['疑いを晴らす'],
       knowledge: ['fact-open'],
@@ -113,6 +114,7 @@ const makeMinimal = (): ScenarioDefinitionInput => ({
     {
       id: 'beta',
       name: 'ベータ',
+      publicIntroduction: '受付担当のベータ。',
       personality: 'よく喋る。',
       goals: ['早く帰りたい'],
       knowledge: ['fact-open'],
@@ -376,6 +378,12 @@ describe('compileScenario: 列挙の訳し分け', () => {
     )
   })
 
+  test('公開人物紹介は人物像や関係情報と混ざらず別列に保たれる', () => {
+    expect(alpha.publicIntroduction).toBe('設備担当のアルファ。')
+    expect(alpha.publicIntroduction).not.toContain('ベータ')
+    expect(alpha.publicIntroduction).not.toContain('距離を置いている')
+  })
+
   test('関係は人物像の続きに、相手の名前で並ぶ', () => {
     expect(alpha.personality).toBe('淡々としている。\n\n- ベータ: 同僚（距離を置いている）')
   })
@@ -462,5 +470,34 @@ describe('compileScenario: 失敗経路', () => {
     if (result.ok) return
 
     expect(result.issues.join('\n')).toContain('nowhere')
+  })
+})
+
+describe('compileScenario: 被害者', () => {
+  test('victim を書いた行はそのまま scenarios へ載る', () => {
+    const definition = makeMinimal()
+    const result = compileOrThrow({
+      ...definition,
+      victim: { name: '水野英治', introduction: '青雨堂店主' },
+    })
+
+    expect(result.scenario.victimName).toBe('水野英治')
+    expect(result.scenario.victimIntroduction).toBe('青雨堂店主')
+  })
+
+  test('victim は任意。書かなければ null で、登場人物には混ざらない', () => {
+    const result = compileOrThrow(makeMinimal())
+
+    expect(result.scenario.victimName).toBeNull()
+    expect(result.scenario.victimIntroduction).toBeNull()
+    // 被害者は聞き込みの相手ではないので、characters には一切足さない。
+    expect(result.characters.every((character) => character.name !== '水野英治')).toBe(true)
+  })
+
+  test('時刻軸の両端も同じ行に焼かれる', () => {
+    const result = compileOrThrow(makeMinimal())
+
+    expect(result.scenario.timeStart).not.toBeNull()
+    expect(result.scenario.timeEnd).not.toBeNull()
   })
 })

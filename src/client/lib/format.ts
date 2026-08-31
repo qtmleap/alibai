@@ -1,3 +1,5 @@
+import dayjs from 'dayjs'
+
 /** 経過秒数を `分:秒` に整形する。タイマー表示とリザルトの解決タイムの両方で使う。 */
 export const formatSeconds = (totalSeconds: number): string => {
   const minutes = Math.floor(totalSeconds / 60)
@@ -14,11 +16,4 @@ export const formatSeconds = (totalSeconds: number): string => {
  * 会話の流れを掴むのに要るのは「何分ごろの話か」までで、
  * 秒が動くと目が落ち着かない。
  */
-export const formatClock = (epochMs: number): string => {
-  const at = new Date(epochMs)
-  const hours = at.getHours()
-  const minutes = at.getMinutes()
-  const paddedMinutes = minutes < 10 ? `0${minutes}` : `${minutes}`
-
-  return `${hours}:${paddedMinutes}`
-}
+export const formatClock = (epochMs: number): string => dayjs(epochMs).format('H:mm')

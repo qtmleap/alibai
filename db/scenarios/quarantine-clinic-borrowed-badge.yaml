@@ -1,0 +1,339 @@
+schemaVersion: 1
+id: quarantine-clinic-borrowed-badge
+meta:
+  title: 白嶺診療所、隔離の夜
+  synopsis: "午後九時四十分、感染対策のため一時閉鎖中の白嶺診療所で、事務長の星名悟が事務室内で死亡しているのが見つかりました。外扉は午後八時以降封鎖され、館内にいたのは看護主任の世良美冬、検査技師の久我夏樹、警備担当の相原誠の三人だけです。"
+  category: クローズドサークル
+  difficulty: 5
+  estimatedMinutes: 15
+  tags: [診療所, 隔離, 人物識別, バッジ]
+victim:
+  name: 星名悟
+  introduction: 白嶺診療所事務長
+briefing: |-
+  ——事件の記録を読み上げます。
+
+  山間の白嶺診療所では、感染症への対応のため一時的な隔離運用が行われていました。通常の外来は停止され、限られた職員だけが館内に残り、検査や物資管理、施設の維持に当たっています。普段なら人の出入りが多い廊下も、その夜は静まり返っていました。
+
+  事務長の星名悟は、診療所の運営と物資、職員配置を管理する責任者です。医療行為そのものには関わらなくても、隔離期間中の勤務体制や備品の手配には欠かせない立場で、その夜も事務室で作業を続けていました。
+
+  星名悟は几帳面な事務長で、診療所の物資や人員の手配を一手に引き受けていました。規則には厳格でしたが、現場が困れば自分で調整に走る人物でもあり、医療職からは裏方を支える頼れる存在として見られていました。
+
+  午後八時以降、外扉は感染対策のため封鎖されました。必要な職員は全員館内におり、新たに人が入る予定もありません。外部との連絡は取れるものの、人の往来は止まっています。
+
+  午後九時四十分、事務室で星名悟が死亡しているのが発見されました。館内にいた主な関係者は、看護主任の世良美冬、検査技師の久我夏樹、警備担当の相原誠です。
+
+  隔離された診療所の夜、三人はそれぞれどの仕事をしていたのか。星名とのやり取りを含め、事件前後の様子を聞いてください。
+floorPlan: null
+facts:
+  - id: sera-head-nurse
+    statement: 世良美冬は当夜の看護主任で、隔離区域の人員配置を管理していた
+    kind: other
+  - id: kuga-technician
+    statement: 久我夏樹は検査技師で、検体処理と記録出力を担当していた
+    kind: other
+  - id: aihara-security
+    statement: 相原誠は外扉封鎖と廊下監視を担当する警備員である
+    kind: other
+  - id: orange-badge-hoshina
+    statement: 橙色の管理バッジは通常、事務長の星名悟が使用している
+    kind: physical
+  - id: kuga-borrowed-badge
+    statement: 20時55分、久我夏樹は故障した自分の認証バッジの代わりに、星名悟から橙色の管理バッジを一時的に借りた
+    kind: truth
+    secret: true
+  - id: sera-approved-loan
+    statement: 世良美冬は20時55分のバッジ貸与をその場で確認し、隔離区域の運用上問題ないと了承した
+    kind: truth
+    secret: true
+  - id: orange-badge-passed-2118
+    statement: 21時18分、橙色の管理バッジが検査廊下の認証地点を通過した
+    kind: physical
+  - id: aihara-saw-orange-suit
+    statement: 21時18分、相原誠は橙色の管理バッジを着けた防護服姿の人物が検査廊下を通るのを見た
+    kind: observation
+  - id: person-was-kuga-2118
+    statement: 21時18分に橙色の管理バッジを着けて検査廊下を通った人物は久我夏樹だった
+    kind: truth
+    secret: true
+  - id: hoshina-death-2108
+    statement: 21時08分ごろ、星名悟は事務室で襲われ死亡した
+    kind: truth
+    secret: true
+  - id: sera-killed-hoshina
+    statement: 世良美冬は21時08分ごろ事務室で星名悟を襲い死亡させた
+    kind: truth
+    secret: true
+  - id: sera-claimed-hoshina-2118
+    statement: 世良美冬は21時18分の橙色バッジ通過を、星名悟がその時刻まで生きていた根拠として説明した
+    kind: testimony
+  - id: consent-audit-next-day
+    statement: 星名悟は翌朝、世良美冬が研究参加同意書の管理手順を独断で変更していた件を本部へ報告する予定だった
+    kind: motive
+    secret: true
+  - id: sera-changed-consent-process
+    statement: 世良美冬は業務を早めるため、研究参加同意書の確認手順を正式承認なしで変更していた
+    kind: motive
+    secret: true
+  - id: kuga-printed-private-results
+    statement: 久我夏樹は業務外の個人的な検査結果を院内端末から印刷していた
+    kind: other
+    secret: true
+  - id: aihara-left-monitor
+    statement: 相原誠は規定に反して数分間監視席を離れ、私用電話をしていた
+    kind: other
+    secret: true
+  - id: body-found-2140
+    statement: 21時40分、相原誠が事務室で星名悟の死を発見した
+    kind: observation
+timeline:
+  - id: badge-loan
+    at: "20:55"
+    participants: [sera, kuga]
+    facts: [kuga-borrowed-badge, sera-approved-loan]
+    description: 久我が星名の橙色バッジを借り、世良もその貸与を確認する。
+  - id: hoshina-death
+    at: "21:08"
+    participants: [sera]
+    facts: [hoshina-death-2108, sera-killed-hoshina]
+    description: 世良が事務室で星名を襲い、星名は死亡する。
+  - id: orange-passage
+    at: "21:18"
+    participants: [kuga, aihara]
+    facts: [orange-badge-passed-2118, aihara-saw-orange-suit, person-was-kuga-2118]
+    description: 星名の橙色バッジを借りた久我が検査廊下を通り、相原がその姿を目撃する。
+  - id: discovery
+    at: "21:40"
+    participants: [aihara, sera, kuga]
+    facts: [body-found-2140]
+    description: 相原が事務室で星名の死を発見する。
+characters:
+  - id: sera
+    name: 世良美冬
+    role: suspect
+    publicIntroduction: "冷静で判断が早い看護主任。"
+    personality: 冷静で判断が早い看護主任。隔離手順を熟知し、自分の説明には必ず記録上の根拠を添える。業務効率のために手順を独断変更したことを星名に問題視されていた。
+    goals:
+      - 21時18分の橙色バッジ記録を星名の生存証明として扱わせたい
+      - 同意書管理手順を勝手に変えたことを隠したい
+    knowledge: [sera-head-nurse, orange-badge-hoshina, orange-badge-passed-2118, sera-claimed-hoshina-2118, body-found-2140]
+    secrets:
+      - fact: sera-approved-loan
+        disclosure: pressured
+      - fact: sera-changed-consent-process
+        disclosure: pressured
+      - fact: consent-audit-next-day
+        disclosure: pressured
+      - fact: sera-killed-hoshina
+        disclosure: never
+    lies:
+      - id: sera-badge-proves-hoshina
+        about: sera-approved-loan
+        claim: 21時18分に橙色バッジが通ったなら、それは星名さんです。あのバッジを他人が使っていたとは知りません
+        strategy: maintain-until-contradicted
+      - id: sera-saw-hoshina-late
+        about: hoshina-death-2108
+        claim: 21時15分を過ぎたころにも星名さんが検査廊下へ向かったと思っていました。少なくとも21時前後に亡くなっていたとは考えにくいです
+        strategy: evasive
+    memories:
+      - id: badge-loan-memory
+        about: sera-approved-loan
+        detail: 久我のバッジが反応せず、星名が自分の橙色バッジを貸した場面で「今夜だけなら」と自分が了承した。
+      - id: consent-warning
+        about: consent-audit-next-day
+        detail: 星名から「明日は本部に正式報告する。善意でも手順を勝手に変えてはいけない」と告げられたことが頭から離れない。
+    relationships:
+      - character: kuga
+        relation: 同僚
+        attitude: 記録管理が雑で、余計なことを話しそうだと警戒している
+      - character: aihara
+        relation: 警備担当
+        attitude: バッジの色だけで人を判断する癖があると知っている
+  - id: kuga
+    name: 久我夏樹
+    role: witness
+    publicIntroduction: "診療所の検査技師。"
+    personality: 技術には詳しいが規則にはやや無頓着な検査技師。自分が管理バッジを借りたことを重大な規則違反だと思い込み、最初は隠そうとする。
+    goals:
+      - 星名の管理バッジを借りたことを隠したい
+      - 業務外の印刷を知られたくない
+    knowledge: [kuga-technician, orange-badge-hoshina, orange-badge-passed-2118, body-found-2140]
+    secrets:
+      - fact: kuga-borrowed-badge
+        disclosure: pressured
+      - fact: person-was-kuga-2118
+        disclosure: pressured
+      - fact: kuga-printed-private-results
+        disclosure: pressured
+    lies:
+      - id: kuga-used-own-badge
+        about: kuga-borrowed-badge
+        claim: 今日はずっと自分の認証バッジを使っていました。他人のバッジは借りていません
+        strategy: maintain-until-contradicted
+      - id: kuga-no-private-print
+        about: kuga-printed-private-results
+        claim: 検査室では業務に必要なものしか印刷していません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: orange-badge-corridor
+        about: person-was-kuga-2118
+        detail: 21時18分、橙色バッジを胸につけたまま検査廊下を通った。防護服姿なので相原には星名と間違われても不思議ではないと思った。
+    relationships:
+      - character: sera
+        relation: 看護主任
+        attitude: バッジ貸与を了承したことまで忘れるはずがないと思っている
+  - id: aihara
+    name: 相原誠
+    role: witness
+    publicIntroduction: "診療所の警備担当。"
+    personality: 真面目な警備員で、制服やバッジの色を人物識別に使う癖がある。防護服姿の顔は見分けられなかったことを認める一方、私用電話で席を外したことは隠したい。
+    goals:
+      - 監視席を離れたことを隠したい
+      - 21時18分に見た人物を、顔ではなくバッジで判断したことは正確に説明したい
+    knowledge: [aihara-security, orange-badge-hoshina, aihara-saw-orange-suit, orange-badge-passed-2118, body-found-2140]
+    secrets:
+      - fact: aihara-left-monitor
+        disclosure: pressured
+    lies:
+      - id: aihara-never-left
+        about: aihara-left-monitor
+        claim: 監視席からは一度も離れていません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: badge-not-face
+        about: aihara-saw-orange-suit
+        detail: 防護服とマスクで顔はほとんど見えず、橙色のバッジを見て星名だと思い込んだ。
+    relationships:
+      - character: sera
+        relation: 看護主任
+        attitude: 隔離手順の指示には従っているが、言い切りが強すぎると感じることがある
+revelations:
+  - id: badge-did-not-identify-person
+    title: バッジ記録と人物は同じではない
+    text: 21時18分に通過したのは星名本人ではなく、星名の橙色バッジを借りた久我だった。しかも世良はその貸与を事前に確認していたため、バッジ記録を星名の生存証明として扱う説明は意図的に誤解を誘っている。
+    category: timeline
+    subject:
+      type: event
+      id: orange-passage
+    sources:
+      - type: character
+        id: kuga
+        revealCondition: 久我に認証バッジの故障と21時18分の検査廊下通過を追及し、星名の橙色バッジを借りていたと認めさせた。
+        requires:
+          revelations: []
+          evidences: [badge-loan-note]
+      - type: character
+        id: aihara
+        revealCondition: 相原に21時18分の人物を何で識別したか尋ね、顔ではなく橙色バッジだけで星名だと判断したことを確認した。
+        requires:
+          revelations: []
+          evidences: [corridor-access-log]
+    relatedFacts: [kuga-borrowed-badge, sera-approved-loan, orange-badge-passed-2118, person-was-kuga-2118]
+  - id: consent-report-motive
+    title: 翌朝の手順違反報告
+    text: 星名は翌朝、世良が独断で変更していた同意書管理手順を本部へ正式報告する予定だった。世良には問題が表面化する直前の動機があった。
+    category: motive
+    subject:
+      type: character
+      id: sera
+    sources:
+      - type: character
+        id: sera
+        revealCondition: 世良に同意書管理手順の変更と星名が翌朝予定していた報告を追及し、独断変更を認めさせた。
+        requires:
+          revelations: [badge-did-not-identify-person]
+          evidences: [consent-audit-memo]
+    relatedFacts: [sera-changed-consent-process, consent-audit-next-day]
+evidences:
+  - id: badge-loan-note
+    label: 一時バッジ貸与メモ
+    description: 20時55分、久我の認証不良により星名の橙色バッジを一時貸与し、世良が了承したと記されている。
+    reveal:
+      mode: conversation
+      condition: 久我か世良に20時55分ごろの認証バッジ不良について尋ね、貸与の有無を具体的に確認したら開示する。
+    sources:
+      - type: character
+        id: kuga
+      - type: character
+        id: sera
+    supports: [kuga-borrowed-badge, sera-approved-loan]
+    contradicts: ["lie:kuga-used-own-badge", "lie:sera-badge-proves-hoshina"]
+  - id: corridor-access-log
+    label: 二十一時十八分の認証記録
+    description: 記録されているのは橙色バッジの通過であり、使用者の顔や氏名を直接確認した記録ではない。
+    reveal:
+      mode: conversation
+      condition: 相原か久我に21時18分の認証記録が何を識別しているのか尋ねたら開示する。
+    sources:
+      - type: character
+        id: aihara
+      - type: character
+        id: kuga
+    supports: [orange-badge-passed-2118, aihara-saw-orange-suit]
+    contradicts: ["lie:sera-badge-proves-hoshina"]
+  - id: kuga-corridor-admission
+    label: 久我の検査廊下通過
+    description: 久我は星名の橙色バッジを着けたまま21時18分に検査廊下を通ったと認める。
+    reveal:
+      mode: conversation
+      condition: 久我に橙色バッジを借りた後どこへ行ったか、21時18分の行動を時刻指定で追及したら開示する。
+    sources:
+      - type: character
+        id: kuga
+    supports: [person-was-kuga-2118]
+    contradicts: ["lie:sera-saw-hoshina-late"]
+  - id: consent-audit-memo
+    label: 本部報告予定の確認メモ
+    description: 星名の予定表に、翌朝最初の案件として世良による同意書管理手順の独断変更を本部へ報告すると記されている。
+    reveal:
+      mode: conversation
+      condition: 世良か久我に星名が翌朝予定していた本部報告の内容を尋ねたら開示する。
+    sources:
+      - type: character
+        id: sera
+      - type: character
+        id: kuga
+    supports: [sera-changed-consent-process, consent-audit-next-day]
+    contradicts: []
+  - id: private-print-log
+    label: 久我の私用印刷履歴
+    description: 久我が業務外の個人的な検査結果を印刷していたことが分かるが、星名の死とは独立した隠し事である。
+    reveal:
+      mode: conversation
+      condition: 久我に検査室で業務外の印刷をしていなかったか追及したら開示する。
+    sources:
+      - type: character
+        id: kuga
+    supports: [kuga-printed-private-results]
+    contradicts: ["lie:kuga-no-private-print"]
+  - id: security-phone-gap
+    label: 警備席の私用電話記録
+    description: 相原が数分間監視席を離れていたことが分かるが、21時18分の目撃自体はその前後に起きている。
+    reveal:
+      mode: conversation
+      condition: 相原に監視席を離れた時間がなかったか具体的に尋ねたら開示する。
+    sources:
+      - type: character
+        id: aihara
+    supports: [aihara-left-monitor]
+    contradicts: ["lie:aihara-never-left"]
+solution:
+  culprit: sera
+  summary: 犯人は世良美冬。21時18分の認証記録は星名本人の生存証明ではない。その時刻に橙色バッジを着けて検査廊下を通ったのは、20時55分に星名からバッジを借りた久我だった。防護服姿の顔を見分けられなかった相原は、バッジの色だけで星名だと思い込んだ。さらに世良はバッジ貸与をその場で了承しており、使用者が久我であり得ることを知りながら、21時18分の記録を星名の生存根拠として説明していた。星名は実際には21時08分ごろ事務室で世良に襲われている。翌朝、世良が独断変更した同意書管理手順が本部へ報告される予定だったことが動機となった。
+  method: 星名の管理バッジが一時的に久我へ貸与されていることを知りながら、その後のバッジ通過を星名本人の生存証明だと誤認させ、より早い時刻の犯行を隠した
+  motive: 独断で変更した同意書管理手順を星名が翌朝本部へ正式報告する予定で、自分の責任問題になることを恐れたため
+  requiredFacts: [kuga-borrowed-badge, sera-approved-loan, person-was-kuga-2118, hoshina-death-2108, sera-claimed-hoshina-2118, consent-audit-next-day, sera-killed-hoshina]
+  secretKeywords:
+    - 犯人は世良
+    - 世良が犯人
+    - 世良が星名を襲
+    - 私が星名を襲
+    - バッジを生存証明に偽装
+quality:
+  expectedQuestionCount:
+    min: 12
+    max: 24
+  requiredEvidence:
+    min: 3
+  redHerrings: [kuga-printed-private-results, aihara-left-monitor]
+  notes: 人物と身につけている識別物を同一視する前提を崩すシナリオ。バッジ貸与の事実だけでなく、世良自身が貸与を知っていたことまで確認しないと単なる誤認で終わる。

@@ -1,0 +1,401 @@
+schemaVersion: 1
+id: storm-island-scheduled-mail
+meta:
+  title: 研修島青凪荘、暴風の夜
+  synopsis: "午後十時二分、沖合の研修施設「青凪荘」の執務室で、奨学財団理事の榊原宗一が死亡しているのが見つかりました。午後八時から暴風で船便が全て欠航し、島に残ったのは榊原を含め五人だけです。"
+  category: クローズドサークル
+  difficulty: 5
+  estimatedMinutes: 18
+  tags: [離島, 嵐, 予定送信, 死亡時刻]
+victim:
+  name: 榊原宗一
+  introduction: 奨学財団理事
+briefing: |-
+  ——事件の記録を読み上げます。
+
+  沖合の小島に建つ研修施設「青凪荘」は、財団が主催する合宿や講習会に使われています。普段は本土から船で職員や参加者が渡り、数日間を島で過ごします。その日は研修日程の最終盤で、参加者の多くはすでに帰り、翌朝の撤収を担当する関係者だけが残っていました。
+
+  奨学財団理事の榊原宗一は、研修事業を長く担当してきた人物です。講師の選定から予算の承認まで幅広く関わり、その夜も執務室で書類の確認を続けていました。
+
+  榊原宗一は若者の学びを支えることに熱心な財団理事で、奨学生から感謝されることの多い人物でした。審査や会計には厳格で近寄りがたい面もありましたが、財団内では人望のある古参として知られていました。
+
+  午後八時から暴風が強まり、島と本土を結ぶ船便はすべて欠航しました。桟橋も使用できず、新たに島へ渡ることも、島から出ることもできません。残った者たちは朝まで青凪荘で過ごすことになります。
+
+  午後十時二分、執務室で榊原宗一が死亡しているのが見つかりました。その夜に島に残っていた関係者は、秘書の相沢奈緒、会計担当の御影崇、外部講師の羽鳥栞、施設管理の堀江充です。
+
+  暴風に閉ざされた研修島で、日程終了後に何が起きたのか。四人から榊原とのやり取りと、その夜の出来事を聞いてください。
+floorPlan: null
+facts:
+  - id: aizawa-secretary
+    statement: 相沢奈緒は榊原宗一の秘書として予定管理と文書送信を担当している
+    kind: other
+  - id: mikage-accountant
+    statement: 御影崇は奨学財団の会計実務を担当している
+    kind: other
+  - id: hatori-lecturer
+    statement: 羽鳥栞は島で行われる研修の外部講師である
+    kind: other
+  - id: horie-manager
+    statement: 堀江充は研修施設の設備と宿泊区画を管理している
+    kind: other
+  - id: aizawa-diverted-funds
+    statement: 相沢奈緒は小口支出の名目を使い、複数回にわたって財団資金を私的な支払いへ流用していた
+    kind: motive
+    secret: true
+  - id: sakakibara-found-diversion
+    statement: 榊原宗一は事件当日、相沢奈緒の小口支出に不自然な重複があることを発見した
+    kind: motive
+    secret: true
+  - id: sakakibara-planned-audit
+    statement: 榊原宗一は翌朝、相沢奈緒を文書管理から外し、支出記録を監査担当へ提出する予定だった
+    kind: motive
+    secret: true
+  - id: mail-drafted-1811
+    statement: 18時11分、榊原宗一は翌朝の資料確認を求めるメール本文を作成した
+    kind: physical
+  - id: mail-scheduled-2142
+    statement: 18時12分、榊原宗一はそのメールを21時42分に自動送信する予定送信へ設定した
+    kind: physical
+  - id: mail-sent-automatically
+    statement: 21時42分、榊原宗一の端末が操作されていなくても予定送信機能によりメールが自動送信された
+    kind: physical
+  - id: aizawa-knew-scheduled-mail
+    statement: 相沢奈緒は夕方、榊原宗一が21時42分の予定送信を設定する場に同席していた
+    kind: truth
+    secret: true
+  - id: aizawa-entered-office-2124
+    statement: 21時24分ごろ、相沢奈緒は榊原宗一の執務室へ入った
+    kind: truth
+    secret: true
+  - id: horie-saw-aizawa-2129
+    statement: 21時29分ごろ、堀江充は執務室前の廊下から出てくる相沢奈緒を見た
+    kind: observation
+  - id: aizawa-killed-sakakibara
+    statement: 21時28分ごろ、相沢奈緒は執務室で榊原宗一を襲い死亡させた
+    kind: truth
+    secret: true
+  - id: aizawa-joined-hatori-2135
+    statement: 21時35分、相沢奈緒は講義室へ移り、羽鳥栞と翌朝の研修準備を始めた
+    kind: observation
+  - id: aizawa-with-hatori-until-2155
+    statement: 21時35分から21時55分まで、相沢奈緒と羽鳥栞は講義室で一緒に作業していた
+    kind: observation
+  - id: mikage-hid-expense-shift
+    statement: 御影崇は予算超過を隠すため、研修費の一部を別年度の項目へ付け替えていた
+    kind: other
+    secret: true
+  - id: hatori-shared-materials
+    statement: 羽鳥栞は契約上未公開の研修教材を別の講座で先に使用していた
+    kind: other
+    secret: true
+  - id: horie-hid-room-use
+    statement: 堀江充は規則に反して空き客室を私的な荷物置き場として使っていた
+    kind: other
+    secret: true
+  - id: body-found-2202
+    statement: 22時02分、御影崇が執務室で榊原宗一の死を発見した
+    kind: observation
+
+timeline:
+  - id: mail-drafted
+    at: "18:11"
+    participants: [aizawa]
+    facts: [mail-drafted-1811]
+    description: 榊原が翌朝の資料確認を求めるメール本文を作成する。相沢は近くで予定を確認している。
+  - id: mail-scheduled
+    at: "18:12"
+    participants: [aizawa]
+    facts: [mail-scheduled-2142, aizawa-knew-scheduled-mail]
+    description: 榊原がメールを21時42分の予定送信へ設定し、相沢もその設定を知る。
+  - id: aizawa-enters-office
+    at: "21:24"
+    participants: [aizawa]
+    facts: [aizawa-entered-office-2124]
+    description: 相沢が榊原の執務室へ入る。
+  - id: sakakibara-death
+    at: "21:28"
+    participants: [aizawa]
+    facts: [aizawa-killed-sakakibara]
+    description: 相沢が執務室で榊原を襲い、榊原は死亡する。
+  - id: horie-sighting
+    at: "21:29"
+    participants: [aizawa, horie]
+    facts: [horie-saw-aizawa-2129]
+    description: 堀江が執務室前の廊下から出てくる相沢を目撃する。
+  - id: aizawa-joins-hatori
+    at: "21:35"
+    participants: [aizawa, hatori]
+    facts: [aizawa-joined-hatori-2135, aizawa-with-hatori-until-2155]
+    description: 相沢が講義室で羽鳥と翌朝の研修準備を始める。
+  - id: scheduled-mail-sends
+    at: "21:42"
+    participants: []
+    facts: [mail-sent-automatically]
+    description: 榊原が夕方に設定したメールが、端末への操作なしで自動送信される。
+  - id: discovery
+    at: "22:02"
+    participants: [mikage, aizawa, hatori, horie]
+    facts: [body-found-2202]
+    description: 御影が執務室で榊原の死を発見する。
+
+characters:
+  - id: aizawa
+    name: 相沢奈緒
+    role: suspect
+    publicIntroduction: "予定と文書管理に几帳面で、榊原の癖もよく知る秘書。"
+    personality: 予定と文書管理に几帳面で、榊原の癖もよく知る秘書。落ち着いて時系列を整理するように話すが、21時42分のメールを本人の生存証明として意図的に強調する。
+    goals:
+      - 財団資金を私的に流用したことを隠したい
+      - 21時42分のメールを、榊原がその時刻まで生きていた証拠だと思わせたい
+      - 自分の21時35分以降のアリバイを死亡時刻と重ねたい
+    knowledge: [aizawa-secretary, mail-drafted-1811, mail-scheduled-2142, mail-sent-automatically, aizawa-joined-hatori-2135, aizawa-with-hatori-until-2155, body-found-2202]
+    secrets:
+      - fact: aizawa-diverted-funds
+        disclosure: pressured
+      - fact: sakakibara-found-diversion
+        disclosure: pressured
+      - fact: sakakibara-planned-audit
+        disclosure: pressured
+      - fact: aizawa-knew-scheduled-mail
+        disclosure: pressured
+      - fact: aizawa-entered-office-2124
+        disclosure: never
+      - fact: aizawa-killed-sakakibara
+        disclosure: never
+    lies:
+      - id: aizawa-mail-means-alive
+        about: mail-sent-automatically
+        claim: 21時42分に榊原さん本人からメールが届きました。あの時刻に本人が端末を操作して送ったと考えるのが自然です
+        strategy: maintain-until-contradicted
+      - id: aizawa-no-office-visit
+        about: aizawa-entered-office-2124
+        claim: 21時すぎは執務室へ行っていません。21時35分からは羽鳥さんと講義室にいました
+        strategy: maintain-until-contradicted
+      - id: aizawa-did-not-know-schedule
+        about: aizawa-knew-scheduled-mail
+        claim: 榊原さんがあのメールを予定送信にしていたなんて知りませんでした
+        strategy: maintain-until-contradicted
+    memories:
+      - id: audit-threat
+        about: sakakibara-planned-audit
+        detail: 榊原から「明朝、支出を監査へ渡す。文書管理からも外れてもらう」と告げられ、過去の流用が全部つながると思った。
+    relationships:
+      - character: hatori
+        relation: 研修準備の相手
+        attitude: 21時35分以降の自分の居場所を証明してくれる相手として頼っている
+      - character: mikage
+        relation: 会計担当
+        attitude: 支出の細部まで見られると流用に気づかれるので警戒している
+  - id: mikage
+    name: 御影崇
+    role: suspect
+    publicIntroduction: "財団の会計担当。"
+    personality: 数字に細かく、他人の経費処理にも厳しい会計担当。自分も予算項目を付け替えていたため監査の話題を嫌うが、メールの送信情報を見る知識はある。
+    goals:
+      - 予算項目の付け替えを隠したい
+      - 榊原の監査方針と相沢の支出の不自然さについては必要なら話す
+    knowledge: [mikage-accountant, mail-sent-automatically, body-found-2202]
+    secrets:
+      - fact: mikage-hid-expense-shift
+        disclosure: pressured
+    lies:
+      - id: mikage-no-budget-shift
+        about: mikage-hid-expense-shift
+        claim: 研修費を別年度の項目へ付け替えたことはありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: duplicate-expenses
+        about: aizawa-diverted-funds
+        detail: 榊原が夕方、相沢の処理した小口支出に同じ金額の重複があると言って一覧を印刷していた。
+    relationships:
+      - character: aizawa
+        relation: 支出処理の窓口
+        attitude: 普段は正確だが、最近の小口支出だけ説明が曖昧だと感じている
+  - id: hatori
+    name: 羽鳥栞
+    role: witness
+    publicIntroduction: "話し方が明快な外部講師。"
+    personality: 話し方が明快な外部講師。未公開教材を別講座で使ったことは隠したいが、21時35分から55分まで相沢と一緒に準備していたことは正確に証言する。
+    goals:
+      - 未公開教材を別講座で先に使ったことを隠したい
+      - 21時35分以降の相沢の居場所は正確に話したい
+    knowledge: [hatori-lecturer, aizawa-joined-hatori-2135, aizawa-with-hatori-until-2155, body-found-2202]
+    secrets:
+      - fact: hatori-shared-materials
+        disclosure: pressured
+    lies:
+      - id: hatori-no-material-share
+        about: hatori-shared-materials
+        claim: 契約上未公開の教材を別の講座で先に使ったことはありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: aizawa-arrival
+        about: aizawa-joined-hatori-2135
+        detail: 相沢は21時35分ちょうどくらいに講義室へ来た。少し息が上がっていたが、その後21時55分まではずっと一緒だった。
+    relationships: []
+  - id: horie
+    name: 堀江充
+    role: witness
+    publicIntroduction: "施設内の人の出入りをよく見ている管理担当。"
+    personality: 施設内の人の出入りをよく見ている管理担当。空き客室を私物置き場にしていたことを隠したいが、21時29分に執務室前で見た相沢については時刻も場所も覚えている。
+    goals:
+      - 空き客室を私物の荷物置き場にしていたことを隠したい
+      - 21時29分に執務室前から出てきた相沢の目撃は正確に話したい
+    knowledge: [horie-manager, horie-saw-aizawa-2129, body-found-2202]
+    secrets:
+      - fact: horie-hid-room-use
+        disclosure: pressured
+    lies:
+      - id: horie-no-private-room
+        about: horie-hid-room-use
+        claim: 空き客室を私物置き場として使ったことはありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: office-corridor-aizawa
+        about: horie-saw-aizawa-2129
+        detail: 21時29分ごろ、設備盤の時計を確認した直後に、執務室前の廊下から相沢が出てきた。本人は気づかず講義室方向へ急いでいた。
+    relationships: []
+
+revelations:
+  - id: mail-was-scheduled
+    title: 九時四十二分のメールは夕方に書かれた
+    text: 榊原のメールは18時11分に作成され、18時12分に21時42分の予定送信へ設定されていた。21時42分の送信は本人がその時刻に生きていた証明にならない。
+    category: timeline
+    subject: { type: event, id: scheduled-mail-sends }
+    sources:
+      - type: character
+        id: mikage
+        revealCondition: 御影にメールの受信時刻だけでなく、作成時刻や予定送信情報を確認できないか尋ねた。
+        requires:
+          revelations: []
+          evidences: [mail-schedule-metadata]
+      - type: character
+        id: aizawa
+        revealCondition: 相沢に21時42分のメールが予定送信ではなかったか追及し、夕方の設定情報を突きつけた。
+        requires:
+          revelations: []
+          evidences: [mail-schedule-metadata]
+    relatedFacts: [mail-drafted-1811, mail-scheduled-2142, mail-sent-automatically, aizawa-knew-scheduled-mail]
+  - id: death-window-moves-earlier
+    title: 相沢のアリバイより前の空白
+    text: 21時42分のメールを生存証明から外すと、相沢が羽鳥と合流する21時35分より前も犯行可能時間に戻る。21時29分には堀江が執務室前から出る相沢を見ている。
+    category: alibi
+    subject: { type: character, id: aizawa }
+    sources:
+      - type: character
+        id: horie
+        revealCondition: 堀江に21時20分から35分ごろ執務室前で見た人物を尋ね、相沢の目撃を具体化した。
+        requires:
+          revelations: [mail-was-scheduled]
+          evidences: [office-corridor-sighting]
+      - type: character
+        id: hatori
+        revealCondition: 羽鳥に相沢と合流した正確な時刻を尋ね、21時35分より前は一緒ではなかったことを確認した。
+        requires:
+          revelations: [mail-was-scheduled]
+          evidences: [office-corridor-sighting]
+    relatedFacts: [aizawa-entered-office-2124, horie-saw-aizawa-2129, aizawa-joined-hatori-2135, aizawa-with-hatori-until-2155]
+  - id: aizawa-fund-motive
+    title: 翌朝の支出監査
+    text: 榊原は相沢の小口支出の重複から資金流用を疑い、翌朝に相沢を文書管理から外して監査担当へ記録を渡す予定だった。
+    category: motive
+    subject: { type: character, id: aizawa }
+    sources:
+      - type: character
+        id: aizawa
+        revealCondition: 相沢に榊原が調べていた小口支出と翌朝の監査予定を追及し、文書管理から外される恐れを明確にした。
+        requires:
+          revelations: [death-window-moves-earlier]
+          evidences: [expense-duplicate-sheet]
+      - type: character
+        id: mikage
+        revealCondition: 御影に榊原が夕方確認していた重複支出を尋ね、監査予定へ話をつなげた。
+        requires:
+          revelations: []
+          evidences: [expense-duplicate-sheet]
+    relatedFacts: [aizawa-diverted-funds, sakakibara-found-diversion, sakakibara-planned-audit]
+
+evidences:
+  - id: mail-schedule-metadata
+    label: 二十一時四十二分メールの予定送信情報
+    description: メール本文は18時11分作成、18時12分に21時42分の予定送信へ設定されており、21時42分には端末操作なしで送信されている。
+    reveal:
+      mode: conversation
+      condition: 相沢か御影に21時42分のメールについて、受信時刻だけでなく作成時刻と予定送信情報を確認したら開示する。
+    sources:
+      - { type: character, id: aizawa }
+      - { type: character, id: mikage }
+    supports: [mail-drafted-1811, mail-scheduled-2142, mail-sent-automatically, aizawa-knew-scheduled-mail]
+    contradicts: ["lie:aizawa-mail-means-alive", "lie:aizawa-did-not-know-schedule"]
+  - id: office-corridor-sighting
+    label: 二十一時二十九分の執務室前目撃
+    description: 堀江は21時29分ごろ、榊原の執務室前の廊下から出てくる相沢を見ている。
+    reveal:
+      mode: conversation
+      condition: 堀江に21時20分から35分ごろ執務室前で誰を見たか尋ねたら開示する。
+    sources:
+      - { type: character, id: horie }
+    supports: [horie-saw-aizawa-2129, aizawa-entered-office-2124]
+    contradicts: ["lie:aizawa-no-office-visit"]
+  - id: expense-duplicate-sheet
+    label: 相沢の小口支出重複一覧
+    description: 相沢が処理した複数の小口支出に不自然な重複があり、榊原が翌朝の監査提出と担当変更を記している。
+    reveal:
+      mode: conversation
+      condition: 相沢か御影に榊原が夕方確認していた支出一覧を尋ね、重複と翌朝の監査予定を追及したら開示する。
+    sources:
+      - { type: character, id: aizawa }
+      - { type: character, id: mikage }
+    supports: [aizawa-diverted-funds, sakakibara-found-diversion, sakakibara-planned-audit]
+    contradicts: []
+  - id: mikage-budget-sheet
+    label: 御影の年度付け替え表
+    description: 御影が予算超過を隠すため研修費を別年度へ付け替えていたことが分かるが、榊原の死亡とは独立している。
+    reveal:
+      mode: conversation
+      condition: 御影に研修費を別年度へ付け替えていないか尋ね、会計表を検証したら開示する。
+    sources:
+      - { type: character, id: mikage }
+    supports: [mikage-hid-expense-shift]
+    contradicts: ["lie:mikage-no-budget-shift"]
+  - id: hatori-material-history
+    label: 羽鳥の未公開教材利用履歴
+    description: 羽鳥が契約上未公開の教材を別講座で先に使用していたことが分かるが、事件とは無関係である。
+    reveal:
+      mode: conversation
+      condition: 羽鳥に未公開教材を他の講座で使っていないか尋ね、否定を検証したら開示する。
+    sources:
+      - { type: character, id: hatori }
+    supports: [hatori-shared-materials]
+    contradicts: ["lie:hatori-no-material-share"]
+  - id: horie-room-photo
+    label: 空き客室の私物荷物
+    description: 堀江が規則に反して空き客室を私物置き場にしていたことが分かるが、執務室の事件とは別件である。
+    reveal:
+      mode: conversation
+      condition: 堀江に空き客室を私物置き場にしていないか尋ね、否定を続けたら開示する。
+    sources:
+      - { type: character, id: horie }
+    supports: [horie-hid-room-use]
+    contradicts: ["lie:horie-no-private-room"]
+
+solution:
+  culprit: aizawa
+  summary: 犯人は相沢奈緒。小口支出を使った財団資金の流用を榊原に見抜かれ、翌朝に文書管理から外され監査担当へ記録を渡される予定だった。相沢は榊原が夕方に21時42分の予定送信メールを設定したことを知っていた。21時24分ごろ執務室へ入り、21時28分ごろ榊原を襲い、21時29分には堀江が執務室前から出てくる相沢を目撃している。相沢は21時35分から羽鳥と講義室にいて、その後には確かなアリバイがある。21時42分、榊原が夕方に作成したメールが自動送信され、榊原がその時刻まで生きていたように見えたため、相沢の21時35分以降のアリバイが犯行時間と重なって見えた。
+  method: 榊原が夕方に設定した21時42分の予定送信メールを本人の生存証明に見せかけ、実際の死亡時刻を自分のアリバイ成立後へずらして見せた
+  motive: 財団資金の流用が発覚し、翌朝の監査で文書管理の立場と信用を失うことを恐れたため
+  requiredFacts: [aizawa-diverted-funds, sakakibara-planned-audit, mail-drafted-1811, mail-scheduled-2142, mail-sent-automatically, aizawa-knew-scheduled-mail, aizawa-entered-office-2124, horie-saw-aizawa-2129, aizawa-killed-sakakibara, aizawa-joined-hatori-2135]
+  secretKeywords:
+    - 犯人は相沢
+    - 相沢が犯人
+    - 相沢が榊原を襲
+    - 私が榊原を襲
+    - 予定送信で死亡時刻を偽装
+quality:
+  expectedQuestionCount:
+    min: 14
+    max: 28
+  requiredEvidence:
+    min: 3
+  redHerrings: [mikage-hid-expense-shift, hatori-shared-materials, horie-hid-room-use]
+  notes: 犯人の在席記録ではなく、被害者の『生存記録』を崩す型。予定送信を見抜くと死亡可能時間が21時35分より前へ戻り、堀江の目撃が急に決定的になる。相沢が予定送信を事前に知っていた点まで確認して偶然利用ではなく意図的な時間偽装へ収束させる。

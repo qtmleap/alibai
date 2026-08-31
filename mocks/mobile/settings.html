@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AlibAI モバイル — 設定</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500&family=Roboto+Mono:wght@400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./_phone.css" />
+    <link rel="stylesheet" href="../_mock.css" />
+    <style>
+      .p-set a.label { text-decoration: none; display: block; }
+      /* 役割は .grp の直の子と同じ間合いで積む。包む箱を挟むと二つが詰まる。 */
+      #roles { display: flex; flex-direction: column; gap: 13px; }
+    </style>
+  </head>
+  <body>
+    <div class="phone" data-mock-id="ALI_SET_01">
+      <div class="pad p-set">
+        <div data-mock-id="ALI_SET_03">
+          <a class="label" href="./scenario-select.html" data-mock-id="ALI_SET_02">← 事件を選ぶ</a>
+          <h3 style="margin-top: 16px">設定</h3>
+          <p class="lead">この端末にだけ保存されます。サーバには残らず、あなたのプレイにだけ効きます。</p>
+        </div>
+
+        <div class="grp" data-mock-id="ALI_SET_04">
+          <div class="label">使うモデル</div>
+          <div id="roles"></div>
+          <p class="fine" style="margin: 0" data-mock-id="ALI_SET_08">Google は APIキーが未設定のため選べません。</p>
+        </div>
+
+        <div class="grp" data-mock-id="ALI_SET_09">
+          <div class="label">進行</div>
+          <p class="fine" style="margin: 0">新しく始める事件から効きます。進行中のものは変わりません。</p>
+
+          <div class="trio" data-mock-id="ALI_SET_10">
+            <div class="fld">
+              <span class="label">ターン数</span>
+              <span class="num" id="n-turns"></span>
+            </div>
+            <div class="fld">
+              <span class="label">1ターンの質問</span>
+              <span class="num" id="n-asks">1</span>
+            </div>
+            <div class="fld">
+              <span class="label">1話題の往復</span>
+              <span class="num" id="n-depth">3</span>
+            </div>
+          </div>
+
+          <p class="sum" style="margin: 0" id="sum" data-mock-id="ALI_SET_11"></p>
+        </div>
+
+        <!-- 演出の好み。記録の画面に切り替えを置くと毎回そこで一拍止まるので、こちらへ寄せる。 -->
+        <div class="grp" data-mock-id="ALI_SET_12">
+          <div class="label">事件の記録</div>
+          <div class="role">
+            <div class="nm">見せ方</div>
+            <div class="modes" id="brief" data-mock-id="ALI_SET_13"></div>
+          </div>
+          <div class="role">
+            <div class="nm">打鍵音</div>
+            <div class="ps" style="margin: 0">一段落ずつのときだけ鳴ります</div>
+            <div class="modes" id="sound" data-mock-id="ALI_SET_14"></div>
+          </div>
+          <p class="fine" style="margin: 0" id="brieffine"></p>
+        </div>
+      </div>
+    </div>
+
+    <script src="../_case.js"></script>
+    <script src="../_mock.js"></script>
+    <script>
+      ;(function () {
+        // #unset=1 で「まだ何も選んでいない」状態。既定と、たまたま既定と同じものを
+        // 選んだ状態とを、見た目でも分けられるかを確かめるための切り替え。
+        var unset = Mock.str('unset', '0') === '1'
+
+        var roles = [
+          {
+            nm: '会話',
+            ps: 'NPCの受け答えと、探偵が組み立てる質問',
+            vendor: unset ? null : 'Anthropic',
+            model: unset ? null : 'Claude Sonnet 5',
+          },
+          { nm: '判定', ps: '証拠の開示と、推理の採点', vendor: null, model: null },
+        ]
+
+        document.getElementById('roles').innerHTML = roles
+          .map(function (r) {
+            var vendor = r.vendor
+              ? '<span class="sel" data-mock-id="ALI_SET_06"><span class="v">' + Mock.esc(r.vendor) + '</span><span class="ar">▼</span></span>'
+              : '<span class="sel unset" data-mock-id="ALI_SET_06"><span class="v">既定のまま</span><span class="ar">▼</span></span>'
+            // 提供元が決まるまでモデルは触れない。枠を地に沈めて、押せないことを枠で言う。
+            var model = r.model
+              ? '<span class="sel" data-mock-id="ALI_SET_07"><span class="v">' + Mock.esc(r.model) + '</span><span class="ar">▼</span></span>'
+              : '<span class="sel locked" data-mock-id="ALI_SET_07"><span class="v">既定のまま</span><span class="ar">▼</span></span>'
+            return (
+              '<div class="role" data-mock-id="ALI_SET_05"><div><div class="nm">' +
+              Mock.esc(r.nm) +
+              '</div><div class="ps">' +
+              Mock.esc(r.ps) +
+              '</div></div><div class="pair"><div class="fld"><span class="label">提供元</span>' +
+              vendor +
+              '</div><div class="fld"><span class="label">モデル</span>' +
+              model +
+              '</div></div></div>'
+            )
+          })
+          .join('')
+
+        var turns = 5
+        var asks = 1
+        var depth = 3
+        document.getElementById('n-turns').textContent = turns
+        document.getElementById('sum').innerHTML =
+          turns +
+          'ターン × ' +
+          asks +
+          '問 ＝ <b>全部で' +
+          turns * asks +
+          '問</b>（上限20問）。<br>1話題ごとに、モデルを<b>' +
+          (depth * 2 + 1) +
+          '回</b>呼びます。'
+
+        /*
+         * 見せ方は二択、打鍵音は入切。音は打鍵のときしか鳴らないので、
+         * せり上がるを選んでいるあいだはモデルの欄と同じ扱いで沈める。
+         */
+        var brief = Mock.str('brief', 'typewriter')
+        var sound = Mock.str('sound', 'on')
+        var pickable = brief === 'typewriter'
+
+        var choices = function (el, items, current, live) {
+          document.getElementById(el).innerHTML = items
+            .map(function (i) {
+              return (
+                '<span class="' +
+                (live && i.key === current ? 'on' : '') +
+                '" style="' +
+                (live ? '' : 'color:var(--nezumi-dim); border-bottom-color:var(--sumi-3)') +
+                '" data-set="' +
+                el +
+                '=' +
+                i.key +
+                '">' +
+                i.name +
+                '</span>'
+              )
+            })
+            .join('')
+        }
+        choices(
+          'brief',
+          [
+            { key: 'typewriter', name: '一段落ずつ' },
+            { key: 'crawl', name: 'せり上がる' },
+          ],
+          brief,
+          true,
+        )
+        choices(
+          'sound',
+          [
+            { key: 'on', name: '鳴らす' },
+            { key: 'off', name: '鳴らさない' },
+          ],
+          sound,
+          pickable,
+        )
+
+        document.getElementById('brieffine').textContent = pickable
+          ? '一段落ずつは、読む速さをあなたが握ります。'
+          : 'せり上がるは速さが決まっているぶん、音は鳴りません。'
+
+        Array.prototype.forEach.call(document.querySelectorAll('[data-set]'), function (el) {
+          el.addEventListener('click', function () {
+            var kv = el.dataset.set.split('=')
+            location.hash =
+              'brief=' +
+              (kv[0] === 'brief' ? kv[1] : brief) +
+              '&sound=' +
+              (kv[0] === 'sound' ? kv[1] : sound)
+            location.reload()
+          })
+        })
+
+        Mock.ready()
+      })()
+    </script>
+  </body>
+</html>

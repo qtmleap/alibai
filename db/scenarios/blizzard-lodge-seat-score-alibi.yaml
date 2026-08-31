@@ -1,0 +1,416 @@
+schemaVersion: 1
+id: blizzard-lodge-seat-score-alibi
+meta:
+  title: 吹雪の研修ロッジ、四人の夜
+  synopsis: "午後九時四十分、吹雪で道路が閉鎖された研修ロッジで、運営責任者・塚本誠が書斎で死亡しているのが見つかりました。"
+  category: クローズドサークル
+  difficulty: 4
+  estimatedMinutes: 15
+  tags: [ロッジ, 吹雪, アリバイ, 記録]
+victim:
+  name: 塚本誠
+  introduction: 研修ロッジ運営責任者
+briefing: |-
+  ——事件の記録を読み上げます。
+
+  山あいの研修ロッジでは、その日まで数日間にわたる小規模な研修会が開かれていました。参加者の多くは日中のうちに帰路につき、夜には翌朝の撤収や精算を担当する運営関係者だけが残っていました。談話室には使い終えた教材や飲み物が残り、長かった研修の最後の夜らしい空気が漂っていました。
+
+  運営責任者の塚本誠は、研修全体の進行と施設側との調整を任されていた人物です。参加者が帰ったあとも書類や会計の確認が残っており、その夜は書斎を使って事務仕事を続けていました。
+
+  塚本誠は段取りに厳しい反面、参加者や若いスタッフの面倒見がよい責任者として知られていました。急な予定変更でも最後まで現場に残ることが多く、運営側からは「困ったときに頼れる人」として慕われていました。
+
+  夕方から降り始めた雪は夜になって吹雪へ変わり、ロッジへ続く道路は通行止めとなります。送迎車も動かせず、外部の者が新たに出入りできる状況ではありませんでした。
+
+  午後九時四十分、書斎で塚本誠が死亡しているのが見つかります。そのときロッジに残っていた関係者は、企画担当の片瀬真央、講師の藤堂凛、事務担当の吉岡蓮、設備係の間宮葵の四人です。
+
+  研修が終わり、気の緩み始めたはずの夜に何が起きたのか。四人から、夕食後から発見までの出来事を聞いてください。
+floorPlan: null
+facts:
+  - id: katase-planner
+    statement: 片瀬真央は研修企画と外部講師への支払いを担当している
+    kind: other
+  - id: todo-lecturer
+    statement: 藤堂凛は研修に招かれた講師である
+    kind: other
+  - id: yoshioka-clerk
+    statement: 吉岡蓮は参加者名簿と精算を担当する事務職員である
+    kind: other
+  - id: mamiya-facility
+    statement: 間宮葵はロッジの設備管理を担当している
+    kind: other
+  - id: game-tracks-seats
+    statement: 談話室の得点表は参加者名ではなく青・赤・白・黄の四つの席ごとの得点を記録する形式だった
+    kind: physical
+  - id: katase-blue-seat
+    statement: ゲーム開始時、片瀬真央は青席に座っていた
+    kind: observation
+  - id: katase-left-2112
+    statement: 21時12分ごろ、片瀬真央は飲み物を取りに行くと言って談話室を離れた
+    kind: observation
+    secret: true
+  - id: mamiya-substituted-blue
+    statement: 21時13分から21時24分ごろまで、間宮葵が片瀬真央の代わりに青席へ座ってゲームを続けた
+    kind: observation
+    secret: true
+  - id: blue-score-continued
+    statement: 片瀬真央が席を離れていた間も、青席の得点は途切れず得点表へ記録された
+    kind: physical
+  - id: katase-returned-2125
+    statement: 21時25分ごろ、片瀬真央は談話室へ戻り青席へ座り直した
+    kind: observation
+  - id: payment-fraud
+    statement: 片瀬真央は実施していない外部講師費を計上し、精算額の一部を私的に流用していた
+    kind: motive
+    secret: true
+  - id: tsukamoto-found-fraud
+    statement: 塚本誠は事件当日の夜、片瀬真央が処理した講師費の一部に架空計上があることを発見した
+    kind: motive
+    secret: true
+  - id: tsukamoto-summoned-katase
+    statement: 21時10分ごろ、塚本誠は片瀬真央へ書斎に来るよう短いメモを渡した
+    kind: motive
+    secret: true
+  - id: katase-killed-tsukamoto
+    statement: 21時18分ごろ、片瀬真央は書斎で塚本誠を襲い死亡させた
+    kind: truth
+    secret: true
+  - id: todo-saw-katase-return
+    statement: 藤堂凛は21時25分ごろ、談話室の廊下側から戻ってくる片瀬真央を見た
+    kind: observation
+  - id: yoshioka-copied-score-later
+    statement: 吉岡蓮は各ラウンド終了後に席ごとの得点をまとめて得点表へ清書していた
+    kind: testimony
+  - id: todo-secret-plagiarism
+    statement: 藤堂凛は研修資料の一部を出典表示なしで転用していた
+    kind: other
+    secret: true
+  - id: yoshioka-secret-expense
+    statement: 吉岡蓮は私用の交通費を研修経費へ混ぜて精算していた
+    kind: other
+    secret: true
+  - id: mamiya-secret-room
+    statement: 間宮葵は規則に反して空き客室を私物置き場として使っていた
+    kind: other
+    secret: true
+  - id: body-found-2140
+    statement: 21時40分、吉岡蓮が書斎で塚本誠の死を発見した
+    kind: observation
+timeline:
+  - id: fraud-discovered
+    at: "21:05"
+    participants: [katase, yoshioka]
+    facts: [payment-fraud, tsukamoto-found-fraud]
+    description: 塚本が講師費の精算書から架空計上を見つける。
+  - id: summon-note
+    at: "21:10"
+    participants: [katase]
+    facts: [tsukamoto-summoned-katase]
+    description: 塚本が片瀬へ書斎に来るようメモを渡す。
+  - id: katase-leaves-game
+    at: "21:12"
+    participants: [katase, mamiya, todo, yoshioka]
+    facts: [katase-left-2112, mamiya-substituted-blue, game-tracks-seats]
+    description: 片瀬が談話室を離れ、間宮が青席へ座ってゲームを続ける。
+  - id: tsukamoto-death
+    at: "21:18"
+    participants: [katase]
+    facts: [katase-killed-tsukamoto]
+    description: 片瀬が書斎で塚本を襲う。
+  - id: score-continues
+    at: "21:21"
+    participants: [mamiya, todo, yoshioka]
+    facts: [blue-score-continued, yoshioka-copied-score-later]
+    description: 片瀬不在のまま青席の得点が続き、吉岡が後から席単位で清書する。
+  - id: katase-returns
+    at: "21:25"
+    participants: [katase, todo, mamiya, yoshioka]
+    facts: [katase-returned-2125, todo-saw-katase-return]
+    description: 片瀬が談話室へ戻り、間宮から青席を引き継ぐ。
+  - id: discovery
+    at: "21:40"
+    participants: [yoshioka, katase, todo, mamiya]
+    facts: [body-found-2140]
+    description: 吉岡が書斎で塚本の死を発見する。
+characters:
+  - id: katase
+    name: 片瀬真央
+    role: suspect
+    publicIntroduction: "話術に長けた企画担当。"
+    personality: 話術に長けた企画担当。得点表に自分の名前があることを「ずっとその場にいた証明」として強調する。講師費の精算内容を詳しく聞かれると話題を変えたがる。
+    goals:
+      - 架空の講師費を隠したい
+      - 青席の得点記録を自分の連続アリバイとして通したい
+    knowledge: [katase-planner, game-tracks-seats, katase-blue-seat, blue-score-continued, katase-returned-2125, body-found-2140]
+    secrets:
+      - fact: payment-fraud
+        disclosure: pressured
+      - fact: tsukamoto-found-fraud
+        disclosure: pressured
+      - fact: tsukamoto-summoned-katase
+        disclosure: pressured
+      - fact: katase-left-2112
+        disclosure: never
+      - fact: katase-killed-tsukamoto
+        disclosure: never
+    lies:
+      - id: katase-never-left-game
+        about: katase-left-2112
+        claim: 九時から発見まで青席でゲームを続けていました。得点表も途切れていません
+        strategy: maintain-until-contradicted
+      - id: katase-no-fake-fee
+        about: payment-fraud
+        claim: 講師費に架空計上はありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: seat-substitution
+        about: mamiya-substituted-blue
+        detail: 席の得点だけを残すゲームなので、誰かに数分座ってもらっても表だけ見れば交代は分からないと知っていた。
+    relationships:
+      - character: todo
+        relation: 外部講師
+        attitude: 戻ってきた時刻を見られているのが気になる
+      - character: yoshioka
+        relation: 事務担当
+        attitude: 得点表を清書する習慣をアリバイに利用できると思っている
+      - character: mamiya
+        relation: 設備係
+        attitude: 代打で座ったことを黙っていてほしい
+  - id: todo
+    name: 藤堂凛
+    role: witness
+    publicIntroduction: "言葉の細部をよく覚える講師。"
+    personality: 言葉の細部をよく覚える講師。片瀬が戻ってきた場面は覚えているが、研修資料の無断転用を隠したいので自分への追及には敏感。
+    goals:
+      - 資料の無断転用を隠したい
+      - 片瀬が途中から戻ってきた事実を正確に話したい
+    knowledge: [todo-lecturer, katase-returned-2125, todo-saw-katase-return, blue-score-continued, body-found-2140]
+    secrets:
+      - fact: todo-secret-plagiarism
+        disclosure: pressured
+    lies:
+      - id: todo-no-plagiarism
+        about: todo-secret-plagiarism
+        claim: 研修資料に出典表示のない転用はありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: katase-came-back
+        about: todo-saw-katase-return
+        detail: 九時二十五分ごろ、片瀬が廊下から戻ってきて「ありがとう」と間宮に声をかけ、青席へ座り直した。
+    relationships:
+      - character: katase
+        relation: 研修企画担当
+        attitude: 戻ってきたのに「ずっといた」と言うのは不自然だと思っている
+      - character: yoshioka
+        relation: 事務担当
+        attitude: 得点表の書き方を最もよく知っている
+      - character: mamiya
+        relation: 設備係
+        attitude: 片瀬の代わりに座っていたことを覚えている
+  - id: yoshioka
+    name: 吉岡蓮
+    role: suspect
+    publicIntroduction: "研修の事務を担当する職員。"
+    personality: 数字を整えて記録するのが好きな事務職員。得点表はラウンドごとに後から清書しており、誰が席にいたかまでは記録していない。私用交通費の混入を隠している。
+    goals:
+      - 私用交通費の精算を隠したい
+      - 得点表が人物の在席記録ではないと説明したい
+    knowledge: [yoshioka-clerk, game-tracks-seats, blue-score-continued, yoshioka-copied-score-later, body-found-2140]
+    secrets:
+      - fact: yoshioka-secret-expense
+        disclosure: pressured
+    lies:
+      - id: yoshioka-no-private-expense
+        about: yoshioka-secret-expense
+        claim: 私用の交通費を研修経費に混ぜたことはありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: score-by-seat
+        about: yoshioka-copied-score-later
+        detail: 得点表には青席、赤席という単位で数字を写しただけで、途中の交代者名を書く欄はなかった。
+    relationships:
+      - character: katase
+        relation: 同僚
+        attitude: 精算書の処理が妙に急いでいることが以前から気になっていた
+      - character: todo
+        relation: 講師
+        attitude: 記憶は細かいので時刻証言は信用している
+      - character: mamiya
+        relation: 設備係
+        attitude: 青席の代打をしていたのを見ている
+  - id: mamiya
+    name: 間宮葵
+    role: witness
+    publicIntroduction: "頼まれると断れない設備係。"
+    personality: 頼まれると断れない設備係。片瀬に少しだけ代わってと言われ、深く考えず青席へ座った。空き客室を私物置き場に使っていることを隠したい。
+    goals:
+      - 空き客室の私的利用を隠したい
+      - 片瀬の代わりに青席へ座ったことは必要なら認めたい
+    knowledge: [mamiya-facility, mamiya-substituted-blue, blue-score-continued, katase-returned-2125, body-found-2140]
+    secrets:
+      - fact: mamiya-secret-room
+        disclosure: pressured
+    lies:
+      - id: mamiya-no-storage-room
+        about: mamiya-secret-room
+        claim: 空き客室を私物置き場として使ったことはありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: sat-blue
+        about: mamiya-substituted-blue
+        detail: 片瀬に「飲み物を取ってくる間だけ」と頼まれ、青席で何ラウンドか続けた。得点は青席のまま記録された。
+    relationships:
+      - character: katase
+        relation: 同僚
+        attitude: 少しの代打だと思っていたのに隠すよう頼まれて戸惑っている
+      - character: todo
+        relation: 研修講師
+        attitude: 交代中も同じ卓にいた
+      - character: yoshioka
+        relation: 事務担当
+        attitude: 得点表を席単位で書いていたのを知っている
+revelations:
+  - id: score-is-seat-not-person
+    title: 得点表は人物を追っていない
+    text: 得点表が記録しているのは青席の得点であり、青席に座る人物が途中で交代しても数字は連続する。片瀬の名前が表にあることは連続在席を証明しない。
+    category: alibi
+    subject:
+      type: character
+      id: katase
+    sources:
+      - type: character
+        id: yoshioka
+        revealCondition: 吉岡に得点表の記録単位と清書方法を尋ね、途中交代者を記録していないと確認したら開示する。
+        requires:
+          revelations: []
+          evidences: [seat-score-sheet]
+      - type: character
+        id: mamiya
+        revealCondition: 間宮に九時十分台の青席へ座ったか具体的に尋ね、片瀬の代打を認めさせたら開示する。
+        requires:
+          revelations: []
+          evidences: [substitution-testimony]
+    relatedFacts: [game-tracks-seats, katase-left-2112, mamiya-substituted-blue, blue-score-continued, katase-returned-2125]
+  - id: fake-fee-motive
+    title: 架空の講師費
+    text: 塚本は片瀬が処理した外部講師費の架空計上を発見し、事件直前に片瀬を書斎へ呼び出していた。
+    category: motive
+    subject:
+      type: character
+      id: katase
+    sources:
+      - type: character
+        id: katase
+        revealCondition: 片瀬に精算書の架空項目と塚本からの呼び出しメモを具体的に示したら開示する。
+        requires:
+          revelations: [score-is-seat-not-person]
+          evidences: [payment-sheet]
+      - type: character
+        id: yoshioka
+        revealCondition: 吉岡に塚本が発見した講師費の不一致について尋ねたら開示する。
+        requires:
+          revelations: [score-is-seat-not-person]
+          evidences: [payment-sheet]
+    relatedFacts: [payment-fraud, tsukamoto-found-fraud, tsukamoto-summoned-katase]
+evidences:
+  - id: seat-score-sheet
+    label: 四色の席別得点表
+    description: 表は青・赤・白・黄の席ごとに得点を記録し、途中で座った人物名は残さない形式である。
+    reveal:
+      mode: conversation
+      condition: 吉岡に得点表の付け方を尋ねるか、片瀬に青席の記録が何を意味するか問い直したら開示する。
+    sources:
+      - type: character
+        id: yoshioka
+      - type: character
+        id: katase
+    supports: [game-tracks-seats, blue-score-continued, yoshioka-copied-score-later]
+    contradicts: ["lie:katase-never-left-game"]
+  - id: substitution-testimony
+    label: 青席の代打証言
+    description: 間宮は21時13分から21時24分ごろまで片瀬の代わりに青席へ座っていた。
+    reveal:
+      mode: conversation
+      condition: 間宮にゲーム中の席替わりを尋ねるか、藤堂に片瀬が戻った時の場面を確認したら開示する。
+    sources:
+      - type: character
+        id: mamiya
+      - type: character
+        id: todo
+    supports: [katase-left-2112, mamiya-substituted-blue, katase-returned-2125]
+    contradicts: ["lie:katase-never-left-game"]
+  - id: return-sighting
+    label: 二十一時二十五分の帰席目撃
+    description: 藤堂は片瀬が廊下側から談話室へ戻って青席へ座り直すところを見ている。
+    reveal:
+      mode: conversation
+      condition: 藤堂に21時台の片瀬の出入りを尋ねたら開示する。
+    sources:
+      - type: character
+        id: todo
+    supports: [todo-saw-katase-return, katase-returned-2125]
+    contradicts: ["lie:katase-never-left-game"]
+  - id: payment-sheet
+    label: 外部講師費の精算書
+    description: 実在しない追加講師枠が片瀬の処理で計上され、塚本が該当欄に確認印を付けている。
+    reveal:
+      mode: conversation
+      condition: 片瀬か吉岡に事件前に塚本が確認していた精算書について尋ねたら開示する。
+    sources:
+      - type: character
+        id: katase
+      - type: character
+        id: yoshioka
+    supports: [payment-fraud, tsukamoto-found-fraud, tsukamoto-summoned-katase]
+    contradicts: ["lie:katase-no-fake-fee"]
+  - id: copied-material
+    label: 出典のない研修資料
+    description: 藤堂の資料には他者の文章を出典表示なしで転用した部分があるが、事件のアリバイとは関係しない。
+    reveal:
+      mode: conversation
+      condition: 藤堂に研修資料の作成経緯を尋ね、転用を否定したら開示する。
+    sources:
+      - type: character
+        id: todo
+    supports: [todo-secret-plagiarism]
+    contradicts: ["lie:todo-no-plagiarism"]
+  - id: private-expense
+    label: 私用交通費の精算
+    description: 吉岡が私用の交通費を研修経費へ混ぜていたことが分かるが、主事件とは独立している。
+    reveal:
+      mode: conversation
+      condition: 吉岡に自分の経費精算を尋ね、私用分を否定したら開示する。
+    sources:
+      - type: character
+        id: yoshioka
+    supports: [yoshioka-secret-expense]
+    contradicts: ["lie:yoshioka-no-private-expense"]
+  - id: private-storage
+    label: 空き客室の私物
+    description: 間宮が空き客室を私物置き場として使っていたことが分かるが、片瀬の離席とは無関係である。
+    reveal:
+      mode: conversation
+      condition: 間宮に空き客室の利用を尋ね、私物置き場を否定したら開示する。
+    sources:
+      - type: character
+        id: mamiya
+    supports: [mamiya-secret-room]
+    contradicts: ["lie:mamiya-no-storage-room"]
+solution:
+  culprit: katase
+  summary: 犯人は片瀬真央。架空の講師費を塚本に見抜かれ、書斎へ呼び出された片瀬はゲームの途中で談話室を離れた。間宮がその間だけ青席に座ってゲームを続けたため、青席の得点は途切れず、吉岡が後から清書した得点表にも連続した数字が残った。だが得点表は人物ではなく席を記録するものだった。藤堂は21時25分ごろ片瀬が廊下から戻ってくるところを見ており、間宮も代打を認める。得点表の連続性は片瀬の在席証明ではない。
+  method: ゲーム中に自分の席を別人へ任せ、席単位で続く得点記録を人物の連続アリバイに見せかけて書斎へ向かった
+  motive: 架空の外部講師費を計上した不正が発覚し、責任追及を恐れたため
+  requiredFacts: [payment-fraud, tsukamoto-summoned-katase, katase-left-2112, mamiya-substituted-blue, blue-score-continued, katase-killed-tsukamoto, katase-returned-2125, todo-saw-katase-return]
+  secretKeywords:
+    - 犯人は片瀬
+    - 片瀬が塚本を襲
+    - 片瀬が青席を離れ
+    - 得点表は片瀬の在席証明ではない
+quality:
+  expectedQuestionCount:
+    min: 11
+    max: 24
+  requiredEvidence:
+    min: 3
+  redHerrings: [todo-secret-plagiarism, yoshioka-secret-expense, mamiya-secret-room]
+  notes: 得点表の連続性を人物の連続性と誤読させる社会的アリバイ。機械ログではなく、記録単位と途中交代の証言を突き合わせて崩す。

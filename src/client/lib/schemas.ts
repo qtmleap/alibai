@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { detectiveSchema } from '~/db/detective'
 import { floorPlanSchema } from '~/db/floor-plan'
 import { gameModeSchema, hintSchema } from '~/db/game-mode'
+import { llmProviderSchema, settableLlmRoleSchema } from '~/db/llm-catalog'
 
 /**
  * サーバのレスポンスは fetch の時点では unknown。
@@ -28,7 +29,7 @@ export const scenarioListSchema = z.array(scenarioSummarySchema)
 export const characterSchema = z.object({
   id: z.uuid(),
   name: z.string().nonempty(),
-  personality: z.string().nonempty(),
+  publicIntroduction: z.string().nonempty(),
 })
 
 /**
@@ -44,6 +45,16 @@ export const scenarioDetailSchema = scenarioSummarySchema.omit({ characterCount:
   // ゲームマスターがプレイヤーに事件を語って聞かせる導入文。空行区切りの段落。
   briefing: z.string().nonempty(),
   floorPlan: floorPlanSchema.nullable(),
+  /**
+   * 事件が動いていた時間の幅。時刻軸の両端になる。
+   * 真相ではなく、事件の記録が語っているのと同じ幅（db/time-window.ts）。
+   */
+  timeWindow: z.object({ start: z.string().nonempty(), end: z.string().nonempty() }).nullable(),
+  /**
+   * 亡くなった人。characters には入らない——あちらは聞き込みの相手の一覧なので、
+   * 混ぜると話しかけられる列に死者が並ぶ。
+   */
+  victim: z.object({ name: z.string().nonempty(), introduction: z.string().nonempty() }).nullable(),
   characters: z.array(characterSchema),
 })
 
@@ -89,6 +100,8 @@ export const revelationCardSchema = z.object({
 export const sessionStateSchema = z.object({
   sessionId: z.uuid(),
   scenarioId: z.uuid(),
+  /** 名乗って始めたときの探偵の名前。名乗らずに始めたセッションでは null。 */
+  detectiveName: z.string().nonempty().nullable(),
   /**
    * 未発見のものについて、このセッションの難易度で出してよい数だけ。
    * モードごとに形が違う（hard の応答には部屋ごとの数を入れる場所が無い）。
@@ -111,6 +124,25 @@ export const judgementSchema = z.object({
   questionCount: z.number().int(),
   turn: turnStateSchema,
 })
+
+/**
+ * 真相の時系列1行。
+ *
+ * 保存されているのは `$type` の無い jsonb で、サーバ側の検証がひとつも無い
+ * （`db/schema.ts` の scenario_truths.timeline）。読めるかどうかを判断できるのは
+ * 受け取ったこちら側だけなので、ここが実質の関所になる。
+ *
+ * 執筆時の形は `{id, at, participants, facts, description}` だが、
+ * `db/compile-scenario.ts` が保存前に `{time, event}` へ畳んでいる。
+ * 届くのはそちらなので、こちらの名前で受ける。
+ */
+export const truthTimelineEntrySchema = z.object({
+  /** "HH:mm" か ISO 8601。作中の時計なので、実時刻へ変換してはいけない。 */
+  time: z.string().nonempty(),
+  event: z.string().nonempty(),
+})
+
+export type TruthTimelineEntry = z.infer<typeof truthTimelineEntrySchema>
 
 export const accuseResultSchema = z.object({
   correct: z.boolean(),
@@ -175,6 +207,38 @@ export const sessionHistorySchema = z.object({
   ),
 })
 
+/**
+ * 設定画面が選択肢を組み立てるための材料（GET /api/settings/llm）。
+ *
+ * available はキーが設定されているかの真偽値だけ。鍵も、その長さも、
+ * ゲートウェイの向き先も返ってこない。
+ */
+const limitBoundSchema = z.object({ value: z.int().positive().optional(), max: z.int().positive() })
+
+export const llmSettingsResponseSchema = z.object({
+  providers: z.array(
+    z.object({
+      id: llmProviderSchema,
+      label: z.string().nonempty(),
+      available: z.boolean(),
+      models: z.array(z.object({ id: z.string().nonempty(), label: z.string().nonempty() })),
+    }),
+  ),
+  roles: z.array(
+    z.object({
+      id: settableLlmRoleSchema,
+      label: z.string().nonempty(),
+      note: z.string().nonempty(),
+    }),
+  ),
+  limits: z.object({
+    maxTurns: limitBoundSchema,
+    questionsPerTurn: limitBoundSchema,
+    exchangesPerTopic: limitBoundSchema,
+    totalQuestions: limitBoundSchema,
+  }),
+})
+
 /** 400/404/429/500 共通のエラーボディ。429 だけ resetAt (epoch ms) を持つ。 */
 export const apiErrorSchema = z.object({
   error: z.string().nonempty(),
@@ -195,3 +259,11 @@ export type Judgement = z.infer<typeof judgementSchema>
 export type AccuseResult = z.infer<typeof accuseResultSchema>
 export type SessionHistory = z.infer<typeof sessionHistorySchema>
 export type { GameMode, Hint, SubjectCount } from '~/db/game-mode'
+export type LlmSettingsResponse = z.infer<typeof llmSettingsResponseSchema>
+// 選択肢の正典は db/llm-catalog.ts。ここで並べ直すと画面とAPIの受け入れ値がずれる。
+export {
+  LLM_CATALOG,
+  LLM_PROVIDER_LABELS,
+  type LlmProvider,
+  type SettableLlmRole,
+} from '~/db/llm-catalog'

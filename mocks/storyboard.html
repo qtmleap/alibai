@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <title>AlibAI — ストーリーボード</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500&family=Roboto+Mono:wght@400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /*
+        全画面ぶんの状態を一枚に並べた台。実装の突き合わせはここを見る。
+        これは見るための道具であって、意匠そのものではない——だから凝らない。
+        ただし地の色だけはアプリと同じものを使う。違う地に置くと、暗い画面の
+        明度が正しく見えなくなる。
+
+        枠は実寸で描いてから縮める。幅を変えて描くと、モックが応答的に
+        組み替わって「その幅での見え方」が分からなくなる。
+      */
+      :root {
+        --sumi: #141317;
+        --sumi-2: #1a1820;
+        --keisen: #302c39;
+        --kinari: #e9e4d9;
+        --nezumi: #8e8896;
+        --nezumi-dim: #625d6c;
+        --mincho: "Shippori Mincho B1", "Hiragino Mincho ProN", serif;
+        --gothic: "Zen Kaku Gothic New", "Hiragino Sans", "Noto Sans JP", sans-serif;
+        --mono: "Roboto Mono", ui-monospace, monospace;
+        --scale: 0.5;
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--sumi);
+        color: var(--kinari);
+        font-family: var(--gothic);
+        font-size: 13px;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .sheet { padding: 0 40px 80px; }
+
+      .mast {
+        display: flex; align-items: flex-end; justify-content: space-between;
+        padding: 54px 0 26px; border-bottom: 1px solid var(--keisen);
+      }
+      .mast h1 {
+        margin: 0; font-family: var(--mincho); font-weight: 700;
+        font-size: 30px; letter-spacing: 0.18em;
+      }
+      .mast .sub { display: block; margin-top: 9px; font-size: 11px; color: var(--nezumi-dim); letter-spacing: 0.24em; }
+      .mast .how { text-align: right; font-size: 11.5px; color: var(--nezumi-dim); line-height: 1.9; }
+      .mast .how b { color: var(--nezumi); font-weight: 400; }
+      .mast button {
+        font: inherit; font-size: 11.5px; background: none; color: var(--nezumi);
+        border: 1px solid var(--keisen); padding: 5px 14px; margin-top: 8px;
+      }
+
+      /* 画面ごとの節。見出しは罫線の上に小さく置くだけで、箱は作らない。 */
+      .sec { padding: 34px 0 0; }
+      .sec > h2 {
+        margin: 0 0 4px; font-family: var(--mincho); font-weight: 700;
+        font-size: 17px; letter-spacing: 0.1em;
+      }
+      .sec > h2 .pfx {
+        font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.2em;
+        color: var(--nezumi-dim); margin-right: 12px; font-weight: 400;
+      }
+      .sec > .note { margin: 0 0 14px; font-size: 11.5px; color: var(--nezumi-dim); line-height: 1.8; }
+
+      .state { padding: 14px 0; border-top: 1px solid var(--keisen); }
+      .cap {
+        display: flex; align-items: baseline; gap: 14px; padding-bottom: 10px;
+      }
+      .cap .nm { font-size: 12.5px; }
+      .cap .hash { font-family: var(--mono); font-size: 10px; color: var(--nezumi-dim); letter-spacing: 0.06em; }
+
+      /* 机と端末は横に並べる。同じ状態を二つの幅で見比べるのがこの台の要点。 */
+      .pair { display: flex; gap: 18px; align-items: flex-start; }
+      .paper { overflow: hidden; border: 1px solid var(--keisen); background: var(--sumi); flex: none; }
+      .paper iframe { display: block; border: 0; transform-origin: top left; transform: scale(var(--scale)); }
+      .paper.desk { width: 720px; height: 450px; }
+      .paper.desk iframe { width: 1440px; height: 900px; }
+      .paper.phone { width: 195px; height: 422px; }
+      .paper.phone iframe { width: 390px; height: 844px; }
+    </style>
+  </head>
+  <body>
+    <div class="sheet">
+      <header class="mast">
+        <h1>AlibAI<span class="sub">ストーリーボード　—　実装の突き合わせ用</span></h1>
+        <div class="how">
+          枠は実寸で描いて <b>50%</b> に縮めたもの。<br />
+          各枠は <b>mocks/desktop|mobile/*.html</b> をそのまま読んでいる。<br />
+          <button type="button" id="ids">data-mock-id を出す</button>
+        </div>
+      </header>
+
+      <section class="sec" data-shot="sel">
+        <h2><span class="pfx">ALI_SEL</span>事件を選ぶ</h2>
+        <p class="note">
+          机は三列の格子で全43件を流し、端末は10件ずつのページ送り。分類は各セルに持たせ、見出しでまとめない——
+          格子は上から順に読むとは限らないので、どのセルも単独で何の事件か分かる必要がある。
+        </p>
+        <div class="state">
+          <div class="cap"><span class="nm">一覧</span><span class="hash">—</span></div>
+          <div class="pair">
+            <div class="paper desk"><iframe src="./desktop/scenario-select.html"></iframe></div>
+            <div class="paper phone"><iframe src="./mobile/scenario-select.html#page=1"></iframe></div>
+          </div>
+        </div>
+        <div class="state">
+          <div class="cap"><span class="nm">端末のページ送り　二ページ目と最終ページ</span><span class="hash">#page=2 / #page=5</span></div>
+          <div class="pair">
+            <div class="paper phone"><iframe src="./mobile/scenario-select.html#page=2"></iframe></div>
+            <div class="paper phone"><iframe src="./mobile/scenario-select.html#page=5"></iframe></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" data-shot="det">
+        <h2><span class="pfx">ALI_DET</span>探偵を決める</h2>
+        <p class="note">
+          事件を選んだ直後に必ず通る。机では名簿を左に据え、右で人物像を見る／直す——
+          直しているあいだも名簿が視界から消えない。端末は割れないので入れ替える。
+          全項目を必須にすると遊び始めるまでが遠いので、名前だけで保存できる。
+        </p>
+        <div class="state">
+          <div class="cap"><span class="nm">名簿から一人選んだところ</span><span class="hash">—</span></div>
+          <div class="pair">
+            <div class="paper desk"><iframe src="./desktop/detective.html"></iframe></div>
+            <div class="paper phone"><iframe src="./mobile/detective.html"></iframe></div>
+          </div>
+        </div>
+        <div class="state">
+          <div class="cap"><span class="nm">まだ誰もいない</span><span class="hash">#empty=1</span></div>
+          <div class="pair">
+            <div class="paper desk"><iframe src="./desktop/detective.html#empty=1"></iframe></div>
+            <div class="paper phone"><iframe src="./mobile/detective.html#empty=1"></iframe></div>
+          </div>
+        </div>
+        <div class="state">
+          <div class="cap">
+            <span class="nm">つくりはじめ　名前が空で保存できない</span><span class="hash">#form=new</span>
+          </div>
+          <div class="pair">
+            <div class="paper desk"><iframe src="./desktop/detective.html#form=new"></iframe></div>
+            <div class="paper phone"><iframe src="./mobile/detective.html#form=new"></iframe></div>
+          </div>
+        </div>
+        <div class="state">
+          <div class="cap"><span class="nm">既にいる探偵を編集する</span><span class="hash">#form=edit</span></div>
+          <div class="pair">
+            <div class="paper desk"><iframe src="./desktop/detective.html#form=edit"></iframe></div>
+            <div class="paper phone"><iframe src="./mobile/detective.html#form=edit"></iframe></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" data-shot="brf">
+        <h2><span class="pfx">ALI_BRF</span>事件の記録</h2>
+        <p class="note">机の手前。ここだけ表を出さず、本文がせり上がる。読み終えると支度の画面で机が組み上がる。</p>
+        <div class="state">
+          <div class="cap"><span class="nm">読み上げ（読み終えたところ）</span><span class="hash">#done=1</span></div>
+          <div class="pair">
+            <div class="paper desk"><iframe src="./desktop/briefing.html#done=1"></iframe></div>
+            <div class="paper phone"><iframe src="./mobile/briefing.html#done=1"></iframe></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" data-shot="ovw">
+        <h2><span class="pfx">ALI_OVW</span>支度</h2>
+        <p class="note">
+          表はまだ白紙。線を引くのがこれから始まる仕事だと、先に見せておく。
+          机では記録を左に開いたまま右で決められるので、端末にある「もう一度読む」が要らない。
+          手がかりの見え方はこの画面では選ばない——最初に一度決めるものなので、ここに毎回出さない。
+        </p>
+        <div class="state">
+          <div class="cap"><span class="nm">誰から聞くかを決める</span><span class="hash">—</span></div>
+          <div class="pair">
+            <div class="paper desk"><iframe src="./desktop/case-overview.html"></iframe></div>
+            <div class="paper phone"><iframe src="./mobile/case-overview.html"></iframe></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" data-shot="int">
+        <h2><span class="pfx">ALI_INT</span>聞き込み</h2>
+        <p class="note">
+          この遊びの手応えは、白紙の表が証言で埋まっていくことにある。だから四つの時点を並べる。
+          九問目で食い違いが立ち、十問目でそれを本人に当てる。
+        </p>
+        <div class="state">
+          <div class="cap"><span class="nm">一問目</span><span class="hash">#turn=1</span></div>
+          <div class="pair">
+            <div class="paper desk"><iframe src="./desktop/interrogation.html#turn=1"></iframe></div>
+            <div class="paper phone"><iframe src="./mobile/interrogation.html#turn=1"></iframe></div>
+          </div>
+        </div>
+        <div class="state">
+          <div class="cap"><span class="nm">四問目　相手が替わる</span><span class="hash">#turn=4</span></div>
+          <div class="pair">
+            <div class="paper desk"><iframe src="./desktop/interrogation.html#turn=4"></iframe></div>
+            <div class="paper phone"><iframe src="./mobile/interrogation.html#turn=4"></iframe></div>
+          </div>
+        </div>
+        <div class="state">
+          <div class="cap"><span class="nm">九問目　食い違いが立つ</span><span class="hash">#turn=9</span></div>
+          <div class="pair">
+            <div class="paper desk"><iframe src="./desktop/interrogation.html#turn=9"></iframe></div>
+            <div class="paper phone"><iframe src="./mobile/interrogation.html#turn=9"></iframe></div>
+          </div>
+        </div>
+        <div class="state">
+          <div class="cap"><span class="nm">十二問目　打ち止め</span><span class="hash">#turn=12</span></div>
+          <div class="pair">
+            <div class="paper desk"><iframe src="./desktop/interrogation.html#turn=12"></iframe></div>
+            <div class="paper phone"><iframe src="./mobile/interrogation.html#turn=12"></iframe></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" data-shot="acc">
+        <h2><span class="pfx">ALI_ACC</span>告発</h2>
+        <p class="note">主作業は「書くこと」で、選ぶことではない。指名は横一列に畳み、空いた縦をまるごと記述欄へ渡す。朱はここだけの色。</p>
+        <div class="state">
+          <div class="cap"><span class="nm">指名だけ</span><span class="hash">#filled=0</span></div>
+          <div class="pair">
+            <div class="paper desk"><iframe src="./desktop/accusation.html#filled=0"></iframe></div>
+            <div class="paper phone"><iframe src="./mobile/accusation.html#filled=0"></iframe></div>
+          </div>
+        </div>
+        <div class="state">
+          <div class="cap"><span class="nm">書き上げた</span><span class="hash">#filled=1</span></div>
+          <div class="pair">
+            <div class="paper desk"><iframe src="./desktop/accusation.html#filled=1"></iframe></div>
+            <div class="paper phone"><iframe src="./mobile/accusation.html#filled=1"></iframe></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" data-shot="res">
+        <h2><span class="pfx">ALI_RES</span>結果</h2>
+        <p class="note">
+          解決したときだけ、同じ列に二本引く——破線が聞き取った申告、実線が実際。
+          迷宮入りでは実線も、列見出しの「犯人」も、真相の節も出さない。開いてしまえば、もう一度やる理由がその場で消える。
+          何を外したかは返し、正解が何だったかだけを返さない。
+        </p>
+        <div class="state">
+          <div class="cap"><span class="nm">解決</span><span class="hash">#win=1</span></div>
+          <div class="pair">
+            <div class="paper desk"><iframe src="./desktop/result.html#win=1"></iframe></div>
+            <div class="paper phone"><iframe src="./mobile/result.html#win=1"></iframe></div>
+          </div>
+        </div>
+        <div class="state">
+          <div class="cap">
+            <span class="nm">犯人は当てたが、筋書きが立たなかった</span><span class="hash">#win=near</span>
+          </div>
+          <div class="pair">
+            <div class="paper desk"><iframe src="./desktop/result.html#win=near"></iframe></div>
+            <div class="paper phone"><iframe src="./mobile/result.html#win=near"></iframe></div>
+          </div>
+        </div>
+        <div class="state">
+          <div class="cap"><span class="nm">犯人を外した</span><span class="hash">#win=0</span></div>
+          <div class="pair">
+            <div class="paper desk"><iframe src="./desktop/result.html#win=0"></iframe></div>
+            <div class="paper phone"><iframe src="./mobile/result.html#win=0"></iframe></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" data-shot="set">
+        <h2><span class="pfx">ALI_SET</span>設定</h2>
+        <p class="note">物語の外にある唯一の画面。時刻軸も演出も持ち込まず、罫線と字だけで組む。</p>
+        <div class="state">
+          <div class="cap"><span class="nm">選んだあと</span><span class="hash">—</span></div>
+          <div class="pair">
+            <div class="paper desk"><iframe src="./desktop/settings.html"></iframe></div>
+            <div class="paper phone"><iframe src="./mobile/settings.html"></iframe></div>
+          </div>
+        </div>
+        <div class="state">
+          <div class="cap">
+            <span class="nm">記録をせり上がりにすると、打鍵音が沈む</span><span class="hash">#brief=crawl</span>
+          </div>
+          <div class="pair">
+            <div class="paper desk"><iframe src="./desktop/settings.html#brief=crawl"></iframe></div>
+            <div class="paper phone"><iframe src="./mobile/settings.html#brief=crawl"></iframe></div>
+          </div>
+        </div>
+        <div class="state">
+          <div class="cap"><span class="nm">まだ何も選んでいない</span><span class="hash">#unset=1</span></div>
+          <div class="pair">
+            <div class="paper desk"><iframe src="./desktop/settings.html#unset=1"></iframe></div>
+            <div class="paper phone"><iframe src="./mobile/settings.html#unset=1"></iframe></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      ;(function () {
+        /*
+         * file:// の iframe は別の生い立ちとして扱われるので、親から中の DOM は触れない。
+         * postMessage だけが通る——バッジの開け閉めはそれで頼む。
+         */
+        var on = false
+        var button = document.getElementById('ids')
+        button.addEventListener('click', function () {
+          on = !on
+          button.textContent = on ? 'data-mock-id を消す' : 'data-mock-id を出す'
+          Array.prototype.forEach.call(document.querySelectorAll('iframe'), function (f) {
+            f.contentWindow.postMessage({ mockIds: on }, '*')
+          })
+        })
+      })()
+    </script>
+  </body>
+</html>

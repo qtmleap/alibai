@@ -1,12 +1,18 @@
 import { type ModelMessage, streamText } from 'ai'
 import type { Env } from '@/server/env'
 import { buildDetectiveBlock } from '@/server/llm/detective'
-import { cacheHint, resolveModel } from '@/server/llm/provider'
+import { cacheHint, type LlmChoice, resolveModel } from '@/server/llm/provider'
 import type { Detective } from '~/db/detective'
 
 export type ActorContext = {
-  /** リクエストスコープで検証済みの設定。プロバイダとAPIキーの出どころ。 */
+  /** リクエストスコープで検証済みの設定。APIキーとゲートウェイの出どころ。 */
   env: Env
+  /**
+   * この呼び出しで使う組み合わせ。呼び出し側がリクエストごとに一度だけ決めて渡す。
+   * ここで役割から引き直さないこと——モデルとキャッシュ指定が別々に解決されると、
+   * プロバイダを差し替えたときに片方だけ古い値のまま残る。
+   */
+  choice: LlmChoice
   /** 全シナリオ共通のゲームルール。最も安定するのでプレフィックス先頭に置く。 */
   gameRules: string
   /** このNPCの人格・知識・秘密・目的・嘘・記憶。真相は絶対に含めない。 */
@@ -43,6 +49,7 @@ const buildDetectiveMessages = (detective: Detective | undefined): ModelMessage[
  */
 export const streamNpcReply = ({
   env,
+  choice,
   gameRules,
   characterSheet,
   detective,
@@ -50,7 +57,7 @@ export const streamNpcReply = ({
   utterance,
 }: ActorContext) =>
   streamText({
-    model: resolveModel(env, 'actor'),
+    model: resolveModel(env, choice),
     // system を messages 側に置くことを明示的に許可する。
     //
     // AI SDK は既定でこれを警告する（プレイヤー由来の文字列が system に混ざる経路を
@@ -66,12 +73,12 @@ export const streamNpcReply = ({
       {
         role: 'system',
         content: gameRules,
-        providerOptions: cacheHint(env, 'actor'),
+        providerOptions: cacheHint(choice),
       },
       {
         role: 'system',
         content: characterSheet,
-        providerOptions: cacheHint(env, 'actor'),
+        providerOptions: cacheHint(choice),
       },
       ...buildDetectiveMessages(detective),
       ...history,

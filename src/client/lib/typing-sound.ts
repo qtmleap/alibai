@@ -1,5 +1,3 @@
-import { z } from 'zod'
-
 /**
  * タイプライターの打鍵音。
  *
@@ -8,32 +6,10 @@ import { z } from 'zod'
  *
  * ブラウザは操作なしの再生を止めるので、AudioContext は最初に鳴らす瞬間まで作らない。
  * この画面へはボタンを押して来るため、その時点では再生が許可されている。
+ *
+ * 鳴らすかどうかの設定は lib/sound.ts が持つ。音の種類ごとに設定を分けると
+ * 「音を切ったのに打鍵音だけ鳴る」ことになる。
  */
-
-const STORAGE_KEY = 'alibai:typing-sound'
-const soundSettingSchema = z.enum(['on', 'off'])
-
-export type SoundSetting = z.infer<typeof soundSettingSchema>
-
-export const DEFAULT_SOUND: SoundSetting = 'on'
-
-export const loadSoundSetting = (): SoundSetting => {
-  try {
-    const parsed = soundSettingSchema.safeParse(localStorage.getItem(STORAGE_KEY))
-
-    return parsed.success ? parsed.data : DEFAULT_SOUND
-  } catch {
-    return DEFAULT_SOUND
-  }
-}
-
-export const saveSoundSetting = (setting: SoundSetting): void => {
-  try {
-    localStorage.setItem(STORAGE_KEY, setting)
-  } catch {
-    // 保存できなくても今回のプレイには影響しない。
-  }
-}
 
 /**
  * この文字で音を鳴らすか。

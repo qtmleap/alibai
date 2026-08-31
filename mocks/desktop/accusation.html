@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <title>AlibAI デスクトップ — 告発</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500&family=Roboto+Mono:wght@400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./_desk.css" />
+    <link rel="stylesheet" href="../_mock.css" />
+    <style>
+      /*
+        告発。
+
+        この画面の主作業は「書くこと」で、選ぶことではない。
+        だから容疑者の指名は横一列に畳んで一行で済ませ、空いた縦を
+        まるごと記述欄へ渡す。縦に三人並べて右を空けていたのが以前の形。
+      */
+
+      /* 指名は三択。縦に積むと一人ぶん一行の空白が右に残る。 */
+      .suspects { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 0; }
+      .suspects button {
+        display: flex; align-items: center; gap: 10px;
+        padding: 12px 14px; background: none;
+        border: 0; border-top: 1px solid var(--keisen); border-bottom: 1px solid var(--keisen);
+        text-align: left;
+      }
+      .suspects button + button { border-left: 1px solid var(--keisen); }
+      /* 選ばれた一人だけ、下辺を朱に替える。塗り足しも枠も足さない。 */
+      .suspects button.on { border-bottom-color: var(--shu); }
+      .suspects .face {
+        width: 30px; height: 30px; border-radius: 50%; flex: none;
+        display: grid; place-items: center; background: var(--sumi-2);
+        font-family: var(--mincho); font-size: 14px; font-weight: 700;
+      }
+      .suspects .nm { font-size: 13.5px; color: var(--nezumi); }
+      .suspects button.on .nm { color: var(--shu); }
+
+      /* 書く面。左右に並べ、縦は余りをすべて食わせる。 */
+      .writing { flex: 1; min-height: 0; padding-top: 26px; }
+      .writing .fld { display: flex; flex-direction: column; min-height: 0; }
+      .writing .fld > .label { padding-bottom: 9px; }
+      .writing textarea {
+        flex: 1; min-height: 0; resize: none;
+        background: none; border: 1px solid var(--keisen); padding: 14px 16px;
+        font-size: 13.5px; line-height: 1.95; color: var(--kinari);
+      }
+      .writing textarea::placeholder { color: var(--nezumi-dim); }
+      /* 二列に割ると但し書きの最終行に「りに。」だけが落ちる。二行を均して泣き別れを避ける
+         （pretty は和文では効かない。balance は数行までの短い塊にしか掛からないが、ここは二行）。 */
+      .writing .hint { margin: 8px 0 0; font-size: 11.5px; color: var(--nezumi-dim); line-height: 1.7; text-wrap: balance; }
+      .back { text-decoration: none; }
+    </style>
+  </head>
+  <body>
+    <div class="desk" data-mock-id="ALI_ACC_01">
+      <div class="top">
+        <a class="back" href="./interrogation.html#turn=12" data-mock-id="ALI_ACC_02">←　聞き込みに戻る</a>
+        <div class="rgt"><span id="turns"></span><span class="t" id="clock"></span></div>
+      </div>
+      <div class="panes">
+        <div class="board" data-mock-id="ALI_ACC_04">
+          <div class="bh">
+            <span class="nm">アリバイ表</span>
+            <span class="label t" id="bspan"></span>
+          </div>
+          <div class="cols chart-head" id="head"></div>
+          <div class="cols chart" id="chart"></div>
+          <div class="legend">
+            <span class="k"><b>実線</b>　裏付けあり</span>
+            <span class="k cl"><b>破線</b>　本人の申告のみ</span>
+          </div>
+        </div>
+
+        <div class="work">
+          <div class="wh" data-mock-id="ALI_ACC_03">
+            <h2>犯人を指し示す</h2>
+            <p class="lead">誰が、どうやって、なぜ。提出すると取り消せません。</p>
+          </div>
+
+          <div class="grp">
+            <span class="label">犯人</span>
+            <div class="suspects" id="suspects" data-mock-id="ALI_ACC_05"></div>
+          </div>
+
+          <div class="split even writing">
+            <div class="lt fld" data-mock-id="ALI_ACC_07">
+              <span class="label">殺害方法</span>
+              <textarea id="how" placeholder="どうやって殺したのか"></textarea>
+              <p class="hint">表の実線と破線が食い違う時間帯を手がかりに。</p>
+            </div>
+            <div class="rt fld" data-mock-id="ALI_ACC_08">
+              <span class="label">動機</span>
+              <textarea id="why" placeholder="なぜ殺したのか"></textarea>
+              <p class="hint">聞き出した秘密のうち、殺すに足るものはどれか。</p>
+            </div>
+          </div>
+
+          <div class="foot">
+            <a class="go final" href="./result.html" data-mock-id="ALI_ACC_09">この推理を提出する</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="../_case.js"></script>
+    <script src="../_mock.js"></script>
+    <script>
+      ;(function () {
+        var C = Mock.case
+        var st = Mock.play(Mock.total)
+        // 書き上げた状態を見るときは #filled=1。既定は指名だけ済んだところ。
+        var filled = Mock.str('filled', '0') === '1'
+        var pick = Mock.str('who', C.truth.culprit)
+
+        document.getElementById('turns').textContent = st.turn - 1 + ' / ' + C.turns + ' ターン'
+        document.getElementById('clock').textContent = Mock.clock(st.turn - 1)
+        document.getElementById('bspan').textContent = C.span.from + ' – ' + C.span.to
+
+        document.getElementById('head').innerHTML = Mock.chartHead({})
+        document.getElementById('chart').innerHTML = Mock.chart({ segments: st.segments })
+
+        document.getElementById('suspects').innerHTML = C.cast
+          .map(function (p) {
+            return (
+              '<button type="button" class="' +
+              (p.key === pick ? 'on' : '') +
+              '" style="color:var(--' +
+              p.hue +
+              Mock.lit +
+              ')" data-mock-id="ALI_ACC_06" data-who="' +
+              p.key +
+              '"><span class="face">' +
+              p.face +
+              '</span><span class="nm">' +
+              Mock.esc(p.name) +
+              '</span></button>'
+            )
+          })
+          .join('')
+
+        if (filled) {
+          document.getElementById('how').value = C.truth.how
+          document.getElementById('why').value = C.truth.why
+        }
+
+        Array.prototype.forEach.call(document.querySelectorAll('[data-who]'), function (el) {
+          el.addEventListener('click', function () {
+            location.hash = 'who=' + el.dataset.who + '&filled=' + (filled ? '1' : '0')
+            location.reload()
+          })
+        })
+
+        Mock.ready()
+      })()
+    </script>
+  </body>
+</html>

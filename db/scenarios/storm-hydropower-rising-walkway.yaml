@@ -1,0 +1,362 @@
+schemaVersion: 1
+id: storm-hydropower-rising-walkway
+meta:
+  title: 山中水力発電所、豪雨の夜
+  synopsis: "午後九時十分、豪雨で孤立した山中の水力発電所。その旧制御室で所長・峰岸達也が死亡しているのが発見されました。"
+  category: 不可能犯罪
+  difficulty: 5
+  estimatedMinutes: 18
+  tags: [発電所, 豪雨, 密室, 水位]
+victim:
+  name: 峰岸達也
+  introduction: 山中の水力発電所所長
+briefing: |-
+  ——事件の記録を読み上げます。
+
+  山中の渓谷に建つ水力発電所は、周辺地域へ電力を送り続けるため昼夜を問わず運転されています。新しい中央制御設備の裏には、建設当初から使われてきた古い区画も残っており、保守や点検の際には今でも人が出入りします。
+
+  所長の峰岸達也は、発電所全体の運転と安全管理を預かる責任者でした。長く現場に勤め、設備の更新計画にも関わってきた人物で、その夜も豪雨への対応を指揮するため施設に残っていました。
+
+  峰岸達也は安全を最優先にする実直な所長で、古い設備でも無理な運転を認めない人物として知られていました。判断には厳格でしたが、非常時には真っ先に現場へ出るため、運転員や保守担当から頼られていました。
+
+  夕方から雨量が増え、川の水位は急速に上昇しました。周辺道路は危険のため閉鎖され、発電所の職員たちは外へ出ずに設備の監視を続けます。建物の外では濁流の音が響き、通常とは異なる緊張の中で勤務が続いていました。
+
+  午後九時十分、旧制御室で峰岸達也が死亡しているのが発見されます。その夜に発電所内にいた主な関係者は、保守主任の城戸真琴、安全監査員の西園寺悠、運転員の谷口航です。
+
+  豪雨対応に追われる発電所で、峰岸の最後の時間に何が起きたのか。三人からその夜の作業と所内の様子を聞いてください。
+floorPlan: null
+facts:
+  - id: kido-maintenance-chief
+    statement: 城戸真琴は発電所の保守主任で、旧設備の点検経路を熟知している
+    kind: other
+  - id: saionji-auditor
+    statement: 西園寺悠は外部から来た安全監査員である
+    kind: other
+  - id: taniguchi-operator
+    statement: 谷口航は中央制御室の運転員である
+    kind: other
+  - id: old-walkway-connects
+    statement: 旧制御室には正面扉とは別に、排水区画を通る古い保守歩廊から入れる接続口がある
+    kind: physical
+  - id: walkway-passable-2015
+    statement: 20時15分時点では排水区画の水位が低く、古い保守歩廊は通行可能だった
+    kind: physical
+  - id: walkway-closed-2040
+    statement: 20時40分ごろには豪雨による増水で古い保守歩廊が通行不能になった
+    kind: physical
+  - id: kido-falsified-inspection
+    statement: 城戸真琴は老朽設備の点検を実施したように記録を改ざんし、未実施のまま済ませていた
+    kind: motive
+    secret: true
+  - id: minegishi-found-falsification
+    statement: 峰岸達也は事件当日の夕方、城戸真琴の点検記録改ざんを発見した
+    kind: motive
+    secret: true
+  - id: minegishi-called-kido
+    statement: 20時12分ごろ、峰岸達也は城戸真琴を旧制御室へ呼び、点検記録について説明を求めた
+    kind: motive
+    secret: true
+  - id: kido-used-walkway
+    statement: 20時18分ごろ、城戸真琴は通行可能だった古い保守歩廊から旧制御室へ入った
+    kind: truth
+    secret: true
+  - id: kido-killed-minegishi
+    statement: 20時24分ごろ、城戸真琴は旧制御室で峰岸達也を襲い死亡させた
+    kind: truth
+    secret: true
+  - id: kido-left-before-rise
+    statement: 20時29分ごろ、城戸真琴は古い保守歩廊から旧制御室を離れた
+    kind: truth
+    secret: true
+  - id: front-door-remained-locked
+    statement: 峰岸達也は旧制御室に入る際に正面扉を内側から施錠しており、その状態は発見まで変わらなかった
+    kind: physical
+  - id: water-log-recorded-rise
+    statement: 排水区画の水位記録には20時20分台から急激な上昇が残っている
+    kind: physical
+  - id: kido-boot-silt
+    statement: 城戸真琴の作業靴には旧保守歩廊付近にだけある赤褐色の堆積泥が付着していた
+    kind: physical
+  - id: saionji-secret-draft
+    statement: 西園寺悠は監査報告書の一部を事前に外部へ漏らしていた
+    kind: other
+    secret: true
+  - id: taniguchi-secret-bypass
+    statement: 谷口航は軽微な警報を面倒がって一時的に非表示にしていた
+    kind: other
+    secret: true
+  - id: body-found-2110
+    statement: 21時10分、西園寺悠が旧制御室で峰岸達也の死を発見した
+    kind: observation
+timeline:
+  - id: records-confrontation
+    at: "20:12"
+    participants: [kido]
+    facts: [kido-falsified-inspection, minegishi-found-falsification, minegishi-called-kido]
+    description: 峰岸が城戸を旧制御室へ呼び、未実施点検の記録について説明を求める。
+  - id: walkway-still-open
+    at: "20:15"
+    participants: [taniguchi]
+    facts: [walkway-passable-2015, old-walkway-connects]
+    description: 水位記録上、古い保守歩廊はまだ通行できる状態にある。
+  - id: kido-enters
+    at: "20:18"
+    participants: [kido]
+    facts: [kido-used-walkway]
+    description: 城戸が正面扉を使わず、古い保守歩廊から旧制御室へ入る。
+  - id: minegishi-death
+    at: "20:24"
+    participants: [kido]
+    facts: [kido-killed-minegishi]
+    description: 城戸が旧制御室で峰岸を襲う。
+  - id: kido-leaves
+    at: "20:29"
+    participants: [kido]
+    facts: [kido-left-before-rise, kido-boot-silt]
+    description: 城戸が増水前に古い保守歩廊から戻る。
+  - id: water-cuts-route
+    at: "20:40"
+    participants: [taniguchi]
+    facts: [walkway-closed-2040, water-log-recorded-rise]
+    description: 増水により古い保守歩廊が通行不能となり、発見時の「密室」が完成する。
+  - id: discovery
+    at: "21:10"
+    participants: [saionji, kido, taniguchi]
+    facts: [front-door-remained-locked, body-found-2110]
+    description: 西園寺が旧制御室の正面扉を開けさせ、峰岸の死を発見する。
+characters:
+  - id: kido
+    name: 城戸真琴
+    role: suspect
+    publicIntroduction: "古い設備の癖まで覚えている保守主任。"
+    personality: 古い設備の癖まで覚えている保守主任。発見時の歩廊が通れなかった事実を強調し、「あの部屋へは誰も入れない」と言い張る。点検記録の話には神経質になる。
+    goals:
+      - 点検記録の改ざんを隠したい
+      - 発見時の通行不能を犯行時にも当てはめさせたい
+    knowledge: [kido-maintenance-chief, old-walkway-connects, walkway-passable-2015, walkway-closed-2040, water-log-recorded-rise, body-found-2110]
+    secrets:
+      - fact: kido-falsified-inspection
+        disclosure: pressured
+      - fact: minegishi-found-falsification
+        disclosure: pressured
+      - fact: minegishi-called-kido
+        disclosure: pressured
+      - fact: kido-used-walkway
+        disclosure: never
+      - fact: kido-killed-minegishi
+        disclosure: never
+      - fact: kido-left-before-rise
+        disclosure: never
+    lies:
+      - id: kido-impossible-entry
+        about: kido-used-walkway
+        claim: 古い歩廊は増水で通れませんでした。正面扉も内側から閉まっていた以上、私が旧制御室へ入る方法はありません
+        strategy: maintain-until-contradicted
+      - id: kido-inspection-complete
+        about: kido-falsified-inspection
+        claim: 点検記録は実施内容どおりで、未実施の項目はありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: rising-water
+        about: walkway-passable-2015
+        detail: 雨量から見て歩廊が使えなくなるまで少し時間があると分かっていた。古い設備を知る人間なら、その変化を読めた。
+    relationships:
+      - character: saionji
+        relation: 外部監査員
+        attitude: 記録の不備を掘り返す相手として警戒している
+      - character: taniguchi
+        relation: 運転員
+        attitude: 水位ログを見れば時刻の矛盾に気づくかもしれない
+  - id: saionji
+    name: 西園寺悠
+    role: witness
+    publicIntroduction: "発電所の安全監査員。"
+    personality: 記録を一つずつ照合する監査員。発見時の現場を見て「密室」と判断したが、その状態がいつ成立したかまでは考えていなかった。報告書漏洩を隠している。
+    goals:
+      - 監査報告の漏洩を隠したい
+      - 発見時の状況と犯行時の状況を分けて考えたい
+    knowledge: [saionji-auditor, front-door-remained-locked, walkway-closed-2040, body-found-2110]
+    secrets:
+      - fact: saionji-secret-draft
+        disclosure: pressured
+    lies:
+      - id: saionji-no-leak
+        about: saionji-secret-draft
+        claim: 監査報告書の内容を外部へ事前に渡したことはありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: sealed-at-discovery
+        about: walkway-closed-2040
+        detail: 発見時には水が歩廊を完全に塞いでいたので、最初はその状態がずっと続いていたように感じてしまった。
+    relationships:
+      - character: kido
+        relation: 監査対象部署の責任者
+        attitude: 設備を知りすぎていて説明を鵜呑みにできない
+      - character: taniguchi
+        relation: 運転員
+        attitude: 自動記録については比較的信用している
+  - id: taniguchi
+    name: 谷口航
+    role: suspect
+    publicIntroduction: "数値監視を担当する若い運転員。"
+    personality: 数値監視を担当する若い運転員。警報の扱いで規則違反をしたためログの話題を避けるが、水位の上昇時刻については正確に答えられる。
+    goals:
+      - 警報を非表示にした規則違反を隠したい
+      - 水位がいつ歩廊を塞いだのかを正確に説明したい
+    knowledge: [taniguchi-operator, walkway-passable-2015, walkway-closed-2040, water-log-recorded-rise, body-found-2110]
+    secrets:
+      - fact: taniguchi-secret-bypass
+        disclosure: pressured
+    lies:
+      - id: taniguchi-no-bypass
+        about: taniguchi-secret-bypass
+        claim: 当直中に警報表示を勝手に止めたことはありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: water-curve
+        about: water-log-recorded-rise
+        detail: 二十時二十分台までは歩廊側の水位が低かったのに、そこから急に上がったグラフが印象に残っている。
+    relationships:
+      - character: kido
+        relation: 保守主任
+        attitude: 古い歩廊を実際に使えるかどうか一番よく知っている人物
+      - character: saionji
+        relation: 外部監査員
+        attitude: ログを見せれば自分の規則違反も見つかるので苦手
+revelations:
+  - id: room-became-sealed-later
+    title: 密室は後から完成した
+    text: 発見時には増水で通れなかった古い保守歩廊も、20時台前半には通行可能だった。現場が不可能な状態になったのは犯行後である。
+    category: location
+    subject:
+      type: event
+      id: water-cuts-route
+    sources:
+      - type: character
+        id: taniguchi
+        revealCondition: 谷口に水位記録を時刻ごとに説明してもらい、20時15分には歩廊が通れたと確認したら開示する。
+        requires:
+          revelations: []
+          evidences: [water-level-log]
+      - type: character
+        id: saionji
+        revealCondition: 西園寺に発見時の通行不能がいつから続いていたと確認したのか問い、犯行時の状態を未確認だったと整理したら開示する。
+        requires:
+          revelations: []
+          evidences: [water-level-log]
+    relatedFacts: [old-walkway-connects, walkway-passable-2015, walkway-closed-2040, water-log-recorded-rise]
+  - id: inspection-motive
+    title: 未実施点検の記録
+    text: 峰岸は城戸が未実施の点検を実施済みとしていたことを発見し、事件直前に説明を求めていた。
+    category: motive
+    subject:
+      type: character
+      id: kido
+    sources:
+      - type: character
+        id: kido
+        revealCondition: 城戸に点検票の不一致と峰岸からの呼び出しを具体的に示し、未実施項目を追及したら開示する。
+        requires:
+          revelations: [room-became-sealed-later]
+          evidences: [inspection-sheet]
+      - type: character
+        id: saionji
+        revealCondition: 西園寺に監査中に見つけた点検記録の不自然さを尋ねたら開示する。
+        requires:
+          revelations: [room-became-sealed-later]
+          evidences: [inspection-sheet]
+    relatedFacts: [kido-falsified-inspection, minegishi-found-falsification, minegishi-called-kido]
+evidences:
+  - id: water-level-log
+    label: 排水区画の水位記録
+    description: 20時15分時点では歩廊を使える水位で、20時40分ごろに通行不能へ変化したことが分かる。
+    reveal:
+      mode: conversation
+      condition: 谷口に旧歩廊付近の水位変化を時刻付きで尋ねるか、西園寺に発見時以前の水位を確認したら開示する。
+    sources:
+      - type: character
+        id: taniguchi
+      - type: character
+        id: saionji
+    supports: [walkway-passable-2015, walkway-closed-2040, water-log-recorded-rise]
+    contradicts: ["lie:kido-impossible-entry"]
+  - id: old-walkway-plan
+    label: 旧保守歩廊の接続図
+    description: 正面扉とは別に、排水区画側から旧制御室へ接続する保守歩廊がある。
+    reveal:
+      mode: conversation
+      condition: 城戸に旧制御室の保守経路を尋ねるか、谷口に設備図上の接続を確認したら開示する。
+    sources:
+      - type: character
+        id: kido
+      - type: character
+        id: taniguchi
+    supports: [old-walkway-connects]
+    contradicts: ["lie:kido-impossible-entry"]
+  - id: reddish-silt
+    label: 城戸の作業靴の赤褐色泥
+    description: 城戸の作業靴には旧保守歩廊周辺に特徴的な堆積泥が付いている。
+    reveal:
+      mode: conversation
+      condition: 城戸に事件前後の移動経路を尋ねるか、谷口に旧歩廊周辺の床の特徴を確認したら開示する。
+    sources:
+      - type: character
+        id: kido
+      - type: character
+        id: taniguchi
+    supports: [kido-boot-silt, kido-used-walkway]
+    contradicts: ["lie:kido-impossible-entry"]
+  - id: inspection-sheet
+    label: 未実施箇所の点検票
+    description: 実施済みの印がある項目に対応する現場記録がなく、峰岸が城戸の欄へ確認印を付けている。
+    reveal:
+      mode: conversation
+      condition: 城戸か西園寺に事件当日の監査対象となった点検票について尋ねたら開示する。
+    sources:
+      - type: character
+        id: kido
+      - type: character
+        id: saionji
+    supports: [kido-falsified-inspection, minegishi-found-falsification, minegishi-called-kido]
+    contradicts: ["lie:kido-inspection-complete"]
+  - id: leaked-draft
+    label: 監査報告の外部送付記録
+    description: 西園寺が監査報告の草案を外部へ送った記録。密室の成立時刻とは関係しない。
+    reveal:
+      mode: conversation
+      condition: 西園寺に監査内容の外部共有について尋ね、漏洩を否定したら開示する。
+    sources:
+      - type: character
+        id: saionji
+    supports: [saionji-secret-draft]
+    contradicts: ["lie:saionji-no-leak"]
+  - id: hidden-alarm
+    label: 非表示にされた警報履歴
+    description: 谷口が軽微な警報を一時的に非表示にしていた履歴。犯行経路とは独立した規則違反である。
+    reveal:
+      mode: conversation
+      condition: 谷口に当直中の警報処理を詳しく尋ね、操作を否定したら開示する。
+    sources:
+      - type: character
+        id: taniguchi
+    supports: [taniguchi-secret-bypass]
+    contradicts: ["lie:taniguchi-no-bypass"]
+solution:
+  culprit: kido
+  summary: 犯人は城戸真琴。未実施点検の記録改ざんを峰岸に見抜かれ、旧制御室へ呼び出された。城戸は正面扉ではなく、その時点ではまだ通行できた古い保守歩廊を使って旧制御室へ入り、峰岸を襲った後、増水前に同じ経路から戻った。その後の豪雨で歩廊が通れなくなり、発見時には正面扉が内側から施錠された「不可能な部屋」が出来上がった。水位記録は20時15分には歩廊が使え、20時40分ごろに初めて遮断されたことを示す。城戸の靴に旧歩廊特有の泥が付いていることも、その経路の使用を裏付ける。
+  method: 通行可能なうちに古い保守歩廊から旧制御室へ出入りし、犯行後の増水によって経路が失われた状態を密室だと思わせた
+  motive: 未実施の点検を実施済みとした記録改ざんが発覚し、責任追及を恐れたため
+  requiredFacts: [kido-falsified-inspection, minegishi-called-kido, walkway-passable-2015, kido-used-walkway, kido-killed-minegishi, kido-left-before-rise, walkway-closed-2040, kido-boot-silt]
+  secretKeywords:
+    - 犯人は城戸
+    - 城戸が峰岸を襲
+    - 城戸が旧歩廊を使
+    - 増水後に密室が完成
+quality:
+  expectedQuestionCount:
+    min: 11
+    max: 24
+  requiredEvidence:
+    min: 3
+  redHerrings: [saionji-secret-draft, taniguchi-secret-bypass]
+  notes: 密室が犯行前から存在したという暗黙の前提を崩す。発見時の静止画ではなく、環境が変化する時系列を追わせる事件。

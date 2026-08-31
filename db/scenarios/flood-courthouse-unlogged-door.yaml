@@ -1,0 +1,342 @@
+schemaVersion: 1
+id: flood-courthouse-unlogged-door
+meta:
+  title: 水没寸前の裁判所、資料棟の夜
+  synopsis: "午後八時三十五分、河川氾濫により周辺道路が閉鎖された旧南央裁判所の資料棟で、主任記録官の磯崎章が死亡しているのが見つかりました。資料棟に残っていたのは書記官の矢吹梓、設備担当の三田村悟、警備員の木瀬亮の三人だけです。"
+  category: クローズドサークル
+  difficulty: 5
+  estimatedMinutes: 15
+  tags: [裁判所, 洪水, 電子錠, 密室]
+victim:
+  name: 磯崎章
+  introduction: 旧南央裁判所主任記録官
+briefing: |-
+  ——事件の記録を読み上げます。
+
+  旧南央裁判所の資料棟には、長年にわたる裁判記録や行政文書が保管されています。新庁舎への移転後も、整理が終わっていない資料を扱うため一部の職員が出入りしており、その夜も閉庁後の確認作業が続いていました。
+
+  主任記録官の磯崎章は、古い記録の移管と保存を取りまとめる責任者です。資料の所在や閲覧手続きに厳しく、移転作業の最終確認にも自ら立ち会っていました。
+
+  磯崎章は几帳面で、記録の抜けを何より嫌う主任記録官として評判でした。融通が利かないと感じる職員もいましたが、仕事の責任を部下だけに負わせない実直さがあり、資料棟では頼られる上司でもありました。
+
+  夕方から降り続いた大雨で近くの河川が増水し、周辺道路は相次いで閉鎖されました。やがて資料棟は外部から近づけない状態となり、中に残った職員たちは天候の回復を待つことになります。
+
+  午後八時三十五分、資料棟の保存記録室で磯崎章が死亡しているのが見つかりました。館内にいた関係者は、書記官の矢吹梓、設備担当の三田村悟、警備員の木瀬亮の三人です。
+
+  水に囲まれ始めた古い裁判所で、閉庁後に何が起きていたのか。三人から磯崎と最後に接した時間や、その夜の作業について話を聞いてください。
+floorPlan: null
+facts:
+  - id: yabuki-clerk
+    statement: 矢吹梓は保存記録室を日常的に利用する裁判所書記官である
+    kind: other
+  - id: mitamura-facility
+    statement: 三田村悟は資料棟の空調と扉設備を担当する技術職員である
+    kind: other
+  - id: kise-security
+    statement: 木瀬亮は当夜の資料棟警備を担当している
+    kind: other
+  - id: access-log-unlock-only
+    statement: 保存記録室のアクセス履歴は職員証による解錠操作を記録するが、既に開いている扉を人が通過しただけでは新しい入室記録を残さない
+    kind: physical
+  - id: door-held-open-1950
+    statement: 19時50分、空調点検の資材搬入のため保存記録室の扉は一時的に開放状態にされた
+    kind: physical
+  - id: door-remained-open-2022
+    statement: 保存記録室の扉は19時50分から20時22分まで完全には閉じていなかった
+    kind: physical
+  - id: no-new-unlock
+    statement: 19時50分から20時22分まで、保存記録室に職員証による新しい解錠履歴はない
+    kind: physical
+  - id: mitamura-told-yabuki-open
+    statement: 20時00分ごろ、三田村悟は矢吹梓に「点検中で記録室の扉は開いている」と伝えた
+    kind: observation
+  - id: yabuki-entered-unlogged
+    statement: 20時09分ごろ、矢吹梓は職員証を使わず、開いたままの保存記録室へ入った
+    kind: truth
+    secret: true
+  - id: kise-saw-yabuki-return-2016
+    statement: 20時16分ごろ、木瀬亮は保存記録室側の廊下から戻る矢吹梓を見た
+    kind: observation
+  - id: isozaki-death-2012
+    statement: 20時12分ごろ、磯崎章は保存記録室で襲われ死亡した
+    kind: truth
+    secret: true
+  - id: yabuki-killed-isozaki
+    statement: 矢吹梓は20時12分ごろ保存記録室で磯崎章を襲い死亡させた
+    kind: truth
+    secret: true
+  - id: altered-file-discovered
+    statement: 磯崎章は矢吹梓が過去の裁判記録の閲覧処理を不適切に修正していたことに気づいた
+    kind: motive
+    secret: true
+  - id: report-next-morning
+    statement: 磯崎章は翌朝、矢吹梓の記録修正について監督部署へ報告する予定だった
+    kind: motive
+    secret: true
+  - id: mitamura-skipped-check
+    statement: 三田村悟は設備点検の一項目を実施せず、実施済みとして記録していた
+    kind: other
+    secret: true
+  - id: kise-read-private-file
+    statement: 木瀬亮は警備権限では閲覧不要な古い事件資料を私的興味で読んでいた
+    kind: other
+    secret: true
+  - id: body-found-2035
+    statement: 20時35分、三田村悟が保存記録室で磯崎章の死を発見した
+    kind: observation
+timeline:
+  - id: door-opened-for-maintenance
+    at: "19:50"
+    participants: [mitamura]
+    facts: [door-held-open-1950, door-remained-open-2022, no-new-unlock]
+    description: 設備点検の資材搬入のため、保存記録室の扉が開放状態になる。
+  - id: mitamura-warning
+    at: "20:00"
+    participants: [mitamura, yabuki]
+    facts: [mitamura-told-yabuki-open]
+    description: 三田村が矢吹に、保存記録室の扉が点検中で開いていることを伝える。
+  - id: yabuki-enters
+    at: "20:09"
+    participants: [yabuki]
+    facts: [yabuki-entered-unlogged]
+    description: 矢吹が職員証を使わず、開放中の保存記録室へ入る。
+  - id: isozaki-death
+    at: "20:12"
+    participants: [yabuki]
+    facts: [isozaki-death-2012, yabuki-killed-isozaki]
+    description: 矢吹が保存記録室で磯崎を襲い、磯崎は死亡する。
+  - id: corridor-return
+    at: "20:16"
+    participants: [yabuki, kise]
+    facts: [kise-saw-yabuki-return-2016]
+    description: 木瀬が保存記録室側の廊下から戻る矢吹を目撃する。
+  - id: door-closes
+    at: "20:22"
+    participants: [mitamura]
+    facts: [door-remained-open-2022]
+    description: 設備点検が終わり、保存記録室の扉が通常の施錠状態へ戻る。
+  - id: discovery
+    at: "20:35"
+    participants: [mitamura, yabuki, kise]
+    facts: [body-found-2035]
+    description: 三田村が保存記録室で磯崎の死を発見する。
+characters:
+  - id: yabuki
+    name: 矢吹梓
+    role: suspect
+    publicIntroduction: "裁判所の書記官。"
+    personality: 論理的で、規則やシステムの仕様を根拠に話す書記官。記録上の証拠を重視するため、自分に有利なログだけを強調する傾向がある。
+    goals:
+      - 解錠履歴がないことを、自分が保存記録室へ入っていない証明として通したい
+      - 過去の裁判記録を不適切に修正していたことを隠したい
+    knowledge: [yabuki-clerk, no-new-unlock, door-held-open-1950, body-found-2035]
+    secrets:
+      - fact: yabuki-entered-unlogged
+        disclosure: never
+      - fact: altered-file-discovered
+        disclosure: pressured
+      - fact: report-next-morning
+        disclosure: pressured
+      - fact: yabuki-killed-isozaki
+        disclosure: never
+    lies:
+      - id: yabuki-log-alibi
+        about: yabuki-entered-unlogged
+        claim: 19時50分以降に私の職員証で解錠した履歴はありません。記録室へ入るには解錠が必要なので、私は中へ入っていません
+        strategy: maintain-until-contradicted
+      - id: yabuki-no-corridor
+        about: kise-saw-yabuki-return-2016
+        claim: 20時台に保存記録室側の廊下へ行ってはいません。木瀬さんの見間違いでしょう
+        strategy: maintain-until-contradicted
+    memories:
+      - id: open-door-told
+        about: mitamura-told-yabuki-open
+        detail: 三田村から点検中で扉が開いていると聞いた瞬間、職員証を使わず中へ入れる時間があると理解した。
+      - id: report-threat
+        about: report-next-morning
+        detail: 磯崎から「明朝、監督部署に記録修正の経緯を出す」と告げられ、処分を避けられないと感じた。
+    relationships:
+      - character: mitamura
+        relation: 設備担当
+        attitude: システムの仕様を詳しく説明されると自分の主張が崩れるので警戒している
+      - character: kise
+        relation: 警備員
+        attitude: 廊下で人をよく見ているので苦手
+  - id: mitamura
+    name: 三田村悟
+    role: witness
+    publicIntroduction: "設備仕様には詳しいが、書類仕事が雑な技術職員。"
+    personality: 設備仕様には詳しいが、書類仕事が雑な技術職員。点検の一項目を飛ばしたことを隠したい一方、電子錠が何を記録するかは正確に説明できる。
+    goals:
+      - 点検項目を飛ばしたことを隠したい
+      - 電子錠のログ仕様について誤解を解きたい
+    knowledge: [mitamura-facility, access-log-unlock-only, door-held-open-1950, door-remained-open-2022, mitamura-told-yabuki-open, body-found-2035]
+    secrets:
+      - fact: mitamura-skipped-check
+        disclosure: pressured
+    lies:
+      - id: mitamura-full-check
+        about: mitamura-skipped-check
+        claim: 今日の設備点検は全項目を手順通り実施しました
+        strategy: maintain-until-contradicted
+    memories:
+      - id: explained-open-door
+        about: mitamura-told-yabuki-open
+        detail: 矢吹に「二十分くらい扉を開けているから、資料を取るなら今ならカードはいらない」と話したのを覚えている。
+    relationships:
+      - character: yabuki
+        relation: 同僚
+        attitude: ログの意味を自分に都合よく解釈していると感じる
+  - id: kise
+    name: 木瀬亮
+    role: witness
+    publicIntroduction: "寡黙な警備員。"
+    personality: 寡黙な警備員。人の歩き方や服装をよく覚えているが、勤務中に古い事件資料を私的に読んでいたことを知られたくない。
+    goals:
+      - 私的に事件資料を読んでいたことを隠したい
+      - 20時16分の矢吹の目撃については正確に話したい
+    knowledge: [kise-security, kise-saw-yabuki-return-2016, body-found-2035]
+    secrets:
+      - fact: kise-read-private-file
+        disclosure: pressured
+    lies:
+      - id: kise-no-private-reading
+        about: kise-read-private-file
+        claim: 警備に必要のない資料を勝手に読んだことはありません
+        strategy: maintain-until-contradicted
+    memories:
+      - id: yabuki-return
+        about: kise-saw-yabuki-return-2016
+        detail: 20時16分ごろ、保存記録室側から早足で戻る矢吹と正面ですれ違ったので、見間違いではない。
+    relationships:
+      - character: yabuki
+        relation: 同僚
+        attitude: 普段より早足だったことが気になっている
+revelations:
+  - id: log-records-unlock-not-entry
+    title: 入室記録ではなく解錠記録
+    text: 電子錠の履歴が示すのは職員証による解錠操作だけで、既に開いている扉を通過した人物は記録されない。19時50分から20時22分まで扉は開放状態だったため、解錠履歴がないことは矢吹の不在を証明しない。
+    category: location
+    subject:
+      type: event
+      id: door-opened-for-maintenance
+    sources:
+      - type: character
+        id: mitamura
+        revealCondition: 三田村に電子錠が何を記録するのかと、19時50分からの点検中の扉状態を尋ねた。
+        requires:
+          revelations: []
+          evidences: [door-state-log]
+      - type: character
+        id: kise
+        revealCondition: 木瀬に20時台の保存記録室側廊下で見た人物を尋ね、ログがなくても矢吹が廊下から戻ってきたことを確認した。
+        requires:
+          revelations: []
+          evidences: [corridor-witness]
+    relatedFacts: [access-log-unlock-only, door-held-open-1950, door-remained-open-2022, yabuki-entered-unlogged]
+  - id: altered-record-motive
+    title: 翌朝の記録修正報告
+    text: 磯崎は矢吹による不適切な裁判記録修正を発見し、翌朝監督部署へ報告する予定だった。矢吹には処分を避けたい動機があった。
+    category: motive
+    subject:
+      type: character
+      id: yabuki
+    sources:
+      - type: character
+        id: yabuki
+        revealCondition: 矢吹に磯崎が見つけた記録修正と翌朝の報告予定を具体的に追及した。
+        requires:
+          revelations: [log-records-unlock-not-entry]
+          evidences: [report-draft]
+    relatedFacts: [altered-file-discovered, report-next-morning]
+evidences:
+  - id: door-state-log
+    label: 保存記録室の扉状態記録
+    description: 19時50分から20時22分まで扉は完全には閉じておらず、職員証を使わず通過できる状態だった。
+    reveal:
+      mode: conversation
+      condition: 三田村に点検中の保存記録室の扉状態と電子錠ログの仕様を尋ねたら開示する。
+    sources:
+      - type: character
+        id: mitamura
+    supports: [access-log-unlock-only, door-held-open-1950, door-remained-open-2022]
+    contradicts: ["lie:yabuki-log-alibi"]
+  - id: maintenance-warning
+    label: 点検中の開放を伝えた記録
+    description: 三田村は20時ごろ、矢吹本人に保存記録室の扉が開いていると伝えていた。
+    reveal:
+      mode: conversation
+      condition: 三田村か矢吹に20時ごろ交わした保存記録室の点検について尋ねたら開示する。
+    sources:
+      - type: character
+        id: mitamura
+      - type: character
+        id: yabuki
+    supports: [mitamura-told-yabuki-open]
+    contradicts: []
+  - id: corridor-witness
+    label: 二十時十六分の廊下目撃
+    description: 木瀬は保存記録室側の廊下から戻る矢吹を20時16分ごろに目撃している。
+    reveal:
+      mode: conversation
+      condition: 木瀬に20時10分から20分の間に保存記録室側で誰を見たか尋ねたら開示する。
+    sources:
+      - type: character
+        id: kise
+    supports: [kise-saw-yabuki-return-2016]
+    contradicts: ["lie:yabuki-no-corridor", "lie:yabuki-log-alibi"]
+  - id: report-draft
+    label: 監督部署への報告草案
+    description: 磯崎の端末に、矢吹による不適切な記録修正を翌朝報告するための草案が残っている。
+    reveal:
+      mode: conversation
+      condition: 矢吹か三田村に磯崎が翌朝提出予定だった報告について尋ねたら開示する。
+    sources:
+      - type: character
+        id: yabuki
+      - type: character
+        id: mitamura
+    supports: [altered-file-discovered, report-next-morning]
+    contradicts: []
+  - id: skipped-maintenance-item
+    label: 未実施の点検項目
+    description: 三田村が点検の一項目を実施せず済ませたことが分かるが、保存記録室への矢吹の出入りとは独立している。
+    reveal:
+      mode: conversation
+      condition: 三田村に点検記録の空白を具体的に追及したら開示する。
+    sources:
+      - type: character
+        id: mitamura
+    supports: [mitamura-skipped-check]
+    contradicts: ["lie:mitamura-full-check"]
+  - id: private-file-reading
+    label: 警備員の閲覧履歴
+    description: 木瀬が私的興味で古い事件資料を読んでいたことが分かるが、磯崎の死とは結びつかない。
+    reveal:
+      mode: conversation
+      condition: 木瀬に勤務中に閲覧していた資料について追及したら開示する。
+    sources:
+      - type: character
+        id: kise
+    supports: [kise-read-private-file]
+    contradicts: ["lie:kise-no-private-reading"]
+solution:
+  culprit: yabuki
+  summary: 犯人は矢吹梓。保存記録室のアクセス履歴は「誰が扉を通ったか」ではなく「職員証で解錠した操作」だけを記録する。19時50分から20時22分まで扉は設備点検のため開放されており、矢吹は20時ごろ三田村からそのことを直接聞いていた。矢吹は20時09分ごろ職員証を使わず記録室へ入り、20時12分ごろ磯崎を襲った。20時16分には木瀬が記録室側の廊下から戻る矢吹を目撃している。磯崎は矢吹による不適切な裁判記録修正を発見し、翌朝監督部署へ報告する予定だった。解錠履歴の欠如を入室不可能の証明にすり替えたことがアリバイ工作の核心である。
+  method: 点検中で扉が開放されている時間に職員証を使わず保存記録室へ入り、解錠履歴が残らないことを利用して不在を装った
+  motive: 不適切な裁判記録修正を磯崎が翌朝監督部署へ報告する予定で、処分を受けることを恐れたため
+  requiredFacts: [access-log-unlock-only, door-remained-open-2022, mitamura-told-yabuki-open, yabuki-entered-unlogged, kise-saw-yabuki-return-2016, report-next-morning, yabuki-killed-isozaki]
+  secretKeywords:
+    - 犯人は矢吹
+    - 矢吹が犯人
+    - 矢吹が磯崎を襲
+    - 私が磯崎を襲
+    - 解錠履歴をアリバイに
+quality:
+  expectedQuestionCount:
+    min: 12
+    max: 24
+  requiredEvidence:
+    min: 3
+  redHerrings: [mitamura-skipped-check, kise-read-private-file]
+  notes: 「ログがない＝通過していない」という前提を崩す密室型。仕様を知るだけでなく、矢吹本人が扉の開放を事前に知っていたことと廊下目撃を合わせて意図性を確定する。

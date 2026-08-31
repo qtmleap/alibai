@@ -1,0 +1,17 @@
+<!--
+  アプリと同じ書体を story にも読ませる。
+
+  本体は src/routes/__root.tsx の head で読んでいるが、Storybook のプレビューは
+  そのルートを通らないので、ここで同じものを読み直す必要がある。
+  無いと story だけ代替書体で描かれ、モックとの突き合わせが「実装の差」ではなく
+  「書体の差」で埋まって、何を直せばいいのか分からなくなる。
+
+  link は __root.tsx から写したもの。片方だけ足すとまた食い違うので、
+  書体を足すときは両方を同時に直すこと。
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap"
+/>

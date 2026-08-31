@@ -26,7 +26,7 @@ export const SessionReference = ({ scenario, interrogation }: Props) => {
 
   return (
     <>
-      <div className="flex gap-3 border-b border-slate-800 bg-slate-950 px-3 py-2 text-xs">
+      <div className="flex gap-3 border-b border-keisen bg-sumi px-3 py-2 text-xs">
         <Button variant="link" size="sm" className="px-0" onClick={() => setView('prologue')}>
           事件の記録
         </Button>
@@ -50,24 +50,24 @@ export const SessionReference = ({ scenario, interrogation }: Props) => {
             <DialogTitle>聞き込み記録</DialogTitle>
           </DialogHeader>
           {history.length === 0 ? (
-            <p className="text-sm text-slate-500">まだ誰にも質問していません。</p>
+            <p className="text-sm text-nezumi-dim">まだ誰にも質問していません。</p>
           ) : (
             <ol className="flex max-h-[70dvh] flex-col gap-5 overflow-y-auto">
               {history.map((entry) => (
                 <li
                   key={`${entry.characterId}:${entry.askedAt}`}
-                  className="border-l-2 border-slate-700 pl-3"
+                  className="border-l-2 border-keisen pl-3"
                 >
-                  <p className="text-xs font-semibold text-indigo-300">{entry.characterName}</p>
-                  <p className="mt-2 text-sm leading-relaxed text-slate-100">
-                    <span className="mr-1 text-slate-500">あなた：</span>
+                  <p className="text-xs font-semibold text-nezumi">{entry.characterName}</p>
+                  <p className="mt-2 text-sm leading-relaxed text-kinari">
+                    <span className="mr-1 text-nezumi-dim">あなた：</span>
                     {entry.question}
                   </p>
                   {entry.answer.length === 0 ? (
-                    <p className="mt-2 text-sm text-slate-500">返答を待っています…</p>
+                    <p className="mt-2 text-sm text-nezumi-dim">返答を待っています…</p>
                   ) : (
-                    <p className="mt-2 text-sm leading-relaxed text-slate-300">
-                      <span className="mr-1 text-slate-500">{entry.characterName}：</span>
+                    <p className="mt-2 text-sm leading-relaxed text-nezumi">
+                      <span className="mr-1 text-nezumi-dim">{entry.characterName}：</span>
                       {entry.answer}
                     </p>
                   )}

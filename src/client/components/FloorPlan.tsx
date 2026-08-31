@@ -390,7 +390,7 @@ export const FloorPlanMap = ({ plan, interactive = false, revelations, hint }: P
                 role="button"
                 tabIndex={0}
                 aria-label={`${room.label}について調べる`}
-                className="cursor-pointer fill-transparent outline-none hover:fill-stone-500/12 focus-visible:fill-stone-500/20"
+                className="cursor-pointer fill-transparent outline-none hover:fill-nezumi/12 focus-visible:fill-nezumi/20"
                 onClick={() => setOpenRoomId(room.id)}
                 onKeyDown={(event) => {
                   if (event.key === 'Enter' || event.key === ' ') {
@@ -400,26 +400,23 @@ export const FloorPlanMap = ({ plan, interactive = false, revelations, hint }: P
                 }}
               />
             </PopoverAnchor>
-            <PopoverContent
-              side="top"
-              className="w-60 border-slate-700 bg-slate-900 p-3 text-slate-100"
-            >
+            <PopoverContent side="top" className="w-60 border-keisen bg-sumi-2 p-3 text-kinari">
               <p className="text-sm font-semibold">{room.label}</p>
 
               {room.note !== undefined && (
-                <p className="mt-1 text-xs leading-relaxed text-slate-400">{room.note}</p>
+                <p className="mt-1 text-xs leading-relaxed text-nezumi">{room.note}</p>
               )}
 
               {/* 聞き込みで分かったこと。増えていくのはここ。 */}
               {foundIn(room.id).map((revelation) => (
-                <div key={revelation.id} className="mt-2 border-t border-slate-800 pt-2">
-                  <p className="text-xs font-semibold text-emerald-300">{revelation.title}</p>
-                  <p className="mt-0.5 text-xs leading-relaxed text-slate-400">{revelation.text}</p>
+                <div key={revelation.id} className="mt-2 border-t border-keisen pt-2">
+                  <p className="text-xs font-semibold text-byakuroku">{revelation.title}</p>
+                  <p className="mt-0.5 text-xs leading-relaxed text-nezumi">{revelation.text}</p>
                 </div>
               ))}
 
               {room.note === undefined && foundIn(room.id).length === 0 && (
-                <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                <p className="mt-1 text-xs leading-relaxed text-nezumi-dim">
                   この場所について、まだ何も分かっていません。
                 </p>
               )}
@@ -429,7 +426,7 @@ export const FloorPlanMap = ({ plan, interactive = false, revelations, hint }: P
                 出さないと「ここは何も無い」と「もう取り切った」の区別が付かない。
               */}
               {remainingIn(room.id) !== undefined && (
-                <p className="mt-2 border-t border-slate-800 pt-2 text-[11px] text-amber-400/90">
+                <p className="mt-2 border-t border-keisen pt-2 text-[11px] text-nezumi">
                   {remainingIn(room.id) === 0
                     ? 'ここから引き出せることは、もう残っていない'
                     : `ここから、あと ${remainingIn(room.id)} 件`}

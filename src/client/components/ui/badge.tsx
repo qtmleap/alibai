@@ -5,15 +5,15 @@ import type * as React from 'react'
 import { cn } from '@/client/lib/utils'
 
 const badgeVariants = cva(
-  'inline-flex w-fit shrink-0 items-center justify-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-xs',
+  'inline-flex w-fit shrink-0 items-center justify-center gap-1 whitespace-nowrap px-2 py-0.5 text-xs',
   {
     variants: {
       variant: {
         /** 見つけたもの。増えていくのが分かるよう、この色だけ画面から浮かせる。 */
-        default: 'bg-emerald-900 text-emerald-200',
+        default: 'bg-byakuroku/15 text-byakuroku',
         /** 数や残量のような、添えるだけの情報。 */
-        muted: 'text-amber-400/90 tabular-nums',
-        outline: 'border border-slate-700 text-slate-400',
+        muted: 'text-nezumi tabular-nums',
+        outline: 'border border-keisen text-nezumi',
       },
     },
     defaultVariants: {
