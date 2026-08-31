@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+import { useEffect, useState } from 'react'
 import type { AlibiSegment } from '@/client/components/AlibiChart'
 import {
   type ChatTurn,
@@ -160,6 +161,56 @@ const Harness = ({
   )
 }
 
+/** 線が一本増えるまでの間。立ち上がり（0.42秒）を見届けてから次が来る速さ。 */
+const SEGMENT_INTERVAL_MS = 1200
+
+/**
+ * 線が一本ずつ増えていくところ。
+ *
+ * 聞き込みが進むと表がどう動くかを見るための story で、実際の進行とは繋がっていない
+ * （サーバはまだ時刻付きの在所を返さない）。増えた線だけが一度動く、という
+ * AlibiChart の作りをここで確かめる。
+ */
+const Growing = () => {
+  const [count, setCount] = useState(0)
+  const [take, setTake] = useState(0)
+
+  useEffect(() => {
+    if (count >= SEGMENTS_LAST.length) {
+      return
+    }
+
+    const timer = setTimeout(() => setCount(count + 1), SEGMENT_INTERVAL_MS)
+
+    return () => clearTimeout(timer)
+  }, [count])
+
+  const done = count >= SEGMENTS_LAST.length
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => {
+          setCount(0)
+          setTake(take + 1)
+        }}
+        className="fixed top-3 right-3 z-50 border border-keisen bg-sumi px-[9px] py-[3px] text-[10px] tracking-[0.16em] text-nezumi-dim hover:border-nezumi-dim hover:text-kinari"
+      >
+        もう一度（{count} / {SEGMENTS_LAST.length}）
+      </button>
+      <Harness
+        key={take}
+        seed={LAST_TURN_SEED}
+        detectiveName="灰かぶりの探偵"
+        segments={SEGMENTS_LAST.slice(0, count)}
+        // 食い違いは線が出そろってから引く。途中で引くと、繋ぐ先がまだ無い。
+        clash={done ? { at: '18:36', label: '食い違い' } : undefined}
+      />
+    </>
+  )
+}
+
 const meta: Meta<typeof InterrogationScreen> = {
   title: 'Screens/INT 聞き込み',
   component: InterrogationScreen,
@@ -195,3 +246,6 @@ export const LastTurn: Story = {
     />
   ),
 }
+
+/** 線が増えていくところ。裏の取れた線は伸び上がり、申告だけの線は揺れて淡く残る。 */
+export const 時刻表が埋まる: Story = { render: () => <Growing /> }

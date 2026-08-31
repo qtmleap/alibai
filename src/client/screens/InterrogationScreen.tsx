@@ -6,8 +6,10 @@ import { FloorPlanMap } from '@/client/components/FloorPlan'
 import { TurnAnnounce } from '@/client/components/TurnAnnounce'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/client/components/ui/dialog'
 import type { ChatTurn, UseInterrogation } from '@/client/hooks/useInterrogation'
+import { usePacedReveal } from '@/client/hooks/usePacedReveal'
 import { fetchSessionState } from '@/client/lib/api'
 import { formatSeconds } from '@/client/lib/format'
+import { settledSentences } from '@/client/lib/paragraphs'
 import type { ScenarioDetail, SessionState } from '@/client/lib/schemas'
 
 /**
@@ -196,13 +198,27 @@ const buildBlocks = (
   characters: ScenarioDetail['characters'],
   conversations: Record<string, ChatTurn[]>,
   askerName: string,
+  /** 今まさに返答が流れてきている相手。書きかけの一文を伏せるのに要る。 */
+  askingCharacterId: string | undefined,
 ): Block[] => {
-  const said = characters.flatMap((character, index) =>
-    turnsOf(conversations, character.id)
-      .map((turn, seq) => ({ turn, seq, index, name: character.name }))
-      // 話題はプレイヤーの指示であって発言ではない。探偵が投げた質問のほうが残る。
-      .filter(({ turn }) => turn.role !== 'topic' && turn.text.length > 0),
-  )
+  const said = characters.flatMap((character, index) => {
+    const turns = turnsOf(conversations, character.id)
+    // 流れている最中なのは、訊いている相手の末尾の返答だけ。
+    const streamingSeq = character.id === askingCharacterId ? turns.length - 1 : -1
+
+    return (
+      turns
+        .map((turn, seq) => ({
+          turn,
+          seq,
+          index,
+          name: character.name,
+          streaming: seq === streamingSeq && turn.role === 'assistant',
+        }))
+        // 話題はプレイヤーの指示であって発言ではない。探偵が投げた質問のほうが残る。
+        .filter(({ turn }) => turn.role !== 'topic' && turn.text.length > 0)
+    )
+  })
 
   const ordered = [...said].sort((a, b) =>
     a.turn.askedAt === b.turn.askedAt ? a.seq - b.seq : a.turn.askedAt - b.turn.askedAt,
@@ -211,20 +227,51 @@ const buildBlocks = (
 
   for (const item of ordered) {
     const who = item.turn.role === 'user' ? -1 : item.index
-    const line = { id: `${item.index}:${item.turn.id}`, text: item.turn.text }
+    const id = `${item.index}:${item.turn.id}`
+    const lines = settledSentences(item.turn.text, item.streaming).map((text, at) => ({
+      id: `${id}:${at}`,
+      text,
+    }))
+
+    // 一文目が出来上がるまでは何も置かない。名前だけ先に出ると、
+    // 誰かが口を開いたまま黙っているように見える。
+    if (lines.length === 0) {
+      continue
+    }
+
     const last = blocks[blocks.length - 1]
 
     // 同じ人が続けて喋るあいだ、名前は一度きり。縦罫だけが最後まで伸びる。
     if (last !== undefined && last.who === who) {
-      last.lines.push(line)
+      last.lines.push(...lines)
       continue
     }
 
-    blocks.push({ id: line.id, who, name: who === -1 ? askerName : item.name, lines: [line] })
+    blocks.push({ id, who, name: who === -1 ? askerName : item.name, lines })
   }
 
   return blocks
 }
+
+/**
+ * 出してよい行数まで塊を切り詰める。
+ *
+ * 塊ごとではなく通しで数えるので、探偵の質問と相手の一文目のあいだにも間が入る。
+ * 行が一つも残らない塊は落とす——名前だけが立って、口を開けたまま黙っているように
+ * 見えるのを避けるため。
+ */
+const capLines = (blocks: Block[], limit: number): Block[] =>
+  blocks.reduce<{ left: number; kept: Block[] }>(
+    (acc, block) => {
+      const lines = block.lines.slice(0, acc.left)
+
+      return {
+        left: acc.left - lines.length,
+        kept: lines.length === 0 ? acc.kept : [...acc.kept, { ...block, lines }],
+      }
+    },
+    { left: limit, kept: [] },
+  ).kept
 
 /* ---- 端末の時刻軸 ---- */
 
@@ -437,7 +484,12 @@ export const InterrogationScreen = ({
       ]),
   )
 
-  const blocks = buildBlocks(scenario.characters, conversations, askerName)
+  const said = buildBlocks(scenario.characters, conversations, askerName, askingCharacterId)
+  const shown = usePacedReveal(
+    said.reduce((count, block) => count + block.lines.length, 0),
+    isAsking,
+  )
+  const blocks = capLines(said, shown)
   const timeWindow = scenario.timeWindow
   const pins =
     timeWindow === null
@@ -686,7 +738,7 @@ export const InterrogationScreen = ({
                     {block.lines.map((line) => (
                       <p
                         key={line.id}
-                        className={`whitespace-pre-wrap break-words text-[12.5px] leading-[1.95] lg:text-[14px] lg:leading-[2.05] ${
+                        className={`line-in whitespace-pre-wrap break-words text-[12.5px] leading-[1.95] lg:text-[14px] lg:leading-[2.05] ${
                           block.who === -1 ? 'text-nezumi' : 'text-kinari'
                         }`}
                       >

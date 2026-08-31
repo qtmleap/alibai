@@ -73,6 +73,13 @@ const PX_PER_MIN = 10
 const GUTTER = 46
 
 /**
+ * 噛み合わない区間の線を引き終わる時刻（`draw` の 180ms 遅れ＋520ms）。
+ * 両端の丸と札はこれを待ってから置く。線と同時に出すと、
+ * 線が伸びきる前に端の印だけが宙に浮く。
+ */
+const CLASH_SETTLED_MS = '700ms'
+
+/**
  * アリバイ表。
  *
  * 支度・聞き込み・告発・結果の四画面に、同じ表が同じ場所で出る。
@@ -214,24 +221,47 @@ export const AlibiChart = ({
                 const top = (toMinutes(s.from) - from) * PX_PER_MIN
                 const h = (toMinutes(s.to) - toMinutes(s.from)) * PX_PER_MIN
                 const solid = s.kind === 'solid'
-                // 突き合わせのときは、聞き取った線を細い破線にして実際の線の左へ寄せる。
-                const claimClass =
-                  truth === undefined
-                    ? 'absolute left-[18px] w-px border-l border-dashed border-l-current opacity-55'
-                    : 'absolute left-[13px] w-px border-l border-dashed border-l-current opacity-45'
+                // 裏付けの取れた線として描くのは、突き合わせに入っていないときだけ。
+                // 結末の突き合わせでは、聞き取った線は実際の線の左へ細い破線で寄せる。
+                const heard = !solid || truth !== undefined
+
+                /*
+                 * 枠と帯を分ける。帯は現れるときに上端から伸びるので（pin-rise / waver）、
+                 * 在所と時刻を同じ要素に入れると、伸びるあいだ字が縦に潰れる。
+                 * 枠は動かさず位置と淡さだけを持ち、動くのは中の帯だけにする。
+                 */
+                const frameClass = heard
+                  ? truth === undefined
+                    ? 'absolute left-[18px] w-px opacity-55'
+                    : 'absolute left-[13px] w-px opacity-45'
+                  : // 会話で指している一本だけ、線も目盛りも太らせる。
+                    s.fix !== undefined && s.fix === litFix
+                    ? 'absolute left-[16px] w-[5px]'
+                    : 'absolute left-[17px] w-[3px]'
+
+                const barClass = heard
+                  ? 'border-l border-dashed border-l-current'
+                  : s.fix !== undefined && s.fix === litFix
+                    ? `${HUE[p.hue].bar} before:absolute before:top-0 before:-left-[5px] before:h-[2px] before:w-[15px] before:bg-current before:content-['']`
+                    : `${HUE[p.hue].bar} before:absolute before:top-0 before:-left-[4px] before:h-px before:w-[11px] before:bg-current before:content-['']`
+
                 return (
                   <span
                     key={`${s.who}-${s.from}`}
-                    className={
-                      solid && truth === undefined
-                        ? // 会話で指している一本だけ、線も目盛りも太らせる。
-                          s.fix !== undefined && s.fix === litFix
-                          ? `absolute left-[16px] w-[5px] ${HUE[p.hue].bar} before:absolute before:top-0 before:-left-[5px] before:h-[2px] before:w-[15px] before:bg-current before:content-['']`
-                          : `absolute left-[17px] w-[3px] ${HUE[p.hue].bar} before:absolute before:top-0 before:-left-[4px] before:h-px before:w-[11px] before:bg-current before:content-['']`
-                        : claimClass
-                    }
+                    className={frameClass}
                     style={{ top: `${top}px`, height: `${h}px` }}
                   >
+                    {/*
+                      増えた線だけが一度だけ動く。key は who と from で決まるので、
+                      既に立っている線は積み直しても再生されない。
+                      裏の取れた線は伸び上がり（一 目盛りが立つ）、申告だけの線は
+                      行き過ぎて戻り、淡いまま残る（二 疑問）。
+                    */}
+                    <span
+                      className={`absolute inset-0 origin-top ${barClass} ${
+                        heard ? 'waver' : 'pin-rise'
+                      }`}
+                    />
                     {/*
                       幅は実寸で持たせる——親は 3px しかないので、max-width にすると
                       親に合わせて一文字ずつ縦に折れる。
@@ -239,7 +269,7 @@ export const AlibiChart = ({
                     */}
                     {truth !== undefined ? null : (
                       <span
-                        className={`absolute top-0 left-[11px] w-[111px] text-[11px] leading-[1.5] ${
+                        className={`line-in absolute top-0 left-[11px] w-[111px] text-[11px] leading-[1.5] ${
                           solid ? '' : 'text-nezumi'
                         }`}
                       >
@@ -247,7 +277,11 @@ export const AlibiChart = ({
                       </span>
                     )}
                     {s.fix === undefined || truth !== undefined ? null : (
-                      <span className="absolute top-[15px] left-[11px] w-[111px] font-mono text-[10.5px] leading-[1.5] tabular-nums">
+                      // 時刻は帯より遅れて出す。先に線が立ち、それから時刻が添う。
+                      <span
+                        className="line-in absolute top-[15px] left-[11px] w-[111px] font-mono text-[10.5px] leading-[1.5] tabular-nums"
+                        style={{ animationDelay: '150ms' }}
+                      >
                         {s.fix}
                       </span>
                     )}
@@ -275,8 +309,10 @@ export const AlibiChart = ({
         )}
 
         {clash === undefined ? null : (
+          // 離れた二つの供述が噛み合わないと分かった瞬間（三 ひらめき）。
+          // 線が左から引かれ、引き終わってから両端の丸と札が置かれる。光らせず、繋ぐ。
           <span
-            className="absolute border-t border-dashed border-t-nezumi-dim opacity-80"
+            className="draw absolute origin-left border-t border-dashed border-t-nezumi-dim opacity-80"
             style={{
               left: `${GUTTER + 17}px`,
               width: '217px',
@@ -284,9 +320,18 @@ export const AlibiChart = ({
             }}
           >
             {/* 両端の丸。どこからどこまでが噛み合っていないのかを、線だけでなく端でも示す。 */}
-            <span className="absolute top-[-3px] -left-[3px] size-[5px] rounded-full border border-nezumi bg-sumi" />
-            <span className="absolute top-[-3px] -right-[3px] size-[5px] rounded-full border border-nezumi bg-sumi" />
-            <span className="absolute top-[-19px] right-0 bg-sumi px-[4px] text-[10.5px] tracking-[0.1em] text-nezumi">
+            <span
+              className="line-in absolute top-[-3px] -left-[3px] size-[5px] rounded-full border border-nezumi bg-sumi"
+              style={{ animationDelay: CLASH_SETTLED_MS }}
+            />
+            <span
+              className="line-in absolute top-[-3px] -right-[3px] size-[5px] rounded-full border border-nezumi bg-sumi"
+              style={{ animationDelay: CLASH_SETTLED_MS }}
+            />
+            <span
+              className="line-in absolute top-[-19px] right-0 bg-sumi px-[4px] text-[10.5px] tracking-[0.1em] text-nezumi"
+              style={{ animationDelay: CLASH_SETTLED_MS }}
+            >
               {clash.label}
             </span>
           </span>

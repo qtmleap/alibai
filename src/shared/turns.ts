@@ -43,14 +43,20 @@ export const EXCHANGES_PER_TOPIC = 3
  * 3つとも自由に上げられると天井そのものが消える。
  *
  * 積の上限を別に持つのは、`maxTurns` と `questionsPerTurn` を両方上限まで上げられると
- * 質問回数が 30 まで伸びるため。10分で遊ぶゲームとして、そこまでは要らない。
+ * 質問回数が 45 まで伸びるため。事件に登場するのは3〜5人なので、そこまで訊けると
+ * 全員に片端から聞く余裕が生まれ、絞って訊くことがゲームでなくなる。
  */
 export const LIMIT_CEILINGS = {
-  maxTurns: 10,
+  maxTurns: 15,
   questionsPerTurn: 3,
   exchangesPerTopic: 5,
-  /** maxTurns × questionsPerTurn の上限。 */
-  totalQuestions: 20,
+  /**
+   * maxTurns × questionsPerTurn の上限。
+   *
+   * 20 から 30 へ引き上げてある。3人の相手に20問だと、矛盾を見つけてから
+   * それを突く問いに手が回らないまま終わる——一巡目で持ち札を使い切ってしまう。
+   */
+  totalQuestions: 30,
 }
 
 export type SessionLimits = {

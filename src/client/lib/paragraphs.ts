@@ -46,6 +46,31 @@ const chunkParagraph = (paragraph: string): string[] => {
   return chunks
 }
 
+/** 文が書き終わっているか。閉じ括弧は句点の後ろに付いてくるので、そこまで見る。 */
+const isComplete = (sentence: string): boolean => /[。！？][」』）】]*$/.test(sentence)
+
+/**
+ * 流れてくる発言を、画面に置ける一文の並びに変える。
+ *
+ * 聞き込みの返答は一字ずつ届くが、届いたそばから出すと読むより先に目が字を追いはじめ、
+ * 追いつくための時間になる。文が出来上がるまで待って、出来た一文をまとめて置く。
+ * 置く側は現れた瞬間だけ淡く浮かせる（`line-in`）。
+ *
+ * `streaming` が false なら全部返す。書き終わった発言は、句点で終わらない喋り方
+ * （「……」で切るなど）でも、そこで待たせる理由がない。
+ */
+export const settledSentences = (text: string, streaming: boolean): string[] => {
+  const sentences = text
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
+    .flatMap(splitSentences)
+
+  const last = sentences[sentences.length - 1]
+
+  return streaming && last !== undefined && !isComplete(last) ? sentences.slice(0, -1) : sentences
+}
+
 /**
  * ブリーフィング本文を、画面に出す段落の並びに変える。
  *

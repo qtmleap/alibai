@@ -43,6 +43,18 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
+      # public/se/ は規約上リポジトリに置けないので、checkout 直後は空。
+      # ここで取らないと音源の無いアセットがそのまま公開される。
+      # キャッシュが当たれば fetch-se は既存ファイルを skip し、相手のサイトは叩かない。
+      - name: Cache sound effects
+        uses: actions/cache@v4
+        with:
+          path: public/se
+          key: se-${{ hashFiles('scripts/fetch-se.ts') }}
+
+      - name: Fetch sound effects
+        run: bun run se:fetch
+
       - name: Build
         run: bun run build
 

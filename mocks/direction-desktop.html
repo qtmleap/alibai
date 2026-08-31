@@ -1,0 +1,1108 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AlibAI デスクトップ</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --sumi: #141317;
+    --sumi-2: #1a1820;
+    --sumi-3: #232028;
+    --keisen: #302c39;
+    /* 表の升目だけに使う、罫線より一段弱い線。顔料より前に出させない。 */
+    --keisen-faint: #262231;
+    --kinari: #e9e4d9;
+    --nezumi: #8e8896;
+    --nezumi-dim: #625d6c;
+
+    --asagi: #5e8b8c;   --asagi-t: #8ab5b5;
+    --fuji: #8079a6;    --fuji-t: #ada6cf;
+    --karashi: #b49a55; --karashi-t: #d6bd77;
+    --suou: #96556a;    --suou-t: #c68698;
+
+    --shu: #d2452e;
+    --byakuroku: #7fa88a;
+
+    --mincho: "Shippori Mincho B1", "Hiragino Mincho ProN", "Yu Mincho", serif;
+    --gothic: "Zen Kaku Gothic New", "Hiragino Sans", "Noto Sans JP", sans-serif;
+    --mono: "Roboto Mono", ui-monospace, monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--sumi);
+    color: var(--kinari);
+    font-family: var(--gothic);
+    font-size: 15px;
+    line-height: 1.8;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 1328px; margin: 0 auto; padding: 0 24px 120px; }
+
+  .t { font-family: var(--mono); font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+
+  .eyebrow {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.22em;
+    color: var(--nezumi-dim); text-transform: uppercase;
+  }
+
+  /* ================= ページ頭 ================= */
+  .masthead { padding: 92px 0 52px; border-bottom: 1px solid var(--keisen); }
+  .masthead h1 {
+    font-family: var(--mincho); font-weight: 700;
+    font-size: clamp(36px, 5.4vw, 62px);
+    line-height: 1.18; margin: 18px 0 0; letter-spacing: 0.04em; text-wrap: balance;
+  }
+  .masthead .lede {
+    max-width: 36em; margin: 22px 0 0; color: var(--nezumi);
+    font-size: 15px; line-height: 2;
+  }
+  .masthead .lede strong { color: var(--kinari); font-weight: 500; }
+
+  /* ================= 節 ================= */
+  .sec { padding-top: 76px; }
+  .sec > h2 {
+    font-family: var(--mincho); font-weight: 500;
+    font-size: 26px; letter-spacing: 0.08em; margin: 10px 0 6px;
+  }
+  .sec > .note { max-width: 40em; color: var(--nezumi); margin: 0 0 30px; font-size: 14px; }
+  .sec > .note b { color: var(--kinari); font-weight: 500; }
+
+  /* ================= 骨格の説明図 ================= */
+  /* 左が据え置きで右だけ替わる、という一点だけを示す図。中身は描かない。 */
+  .skeletons { display: flex; gap: 26px; flex-wrap: wrap; }
+  .sk { width: 236px; }
+  .sk .box { height: 132px; border: 1px solid var(--keisen); display: grid; grid-template-rows: 15px 1fr; }
+  .sk .bar { border-bottom: 1px solid var(--keisen); }
+  .sk .split { display: grid; grid-template-columns: 96px 1fr; }
+  .sk .lf { border-right: 1px solid var(--keisen); position: relative; }
+  .sk .lf i {
+    position: absolute; width: 3px; background: var(--nezumi-dim); opacity: 0.5;
+  }
+  .sk .rt { display: flex; flex-direction: column; justify-content: center; gap: 7px; padding: 0 14px; }
+  .sk .rt u { display: block; height: 1px; background: var(--keisen); text-decoration: none; }
+  .sk .rt u.w { width: 62%; }
+  .sk .cap { margin-top: 9px; font-size: 12px; color: var(--nezumi); line-height: 1.7; }
+  .sk .cap b { color: var(--kinari); font-weight: 500; display: block; font-family: var(--mincho); font-size: 14px; letter-spacing: 0.06em; }
+
+  /* ================= 画面の枠 ================= */
+  .plate { margin-top: 54px; }
+  .plate:first-of-type { margin-top: 0; }
+  .plate > .head { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; max-width: 62em; }
+  .plate > .head .nm { font-family: var(--mincho); font-size: 19px; font-weight: 500; letter-spacing: 0.07em; }
+  .plate > .head .why { font-size: 13px; color: var(--nezumi); line-height: 1.85; }
+  .plate > .head .why b { color: var(--kinari); font-weight: 500; }
+  .scroller { overflow-x: auto; padding-bottom: 6px; }
+
+  .frame {
+    width: 1280px; height: 780px; flex: none;
+    border: 1px solid var(--keisen); background: var(--sumi);
+    font-size: 14px; line-height: 1.8; overflow: hidden;
+  }
+
+  /* ---- 共通の細部 ---- */
+  .label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.24em; color: var(--nezumi-dim); }
+  .muted { color: var(--nezumi); }
+  .dim { color: var(--nezumi-dim); }
+
+  /* ================= 机（概要・聞き込み・告発・結果に共通） ================= */
+  .desk { height: 100%; display: grid; grid-template-rows: 46px 1fr; }
+  .desk > .top {
+    display: flex; align-items: center; justify-content: space-between; gap: 20px;
+    padding: 0 22px; border-bottom: 1px solid var(--keisen);
+  }
+  .desk > .top .ttl { font-family: var(--mincho); font-size: 14px; letter-spacing: 0.06em; }
+  .desk > .top .rgt { display: flex; align-items: center; gap: 22px; font-size: 12px; color: var(--nezumi-dim); }
+  /* 計器と並ぶので、唯一の操作には枠を与える。朱はまだ出さない——押した先が告発の画面。 */
+  .desk > .top .rgt .act { border: 1px solid var(--keisen); padding: 4px 14px; color: var(--nezumi); }
+  .desk > .top .back { font-size: 12px; color: var(--nezumi-dim); }
+  .desk > .panes { display: grid; grid-template-columns: 524px 1fr; min-height: 0; }
+  .board { border-right: 1px solid var(--keisen); padding: 14px 22px 12px; display: flex; flex-direction: column; min-height: 0; }
+  .work { padding: 22px 30px 20px; display: flex; flex-direction: column; min-height: 0; }
+
+  /* ---- アリバイ表 ---- */
+  .board > .bh { display: flex; align-items: baseline; justify-content: space-between; line-height: 1.4; }
+  .board > .bh .nm { font-family: var(--mincho); font-size: 14px; letter-spacing: 0.1em; }
+
+  /* 見出しの列と表の列は同じ定義を使う。ずれると表が表でなくなる。 */
+  .cols { display: grid; grid-template-columns: 46px repeat(4, 1fr); }
+
+  .chart-head { margin-top: 10px; }
+  .chart-head .c { padding: 0 0 7px 10px; border-bottom: 1px solid var(--keisen); }
+  .chart-head .c.now { border-bottom-color: currentColor; }
+  /* 名と肩書は積む。横に流すと列幅で折り返して、見出しが二行の塊になる。 */
+  .chart-head .c .who { display: block; font-size: 12.5px; line-height: 1.5; color: var(--nezumi); }
+  .chart-head .c.now .who { color: currentColor; }
+  .chart-head .c .rl { display: block; font-size: 10px; line-height: 1.5; color: var(--nezumi-dim); }
+
+  /* 高さは 60分 = 600px で固定。伸縮させると目盛りの間隔が画面ごとに変わる。 */
+  .chart { position: relative; height: 600px; flex: none; margin-bottom: 16px; }
+  .chart .gut { position: relative; }
+  .chart .col { position: relative; border-left: 1px solid var(--keisen-faint); }
+  /* 聞き込み中の列だけ、地をわずかに起こす。枠は付けない。 */
+  .chart .col.now { background: var(--sumi-2); }
+
+  .chart .grid { position: absolute; left: 46px; right: 0; height: 1px; background: var(--keisen-faint); }
+  .chart .gut .at {
+    position: absolute; left: 0; transform: translateY(-50%);
+    font-family: var(--mono); font-variant-numeric: tabular-nums;
+    font-size: 10px; color: var(--nezumi-dim);
+  }
+  .chart .gut .at.edge { color: var(--nezumi); }
+
+  /* 在所。実線は裏付けあり、破線は本人の申告のみ。 */
+  .bar { position: absolute; left: 17px; width: 3px; }
+  .bar.claim { width: 1px; left: 18px; opacity: 0.55; background: none !important;
+    border-left: 1px dashed currentColor; }
+  /* 列幅は 108px しかない。はみ出させると隣の列の記述と混ざって、
+     どちらの人の話か分からなくなる。折り返してでも列の中に留める。 */
+  /* 列幅は 108px しかない。はみ出させると隣の列の記述と混ざって、
+     どちらの人の話か分からなくなる。折り返してでも列の中に留める。
+     幅は max-width ではなく実寸で持たせる——親の .bar は 3px しかなく、
+     max-width だとそちらに合わせて一文字ずつ縦に折れる。 */
+  .bar .pl {
+    position: absolute; left: 11px; top: 0; width: 78px;
+    font-size: 11px; line-height: 1.5; color: var(--nezumi);
+  }
+  .bar.solid .pl { color: currentColor; }
+  .bar .fix {
+    position: absolute; left: 11px; top: 15px; width: 78px;
+    font-family: var(--mono); font-variant-numeric: tabular-nums;
+    font-size: 10.5px; line-height: 1.5; color: currentColor;
+  }
+  /* 裏付けの取れた端だけ、目盛りを立てる。 */
+  .bar.solid::before {
+    content: ""; position: absolute; left: -4px; top: 0; width: 11px; height: 1px;
+    background: currentColor;
+  }
+  /* 会話のなかでいま指している時刻と対になっている目盛り。 */
+  .bar.solid.on { left: 16px; width: 5px; }
+  .bar.solid.on::before { left: -5px; width: 15px; height: 2px; }
+  .bar.solid.on .fix { left: 13px; }
+
+  /* 被害者の刻限。表の全列を横断する唯一の線。 */
+  .deadline { position: absolute; left: 46px; right: 0; height: 1px; background: var(--nezumi-dim); }
+  .deadline span {
+    position: absolute; right: 0; top: -17px;
+    font-family: var(--mincho); font-size: 11px; letter-spacing: 0.08em; color: var(--nezumi);
+  }
+  .deadline span .t { color: var(--nezumi-dim); }
+
+  /* 食い違い。表の上でひとつだけ立つ印。 */
+  .clash { position: absolute; height: 1px; border-top: 1px dashed var(--nezumi-dim); opacity: 0.8; }
+  .clash span {
+    position: absolute; right: 0; top: -19px; font-size: 10.5px; color: var(--nezumi);
+    letter-spacing: 0.1em; background: var(--sumi); padding: 0 4px;
+  }
+  .clash i {
+    position: absolute; top: -3px; width: 5px; height: 5px; border-radius: 50%;
+    border: 1px solid var(--nezumi); background: var(--sumi);
+  }
+
+  .legend { display: flex; gap: 20px; align-items: center; font-size: 10.5px; line-height: 1.4; color: var(--nezumi-dim); }
+  .legend b { font-weight: 400; color: var(--nezumi); }
+  .legend .k { display: inline-flex; align-items: center; gap: 6px; }
+  .legend .k::before { content: ""; width: 14px; height: 3px; background: var(--nezumi); }
+  .legend .k.cl::before { height: 0; border-top: 1px dashed var(--nezumi-dim); }
+
+  /* ================= 右半分・概要 ================= */
+  /* 行を伸ばしきらない。名前と一行紹介のために 690px は要らず、
+     伸ばすと「被害者」が名前から遠く離れて、どの行のものか分からなくなる。 */
+  .ov { max-width: 640px; }
+  .ov h2 { font-family: var(--mincho); font-weight: 700; font-size: 27px; letter-spacing: 0.05em; line-height: 1.5; margin: 0; }
+  .ov .lead { margin: 12px 0 0; font-size: 13px; color: var(--nezumi); max-width: 34em; line-height: 1.95; }
+  .ov .grp { margin-top: 26px; }
+  .cast { margin-top: 9px; }
+  .cast .r { display: flex; align-items: center; gap: 13px; padding: 11px 0; border-bottom: 1px solid var(--keisen); }
+  .cast .r:first-child { border-top: 1px solid var(--keisen); }
+  .cast .face {
+    width: 38px; height: 38px; border-radius: 50%; flex: none;
+    display: grid; place-items: center; background: var(--sumi-2);
+    font-family: var(--mincho); font-size: 16px; font-weight: 700;
+  }
+  .cast .face.on { box-shadow: 0 0 0 1.5px currentColor; }
+  .cast .col2 { display: flex; flex-direction: column; min-width: 0; }
+  .cast .nm { font-size: 14px; }
+  .cast .ps { font-size: 11.5px; color: var(--nezumi-dim); line-height: 1.65; }
+  .cast .role { margin-left: auto; flex: none; font-size: 10.5px; letter-spacing: 0.1em; color: var(--nezumi-dim); }
+
+  .modes { display: flex; margin-top: 9px; }
+  .modes span { flex: 1; text-align: center; padding: 9px 0; font-size: 12.5px;
+    color: var(--nezumi-dim); border-bottom: 1px solid var(--keisen); }
+  .modes .on { color: var(--kinari); border-bottom-color: var(--kinari); }
+  .ov .fine { margin: 8px 0 0; font-size: 11.5px; color: var(--nezumi-dim); }
+  .ov .go {
+    margin-top: auto; border: 1px solid var(--nezumi); padding: 13px; text-align: center;
+    font-family: var(--mincho); font-size: 15px; letter-spacing: 0.2em;
+  }
+  .ov .again { text-align: center; font-size: 12px; color: var(--nezumi-dim); margin-top: 12px; }
+
+  /* ================= 右半分・聞き込み ================= */
+  .talk { display: contents; }
+  .talk-head { padding-bottom: 14px; border-bottom: 1px solid var(--keisen); }
+  .talk-head .nm { font-family: var(--mincho); font-size: 20px; letter-spacing: 0.08em; }
+  .talk-head .ps { font-size: 12px; color: var(--nezumi-dim); margin-top: 3px; }
+
+  /* 最新の発話を下端に置き、上は溢れるに任せる。切れ口に霞をかけて、
+     途切れではなく「まだ上に続いている」ことを示す。 */
+  .log { position: relative; flex: 1; min-height: 0; overflow: hidden; padding: 20px 0 0;
+    display: flex; flex-direction: column; justify-content: flex-end; gap: 20px; max-width: 40em; }
+  .log::after {
+    content: ""; position: absolute; left: 0; right: 0; top: 0; height: 54px;
+    background: linear-gradient(to bottom, var(--sumi), transparent); pointer-events: none;
+  }
+  .turn { display: flex; flex-direction: column; gap: 8px; padding-left: 14px; border-left: 1px solid var(--keisen); }
+  .turn .who { font-size: 10.5px; letter-spacing: 0.12em; }
+  .turn.me .who { color: var(--nezumi-dim); }
+  .turn .txt { margin: 0; font-size: 14px; line-height: 2.05; }
+  .turn.me .txt { color: var(--nezumi); }
+  /* 確定した時刻は、その時刻が立つ列の顔料で染める（喋っている人の色ではない）。
+     いま指しているひとつだけ、罫を引いて表の目盛りと対にする。 */
+  .tm { color: currentColor; }
+  .tm.on { border-bottom: 1px solid currentColor; padding-bottom: 1px; }
+  .beat { color: var(--nezumi-dim); font-size: 11px; margin-left: 6px; }
+
+  .hint { display: flex; flex-direction: column; border-top: 1px solid var(--keisen); margin-top: 20px; max-width: 40em; }
+  .hint .hd { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; font-size: 12px; color: var(--nezumi-dim); }
+  .hint .q { padding: 9px 0; border-top: 1px solid var(--keisen); font-size: 13px; color: var(--nezumi); }
+  .askbar { display: flex; gap: 12px; align-items: flex-end; margin-top: 16px; max-width: 40em; }
+  .askbar .box { flex: 1; border-bottom: 1px solid var(--keisen); padding: 9px 2px; font-size: 13.5px; color: var(--nezumi-dim); }
+  .askbar .btn { border: 1px solid var(--keisen); padding: 8px 22px; font-size: 13px; flex: none; }
+
+  /* ================= 右半分・告発 ================= */
+  .acc { max-width: 640px; }
+  .acc h2 { font-family: var(--mincho); font-weight: 500; font-size: 24px; letter-spacing: 0.09em; margin: 0; }
+  .acc .lead { font-size: 13px; color: var(--nezumi); margin: 8px 0 26px; }
+  .pick { border-top: 1px solid var(--keisen); margin-top: 9px; }
+  .pick .r { border-bottom: 1px solid var(--keisen); padding: 12px 0; display: flex; align-items: center; gap: 12px; font-size: 14px; }
+  .pick .r .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  .pick .r.on { color: var(--shu); }
+  .pick .r.off { color: var(--nezumi); }
+  .acc .field { display: flex; flex-direction: column; gap: 7px; margin-top: 20px; }
+  .acc .field .box { border: 1px solid var(--keisen); padding: 11px 13px; font-size: 13px; color: var(--nezumi-dim); min-height: 62px; }
+  .acc .seal {
+    margin-top: auto; border: 1px solid var(--shu); color: var(--shu);
+    padding: 13px; text-align: center; font-family: var(--mincho);
+    font-size: 15px; letter-spacing: 0.24em;
+  }
+
+  /* ================= 右半分・結果 ================= */
+  .res .verdict { font-family: var(--mincho); font-size: 30px; font-weight: 700; letter-spacing: 0.16em; margin: 0; line-height: 1.4; }
+  .res .sub { font-size: 12.5px; color: var(--nezumi-dim); margin: 6px 0 0; }
+  .rows { margin-top: 9px; border-top: 1px solid var(--keisen); }
+  .rows .r { display: flex; justify-content: space-between; align-items: baseline; gap: 16px;
+    padding: 9px 0; border-bottom: 1px solid var(--keisen); font-size: 13.5px; }
+  .rows .r .k { color: var(--nezumi); }
+  .ok { color: var(--byakuroku); }
+  .res .grp { margin-top: 20px; }
+  .res .foot { margin-top: auto; display: flex; gap: 12px; }
+  .res .foot span { flex: 1; border: 1px solid var(--keisen); padding: 11px; text-align: center; font-size: 13px; color: var(--nezumi); }
+  .res .foot span.main { border-color: var(--nezumi); color: var(--kinari); font-family: var(--mincho); letter-spacing: 0.16em; }
+
+  /* 結果の表は、同じ列に二本引く。左が聞き取った線、右が実際。
+     ここに文章は載せない——列は 108px しかなく、一文を入れれば隣の列へはみ出して読めなくなる。 */
+  .bar.mine { left: 13px; width: 1px; opacity: 0.45; background: none !important; border-left: 1px dashed currentColor; }
+  .bar.real { left: 26px; width: 3px; }
+  .bar.real::before { content: none; }
+  /* 二本がずれた区間。ここだけ言葉を足す。 */
+  .gapnote {
+    position: absolute; left: 34px; width: 74px;
+    display: flex; align-items: center;
+    font-size: 10.5px; line-height: 1.5; color: var(--kinari);
+  }
+
+  .truth { margin-top: 9px; }
+  .truth .r { display: flex; gap: 16px; align-items: baseline; padding: 4px 0; }
+  .truth .r .at { font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: 11.5px; color: var(--nezumi-dim); flex: none; }
+  .truth .r .tx { font-family: var(--mincho); font-size: 13.5px; letter-spacing: 0.04em; line-height: 1.7; }
+  .truth .r .tx { color: var(--nezumi); }
+  .truth .r.key .tx { color: var(--kinari); }
+
+  /* ================= 事件を選ぶ ================= */
+  .sel { height: 100%; padding: 0 60px; display: flex; flex-direction: column; }
+  .sel .top { display: flex; align-items: flex-end; justify-content: space-between; padding: 56px 0 30px; }
+  .sel .top h2 { font-family: var(--mincho); font-weight: 700; font-size: 40px; letter-spacing: 0.2em; margin: 0; }
+  .sel .top .sub { font-size: 12px; letter-spacing: 0.26em; color: var(--nezumi-dim); margin-top: 10px; }
+  .sel .top .set { font-size: 12.5px; color: var(--nezumi); }
+
+  /* 題字の列を伸ばしきらない。伸ばすと右端のメタと行の対応が目で追えなくなる。 */
+  .list { display: grid; grid-template-columns: 88px 560px 116px 52px 72px 76px; align-items: baseline; }
+  .list > * { padding: 13px 0; border-bottom: 1px solid var(--keisen); }
+  .list .hd { padding: 0 0 8px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; color: var(--nezumi-dim); }
+  /* 種別は余白に垂らす。同じ値が続くあいだは繰り返さないので、群の見出しとして立つ。 */
+  .list .cat { font-size: 11.5px; letter-spacing: 0.14em; color: var(--nezumi-dim); }
+  .list .ttl { font-family: var(--mincho); font-size: 18px; letter-spacing: 0.04em; }
+  .list .span { font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: 12.5px; color: var(--nezumi); }
+  .list .n, .list .d, .list .m { font-size: 12.5px; color: var(--nezumi); }
+  .list .row-on { background: var(--sumi-2); }
+
+  /* ================= 事件の記録 ================= */
+  .brief { height: 100%; position: relative; display: flex; justify-content: center; }
+  .brief .stage { width: 640px; padding-top: 96px; }
+  .brief .crawl { font-family: var(--mincho); font-size: 17px; line-height: 2.6; letter-spacing: 0.05em; }
+  .brief .crawl p { margin: 0 0 30px; }
+  /* 霞は本文だけに掛ける。見出しと操作は上に置く。 */
+  .brief .lb { position: absolute; top: 26px; left: 60px; z-index: 2; }
+  .brief .skip { position: absolute; bottom: 26px; left: 0; right: 0; z-index: 2;
+    text-align: center; font-size: 11.5px; color: var(--nezumi-dim); }
+  .brief .veil { position: absolute; left: 0; right: 0; height: 150px; pointer-events: none; }
+  .brief .veil.up { top: 0; background: linear-gradient(to bottom, var(--sumi), transparent); }
+  .brief .veil.dn { bottom: 0; background: linear-gradient(to top, var(--sumi), transparent); }
+
+  /* ================= 設定 ================= */
+  .set { height: 100%; display: flex; flex-direction: column; align-items: center; }
+  .set .inner { width: 720px; padding-top: 46px; }
+  .set .back { font-size: 12px; color: var(--nezumi-dim); }
+  .set h2 { font-family: var(--mincho); font-weight: 700; font-size: 26px; letter-spacing: 0.1em; margin: 18px 0 0; }
+  .set .lead { font-size: 12.5px; color: var(--nezumi); margin: 8px 0 0; }
+  .set .grp { margin-top: 34px; }
+  .set .role { display: grid; grid-template-columns: 248px 1fr; gap: 20px; align-items: center;
+    padding: 14px 0; border-bottom: 1px solid var(--keisen); }
+  .set .role:first-of-type { border-top: 1px solid var(--keisen); }
+  .set .role .nm { font-size: 13.5px; }
+  .set .role .ps { font-size: 11px; color: var(--nezumi-dim); line-height: 1.6; }
+  .set .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .set .fld { display: flex; flex-direction: column; gap: 5px; }
+  .set .sel2 { display: flex; justify-content: space-between; align-items: center;
+    border: 1px solid var(--keisen); padding: 0 10px; height: 32px; font-size: 12.5px; }
+  .set .sel2 .ar { color: var(--nezumi-dim); font-size: 9px; }
+  .set .sel2.unset { color: var(--nezumi); }
+  .set .sel2.locked { color: var(--nezumi-dim); border-color: var(--sumi-3); }
+  .set .fine { font-size: 11.5px; color: var(--nezumi-dim); margin: 10px 0 0; }
+  .set .trio { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 14px; }
+  .set .num { border: 1px solid var(--keisen); height: 32px; display: flex; align-items: center; padding: 0 10px; font-size: 13px; }
+  .set .sum { font-size: 12.5px; color: var(--nezumi); margin: 18px 0 0; line-height: 2; }
+  .set .sum b { color: var(--kinari); font-weight: 500; }
+
+  /* ================= 決めごと ================= */
+  .rules { border-top: 1px solid var(--keisen); }
+  .rules .r { display: grid; grid-template-columns: 210px 1fr; gap: 28px;
+    padding: 18px 0; border-bottom: 1px solid var(--keisen); align-items: baseline; }
+  .rules .r .k { font-family: var(--mincho); font-size: 15px; letter-spacing: 0.06em; }
+  .rules .r .v { font-size: 13.5px; color: var(--nezumi); line-height: 1.9; max-width: 52em; }
+  .rules .r .v b { color: var(--kinari); font-weight: 500; }
+</style>
+
+<div class="wrap">
+
+  <div class="masthead">
+    <div class="eyebrow">Desktop · 1280×780</div>
+    <h1>机の上に、表と<br>聞き込みを同時に置く</h1>
+    <p class="lede">
+      デスクトップで増えるのは面積ではなく、<strong>同時に見えること</strong>です。
+      スマホ版は一度にひとつしか持てないので、相手を替えるたび概要へ戻り、時刻軸は細い帯でした。
+      画面が広がったぶんを余白と装飾に配るのではなく、<strong>時刻軸を実寸のアリバイ表に開いて左半分に据え置き</strong>、
+      右半分だけを仕事に応じて差し替えます。表は聞くほど埋まり、告発のときには拡大する必要がありません——
+      最初から実寸で出ているので。
+    </p>
+  </div>
+
+  <div class="sec">
+    <div class="eyebrow">骨格</div>
+    <h2>左は据え置き、右だけが替わる</h2>
+    <p class="note">
+      概要・聞き込み・告発・結果は<b>同じ一枚の机</b>です。画面が変わるのではなく、机の右半分に載るものが変わります。
+      場所が動かないので、聞き込みの途中で表を見ても、告発に進んでも、目は同じ場所に戻れます。
+      設定だけはこの机に載りません（<b>ターン数は回数であって時刻ではない</b>ため）。
+    </p>
+    <div class="skeletons">
+      <div class="sk">
+        <div class="box">
+          <div class="bar"></div>
+          <div class="split">
+            <div class="lf"></div>
+            <div class="rt"><u></u><u class="w"></u><u></u><u class="w"></u></div>
+          </div>
+        </div>
+        <div class="cap"><b>概要</b>空の表と、誰から聞くか</div>
+      </div>
+      <div class="sk">
+        <div class="box">
+          <div class="bar"></div>
+          <div class="split">
+            <div class="lf">
+              <i style="left:22px; top:10px; height:34px; background:var(--asagi)"></i>
+              <i style="left:48px; top:16px; height:22px; background:var(--fuji)"></i>
+              <i style="left:74px; top:8px; height:52px; background:var(--suou)"></i>
+            </div>
+            <div class="rt"><u class="w"></u><u></u><u class="w"></u></div>
+          </div>
+        </div>
+        <div class="cap"><b>聞き込み</b>埋まる表と、ひとりとの会話</div>
+      </div>
+      <div class="sk">
+        <div class="box">
+          <div class="bar"></div>
+          <div class="split">
+            <div class="lf">
+              <i style="left:22px; top:8px; height:62px; background:var(--asagi)"></i>
+              <i style="left:48px; top:12px; height:44px; background:var(--fuji)"></i>
+              <i style="left:74px; top:8px; height:74px; background:var(--suou)"></i>
+            </div>
+            <div class="rt"><u></u><u class="w"></u><u></u></div>
+          </div>
+        </div>
+        <div class="cap"><b>告発</b>埋まりきった表と、指し示す欄</div>
+      </div>
+      <div class="sk">
+        <div class="box">
+          <div class="bar"></div>
+          <div class="split">
+            <div class="lf">
+              <i style="left:18px; top:8px; height:30px; width:1px; background:var(--nezumi-dim)"></i>
+              <i style="left:24px; top:8px; height:62px; background:var(--asagi)"></i>
+              <i style="left:46px; top:14px; height:38px; width:1px; background:var(--nezumi-dim)"></i>
+              <i style="left:52px; top:14px; height:44px; background:var(--fuji)"></i>
+              <i style="left:74px; top:30px; height:26px; width:1px; background:var(--nezumi-dim)"></i>
+              <i style="left:80px; top:30px; height:26px; background:var(--suou)"></i>
+            </div>
+            <div class="rt"><u class="w"></u><u></u><u class="w"></u></div>
+          </div>
+        </div>
+        <div class="cap"><b>結果</b>申告と実際を並べた表と、判定</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="eyebrow">画面</div>
+    <h2>七つの画面</h2>
+    <p class="note">
+      色・書体・「箱を作らず罫線で分ける」は既存のまま。ここで決めるのは<b>広い画面での置き方</b>だけです。
+    </p>
+
+    <!-- ============ 1 事件を選ぶ ============ -->
+    <div class="plate">
+      <div class="head">
+        <span class="nm">一　事件を選ぶ</span>
+        <span class="why">縦積みをやめ、<b>種別を左の余白に垂らして</b>題字の列を一本に通します。同じ種別が続くあいだは繰り返さないので、
+        余白のラベルがそのまま群の見出しになります。時間帯・人数・難度・所要は右で桁を揃え、縦に読み比べられるようにしました——
+        これは行の中に畳んでいたスマホ版ではできなかったことです。</span>
+      </div>
+      <div class="scroller"><div class="frame">
+        <div class="sel">
+          <div class="top">
+            <div>
+              <h2>AlibAI</h2>
+              <div class="sub">聞き込みで、犯人を指し示す</div>
+            </div>
+            <span class="set">設定</span>
+          </div>
+          <div class="list">
+            <span class="hd">種別</span><span class="hd">事件</span><span class="hd">時間帯</span>
+            <span class="hd">人数</span><span class="hd">難度</span><span class="hd">所要</span>
+
+            <span class="cat">殺人</span>
+            <span class="ttl">雨の古書店、十九時八分のレシート</span>
+            <span class="span">18:20–19:20</span><span class="n">3人</span><span class="d">★★</span><span class="m">約10分</span>
+
+            <span class="cat"></span>
+            <span class="ttl">崖崩れの時計博物館、十一分の狂い</span>
+            <span class="span">20:40–21:30</span><span class="n">4人</span><span class="d">★★★</span><span class="m">約15分</span>
+
+            <span class="cat"></span>
+            <span class="ttl">暴風の水族館、午前零時の給餌灯</span>
+            <span class="span">23:30–00:20</span><span class="n">4人</span><span class="d">★★★</span><span class="m">約15分</span>
+
+            <span class="cat"></span>
+            <span class="ttl">山荘の停電、三十七分の空白</span>
+            <span class="span">21:05–22:10</span><span class="n">5人</span><span class="d">★★★★</span><span class="m">約20分</span>
+
+            <span class="cat">盗難</span>
+            <span class="ttl">最終電車と遅延証明書</span>
+            <span class="span">23:10–00:05</span><span class="n">3人</span><span class="d">★★</span><span class="m">約10分</span>
+
+            <span class="cat"></span>
+            <span class="ttl">貸金庫、閉館後の二十分</span>
+            <span class="span">17:40–18:30</span><span class="n">4人</span><span class="d">★★★</span><span class="m">約15分</span>
+
+            <span class="cat">失踪</span>
+            <span class="ttl">霧の連絡船、乗客名簿の一人</span>
+            <span class="span">05:40–07:10</span><span class="n">4人</span><span class="d">★★★</span><span class="m">約15分</span>
+
+            <span class="cat"></span>
+            <span class="ttl">冬の温室、鍵のかかった扉の内側</span>
+            <span class="span">14:20–15:40</span><span class="n">3人</span><span class="d">★★</span><span class="m">約10分</span>
+
+            <span class="cat">放火</span>
+            <span class="ttl">乾いた倉庫、消えた見張り番</span>
+            <span class="span">02:10–03:25</span><span class="n">4人</span><span class="d">★★★★</span><span class="m">約20分</span>
+          </div>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- ============ 2 事件の記録 ============ -->
+    <div class="plate">
+      <div class="head">
+        <span class="nm">二　事件の記録</span>
+        <span class="why">せり上がる演出はそのまま。広い画面でも本文は<b>640pxで止めます</b>——行が長くなるほど読み返しづらく、
+        ここは唯一の読み物なので。左右の余白は埋めません。暗いまま置いておくのが、この画面の仕事です。</span>
+      </div>
+      <div class="scroller"><div class="frame">
+        <div class="brief">
+          <span class="lb label">記録　0001</span>
+          <div class="stage">
+            <div class="crawl">
+              <p>——事件の記録を読み上げます。</p>
+              <p>午後七時十五分、商店街の古書店「青雨堂」で、店主の水野英治が店の奥で死亡しているのが見つかりました。外は夕方から激しい雨。閉店時刻は午後六時半でしたが、店内には高価な初版本の商談があり、何人かが遅くまで出入りしていました。</p>
+              <p>事件に関わるのは三人です。店員の牧野千尋、常連の収集家・黒田征司、向かいの喫茶店主・瀬名真琴。</p>
+            </div>
+          </div>
+          <div class="veil up"></div>
+          <div class="veil dn"></div>
+          <div class="skip">クリックで読み飛ばす</div>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- ============ 3 概要 ============ -->
+    <div class="plate">
+      <div class="head">
+        <span class="nm">三　概要</span>
+        <span class="why">机がここで組み上がります。左は<b>まだ一本も引かれていないアリバイ表</b>——これから埋める空欄を先に見せておくと、
+        供述から時刻が立つ意味が最初の一問から分かります。右は配役と手がかりの見え方、そして最初の相手。
+        被害者にも列を与えます。刻限（死亡推定）だけは最初から引かれていて、埋めるべき範囲を示します。</span>
+      </div>
+      <div class="scroller"><div class="frame">
+        <div class="desk">
+          <div class="top">
+            <span class="back">←　事件を選ぶ</span>
+            <div class="rgt"><span>全12ターン</span><span>約10分</span></div>
+          </div>
+          <div class="panes">
+            <div class="board">
+              <div class="bh">
+                <span class="nm">アリバイ表</span>
+                <span class="label t">18:20 – 19:20</span>
+              </div>
+              <div class="cols chart-head">
+                <span></span>
+                <span class="c" style="color:var(--asagi-t)"><span class="who">牧野千尋</span><span class="rl">店員</span></span>
+                <span class="c" style="color:var(--fuji-t)"><span class="who">黒田征司</span><span class="rl">収集家</span></span>
+                <span class="c" style="color:var(--suou-t)"><span class="who">瀬名真琴</span><span class="rl">喫茶店主</span></span>
+                <span class="c" style="color:var(--karashi-t)"><span class="who">水野英治</span><span class="rl">被害者</span></span>
+              </div>
+              <div class="cols chart">
+                <span class="grid" style="top:0"></span>
+                <span class="grid" style="top:100px"></span>
+                <span class="grid" style="top:200px"></span>
+                <span class="grid" style="top:300px"></span>
+                <span class="grid" style="top:400px"></span>
+                <span class="grid" style="top:500px"></span>
+                <span class="grid" style="top:600px"></span>
+                <span class="gut">
+                  <span class="at edge" style="top:0">18:20</span>
+                  <span class="at" style="top:100px">18:30</span>
+                  <span class="at" style="top:200px">18:40</span>
+                  <span class="at" style="top:300px">18:50</span>
+                  <span class="at" style="top:400px">19:00</span>
+                  <span class="at" style="top:500px">19:10</span>
+                  <span class="at edge" style="top:600px">19:20</span>
+                </span>
+                <span class="col"></span>
+                <span class="col"></span>
+                <span class="col"></span>
+                <span class="col"></span>
+                <span class="deadline" style="top:300px"><span>死亡推定　<span class="t">18:50</span></span></span>
+              </div>
+              <div class="legend">
+                <span class="k"><b>実線</b>　裏付けあり</span>
+                <span class="k cl"><b>破線</b>　本人の申告のみ</span>
+              </div>
+            </div>
+
+            <div class="work ov">
+              <h2>雨の古書店、十九時八分のレシート</h2>
+              <p class="lead">閉店後の一時間。この六十分を、誰かひとりだけが説明しきれずにいます。</p>
+
+              <div class="grp">
+                <span class="label">まず誰から話を聞くか</span>
+                <div class="cast">
+                  <div class="r">
+                    <span class="face on" style="color:var(--asagi-t); background:#1f2a2a">牧</span>
+                    <span class="col2"><span class="nm" style="color:var(--asagi-t)">牧野千尋</span><span class="ps">店員。生真面目で、話しはじめると止まらない</span></span>
+                  </div>
+                  <div class="r">
+                    <span class="face" style="color:var(--fuji-t); background:#221f2b">黒</span>
+                    <span class="col2"><span class="nm">黒田征司</span><span class="ps">常連の収集家。初版本の商談に来ていた</span></span>
+                  </div>
+                  <div class="r">
+                    <span class="face" style="color:var(--suou-t); background:#271d22">瀬</span>
+                    <span class="col2"><span class="nm">瀬名真琴</span><span class="ps">向かいの喫茶店主。雨脚を見ていた</span></span>
+                  </div>
+                  <div class="r">
+                    <span class="face" style="color:var(--karashi-t); background:#2a2418">水</span>
+                    <span class="col2"><span class="nm">水野英治</span><span class="ps">青雨堂店主</span></span>
+                    <span class="role">被害者</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="grp">
+                <span class="label">手がかりの見え方</span>
+                <div class="modes">
+                  <span>Easy</span><span class="on">Normal</span><span>Hard</span><span>No Hope</span>
+                </div>
+                <p class="fine">場所と人物、それぞれの合計だけが見えます。</p>
+              </div>
+
+              <div class="go">牧野千尋に聞き込みをする</div>
+              <div class="again">事件の記録をもう一度読む</div>
+            </div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- ============ 4 聞き込み ============ -->
+    <div class="plate">
+      <div class="head">
+        <span class="nm">四　聞き込み</span>
+        <span class="why">この案の主題。<b>供述で確定した時刻と、表に立つ目盛りは同じひとつのもの</b>で、片方に触れるともう片方が起きます
+        （図では <span class="t" style="color:var(--asagi-t)">午後七時八分</span> と郵便窓口の目盛りが対になっています）。
+        スマホでは同時に見えないので作れなかった対応づけです。相手を替えるのに概要へ戻る必要もありません——
+        <b>表の列見出しがそのまま切り替え</b>で、いま聞いている人の列だけが起きています。
+        ひとりが続けて喋るあいだ名前は一度きり、左の縦罫だけが伸びるのは既存のまま。</span>
+      </div>
+      <div class="scroller"><div class="frame">
+        <div class="desk">
+          <div class="top">
+            <span class="ttl">雨の古書店、十九時八分のレシート</span>
+            <div class="rgt"><span>4 / 12 ターン</span><span class="t">08:41</span><span class="act">告発する</span></div>
+          </div>
+          <div class="panes">
+            <div class="board">
+              <div class="bh">
+                <span class="nm">アリバイ表</span>
+                <span class="label t">18:20 – 19:20</span>
+              </div>
+              <div class="cols chart-head">
+                <span></span>
+                <span class="c now" style="color:var(--asagi-t)"><span class="who">牧野千尋</span><span class="rl">聞き込み中</span></span>
+                <span class="c" style="color:var(--fuji-t)"><span class="who">黒田征司</span><span class="rl">収集家</span></span>
+                <span class="c" style="color:var(--suou-t)"><span class="who">瀬名真琴</span><span class="rl">喫茶店主</span></span>
+                <span class="c" style="color:var(--karashi-t)"><span class="who">水野英治</span><span class="rl">被害者</span></span>
+              </div>
+              <div class="cols chart">
+                <span class="grid" style="top:0"></span>
+                <span class="grid" style="top:100px"></span>
+                <span class="grid" style="top:200px"></span>
+                <span class="grid" style="top:300px"></span>
+                <span class="grid" style="top:400px"></span>
+                <span class="grid" style="top:500px"></span>
+                <span class="grid" style="top:600px"></span>
+                <span class="gut">
+                  <span class="at edge" style="top:0">18:20</span>
+                  <span class="at" style="top:100px">18:30</span>
+                  <span class="at" style="top:200px">18:40</span>
+                  <span class="at" style="top:300px">18:50</span>
+                  <span class="at" style="top:400px">19:00</span>
+                  <span class="at" style="top:500px">19:10</span>
+                  <span class="at edge" style="top:600px">19:20</span>
+                </span>
+
+                <span class="col now" style="color:var(--asagi-t)">
+                  <span class="bar solid" style="top:0; height:160px; background:var(--asagi)"><span class="pl">店内</span></span>
+                  <span class="bar claim" style="top:160px; height:320px; color:var(--asagi)"><span class="pl">郵便局へ、雨のなかを</span></span>
+                  <span class="bar solid on" style="top:480px; height:60px; background:var(--asagi)"><span class="pl">郵便窓口</span><span class="fix">19:08　受付</span></span>
+                </span>
+
+                <span class="col" style="color:var(--fuji-t)">
+                  <span class="bar solid" style="top:30px; height:180px; background:var(--fuji)"><span class="pl">店内</span><span class="fix">18:23　来店</span></span>
+                  <span class="bar claim" style="top:210px; height:390px; color:var(--fuji)"><span class="pl">帰宅したと申告</span></span>
+                </span>
+
+                <span class="col" style="color:var(--suou-t)">
+                  <span class="bar claim" style="top:0; height:520px; color:var(--suou)"><span class="pl">向かいの喫茶店</span></span>
+                  <span class="bar solid" style="top:520px; height:80px; background:var(--suou)"><span class="pl">青雨堂</span><span class="fix">19:12　通報</span></span>
+                </span>
+
+                <span class="col" style="color:var(--karashi-t)">
+                  <span class="bar solid" style="top:0; height:300px; background:var(--karashi)"><span class="pl">店の奥</span></span>
+                </span>
+
+                <span class="deadline" style="top:300px"><span>死亡推定　<span class="t">18:50</span></span></span>
+                <span class="clash" style="top:160px; left:63px; width:217px">
+                  <i style="left:-3px"></i><i style="right:-3px"></i>
+                  <span>食い違い</span>
+                </span>
+              </div>
+              <div class="legend">
+                <span class="k"><b>実線</b>　裏付けあり</span>
+                <span class="k cl"><b>破線</b>　本人の申告のみ</span>
+              </div>
+            </div>
+
+            <div class="work">
+              <div class="talk-head">
+                <div class="nm" style="color:var(--asagi-t)">牧野千尋</div>
+                <div class="ps">店員。生真面目で、話しはじめると止まらない</div>
+              </div>
+
+              <div class="log">
+                <div class="turn me">
+                  <span class="who">探偵</span>
+                  <p class="txt">閉店したあと、店に残っていたのは誰ですか。</p>
+                </div>
+                <div class="turn" style="border-left-color:var(--asagi)">
+                  <span class="who" style="color:var(--asagi-t)">牧野千尋</span>
+                  <p class="txt">わたしと、店長と、黒田さんです。黒田さんは初版本の話で<span class="tm" style="color:var(--fuji-t)">六時二十三分</span>ごろに見えました。</p>
+                  <p class="txt">わたしは奥の帳場にいましたから、そのあたりはよく覚えています。</p>
+                </div>
+                <div class="turn me">
+                  <span class="who">探偵</span>
+                  <p class="txt">店を出たあと、まっすぐ郵便局へ向かったんですね。</p>
+                </div>
+                <div class="turn" style="border-left-color:var(--asagi)">
+                  <span class="who" style="color:var(--asagi-t)">牧野千尋</span>
+                  <p class="txt">はい。発送があったので、午後六時三十六分には店を出ています。</p>
+                  <p class="txt">窓口の受付は<span class="tm on" style="color:var(--asagi-t)">午後七時八分</span>でした。レシートも残っています。</p>
+                  <p class="txt">……三十分以上かかる道のりでしたけど。雨でしたから。<span class="beat">▼</span></p>
+                </div>
+              </div>
+
+              <div class="hint">
+                <div class="hd"><span>訊けそうなこと</span><span>▲</span></div>
+                <span class="q">レシートを見せてもらえますか</span>
+                <span class="q">瀬名さんは、あなたが出ていくのを見ていないそうです</span>
+              </div>
+
+              <div class="askbar">
+                <span class="box">何について訊く？</span>
+                <span class="btn">訊く</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- ============ 5 告発 ============ -->
+    <div class="plate">
+      <div class="head">
+        <span class="nm">五　告発</span>
+        <span class="why">机はそのまま、右半分だけが告発の欄に替わります。<b>表を拡大しません</b>——スマホ版が拡大していたのは
+        帯だったからで、こちらは最初から実寸です。表は答え欄ではなく考えるための場所なので、名指しするのは
+        誰が・どうやって・なぜの三つだけ。<b>朱が出るのはこの画面だけ</b>です。</span>
+      </div>
+      <div class="scroller"><div class="frame">
+        <div class="desk">
+          <div class="top">
+            <span class="back">←　聞き込みに戻る</span>
+            <div class="rgt"><span>11 / 12 ターン</span><span class="t">21:04</span></div>
+          </div>
+          <div class="panes">
+            <div class="board">
+              <div class="bh">
+                <span class="nm">アリバイ表</span>
+                <span class="label t">18:20 – 19:20</span>
+              </div>
+              <div class="cols chart-head">
+                <span></span>
+                <span class="c" style="color:var(--asagi-t)"><span class="who">牧野千尋</span><span class="rl">店員</span></span>
+                <span class="c" style="color:var(--fuji-t)"><span class="who">黒田征司</span><span class="rl">収集家</span></span>
+                <span class="c" style="color:var(--suou-t)"><span class="who">瀬名真琴</span><span class="rl">喫茶店主</span></span>
+                <span class="c" style="color:var(--karashi-t)"><span class="who">水野英治</span><span class="rl">被害者</span></span>
+              </div>
+              <div class="cols chart">
+                <span class="grid" style="top:0"></span>
+                <span class="grid" style="top:100px"></span>
+                <span class="grid" style="top:200px"></span>
+                <span class="grid" style="top:300px"></span>
+                <span class="grid" style="top:400px"></span>
+                <span class="grid" style="top:500px"></span>
+                <span class="grid" style="top:600px"></span>
+                <span class="gut">
+                  <span class="at edge" style="top:0">18:20</span>
+                  <span class="at" style="top:100px">18:30</span>
+                  <span class="at" style="top:200px">18:40</span>
+                  <span class="at" style="top:300px">18:50</span>
+                  <span class="at" style="top:400px">19:00</span>
+                  <span class="at" style="top:500px">19:10</span>
+                  <span class="at edge" style="top:600px">19:20</span>
+                </span>
+
+                <span class="col" style="color:var(--asagi-t)">
+                  <span class="bar solid" style="top:0; height:160px; background:var(--asagi)"><span class="pl">店内</span></span>
+                  <span class="bar claim" style="top:160px; height:320px; color:var(--asagi)"><span class="pl">郵便局へ</span></span>
+                  <span class="bar solid" style="top:480px; height:60px; background:var(--asagi)"><span class="pl">郵便窓口</span><span class="fix">19:08　受付</span></span>
+                </span>
+
+                <span class="col" style="color:var(--fuji-t)">
+                  <span class="bar solid" style="top:30px; height:180px; background:var(--fuji)"><span class="pl">店内</span></span>
+                  <span class="bar solid" style="top:210px; height:70px; background:var(--fuji)"><span class="pl">裏の路地</span><span class="fix">18:41　忘れ傘</span></span>
+                  <span class="bar claim" style="top:280px; height:320px; color:var(--fuji)"><span class="pl">帰宅したと申告</span></span>
+                </span>
+
+                <span class="col" style="color:var(--suou-t)">
+                  <span class="bar claim" style="top:0; height:190px; color:var(--suou)"><span class="pl">向かいの喫茶店</span></span>
+                  <span class="bar solid" style="top:190px; height:90px; background:var(--suou)"><span class="pl">青雨堂の軒先</span><span class="fix">18:39　雨宿り</span></span>
+                  <span class="bar claim" style="top:280px; height:240px; color:var(--suou)"><span class="pl">喫茶店に戻る</span></span>
+                  <span class="bar solid" style="top:520px; height:80px; background:var(--suou)"><span class="pl">青雨堂</span><span class="fix">19:12　通報</span></span>
+                </span>
+
+                <span class="col" style="color:var(--karashi-t)">
+                  <span class="bar solid" style="top:0; height:300px; background:var(--karashi)"><span class="pl">店の奥</span></span>
+                </span>
+
+                <span class="deadline" style="top:300px"><span>死亡推定　<span class="t">18:50</span></span></span>
+              </div>
+              <div class="legend">
+                <span class="k"><b>実線</b>　裏付けあり</span>
+                <span class="k cl"><b>破線</b>　本人の申告のみ</span>
+              </div>
+            </div>
+
+            <div class="work acc">
+              <h2>犯人を指し示す</h2>
+              <p class="lead">誰が、どうやって、なぜ。提出すると取り消せません。</p>
+
+              <span class="label">犯人</span>
+              <div class="pick">
+                <div class="r on"><span class="dot" style="background:var(--shu)"></span>牧野千尋</div>
+                <div class="r off"><span class="dot" style="background:var(--fuji)"></span>黒田征司</div>
+                <div class="r off"><span class="dot" style="background:var(--suou)"></span>瀬名真琴</div>
+              </div>
+
+              <div class="field">
+                <span class="label">殺害方法</span>
+                <div class="box">どうやって殺したのか</div>
+              </div>
+
+              <div class="field">
+                <span class="label">動機</span>
+                <div class="box">なぜ殺したのか</div>
+              </div>
+
+              <div class="seal">この推理を提出する</div>
+            </div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- ============ 6 結果 ============ -->
+    <div class="plate">
+      <div class="head">
+        <span class="nm">六　結果</span>
+        <span class="why">表の中身をここで一度だけ入れ替え、<b>「青雨堂にいた時間」だけ</b>を、申告（破線）と実際（実線）の二本で並べます。
+        瀬名と黒田はほぼ重なり、<b>牧野の実線だけが申告より下へ伸びて、死亡推定の線に届いています</b>——
+        彼女が出たと言った <span class="t">18:36</span> のあと、まだ店にいた。読まなくても分かるのがこの一枚の仕事です。
+        真相の文は表に載せません。列は 108px しかなく、一文を入れれば隣へはみ出してどちらの列の話かが消えるので、
+        言葉は右の一覧に置きます。<b>外れに赤は使いません</b>（責められている画面になるので）。白緑は当たったところにだけ。</span>
+      </div>
+      <div class="scroller"><div class="frame">
+        <div class="desk">
+          <div class="top">
+            <span class="ttl">雨の古書店、十九時八分のレシート</span>
+            <div class="rgt"><span>解決</span><span class="t">08:41</span></div>
+          </div>
+          <div class="panes">
+            <div class="board">
+              <div class="bh">
+                <span class="nm">青雨堂にいた時間</span>
+                <span class="label t">18:20 – 19:20</span>
+              </div>
+              <div class="cols chart-head">
+                <span></span>
+                <span class="c" style="color:var(--asagi-t)"><span class="who">牧野千尋</span><span class="rl ok">犯人</span></span>
+                <span class="c" style="color:var(--fuji-t)"><span class="who">黒田征司</span><span class="rl">収集家</span></span>
+                <span class="c" style="color:var(--suou-t)"><span class="who">瀬名真琴</span><span class="rl">喫茶店主</span></span>
+                <span class="c" style="color:var(--karashi-t)"><span class="who">水野英治</span><span class="rl">被害者</span></span>
+              </div>
+              <div class="cols chart">
+                <span class="grid" style="top:0"></span>
+                <span class="grid" style="top:100px"></span>
+                <span class="grid" style="top:200px"></span>
+                <span class="grid" style="top:300px"></span>
+                <span class="grid" style="top:400px"></span>
+                <span class="grid" style="top:500px"></span>
+                <span class="grid" style="top:600px"></span>
+                <span class="gut">
+                  <span class="at edge" style="top:0">18:20</span>
+                  <span class="at" style="top:100px">18:30</span>
+                  <span class="at" style="top:200px">18:40</span>
+                  <span class="at" style="top:300px">18:50</span>
+                  <span class="at" style="top:400px">19:00</span>
+                  <span class="at" style="top:500px">19:10</span>
+                  <span class="at edge" style="top:600px">19:20</span>
+                </span>
+
+                <span class="col" style="color:var(--asagi-t)">
+                  <span class="bar mine" style="top:0; height:160px"></span>
+                  <span class="bar real" style="top:0; height:300px; background:var(--asagi)"></span>
+                  <span class="gapnote" style="top:160px; height:140px">申告より<br>14分ぶん長い</span>
+                </span>
+
+                <span class="col" style="color:var(--fuji-t)">
+                  <span class="bar mine" style="top:30px; height:180px"></span>
+                  <span class="bar real" style="top:30px; height:255px; background:var(--fuji)"></span>
+                </span>
+
+                <span class="col" style="color:var(--suou-t)">
+                  <span class="bar mine" style="top:190px; height:90px"></span>
+                  <span class="bar mine" style="top:520px; height:80px"></span>
+                  <span class="bar real" style="top:190px; height:90px; background:var(--suou)"></span>
+                  <span class="bar real" style="top:520px; height:80px; background:var(--suou)"></span>
+                </span>
+
+                <span class="col" style="color:var(--karashi-t)">
+                  <span class="bar real" style="top:0; height:300px; background:var(--karashi)"></span>
+                </span>
+
+                <span class="deadline" style="top:300px"><span>死亡　<span class="t">18:50</span></span></span>
+              </div>
+              <div class="legend">
+                <span class="k cl"><b>破線</b>　申告</span>
+                <span class="k"><b>実線</b>　実際</span>
+              </div>
+            </div>
+
+            <div class="work res">
+              <p class="verdict">事件解決</p>
+              <p class="sub">牧野千尋を送検しました。</p>
+
+              <div class="grp">
+                <span class="label">判定</span>
+                <div class="rows">
+                  <div class="r"><span class="k">犯人</span><span>牧野千尋　<span class="ok">正解</span></span></div>
+                  <div class="r"><span class="k">殺害方法</span><span class="ok">正解</span></div>
+                  <div class="r"><span class="k">動機</span><span class="muted">惜しい</span></div>
+                </div>
+              </div>
+
+              <div class="grp">
+                <span class="label">記録</span>
+                <div class="rows">
+                  <div class="r"><span class="k">解決タイム</span><span class="t">08:41</span></div>
+                  <div class="r"><span class="k">質問回数</span><span>9回</span></div>
+                  <div class="r"><span class="k">発見した証拠</span><span>6個</span></div>
+                </div>
+              </div>
+
+              <div class="grp">
+                <span class="label">真相</span>
+                <div class="truth">
+                  <div class="r"><span class="at">18:28</span><span class="tx">黒田が水野に、記録に残さない現金取引を持ちかける</span></div>
+                  <div class="r"><span class="at">18:37</span><span class="tx">水野がすり替えに気づき、牧野を問い詰める</span></div>
+                  <div class="r key"><span class="at">18:50</span><span class="tx">牧野が店の奥で水野を襲う</span></div>
+                  <div class="r"><span class="at">19:08</span><span class="tx">牧野が郵便窓口で小包を発送する</span></div>
+                </div>
+              </div>
+
+              <div class="foot">
+                <span>この事件をもう一度</span>
+                <span class="main">次の事件へ</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- ============ 7 設定 ============ -->
+    <div class="plate">
+      <div class="head">
+        <span class="nm">七　設定</span>
+        <span class="why">物語の外にある唯一の画面。<b>机には載せず、表も引きません</b>——ターン数や往復は回数であって盤面の時刻ではなく、
+        同じ表で描けば軸は「なんとなく量を表す装置」に落ちます。数字を等幅にしないのも同じ理由。
+        広い画面でも一列に保ち、ラベルと操作を左右で組みます。提供元を選ぶまでモデルは触れません。</span>
+      </div>
+      <div class="scroller"><div class="frame">
+        <div class="set">
+          <div class="inner">
+            <span class="back">←　事件を選ぶ</span>
+            <h2>設定</h2>
+            <p class="lead">この端末にだけ保存されます。サーバには残らず、あなたのプレイにだけ効きます。</p>
+
+            <div class="grp">
+              <span class="label">使うモデル</span>
+              <div class="role">
+                <div>
+                  <div class="nm">会話</div>
+                  <div class="ps">NPCの受け答えと、探偵が組み立てる質問</div>
+                </div>
+                <div class="pair">
+                  <div class="fld"><span class="label">提供元</span><span class="sel2"><span>Anthropic</span><span class="ar">▼</span></span></div>
+                  <div class="fld"><span class="label">モデル</span><span class="sel2"><span>Claude Sonnet 5</span><span class="ar">▼</span></span></div>
+                </div>
+              </div>
+              <div class="role">
+                <div>
+                  <div class="nm">判定</div>
+                  <div class="ps">証拠の開示と、推理の採点</div>
+                </div>
+                <div class="pair">
+                  <div class="fld"><span class="label">提供元</span><span class="sel2 unset"><span>既定のまま</span><span class="ar">▼</span></span></div>
+                  <div class="fld"><span class="label">モデル</span><span class="sel2 locked"><span>既定のまま</span><span class="ar">▼</span></span></div>
+                </div>
+              </div>
+              <p class="fine">Google は APIキーが未設定のため選べません。</p>
+            </div>
+
+            <div class="grp">
+              <span class="label">進行</span>
+              <p class="fine">新しく始める事件から効きます。進行中のものは変わりません。</p>
+              <div class="trio">
+                <div class="fld"><span class="label">ターン数</span><span class="num">5</span></div>
+                <div class="fld"><span class="label">1ターンの質問</span><span class="num">1</span></div>
+                <div class="fld"><span class="label">1話題の往復</span><span class="num">3</span></div>
+              </div>
+              <p class="sum">
+                5ターン × 1問 ＝ <b>全部で5問</b>（上限20問）。<br>
+                1話題ごとに、モデルを<b>7回</b>呼びます。
+              </p>
+            </div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+
+  </div>
+
+  <div class="sec">
+    <div class="eyebrow">決めごと</div>
+    <h2>この案が守る五つ</h2>
+    <div class="rules">
+      <div class="r">
+        <span class="k">一　表は据え置く</span>
+        <span class="v">概要から結果まで、アリバイ表は<b>同じ位置・同じ縮尺</b>にいます。拡大も移動もしません。
+        目が戻る場所が動かないことが、広い画面でいちばん効きます。</span>
+      </div>
+      <div class="r">
+        <span class="k">二　供述と目盛りは同じもの</span>
+        <span class="v">確定した時刻は、会話のなかの語と表の目盛りが<b>ひとつの対象</b>です。片方に触れればもう片方が起きます。
+        別々に描くと、表は会話の要約になってしまい、確かめる道具でなくなります。</span>
+      </div>
+      <div class="r">
+        <span class="k">三　等幅は盤面の時刻だけ</span>
+        <span class="v">ターン数・質問回数・証拠の個数には使いません。<b>等幅で書かれていれば作中の時刻</b>という規則を、
+        七画面すべてで守ります。</span>
+      </div>
+      <div class="r">
+        <span class="k">四　朱は告発だけ</span>
+        <span class="v">取り消せない一手にしか出しません。結果画面で外れに赤を使わないのも同じ理由で、
+        当たったところにだけ白緑を置きます。</span>
+      </div>
+      <div class="r">
+        <span class="k">五　箱を作らない</span>
+        <span class="v">角丸＋枠＋塗りの箱は増やさず、区切るのは罫線と表の升目だけ。
+        列を起こすときも枠で囲まず、<b>地をわずかに沈めるか、罫線と字を起こす</b>だけにします。</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="eyebrow">幅が足りないとき</div>
+    <h2>1120px を切ったら、机を畳む</h2>
+    <p class="note">
+      表と会話を並べるには左524px＋会話の適正な行長が要ります。これを割ったら二段組みをやめ、
+      <b>表は上端の帯へ畳んで既存のスマホ版の作りに戻します</b>。中途半端に縮めた表は、升目が潰れて
+      「なんとなく色が付いた領域」になり、いちばん読ませたいものがいちばん先に読めなくなるので。
+    </p>
+  </div>
+
+</div>

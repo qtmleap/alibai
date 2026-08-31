@@ -47,6 +47,14 @@ export const normalizePublicIntroduction = (value: string): string => {
     : trimmed
 }
 
+/**
+ * characters.id はシナリオ投入時に独立に採番される UUID。
+ * UUID の辞書順を表示順として使えば、作者が characters 配列へ書いた順序（犯人を
+ * 最初に設計しがちな LLM の癖）を公開 UI へ持ち込まず、同じ DB の間は順序も安定する。
+ */
+export const sortCharactersById = <T extends { id: string }>(characters: T[]): T[] =>
+  [...characters].sort((left, right) => left.id.localeCompare(right.id))
+
 /** 公開シナリオの一覧。読みは多いが滅多に書き換わらないので KV から返す。 */
 export const listScenarios = (kv: KVNamespace, db: Db): Promise<PublishedScenario[]> =>
   loadPublishedScenarios(kv, db)
@@ -98,19 +106,21 @@ export const findScenarioDetail = async (
     return undefined
   }
 
-  const characterRows = (
-    await db
-      .select({
-        id: characters.id,
-        name: characters.name,
-        publicIntroduction: characters.publicIntroduction,
-      })
-      .from(characters)
-      .where(eq(characters.scenarioId, scenarioId))
-  ).map((character) => ({
-    ...character,
-    publicIntroduction: normalizePublicIntroduction(character.publicIntroduction),
-  }))
+  const characterRows = sortCharactersById(
+    (
+      await db
+        .select({
+          id: characters.id,
+          name: characters.name,
+          publicIntroduction: characters.publicIntroduction,
+        })
+        .from(characters)
+        .where(eq(characters.scenarioId, scenarioId))
+    ).map((character) => ({
+      ...character,
+      publicIntroduction: normalizePublicIntroduction(character.publicIntroduction),
+    })),
+  )
 
   /*
     図面はここで読み替えてから返す。

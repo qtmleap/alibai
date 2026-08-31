@@ -135,11 +135,11 @@ describe('clampLimits', () => {
   })
 
   /*
-    ターン数と1ターンの質問数を両方上限まで上げられると 30 問になる。
-    10分で遊ぶゲームの形が変わるので、積にも天井を置く。
+    ターン数と1ターンの質問数を両方上限まで上げられると 45 問になる。
+    3〜5人の事件で全員に片端から聞けてしまうので、積にも天井を置く。
   */
   test('質問の総数が上限を超えない', () => {
-    const limits = clampLimits({ maxTurns: 10, questionsPerTurn: 3 }, fallback)
+    const limits = clampLimits({ maxTurns: 15, questionsPerTurn: 3 }, fallback)
 
     expect(limits.maxTurns * limits.questionsPerTurn).toBeLessThanOrEqual(
       LIMIT_CEILINGS.totalQuestions,
@@ -147,9 +147,9 @@ describe('clampLimits', () => {
   })
 
   test('積の天井に当たったらターン数ではなく1ターンの質問数を削る', () => {
-    const limits = clampLimits({ maxTurns: 10, questionsPerTurn: 3 }, fallback)
+    const limits = clampLimits({ maxTurns: 15, questionsPerTurn: 3 }, fallback)
 
-    expect(limits.maxTurns).toBe(10)
+    expect(limits.maxTurns).toBe(15)
     expect(limits.questionsPerTurn).toBe(2)
   })
 
