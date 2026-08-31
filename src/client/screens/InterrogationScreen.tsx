@@ -541,10 +541,13 @@ export const InterrogationScreen = ({
       ? []
       : [
           {
-            key: 'victim',
+            key: VICTIM_ID,
             name: scenario.victim.name,
-            role: '被害者',
+            role:
+              scenario.victim.investigable && activeCharacterId === VICTIM_ID ? '検分中' : '被害者',
             hue: hueOf(scenario.characters.length),
+            // 調べられない事件では、この列だけ押せる形にしない。
+            pickable: scenario.victim.investigable,
           },
         ]),
   ]
@@ -714,6 +717,11 @@ export const InterrogationScreen = ({
               span={{ from: timeWindow.start, to: timeWindow.end }}
               deadline={alibi.deadline}
               activeKey={activeCharacterId}
+              /*
+                列見出しから相手を替える。名前の隣の小さな並びだけだと、
+                表の上に相手が居るのに押せず、切り替えの口が見つからない。
+              */
+              onPick={setActiveCharacterId}
               clash={alibi.clash}
             />
           )}

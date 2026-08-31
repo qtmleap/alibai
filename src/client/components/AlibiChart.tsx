@@ -8,6 +8,8 @@ export type AlibiPerson = {
   hue: Hue
   /** 結果の画面で、当てられた犯人にだけ白緑を載せる。 */
   roleSolved?: boolean
+  /** 列見出しから話しかけられるか。既定は押せる。話しかけられない相手だけ false を渡す。 */
+  pickable?: boolean
 }
 
 export type AlibiSegment = {
@@ -113,13 +115,18 @@ export const AlibiChart = ({
         <div />
         {people.map((p) => {
           const on = p.key === activeKey
-          // 押せる列見出しは button で。span に onClick を載せるとキーボードから触れない。
-          const Tag = onPick === undefined ? 'div' : 'button'
+          /*
+           * 押せる列見出しは button で。span に onClick を載せるとキーボードから触れない。
+           * 話しかけられない相手（調べられない被害者）は押せる形にしない——
+           * 押せるのに何も起きない列があると、押し方を間違えたのだと思わせてしまう。
+           */
+          const pickable = onPick !== undefined && p.pickable !== false
+          const Tag = pickable ? 'button' : 'div'
           return (
             <Tag
               key={p.key}
-              type={onPick === undefined ? undefined : 'button'}
-              onClick={onPick === undefined ? undefined : () => onPick(p.key)}
+              type={pickable ? 'button' : undefined}
+              onClick={pickable && onPick !== undefined ? () => onPick(p.key) : undefined}
               className={`border-b pb-[7px] pl-[10px] text-left ${HUE[p.hue].text} ${
                 on ? 'border-b-current' : 'border-b-keisen'
               }`}
