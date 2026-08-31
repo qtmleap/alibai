@@ -114,10 +114,14 @@ export const useReadOut = (paragraphs: string[]) => {
       return
     }
 
-    const cursor = cursorAt(paragraphs, shown)
+    /*
+     * 息継ぎは「いま出した文字のあと」に置く。これから出す文字を見て待つと、
+     * 句点の手前で間が空き、「。」だけがワンテンポ遅れて出る。
+     */
+    const spoken = shown === 0 ? { ch: '', endOfParagraph: false } : cursorAt(paragraphs, shown - 1)
     const timer = setTimeout(
       () => setShown((n) => n + 1),
-      waitAfter(cursor.ch, cursor.endOfParagraph),
+      waitAfter(spoken.ch, spoken.endOfParagraph),
     )
 
     return () => clearTimeout(timer)
