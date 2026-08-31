@@ -15,7 +15,11 @@ export const Route = createRootRoute({
   head: () => ({
     meta: [
       { charSet: 'UTF-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1.0, viewport-fit=cover' },
+      {
+        name: 'viewport',
+        content:
+          'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover',
+      },
       { title: 'AlibAI' },
       // ホーム画面から開いたときブラウザの殻を外す。display: standalone を読まない
       // 古い iOS はこの2枚だけが頼りで、black-translucent は
