@@ -41,14 +41,14 @@ export const BriefingScreen = ({ scenario, onRead }: Props) => {
   const paragraphs = useMemo(() => toParagraphs(scenario.briefing), [scenario.briefing])
 
   return (
-    <div className="screen-enter relative flex h-dvh flex-col overflow-hidden bg-sumi text-kinari lg:items-center">
+    <div className="screen-enter relative flex h-dvh flex-col overflow-hidden bg-sumi text-kinari">
       {/*
         器そのものを、この下の段だけ overflow-y-auto で送る。長い記録でも書いている先が
         霞の下へ潜らず、追いきれる。器の外（見出し・霞・読み飛ばし）は送らない。
         スクロールバーは出さない——見出しの視認性ではなく、罫線と余白で組む意匠に
         棒が一本混じるのが浮くため。
       */}
-      <div className="min-h-0 flex-1 overflow-y-auto px-[18px] pt-[30px] [scrollbar-width:none] lg:mx-auto lg:w-[640px] lg:flex-none lg:px-0 lg:pt-[96px] lg:pb-[180px] [&::-webkit-scrollbar]:hidden">
+      <div className="min-h-0 flex-1 overflow-y-auto px-[18px] pt-[30px] [scrollbar-width:none] lg:mx-auto lg:w-[640px] lg:px-0 lg:pt-[96px] lg:pb-[180px] [&::-webkit-scrollbar]:hidden">
         {/*
           記録の見出し。端末では本文の頭に流れの中で置き、器と一緒に送る。デスクトップでは
           画面の左上に逃がし、器の外（霞より上、z-20）に固定して送らせない。

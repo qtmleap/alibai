@@ -269,11 +269,20 @@ export const AccusationScreen = ({
                 </div>
               ))}
 
+              {/* 死亡推定は掴んで動かす目盛りと同じ描き方。ここは動かないが、朱で立てて唯一の刻限だと示す。 */}
               {deadline === undefined ? null : (
                 <span
-                  className="absolute top-[6px] bottom-[22px] w-px bg-nezumi-dim"
+                  className="absolute top-[-4px] bottom-[18px] w-[1.5px] bg-shu"
                   style={{ left: ratio(deadline.at) }}
-                />
+                >
+                  <span
+                    aria-hidden="true"
+                    className="-top-[5px] -left-[4px] absolute size-[9px] rounded-full bg-shu"
+                  />
+                  <span className="-top-[22px] -translate-x-1/2 absolute left-1/2 whitespace-nowrap font-mono text-[12px] text-shu tabular-nums">
+                    {deadline.at}
+                  </span>
+                </span>
               )}
 
               <div className="absolute inset-x-0 bottom-0 flex justify-between border-keisen border-t pt-[5px]">

@@ -48,7 +48,8 @@ type Props = {
 }
 
 /** 節の見出し。等幅なのは書式であって時刻ではないので、値には持ち込まない。 */
-const LEGEND = 'font-mono text-[10px] tracking-[0.24em] text-nezumi-dim leading-[1.8]'
+const LEGEND =
+  'font-mono text-[9.5px] tracking-[0.24em] text-nezumi-dim leading-[1.75] lg:text-[10px] lg:leading-[1.8]'
 
 /** 盤面の時刻。等幅で書かれていたらそれは時刻、という規則をここでも守る。 */
 const AT = 'font-mono tabular-nums'
@@ -117,7 +118,7 @@ const footOf = (main: boolean): string =>
 
 /** 判定・記録の1行。項目名と値を罫線で区切って並べるだけにする。 */
 const Row = ({ label, children }: { label: string; children: ReactNode }) => (
-  <div className="flex items-baseline justify-between gap-4 border-keisen border-b py-[9px] text-[13.5px] leading-[1.8]">
+  <div className="flex items-baseline justify-between gap-4 border-keisen border-b py-[7px] text-[12.5px] leading-[1.75] lg:py-[9px] lg:text-[13.5px] lg:leading-[1.8]">
     <span className="text-nezumi">{label}</span>
     <span className="text-right">{children}</span>
   </div>
@@ -130,9 +131,9 @@ const Mark = ({ correct }: { correct: boolean }) => (
 
 /** 節。見出しは小さな等幅ラベル、中身は罫線で区切った表。箱は作らない。 */
 const Group = ({ label, children }: { label: string; children: ReactNode }) => (
-  <section className="mt-5">
-    <h2 className={`${LEGEND} block pb-[7px]`}>{label}</h2>
-    <div className="mt-[9px]">{children}</div>
+  <section className="mt-[22px] lg:mt-5">
+    <h2 className={`${LEGEND} block pb-0 lg:pb-[7px]`}>{label}</h2>
+    <div className="mt-[6px] lg:mt-[9px]">{children}</div>
   </section>
 )
 
@@ -253,7 +254,8 @@ export const ResultScreen = ({ accuseResult, board, onRetry, onRestart }: Props)
             >
               {solved ? '事件解決' : '迷宮入り'}
             </p>
-            <p className="mt-[6px] text-center text-[12.5px] text-nezumi-dim lg:text-left">
+            {/* 端末では出さない。判定の節がすぐ下にあるので、この一行を挟むと二度言うことになる。 */}
+            <p className="mt-[6px] hidden text-[12.5px] text-nezumi-dim lg:block lg:text-left">
               {subOf(solved, correct, truth.culpritName)}
             </p>
           </div>
@@ -305,18 +307,21 @@ export const ResultScreen = ({ accuseResult, board, onRetry, onRestart }: Props)
                     {truth.truth}
                   </p>
                 ) : (
-                  <ol>
+                  // 端末は罫線で区切った行の列、机は罫線を持たない流れる時系列。組み方を変える。
+                  <ol className="border-keisen border-t lg:border-0">
                     {timeline.map((entry) => (
                       <li
                         key={`${entry.time}-${entry.event}`}
-                        className="flex items-baseline gap-4 py-1"
+                        className="flex items-baseline gap-[11px] border-keisen border-b py-[7px] text-[12px] leading-[1.75] lg:gap-4 lg:border-0 lg:py-1 lg:text-[13.5px] lg:leading-[1.7]"
                       >
-                        <span className={`${AT} shrink-0 text-[11.5px] text-nezumi-dim`}>
+                        <span
+                          className={`${AT} shrink-0 text-[12px] text-nezumi-dim lg:text-[11.5px]`}
+                        >
                           {clockOf(entry.time)}
                         </span>
                         {/* 刻限と同じ時刻の一行だけ濃くする。事件が起きたのはそこ。 */}
                         <span
-                          className={`font-mincho text-[13.5px] leading-[1.7] tracking-[0.04em] ${
+                          className={`lg:font-mincho lg:tracking-[0.04em] ${
                             clockOf(entry.time) === deadlineAt ? 'text-kinari' : 'text-nezumi'
                           }`}
                         >
@@ -328,7 +333,7 @@ export const ResultScreen = ({ accuseResult, board, onRetry, onRestart }: Props)
                 )}
               </div>
             ) : (
-              <p className="font-mincho text-[13.5px] text-nezumi leading-[1.7] tracking-[0.04em]">
+              <p className="border-keisen border-b py-[7px] text-[12px] text-nezumi leading-[1.75] lg:border-0 lg:py-0 lg:font-mincho lg:text-[13.5px] lg:leading-[1.7] lg:tracking-[0.04em]">
                 真相は伏せたままです。もう一度この事件を開けば、聞き取った証言はそのまま残ります。
               </p>
             )}

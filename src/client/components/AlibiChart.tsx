@@ -233,12 +233,13 @@ export const AlibiChart = ({
                     style={{ top: `${top}px`, height: `${h}px` }}
                   >
                     {/*
-                      列幅は 108px しかない。幅は実寸で持たせる——親は 3px しかないので、
-                      max-width にすると親に合わせて一文字ずつ縦に折れる。
+                      幅は実寸で持たせる——親は 3px しかないので、max-width にすると
+                      親に合わせて一文字ずつ縦に折れる。
+                      列幅 140px から、帯の left:17px と下の left:11px を引いた残りがこの 111px。
                     */}
                     {truth !== undefined ? null : (
                       <span
-                        className={`absolute top-0 left-[11px] w-[78px] text-[11px] leading-[1.5] ${
+                        className={`absolute top-0 left-[11px] w-[111px] text-[11px] leading-[1.5] ${
                           solid ? '' : 'text-nezumi'
                         }`}
                       >
@@ -246,7 +247,7 @@ export const AlibiChart = ({
                       </span>
                     )}
                     {s.fix === undefined || truth !== undefined ? null : (
-                      <span className="absolute top-[15px] left-[11px] w-[78px] font-mono text-[10.5px] leading-[1.5] tabular-nums">
+                      <span className="absolute top-[15px] left-[11px] w-[111px] font-mono text-[10.5px] leading-[1.5] tabular-nums">
                         {s.fix}
                       </span>
                     )}

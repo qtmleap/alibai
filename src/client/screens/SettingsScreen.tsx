@@ -452,7 +452,7 @@ const RoleFields = ({
           >
             <SelectTrigger
               aria-label={`${role.label}のモデル`}
-              className={triggerClass(value?.model)}
+              className={triggerClass(value?.model, provider === undefined)}
             >
               <SelectValue />
             </SelectTrigger>
@@ -477,10 +477,12 @@ const RoleFields = ({
  * 選んでいないときは字を沈める。「既定のまま」は値ではなく値が無いことの名前なので、
  * 選んだ提供元と同じ明るさで並ぶと、二つの状態が見分けられなくなる。
  * 触れない欄（提供元が決まる前のモデル）は部品側の既定に任せる——枠も字も一緒に沈む。
+ * ここで字色まで重ねて沈めると、部品の disabled 時の不透明度と二重にかかって
+ * 沈みすぎる（枠だけ見えて字が消える）ので、disabled のときは色を足さない。
  */
-const triggerClass = (chosen: string | undefined): string =>
+const triggerClass = (chosen: string | undefined, disabled = false): string =>
   `${FIELD_BOX} lg:text-[12.5px] [&_svg]:size-3 ${
-    chosen === undefined ? 'text-nezumi-dim lg:text-nezumi' : ''
+    !disabled && chosen === undefined ? 'text-nezumi-dim lg:text-nezumi' : ''
   }`
 
 /** 応答に無い提供元は選ばせない。型を通すためだけの分岐ではなく、実際の番人。 */
