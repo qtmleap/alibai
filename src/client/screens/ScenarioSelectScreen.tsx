@@ -22,6 +22,8 @@ type Props = {
   // (POST /api/sessions は支度の画面で「聞き込みを始める」を押した瞬間に投げる。
   //  そうしないと事件の記録を読んでいる時間が solvedSeconds に乗ってしまう)
   onSelect: (scenarioId: string) => void
+  /** 遷移先はルートが決める。この画面は押されたことだけを伝える。 */
+  onSettings: () => void
 }
 
 const difficultyLabel = (difficulty: number): string => '★'.repeat(difficulty)
@@ -36,7 +38,13 @@ const difficultyLabel = (difficulty: number): string => '★'.repeat(difficulty)
  * 上を大きく空けているのは、いきなり一覧から始めないため。暗い画面に題字だけが
  * 置かれている時間があると、これから何かが始まるという構えができる。
  */
-export const ScenarioSelectScreen = ({ scenarios, page, onPageChange, onSelect }: Props) => {
+export const ScenarioSelectScreen = ({
+  scenarios,
+  page,
+  onPageChange,
+  onSelect,
+  onSettings,
+}: Props) => {
   // 押してから次の画面のデータが届くまでの間、押した行だけが応える。
   // 遷移そのものはルータが引き受けるので、ここは見た目のためだけの状態。
   const [loadingId, setLoadingId] = useState<string | undefined>(undefined)
@@ -64,7 +72,18 @@ export const ScenarioSelectScreen = ({ scenarios, page, onPageChange, onSelect }
 
   return (
     <div className="screen-enter mx-auto flex min-h-dvh max-w-md flex-col bg-sumi px-5 text-kinari">
-      <header className="flex flex-col items-center gap-2.5 pt-24 pb-16">
+      {/*
+        設定は絶対配置。行として積むと題字の上の余白が削れるか、その分だけ画面が伸びる。
+        遊びの外側にある操作なので、題字の間合いを動かさずに端へ寄せる。
+      */}
+      <header className="relative flex flex-col items-center gap-2.5 pt-24 pb-16">
+        <button
+          type="button"
+          onClick={onSettings}
+          className="-mr-2 absolute top-2 right-0 px-2 py-3 font-mono text-[9.5px] text-nezumi-dim tracking-[0.24em]"
+        >
+          設定
+        </button>
         <h1 className="font-bold font-mincho text-4xl tracking-[0.18em]">AlibAI</h1>
         <p className="text-[11px] text-nezumi-dim tracking-[0.3em]">聞き込みで、犯人を指し示す</p>
       </header>

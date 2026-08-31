@@ -1,3 +1,5 @@
+import { z } from 'zod'
+
 /**
  * 一覧のページ送り。
  *
@@ -26,3 +28,27 @@ export const paginate = <T>(items: T[], requested: number, perPage: number): Pag
 
   return { items: items.slice(start, start + perPage), current, total }
 }
+
+/**
+ * ページ番号がURLに載る形。
+ *
+ * 一覧だけでなく、そこから抜ける画面（設定）も同じ形を使う。番号を持ち回らないと、
+ * 設定を開いて戻ってきた人だけが先頭ページに着地する。
+ */
+const pageSearchSchema = z.object({ page: z.coerce.number().int().min(1).optional() })
+
+export type PageSearch = { page?: number }
+
+/** 壊れたページ番号は捨てて1ページ目として開く。範囲外の丸め込みは paginate の仕事。 */
+export const parsePageSearch = (search: unknown): PageSearch => {
+  const parsed = pageSearchSchema.safeParse(search)
+
+  return parsed.success ? parsed.data : {}
+}
+
+/**
+ * 1ページ目は `?page=1` を残さない。既定の状態を指すクエリが付いたURLが共有されると、
+ * あとで既定を変えたときにそのURLだけ古い並びで開く。
+ */
+export const pageSearch = (page: number | undefined): PageSearch =>
+  page === undefined || page === 1 ? {} : { page }

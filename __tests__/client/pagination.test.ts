@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { paginate } from '@/client/lib/pagination'
+import { pageSearch, paginate, parsePageSearch } from '@/client/lib/pagination'
 
 const items = Array.from({ length: 43 }, (_, index) => index + 1)
 
@@ -43,5 +43,37 @@ describe('paginate', () => {
 
   test('ちょうど割り切れるときに空の最終ページを作らない', () => {
     expect(paginate(items.slice(0, 20), 1, 10)).toMatchObject({ total: 2 })
+  })
+})
+
+describe('pageSearch', () => {
+  test('1ページ目はクエリを残さない', () => {
+    expect(pageSearch(1)).toEqual({})
+    expect(pageSearch(undefined)).toEqual({})
+  })
+
+  test('2ページ目以降は番号を載せる', () => {
+    expect(pageSearch(3)).toEqual({ page: 3 })
+  })
+})
+
+describe('parsePageSearch', () => {
+  test('文字列のページ番号を数値にする', () => {
+    expect(parsePageSearch({ page: '3' })).toEqual({ page: 3 })
+  })
+
+  test('クエリが無ければ空', () => {
+    expect(parsePageSearch({})).toEqual({})
+  })
+
+  test('読めない値は捨てて1ページ目として開く', () => {
+    expect(parsePageSearch({ page: 'なにか' })).toEqual({})
+    expect(parsePageSearch({ page: 0 })).toEqual({})
+    expect(parsePageSearch({ page: 1.5 })).toEqual({})
+    expect(parsePageSearch(undefined)).toEqual({})
+  })
+
+  test('範囲外でも大きい番号はそのまま通す（丸め込みは paginate の仕事）', () => {
+    expect(parsePageSearch({ page: '999' })).toEqual({ page: 999 })
   })
 })

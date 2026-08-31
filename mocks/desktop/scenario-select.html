@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <title>AlibAI デスクトップ — 事件を選ぶ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500&family=Roboto+Mono:wght@400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./_desk.css" />
+    <style>
+      /*
+        事件を選ぶ。
+
+        モバイルはページ送りだが、机の上では送らない。三列に並べれば全43件が
+        三画面弱に収まり、スクロールのほうが速い。番号で送ると、探している事件が
+        どのページにあったかを覚えていないと戻れない。
+
+        分類は各セルに持たせ、見出しでまとめない。分類ごとに見出しを立てると、
+        一件しかない分類が六つ続く末尾で、そのたびに幅の三分の二が空く。
+        それに格子は上から順に読むとは限らないので、どのセルも単独で
+        何の事件か分かる必要がある——一件目にだけ分類を書く作りは列では成立しない。
+      */
+
+      .page { max-width: 1240px; margin: 0 auto; padding: 0 40px 90px; }
+
+      .masthead {
+        display: flex; align-items: baseline; justify-content: space-between;
+        padding: 72px 0 30px;
+      }
+      .masthead h1 { margin: 0; font-family: var(--mincho); font-weight: 700; font-size: 42px; letter-spacing: 0.18em; }
+      .masthead .sub { display: block; margin-top: 10px; font-size: 11px; color: var(--nezumi-dim); letter-spacing: 0.3em; }
+      .masthead .rgt { display: flex; align-items: baseline; gap: 26px; }
+      .masthead .rgt .total { font-family: var(--mono); font-size: 10px; letter-spacing: 0.24em; color: var(--nezumi-dim); }
+      .masthead .rgt .set { font-size: 12.5px; color: var(--nezumi); background: none; border: 0; padding: 0; }
+
+      /* 三列。行の高さは中身に任せ、罫線だけで分ける。 */
+      .grid {
+        display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+        column-gap: 44px; border-top: 1px solid var(--keisen);
+      }
+      .case {
+        display: flex; flex-direction: column; gap: 2px; align-items: flex-start;
+        padding: 13px 0; text-align: left;
+        background: none; border: 0; border-bottom: 1px solid var(--keisen);
+      }
+      .case .cat { font-size: 10px; color: var(--nezumi-dim); letter-spacing: 0.16em; line-height: 1.5; }
+      .case .ttl { font-family: var(--mincho); font-weight: 500; font-size: 15px; line-height: 1.5; letter-spacing: 0.03em; }
+      .case .meta { font-size: 11px; color: var(--nezumi-dim); line-height: 1.5; }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header class="masthead">
+        <h1>AlibAI<span class="sub">聞き込みで、犯人を指し示す</span></h1>
+        <div class="rgt">
+          <span class="total">43件</span>
+          <button class="set" type="button">設定</button>
+        </div>
+      </header>
+
+          <div class="grid">
+            <button class="case" type="button">
+              <span class="cat">SFクローズドサークル</span>
+              <span class="ttl">世代船、三つの夜明け</span>
+              <span class="meta">3人　★★★★★　約15分</span>
+            </button>
+            <button class="case" type="button">
+              <span class="cat">SFクローズドサークル</span>
+              <span class="ttl">火星基地、遅れて届いた返事</span>
+              <span class="meta">3人　★★★★★　約15分</span>
+            </button>
+            <button class="case" type="button">
+              <span class="cat">クローズドサークル</span>
+              <span class="ttl">台風のデータセンター、無人の保守窓</span>
+              <span class="meta">4人　★★★★★　約15分</span>
+            </button>
+            <button class="case" type="button">
+              <span class="cat">クローズドサークル</span>
+              <span class="ttl">台風圏の洋上基地、自律飛行の十八分</span>
+              <span class="meta">4人　★★★★★　約18分</span>
+            </button>
+            <button class="case" type="button">
+              <span class="cat">クローズドサークル</span>
+              <span class="ttl">吹雪のロッジ、青席のアリバイ</span>
+              <span class="meta">4人　★★★★　約15分</span>
+            </button>
+            <button class="case" type="button">
+              <span class="cat">クローズドサークル</span>
+              <span class="ttl">崖上ホテル、磨りガラスの人影</span>
+              <span class="meta">3人　★★★★★　約15分</span>
+            </button>
+            <button class="case" type="button">
+              <span class="cat">クローズドサークル</span>
+              <span class="ttl">崩落の時計博物館、十一分早い八時半</span>
+              <span class="meta">4人　★★★★★　約18分</span>
+            </button>
+            <button class="case" type="button">
+              <span class="cat">クローズドサークル</span>
+              <span class="ttl">崩落洞窟、歩き続ける位置タグ</span>
+              <span class="meta">4人　★★★★★　約18分</span>
+            </button>
+            <button class="case" type="button">
+              <span class="cat">クローズドサークル</span>
+              <span class="ttl">嵐の天象館、ガラスの向こうの目撃者</span>
+              <span class="meta">3人　★★★★★　約15分</span>
+            </button>
+            <button class="case" type="button">
+              <span class="cat">クローズドサークル</span>
+              <span class="ttl">嵐の山宿、二階を歩く杖</span>
+              <span class="meta">3人　★★★★★　約15分</span>
+            </button>
+            <button class="case" type="button">
+              <span class="cat">クローズドサークル</span>
+              <span class="ttl">嵐の研修島、九時四十二分の送信者</span>
+              <span class="meta">4人　★★★★★　約18分</span>
+            </button>
+            <button class="case" type="button">
+              <span class="cat">クローズドサークル</span>
+              <span class="ttl">嵐の研究会、増殖した目撃証言</span>
+              <span class="meta">3人　★★★★★　約18分</span>
+            </button>
+            <button class="case" type="button">
+              <span class="cat">クローズドサークル</span>
+              <span class="ttl">暴風の水族館、午前零時の給餌灯</span>
+              <span class="meta">4人　★★★★★　約15分</span>
+            </button>
+            <button class="case" type="button">
+              <span class="cat">クローズドサークル</span>
+              <span class="ttl">暴風の灯台、濡れた外套と当直板</span>
+              <span class="meta">3人　★★★★★　約15分</span>
+            </button>
+            <button class="case" type="button">
+              <span class="cat">クローズドサークル</span>
+              <span class="ttl">暴風海域、消えた作業艇</span>
+              <span class="meta">3人　★★★★　約15分</span>
+            </button>
+            <button class="case" type="button">
+              <span class="cat">クローズドサークル</span>
+              <span class="ttl">極夜基地、四つの時計が示した同じ嘘</span>
+              <span class="meta">3人　★★★★★　約15分</span>
+            </button>
+            <button class="case" type="button">
+              <span class="cat">クローズドサークル</span>
+              <span class="ttl">水没寸前の裁判所、記録されなかった扉</span>
+              <span class="meta">3人　★★★★★　約15分</span>
+            </button>
+            <button class="case" type="button">
+              <span class="cat">クローズドサークル</span>
+              <span class="ttl">深海居住区、十二分間の署名</span>
+              <span class="meta">4人　★★★★★　約18分</span>
+            </button>
+            <button class="case" type="button">
+              <span class="cat">クローズドサークル</span>
+              <span class="ttl">隔離診療所、借りられた橙色の名札</span>
+              <span class="meta">3人　★★★★★　約15分</span>
+            </button>
+            <button class="case" type="button">
+              <span class="cat">クローズドサークル</span>
+              <span class="ttl">雪の天文台、最後の連続写真</span>
+              <span class="meta">3人　★★★　約10分</span>
+            </button>
+            <button class="case" type="button">
+              <span class="cat">クローズドサークル</span>
+              <span class="ttl">雪の彫刻館、消されたはずのない足跡</span>
+              <span class="meta">3人　★★★★　約15分</span>
+            </button>
+            <button class="case" type="button">
+              <span class="cat">クローズドサークル</span>
+              <span class="ttl">雪封じの劇場、無人のキューランプ</span>
+              <span class="meta">4人　★★★★　約15分</span>
+            </button>
+            <button class="case" type="button">
+              <span class="cat">クローズドサークル</span>
+              <span class="ttl">雪崩の修道院、九時二十分の鐘</span>
+              <span class="meta">3人　★★★★★　約15分</span>
+            </button>
+            <button class="case" type="button">
+              <span class="cat">クローズドサークル</span>
+              <span class="ttl">雪崩の山荘、存在しない二一四号室</span>
+              <span class="meta">3人　★★★★★　約15分</span>
+            </button>
+            <button class="case" type="button">
+              <span class="cat">クローズドサークル</span>
+              <span class="ttl">雪籠りの録音所、四十七秒の無音</span>
+              <span class="meta">4人　★★★★★　約18分</span>
+            </button>
+            <button class="case" type="button">
+              <span class="cat">クローズドサークル</span>
+              <span class="ttl">雪籠り農園、朝支度の痕跡</span>
+              <span class="meta">3人　★★★★★　約15分</span>
+            </button>
+            <button class="case" type="button">
+              <span class="cat">クローズドサークル</span>
+              <span class="ttl">雷雲の山頂駅、誰もいない一人乗り</span>
+              <span class="meta">4人　★★★★　約15分</span>
+            </button>
+            <button class="case" type="button">
+              <span class="cat">クローズドサークル</span>
+              <span class="ttl">高潮の文書館、内側に残った鍵</span>
+              <span class="meta">4人　★★★★★　約18分</span>
+            </button>
+            <button class="case" type="button">
+              <span class="cat">不可能犯罪</span>
+              <span class="ttl">豪雨の発電所、水位線の密室</span>
+              <span class="meta">3人　★★★★★　約18分</span>
+            </button>
+            <button class="case" type="button">
+              <span class="cat">不可能犯罪</span>
+              <span class="ttl">雪の画廊、密室ではない現場</span>
+              <span class="meta">3人　★★★★★　約18分</span>
+            </button>
+            <button class="case" type="button">
+              <span class="cat">出版社ミステリ</span>
+              <span class="ttl">二十時四十七分の契約書</span>
+              <span class="meta">3人　★★★　約10分</span>
+            </button>
+            <button class="case" type="button">
+              <span class="cat">放送局ミステリ</span>
+              <span class="ttl">午前零時、声だけが生きていた</span>
+              <span class="meta">3人　★★★　約10分</span>
+            </button>
+            <button class="case" type="button">
+              <span class="cat">日常系本格</span>
+              <span class="ttl">雨の古書店、十九時八分のレシート</span>
+              <span class="meta">3人　★★　約10分</span>
+            </button>
+            <button class="case" type="button">
+              <span class="cat">未解決事件再調査</span>
+              <span class="ttl">1979年、雪山荘の借り物の記憶</span>
+              <span class="meta">3人　★★★★★　約20分</span>
+            </button>
+            <button class="case" type="button">
+              <span class="cat">植物園ミステリ</span>
+              <span class="ttl">温室の朝、水の流れなかった二十分</span>
+              <span class="meta">3人　★★　約10分</span>
+            </button>
+            <button class="case" type="button">
+              <span class="cat">歴史クローズドサークル</span>
+              <span class="ttl">上海埠頭、複写伝票の夜</span>
+              <span class="meta">3人　★★★★★　約15分</span>
+            </button>
+            <button class="case" type="button">
+              <span class="cat">歴史クローズドサークル</span>
+              <span class="ttl">検疫島、日没の鐘</span>
+              <span class="meta">3人　★★★★★　約15分</span>
+            </button>
+            <button class="case" type="button">
+              <span class="cat">歴史クローズドサークル</span>
+              <span class="ttl">蒸気地下鉄、最後の電信</span>
+              <span class="meta">3人　★★★★★　約15分</span>
+            </button>
+            <button class="case" type="button">
+              <span class="cat">祭りの夜</span>
+              <span class="ttl">消えた提灯、八分間の暗闇</span>
+              <span class="meta">3人　★★★　約10分</span>
+            </button>
+            <button class="case" type="button">
+              <span class="cat">美術館ミステリ</span>
+              <span class="ttl">青い額縁は修復室にない</span>
+              <span class="meta">3人　★★★　約10分</span>
+            </button>
+            <button class="case" type="button">
+              <span class="cat">船上ミステリ</span>
+              <span class="ttl">霧のフェリー、四十二人目の乗客</span>
+              <span class="meta">3人　★★★　約10分</span>
+            </button>
+            <button class="case" type="button">
+              <span class="cat">館もの</span>
+              <span class="ttl">月見荘、十七回忌の夜</span>
+              <span class="meta">3人　★★　約10分</span>
+            </button>
+            <button class="case" type="button">
+              <span class="cat">駅ミステリ</span>
+              <span class="ttl">終電後、遅延証明書はまだ白紙だった</span>
+              <span class="meta">3人　★★★　約10分</span>
+            </button>
+          </div>    </div>
+  </body>
+</html>
