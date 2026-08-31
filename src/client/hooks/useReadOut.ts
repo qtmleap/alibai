@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { characterCount } from '@/client/lib/briefing-mode'
+import { loadSoundSetting } from '@/client/lib/sound'
+import { playTypeClick, shouldClick } from '@/client/lib/typing-sound'
 
 /**
  * 1文字あたりの送り。
@@ -77,11 +79,30 @@ export const useReadOut = (paragraphs: string[]) => {
     [paragraphs],
   )
   const [shown, setShown] = useState(0)
+  /*
+   * 音のオンオフは読み始めに一度だけ見る。1文字ごとに localStorage を読むと、
+   * 送りの間隔ごとに同期の読み取りが挟まる。
+   */
+  const [soundOn] = useState(() => loadSoundSetting() === 'on')
 
   // 本文が差し替わったら頭から。前の記録の途中から続きを打ち始めない。
   useEffect(() => {
     setShown(0)
   }, [])
+
+  /*
+   * 打鍵音。いま現れた1文字ぶんだけ鳴らす。
+   * 空白と改行では鳴らさない（shouldClick）——字が出ていないのに音だけ鳴る。
+   */
+  useEffect(() => {
+    if (!soundOn || shown === 0) {
+      return
+    }
+
+    if (shouldClick(cursorAt(paragraphs, shown - 1).ch)) {
+      playTypeClick()
+    }
+  }, [soundOn, shown, paragraphs])
 
   useEffect(() => {
     if (shown >= total) {
