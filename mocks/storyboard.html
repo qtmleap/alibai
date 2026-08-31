@@ -87,6 +87,12 @@
       .paper.desk iframe { width: 1440px; height: 900px; }
       .paper.phone { width: 195px; height: 422px; }
       .paper.phone iframe { width: 390px; height: 844px; }
+      /*
+        動きの一覧だけは縮めない。画面の見え方ではなく速さと大きさを見る枠なので、
+        50% に縮めると 5px の浮きが 2.5px になり、比べたいものが消える。
+      */
+      .paper.flat { width: 100%; height: 660px; }
+      .paper.flat iframe { width: 100%; height: 660px; transform: none; }
     </style>
   </head>
   <body>
@@ -301,6 +307,21 @@
             <div class="paper desk"><iframe src="./desktop/settings.html#unset=1"></iframe></div>
             <div class="paper phone"><iframe src="./mobile/settings.html#unset=1"></iframe></div>
           </div>
+        </div>
+      </section>
+
+      <section class="sec" data-shot="fx">
+        <h2><span class="pfx">ALI_FX</span>動き</h2>
+        <p class="note">
+          画面をまたいで使う十の動き。枠の中で <b>もう一度</b> を押すと再生する。
+          実装は src/client/index.css のキーフレームと Storybook の
+          <b>Parts/十の動き</b> にあり、この枠はその原典（mocks/effects.html）を読んでいる。
+          十のうちアプリで実際に動いているのは五・六・七と、画面の入り・ターンの変わり目だけで、
+          残りはまだ部品に当たっていない。
+        </p>
+        <div class="state">
+          <div class="cap"><span class="nm">十の動きと、その役目</span><span class="hash">—</span></div>
+          <div class="paper flat"><iframe src="./effects.html"></iframe></div>
         </div>
       </section>
     </div>
