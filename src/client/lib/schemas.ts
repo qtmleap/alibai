@@ -54,7 +54,16 @@ export const scenarioDetailSchema = scenarioSummarySchema.omit({ characterCount:
    * 亡くなった人。characters には入らない——あちらは聞き込みの相手の一覧なので、
    * 混ぜると話しかけられる列に死者が並ぶ。
    */
-  victim: z.object({ name: z.string().nonempty(), introduction: z.string().nonempty() }).nullable(),
+  victim: z
+    .object({
+      name: z.string().nonempty(),
+      introduction: z.string().nonempty(),
+      foundAt: z.string().nonempty().nullable(),
+      foundIn: z.string().nonempty().nullable(),
+      /** 遺体を調べられる事件か。false なら聞き込みの相手に並べない。 */
+      investigable: z.boolean(),
+    })
+    .nullable(),
   characters: z.array(characterSchema),
 })
 

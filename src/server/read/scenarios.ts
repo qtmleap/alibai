@@ -23,8 +23,20 @@ export type ScenarioDetail = {
   briefing: string
   /** 事件が動いていた時間の幅。軸を引けないシナリオもあるので null あり。 */
   timeWindow: { start: string; end: string } | null
-  /** 亡くなった人。聞き込みの相手ではないので characters とは別に返す。 */
-  victim: { name: string; introduction: string } | null
+  /**
+   * 亡くなった人。聞き込みの相手ではないので characters とは別に返す。
+   *
+   * `investigable` は「遺体を調べられる事件か」。所見も死因も無いシナリオでは false で、
+   * 画面はこれを見て聞き込みの相手に並べるかどうかを決める。所見そのものは真相側にあり、
+   * ここには出てこない——調べて初めて分かるものなので。
+   */
+  victim: {
+    name: string
+    introduction: string
+    foundAt: string | null
+    foundIn: string | null
+    investigable: boolean
+  } | null
   /** 既定値を埋めたあとの形。列そのものの型（入力側）ではない。 */
   floorPlan: FloorPlan | null
   difficulty: number
@@ -93,6 +105,9 @@ export const findScenarioDetail = async (
       timeEnd: scenarios.timeEnd,
       victimName: scenarios.victimName,
       victimIntroduction: scenarios.victimIntroduction,
+      victimFoundAt: scenarios.victimFoundAt,
+      victimFoundIn: scenarios.victimFoundIn,
+      victimInvestigable: scenarios.victimInvestigable,
       difficulty: scenarios.difficulty,
       estimatedMinutes: scenarios.estimatedMinutes,
     })
@@ -146,7 +161,13 @@ export const findScenarioDetail = async (
     victim:
       scenario.victimName === null || scenario.victimIntroduction === null
         ? null
-        : { name: scenario.victimName, introduction: scenario.victimIntroduction },
+        : {
+            name: scenario.victimName,
+            introduction: scenario.victimIntroduction,
+            foundAt: scenario.victimFoundAt,
+            foundIn: scenario.victimFoundIn,
+            investigable: scenario.victimInvestigable,
+          },
     characters: characterRows,
   }
 }

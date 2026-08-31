@@ -264,6 +264,16 @@ const compileDefinition = (
   */
   const window = timeWindowOf(definition.timeline)
 
+  const victim = definition.victim
+
+  /*
+    遺体を調べられる事件かどうかを、ここで公開側へ焼いておく。
+    所見も死因も無いなら調べても何も出ないので、聞き込みの相手に並べない。
+    画面はこの一つだけを見れば決められる——真相のテーブルを覗きに行かずに済む。
+  */
+  const investigable =
+    victim !== undefined && (victim.findings.length > 0 || victim.causeOfDeath !== undefined)
+
   return {
     scenario: {
       id: scenarioId,
@@ -274,8 +284,11 @@ const compileDefinition = (
       category: definition.meta.category,
       timeStart: window === undefined ? null : window.start,
       timeEnd: window === undefined ? null : window.end,
-      victimName: definition.victim === undefined ? null : definition.victim.name,
-      victimIntroduction: definition.victim === undefined ? null : definition.victim.introduction,
+      victimName: victim === undefined ? null : victim.name,
+      victimIntroduction: victim === undefined ? null : victim.introduction,
+      victimFoundAt: victim === undefined || victim.foundAt === undefined ? null : victim.foundAt,
+      victimFoundIn: victim === undefined || victim.foundIn === undefined ? null : victim.foundIn,
+      victimInvestigable: investigable,
       isPublished: options.isPublished,
       difficulty: definition.meta.difficulty,
       estimatedMinutes: definition.meta.estimatedMinutes,
@@ -291,6 +304,9 @@ const compileDefinition = (
       motive: definition.solution.motive,
       timeline,
       timelineEvents,
+      victimCauseOfDeath:
+        victim === undefined || victim.causeOfDeath === undefined ? null : victim.causeOfDeath,
+      victimFindings: victim === undefined ? [] : victim.findings,
       secretKeywords: definition.solution.secretKeywords,
     },
   }

@@ -1,6 +1,6 @@
 import { count, eq } from 'drizzle-orm'
 import type { Db } from '@/server/db/client'
-import type { HintItem } from '@/server/game/hints'
+import type { HintItem, HintSource } from '@/server/game/hints'
 import {
   eligibleRevelationCandidates,
   type RevelationCandidate,
@@ -278,14 +278,24 @@ export const loadHintSubjects = async (
   ])
 
   const plan = scenarioRows[0]
+
+  /*
+   * 残り件数を数えるとき、被害者は人物として扱う。
+   *
+   * 画面でも聴く相手の並びに一人分として出るので、そこだけ別の枠で数えると
+   * 「人にあと2件」と出ているのに遺体から3件目が出てくる、という食い違いになる。
+   * 解禁の判定（RevelationSourceType）では victim のまま扱うので、混ざるのはここだけ。
+   */
+  const asHintSource = (source: { type: string; id: string }): HintSource =>
+    source.type === 'location'
+      ? { type: 'location', id: source.id }
+      : { type: 'character', id: source.id }
+
   const subjects: HintSubjects = {
     // revelation の source は解禁条件と前提条件も持っているが、数えるのに要るのは行き先だけ。
     items: [
-      ...revelationRows.map((row) => ({
-        id: row.id,
-        sources: row.sources.map((source) => ({ type: source.type, id: source.id })),
-      })),
-      ...evidenceRows.map((row) => ({ id: row.id, sources: row.sources })),
+      ...revelationRows.map((row) => ({ id: row.id, sources: row.sources.map(asHintSource) })),
+      ...evidenceRows.map((row) => ({ id: row.id, sources: row.sources.map(asHintSource) })),
     ],
     roomIds:
       plan === undefined || plan.floorPlan === null

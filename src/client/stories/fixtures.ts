@@ -34,7 +34,13 @@ export const SCENARIO: ScenarioDetail = {
   ].join('\n\n'),
   floorPlan: null,
   timeWindow: { start: '18:20', end: '19:20' },
-  victim: { name: '水野英治', introduction: '青雨堂店主。初版本の商談を抱えていた' },
+  victim: {
+    name: '水野英治',
+    introduction: '青雨堂店主。初版本の商談を抱えていた',
+    foundAt: '19:15',
+    foundIn: '店の奥',
+    investigable: true,
+  },
   characters: [
     { id: MAKINO, name: '牧野千尋', publicIntroduction: '店員。書誌と発送手順には強い' },
     { id: KURODA, name: '黒田征司', publicIntroduction: '収集家。初版本の商談に来ていた' },

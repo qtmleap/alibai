@@ -22,10 +22,49 @@ export const scenarioMetaSchema = z.object({
   tags: z.array(nonemptyTextSchema.max(50)).default([]),
 })
 
+/**
+ * 被害者を指すときの ID。
+ *
+ * 被害者は `characters` に居ないので固有のIDを持たない。証拠や啓示の出どころとして
+ * 名指しするときだけ、この決め打ちの文字列を使う。指す先は一人しか居ないので、
+ * 照合すべき一覧も無い。
+ */
+export const VICTIM_ID = 'victim'
+
+/**
+ * 遺体と現場から分かること。
+ *
+ * 1件1文。人物の心情や動機の解釈は書かない——あれは `revelations` の仕事で、
+ * ここに混ぜると「遺体を見ただけで動機が分かる」ことになってしまう。
+ * ここに書けるのは、その場で目にできるものだけ。
+ */
+export const scenarioVictimFindingSchema = z.object({
+  id: localIdSchema,
+  statement: nonemptyTextSchema,
+  /** 段階的に見せたいときだけ。形は revelation の解禁前提と同じ。 */
+  requires: z
+    .object({
+      revelations: z.array(localIdSchema).default([]),
+      evidences: z.array(localIdSchema).default([]),
+    })
+    .default({ revelations: [], evidences: [] }),
+})
+
 export const scenarioVictimSchema = z.object({
   name: nonemptyTextSchema.max(50),
   /** 肩書きひとつぶんの短い紹介。「青雨堂店主」のように、役割が分かれば足りる。 */
   introduction: nonemptyTextSchema.max(60),
+  /*
+   * ここから下は、遺体を調べて初めて画面に出るもの。
+   * すべて省略可にしてあるのは、この機能より前に書かれたシナリオを落とさないため。
+   * 一つも無いシナリオでは、被害者は聞き込みの相手に並ばない。
+   */
+  /** 発見時刻。`HH:mm` で、timeline と同じ書き方。 */
+  foundAt: timelineAtSchema.optional(),
+  /** 発見場所。アリバイ表の在所と同じく、列に収まる短い名詞句。 */
+  foundIn: nonemptyTextSchema.max(20).optional(),
+  causeOfDeath: nonemptyTextSchema.max(100).optional(),
+  findings: z.array(scenarioVictimFindingSchema).default([]),
 })
 
 export const scenarioFactSchema = z.object({
@@ -83,7 +122,8 @@ export const scenarioCharacterSchema = z.object({
 })
 
 export const scenarioRevelationSourceSchema = z.object({
-  type: z.enum(['character', 'location']),
+  // victim のとき id は VICTIM_ID 固定。指す先が一人しか居ないので照合先の一覧を持たない。
+  type: z.enum(['character', 'location', 'victim']),
   id: localIdSchema,
   revealCondition: nonemptyTextSchema,
   requires: z
@@ -123,7 +163,7 @@ export const scenarioRevelationSchema = z.object({
  * 難易度モードの「この人にあと N 件」を数えるのに使う。
  */
 export const scenarioEvidenceSourceSchema = z.object({
-  type: z.enum(['character', 'location']),
+  type: z.enum(['character', 'location', 'victim']),
   id: localIdSchema,
 })
 
@@ -236,6 +276,29 @@ export const ScenarioDefinitionSchema = scenarioDefinitionShapeSchema.superRefin
       scenario.floorPlan === null ? [] : scenario.floorPlan.rooms.map((room) => room.id),
     )
 
+    /**
+     * 出どころが実在するか。駄目なら理由を返す。
+     *
+     * 被害者だけは照合すべき一覧を持たない（事件に一人しか居ない）ので、
+     * 「その事件に被害者が居るか」と「決め打ちのIDか」の二点だけを見る。
+     */
+    const sourceIssue = (source: { type: string; id: string }): string | undefined => {
+      if (source.type === 'victim') {
+        if (scenario.victim === undefined) {
+          return '被害者の居ない事件で type: victim は使えません。'
+        }
+
+        return source.id === VICTIM_ID
+          ? undefined
+          : `type: victim の id は「${VICTIM_ID}」で固定です。`
+      }
+
+      const exists =
+        source.type === 'character' ? characterIds.has(source.id) : locationIds.has(source.id)
+
+      return exists ? undefined : `存在しない ${source.type}「${source.id}」を参照しています。`
+    }
+
     const addDuplicateIssues = (
       ids: string[],
       namespace: string,
@@ -275,6 +338,37 @@ export const ScenarioDefinitionSchema = scenarioDefinitionShapeSchema.superRefin
       'revelation',
       (index) => ['revelations', index, 'id'],
     )
+
+    const findings = scenario.victim === undefined ? [] : scenario.victim.findings
+
+    addDuplicateIssues(
+      findings.map((finding) => finding.id),
+      'finding',
+      (index) => ['victim', 'findings', index, 'id'],
+    )
+
+    // 所見の解禁前提。証拠や啓示を書き換えたときに、遺体側だけ古い ID が残るのを防ぐ。
+    findings.forEach((finding, findingIndex) => {
+      finding.requires.evidences.forEach((evidenceId, at) => {
+        if (!evidenceIds.has(evidenceId)) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['victim', 'findings', findingIndex, 'requires', 'evidences', at],
+            message: `存在しない evidence「${evidenceId}」を参照しています。`,
+          })
+        }
+      })
+
+      finding.requires.revelations.forEach((revelationId, at) => {
+        if (!revelationIds.has(revelationId)) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['victim', 'findings', findingIndex, 'requires', 'revelations', at],
+            message: `存在しない revelation「${revelationId}」を参照しています。`,
+          })
+        }
+      })
+    })
 
     const lieEntries = scenario.characters.flatMap((character, characterIndex) =>
       character.lies.map((lie, lieIndex) => ({ characterIndex, lie, lieIndex })),
@@ -413,14 +507,13 @@ export const ScenarioDefinitionSchema = scenarioDefinitionShapeSchema.superRefin
       })
 
       revelation.sources.forEach((source, sourceIndex) => {
-        const sourceExists =
-          source.type === 'character' ? characterIds.has(source.id) : locationIds.has(source.id)
+        const issue = sourceIssue(source)
 
-        if (!sourceExists) {
+        if (issue !== undefined) {
           ctx.addIssue({
             code: 'custom',
             path: ['revelations', revelationIndex, 'sources', sourceIndex, 'id'],
-            message: `存在しない ${source.type}「${source.id}」を参照しています。`,
+            message: issue,
           })
         }
 
@@ -515,14 +608,13 @@ export const ScenarioDefinitionSchema = scenarioDefinitionShapeSchema.superRefin
       // 場所IDは見取り図の部屋IDと文字列で一致しているだけなので、
       // 片方を書き換えた瞬間に証拠がどこにも紐づかなくなる。ここで落とす。
       evidence.sources.forEach((source, sourceIndex) => {
-        const sourceExists =
-          source.type === 'character' ? characterIds.has(source.id) : locationIds.has(source.id)
+        const issue = sourceIssue(source)
 
-        if (!sourceExists) {
+        if (issue !== undefined) {
           ctx.addIssue({
             code: 'custom',
             path: ['evidences', evidenceIndex, 'sources', sourceIndex, 'id'],
-            message: `存在しない ${source.type}「${source.id}」を参照しています。`,
+            message: issue,
           })
         }
       })

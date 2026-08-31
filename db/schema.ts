@@ -4,6 +4,7 @@ import type { Detective } from './detective'
 import type { FloorPlanInput } from './floor-plan'
 import type { ScenarioEvidenceSource, ScenarioRevelationSource } from './scenario-definition'
 import type { TimelineEvent } from './timeline-event'
+import type { VictimFinding } from './victim-finding'
 
 /**
  * プレイヤーが演じる探偵の形と検証は db/detective.ts が正典。
@@ -83,6 +84,20 @@ export const scenarios = sqliteTable('scenarios', {
    */
   victimName: text('victim_name'),
   victimIntroduction: text('victim_introduction'),
+  /**
+   * 発見時刻と発見場所。事件の記録が既に語っている情報なので公開側に置く。
+   * 伏せても意味が無いし、伏せると時刻表の被害者の列に何も置けなくなる。
+   */
+  victimFoundAt: text('victim_found_at'),
+  victimFoundIn: text('victim_found_in'),
+  /**
+   * 遺体を調べられる事件か。
+   *
+   * 所見そのものは真相側にあるが、聞き込みの相手に被害者を並べるかどうかは
+   * 公開側だけを読んで決めたい（画面のために真相のテーブルへ触りたくない）。
+   * だからここに焼く。所見も死因も無いシナリオでは false。
+   */
+  victimInvestigable: integer('victim_investigable', { mode: 'boolean' }).notNull().default(false),
   authorId: text('author_id'),
   isPublished: integer('is_published', { mode: 'boolean' }).notNull().default(false),
   difficulty: integer('difficulty').notNull().default(3),
@@ -125,6 +140,19 @@ export const scenarioTruths = sqliteTable('scenario_truths', {
    */
   timelineEvents: text('timeline_events', { mode: 'json' })
     .$type<TimelineEvent[]>()
+    .notNull()
+    .default([]),
+  /**
+   * 死因と、遺体・現場から分かること。
+   *
+   * 真相側に置くのは、これが「調べて初めて分かる」ものだから。発見時刻と発見場所は
+   * 事件の記録が既に語っているので公開側（scenarios）に置いてある。
+   *
+   * 既定が空なのは、この列より前に焼かれたシナリオ行があるため。
+   */
+  victimCauseOfDeath: text('victim_cause_of_death'),
+  victimFindings: text('victim_findings', { mode: 'json' })
+    .$type<VictimFinding[]>()
     .notNull()
     .default([]),
   /** 出力フィルタが漏洩検知に使う秘匿キーワード */
