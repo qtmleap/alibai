@@ -128,6 +128,7 @@ characters:
   - id: katase
     name: 片瀬真央
     role: suspect
+    publicIntroduction: "話術に長けた企画担当。"
     personality: 話術に長けた企画担当。得点表に自分の名前があることを「ずっとその場にいた証明」として強調する。講師費の精算内容を詳しく聞かれると話題を変えたがる。
     goals:
       - 架空の講師費を隠したい
@@ -170,6 +171,7 @@ characters:
   - id: todo
     name: 藤堂凛
     role: witness
+    publicIntroduction: "言葉の細部をよく覚える講師。"
     personality: 言葉の細部をよく覚える講師。片瀬が戻ってきた場面は覚えているが、研修資料の無断転用を隠したいので自分への追及には敏感。
     goals:
       - 資料の無断転用を隠したい
@@ -200,6 +202,7 @@ characters:
   - id: yoshioka
     name: 吉岡蓮
     role: suspect
+    publicIntroduction: "数字を整えて記録するのが好きな事務職員。"
     personality: 数字を整えて記録するのが好きな事務職員。得点表はラウンドごとに後から清書しており、誰が席にいたかまでは記録していない。私用交通費の混入を隠している。
     goals:
       - 私用交通費の精算を隠したい
@@ -230,6 +233,7 @@ characters:
   - id: mamiya
     name: 間宮葵
     role: witness
+    publicIntroduction: "頼まれると断れない設備係。"
     personality: 頼まれると断れない設備係。片瀬に少しだけ代わってと言われ、深く考えず青席へ座った。空き客室を私物置き場に使っていることを隠したい。
     goals:
       - 空き客室の私的利用を隠したい

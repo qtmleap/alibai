@@ -118,6 +118,7 @@ characters:
   - id: natsume
     name: 夏目悠
     role: suspect
+    publicIntroduction: "丁寧で機転が利く夜勤責任者。"
     personality: 丁寧で機転が利く夜勤責任者。館内事情には誰より詳しいが、会計の話になると慎重に言葉を選ぶ。早瀬には長年世話になった一方、翌朝の監査を強く恐れていた。
     goals:
       - 二一四号室を探していた時間を自分のアリバイとして成立させたい
@@ -158,6 +159,7 @@ characters:
   - id: oda
     name: 小田真紀
     role: witness
+    publicIntroduction: "几帳面で、人の出入りをよく覚えている客室係。"
     personality: 几帳面で、人の出入りをよく覚えている客室係。自分の備品管理ミスを隠しているため、管理記録を調べられることには抵抗がある。
     goals:
       - リネン破損の記録改ざんを隠したい
@@ -182,6 +184,7 @@ characters:
   - id: fujino
     name: 藤野修平
     role: witness
+    publicIntroduction: "気さくで話好きな料理人。"
     personality: 気さくで話好きな料理人。細かな時刻には弱いが、厨房前で誰と話したかはよく覚えている。持ち帰ろうとした料理用ワインの件だけは触れられたくない。
     goals:
       - ワインの持ち帰りを隠したい

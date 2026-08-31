@@ -29,7 +29,7 @@ export const scenarioListSchema = z.array(scenarioSummarySchema)
 export const characterSchema = z.object({
   id: z.uuid(),
   name: z.string().nonempty(),
-  personality: z.string().nonempty(),
+  publicIntroduction: z.string().nonempty(),
 })
 
 /**

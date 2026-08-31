@@ -145,7 +145,7 @@ export const CaseOverviewScreen = ({
                 <span className="flex min-w-0 flex-col gap-px">
                   <span className={`text-[13px] ${inkOf(index)}`}>{character.name}</span>
                   <span className="text-[10.5px] text-nezumi-dim leading-[1.6]">
-                    {character.personality}
+                    {character.publicIntroduction}
                   </span>
                 </span>
               </li>

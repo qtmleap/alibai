@@ -102,6 +102,7 @@ characters:
   - id: sera
     name: 世良美冬
     role: suspect
+    publicIntroduction: "冷静で判断が早い看護主任。"
     personality: 冷静で判断が早い看護主任。隔離手順を熟知し、自分の説明には必ず記録上の根拠を添える。業務効率のために手順を独断変更したことを星名に問題視されていた。
     goals:
       - 21時18分の橙色バッジ記録を星名の生存証明として扱わせたい
@@ -142,6 +143,7 @@ characters:
   - id: kuga
     name: 久我夏樹
     role: witness
+    publicIntroduction: "技術には詳しいが規則にはやや無頓着な検査技師。"
     personality: 技術には詳しいが規則にはやや無頓着な検査技師。自分が管理バッジを借りたことを重大な規則違反だと思い込み、最初は隠そうとする。
     goals:
       - 星名の管理バッジを借りたことを隠したい
@@ -174,6 +176,7 @@ characters:
   - id: aihara
     name: 相原誠
     role: witness
+    publicIntroduction: "真面目な警備員で、制服やバッジの色を人物識別に使う癖がある。"
     personality: 真面目な警備員で、制服やバッジの色を人物識別に使う癖がある。防護服姿の顔は見分けられなかったことを認める一方、私用電話で席を外したことは隠したい。
     goals:
       - 監視席を離れたことを隠したい

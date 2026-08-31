@@ -124,6 +124,7 @@ characters:
   - id: minobe
     name: 美濃部沙耶
     role: suspect
+    publicIntroduction: "判断が速く、番組進行の乱れを何より嫌うプロデューサー。"
     personality: 判断が速く、番組進行の乱れを何より嫌うプロデューサー。普段は冷静だが、制作費や報告書の話になると妙に説明が細かくなる。大門とは長年組んできた。
     goals:
       - 放送実績報告の不正を隠し通したい
@@ -156,6 +157,7 @@ characters:
   - id: kuze
     name: 久世直人
     role: witness
+    publicIntroduction: "機材の話になると饒舌だが、人間関係には深入りしたがらない音響技師。"
     personality: 機材の話になると饒舌だが、人間関係には深入りしたがらない音響技師。自分の小さな規則違反を大事にされるのを恐れている。
     goals:
       - 私用録音をしていたことを隠したい
@@ -180,6 +182,7 @@ characters:
   - id: natsume
     name: 夏目亮介
     role: suspect
+    publicIntroduction: "愛想のよい営業担当だが、契約の話になると押しが強い。"
     personality: 愛想のよい営業担当だが、契約の話になると押しが強い。会社に知られたくない交渉を抱えており、自分が大門と揉めていた事実を必死に軽く見せようとする。
     goals:
       - 大門へ個人的な謝礼を持ちかけたことを隠したい

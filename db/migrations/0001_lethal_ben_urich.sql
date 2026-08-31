@@ -1,0 +1,1 @@
+ALTER TABLE `characters` ADD `public_introduction` text DEFAULT '' NOT NULL;

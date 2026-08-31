@@ -66,6 +66,7 @@ export const scenarioCharacterSchema = z.object({
   id: localIdSchema,
   name: nonemptyTextSchema.max(100),
   role: nonemptyTextSchema.max(50).optional(),
+  publicIntroduction: nonemptyTextSchema.max(300),
   personality: nonemptyTextSchema,
   goals: z.array(nonemptyTextSchema),
   knowledge: z.array(localIdSchema),
@@ -556,6 +557,7 @@ export const ScenarioDefinitionSchema = scenarioDefinitionShapeSchema.superRefin
       scenario.meta.category,
       ...scenario.meta.tags,
       scenario.briefing,
+      ...scenario.characters.map((character) => character.publicIntroduction),
     ]
       .join('\n')
       .toLocaleLowerCase()

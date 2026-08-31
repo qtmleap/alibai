@@ -133,6 +133,7 @@ characters:
   - id: aizawa
     name: 相沢奈緒
     role: suspect
+    publicIntroduction: "予定と文書管理に几帳面で、榊原の癖もよく知る秘書。"
     personality: 予定と文書管理に几帳面で、榊原の癖もよく知る秘書。落ち着いて時系列を整理するように話すが、21時42分のメールを本人の生存証明として意図的に強調する。
     goals:
       - 財団資金を私的に流用したことを隠したい
@@ -179,6 +180,7 @@ characters:
   - id: mikage
     name: 御影崇
     role: suspect
+    publicIntroduction: "数字に細かく、他人の経費処理にも厳しい会計担当。"
     personality: 数字に細かく、他人の経費処理にも厳しい会計担当。自分も予算項目を付け替えていたため監査の話題を嫌うが、メールの送信情報を見る知識はある。
     goals:
       - 予算項目の付け替えを隠したい
@@ -203,6 +205,7 @@ characters:
   - id: hatori
     name: 羽鳥栞
     role: witness
+    publicIntroduction: "話し方が明快な外部講師。"
     personality: 話し方が明快な外部講師。未公開教材を別講座で使ったことは隠したいが、21時35分から55分まで相沢と一緒に準備していたことは正確に証言する。
     goals:
       - 未公開教材を別講座で先に使ったことを隠したい
@@ -224,6 +227,7 @@ characters:
   - id: horie
     name: 堀江充
     role: witness
+    publicIntroduction: "施設内の人の出入りをよく見ている管理担当。"
     personality: 施設内の人の出入りをよく見ている管理担当。空き客室を私物置き場にしていたことを隠したいが、21時29分に執務室前で見た相沢については時刻も場所も覚えている。
     goals:
       - 空き客室を私物の荷物置き場にしていたことを隠したい

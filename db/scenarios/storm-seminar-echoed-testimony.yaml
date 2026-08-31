@@ -121,6 +121,7 @@ characters:
   - id: kuga
     name: 久我真帆
     role: suspect
+    publicIntroduction: "自信が強く議論の組み立てが速い研究員。"
     personality: 自信が強く議論の組み立てが速い研究員。自分の証言だけでなく「成瀬も白石も同じ認識だった」と一致の数を強調する。未発表成果の扱いを問われると攻撃的になる。
     goals:
       - 未発表成果を無断投稿しようとしたことを隠したい
@@ -160,6 +161,7 @@ characters:
   - id: naruse
     name: 成瀬灯
     role: witness
+    publicIntroduction: "情報整理が得意な編集者。"
     personality: 情報整理が得意な編集者。ただし、誰から聞いた情報かを省いて「分かっていること」として話す癖がある。公開前情報の漏洩を隠している。
     goals:
       - 論文集の内容を漏らしたことを隠したい
@@ -187,6 +189,7 @@ characters:
   - id: shiraishi
     name: 白石慧
     role: witness
+    publicIntroduction: "慎重な大学院生で、人の発言を時刻と一緒に覚えている。"
     personality: 慎重な大学院生で、人の発言を時刻と一緒に覚えている。参加者データを無断利用した秘密はあるが、21時台の廊下で見た久我については具体的に話せる。
     goals:
       - 参加者データの無断流用を隠したい

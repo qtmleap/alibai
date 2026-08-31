@@ -131,6 +131,7 @@ characters:
   - id: kagawa
     name: 香川紗英
     role: suspect
+    publicIntroduction: "位置情報と測量値を絶対視する技術者。"
     personality: 位置情報と測量値を絶対視する技術者。数字で説明できることには強気だが、成果の正確さを疑われると攻撃的になる。位置タグの連続軌跡を自分の在席証明として繰り返し示す。
     goals:
       - 試料採取地点の記録を偽ったことを隠したい
@@ -174,6 +175,7 @@ characters:
   - id: shindo
     name: 新堂匠
     role: suspect
+    publicIntroduction: "研究成果への競争心が強い地質学者。"
     personality: 研究成果への競争心が強い地質学者。共同試料を個人ケースへ移したことを隠すため保管区画の話を避けるが、位置タグの仕組みには詳しくない。
     goals:
       - 共同試料を個人研究用に移したことを隠したい
@@ -198,6 +200,7 @@ characters:
   - id: yuki
     name: 結城真
     role: suspect
+    publicIntroduction: "実務優先の設備担当。"
     personality: 実務優先の設備担当。換気センサーを無効化した手順違反を隠したいが、安全用位置タグの受信設備も保守しており、タグが人そのものを認識しているわけではないと知っている。
     goals:
       - 換気センサーの手順外無効化を隠したい
@@ -219,6 +222,7 @@ characters:
   - id: tono
     name: 遠野澪
     role: witness
+    publicIntroduction: "観察した順番を細かく記憶する記録担当。"
     personality: 観察した順番を細かく記憶する記録担当。夕方の巡回時刻を書き直したことを隠したいが、21時07分の連絡通路で見た香川の姿は鮮明に覚えている。
     goals:
       - 夕方の巡回時刻を後から修正したことを隠したい

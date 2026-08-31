@@ -102,6 +102,7 @@ characters:
   - id: noah
     name: ノア・チェン
     role: suspect
+    publicIntroduction: "冷静で数字に強い副主任。"
     personality: 冷静で数字に強い副主任。地球からの返信が21時38分に届いたことを強調し、それを自分が通信室にいた証明として扱わせようとする。予算の細部には神経質。
     goals:
       - 予算流用を隠したい
@@ -141,6 +142,7 @@ characters:
   - id: amira
     name: アミラ・サイード
     role: witness
+    publicIntroduction: "理屈を重んじる通信士。"
     personality: 理屈を重んじる通信士。送受信時刻と会話の因果関係を厳密に区別する。私的通信の帯域利用は隠したい。
     goals:
       - 家族との規則外通信を隠したい
@@ -168,6 +170,7 @@ characters:
   - id: luis
     name: ルイス・オルテガ
     role: suspect
+    publicIntroduction: "現場主義の整備主任。"
     personality: 現場主義の整備主任。規定より稼働を優先して無登録部品を使うことがある。通信には疎いが、廊下で見たノアについては自信がある。
     goals:
       - 無登録部品の交換を隠したい

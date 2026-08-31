@@ -79,6 +79,7 @@ const makeMinimal = (): ScenarioDefinitionInput => ({
     {
       id: 'alpha',
       name: 'アルファ',
+      publicIntroduction: '設備担当のアルファ。',
       personality: '淡々としている。',
       goals: ['疑いを晴らす'],
       knowledge: ['fact-open'],
@@ -113,6 +114,7 @@ const makeMinimal = (): ScenarioDefinitionInput => ({
     {
       id: 'beta',
       name: 'ベータ',
+      publicIntroduction: '受付担当のベータ。',
       personality: 'よく喋る。',
       goals: ['早く帰りたい'],
       knowledge: ['fact-open'],
@@ -374,6 +376,12 @@ describe('compileScenario: 列挙の訳し分け', () => {
 - 「その場には居なかった」と話す。（追及されれば認める事実 について。明確な反証を示されるまでは言い張り、示されたら崩れる）
 - 「よく覚えていない」と話す。（自分から話してよい事実 について。はっきり否定はせず、話をそらしてやり過ごす）`,
     )
+  })
+
+  test('公開人物紹介は人物像や関係情報と混ざらず別列に保たれる', () => {
+    expect(alpha.publicIntroduction).toBe('設備担当のアルファ。')
+    expect(alpha.publicIntroduction).not.toContain('ベータ')
+    expect(alpha.publicIntroduction).not.toContain('距離を置いている')
   })
 
   test('関係は人物像の続きに、相手の名前で並ぶ', () => {

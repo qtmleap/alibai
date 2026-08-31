@@ -120,6 +120,7 @@ characters:
   - id: hiyama
     name: 日山澪
     role: suspect
+    publicIntroduction: "寡黙で観測に没頭する若い研究助手。"
     personality: 寡黙で観測に没頭する若い研究助手。数字には強い自信を持つが、研究成果を失うことへの恐怖が強い。神崎を師として尊敬していた分、見放されたと思うと感情が揺れる。
     goals:
       - 観測データの不正補正を隠したい
@@ -154,6 +155,7 @@ characters:
   - id: kurose
     name: 黒瀬俊介
     role: suspect
+    publicIntroduction: "自信家で競争心の強い研究者。"
     personality: 自信家で競争心の強い研究者。神崎とは研究方針でしばしば衝突する。未公開データを無断で持ち出そうとしたため、事件と無関係でも解析室への出入りを隠したい。
     goals:
       - 未公開データを無断コピーしたことを隠したい
@@ -180,6 +182,7 @@ characters:
   - id: muroi
     name: 室井邦彦
     role: witness
+    publicIntroduction: "無口で実務的な施設管理員。"
     personality: 無口で実務的な施設管理員。研究内容には疎いが、誰がどの廊下を通ったかはよく覚えている。規則違反の私物ヒーターを見つけられるのを恐れている。
     goals:
       - 私物ヒーターの使用を隠したい

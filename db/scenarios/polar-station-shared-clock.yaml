@@ -111,6 +111,7 @@ characters:
   - id: shinomiya
     name: 篠宮怜
     role: suspect
+    publicIntroduction: "理詰めで話す観測員。"
     personality: 理詰めで話す観測員。記録が複数一致していることを強く主張し、個人の目撃よりシステムログを信用すべきだと言う。研究成果を失うことへの焦りが強い。
     goals:
       - 四種類の時刻記録を独立したアリバイ証拠に見せたい
@@ -145,6 +146,7 @@ characters:
   - id: higuchi
     name: 樋口海
     role: witness
+    publicIntroduction: "神経質な通信担当。"
     personality: 神経質な通信担当。システム障害を自分の失態と考え、最初は同期ずれを小さく見せようとする。技術仕様については正確に説明できる。
     goals:
       - 同期障害の共有が遅れたことを隠したい
@@ -171,6 +173,7 @@ characters:
   - id: sawatari
     name: 沢渡直人
     role: witness
+    publicIntroduction: "現場感覚を重視する整備員。"
     personality: 現場感覚を重視する整備員。基地システムとは別の携帯時計を使う習慣があり、自分の見た時刻に自信がある。私物機器の無断使用だけは隠したい。
     goals:
       - 私物機器の無断使用を隠したい

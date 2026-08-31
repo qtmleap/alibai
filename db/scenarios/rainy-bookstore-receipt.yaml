@@ -117,6 +117,7 @@ characters:
   - id: makino
     name: 牧野千尋
     role: suspect
+    publicIntroduction: "丁寧で几帳面な古書店員。"
     personality: 丁寧で几帳面な古書店員。書誌や発送手順には強いが、金銭の話を向けられると防御的になる。水野には仕事を教わった恩がある一方、給料の低さには不満を抱えていた。
     goals:
       - 初版本のすり替えを隠したい
@@ -149,6 +150,7 @@ characters:
   - id: kuroda
     name: 黒田征司
     role: suspect
+    publicIntroduction: "希少本の知識を誇る収集家。"
     personality: 希少本の知識を誇る収集家。金で解決できると思いがちで、体面を傷つけられることを嫌う。事件そのものより、裏取引の提案が会社へ知られることを恐れている。
     goals:
       - 帳簿外の現金取引を持ちかけたことを隠したい
@@ -173,6 +175,7 @@ characters:
   - id: sena
     name: 瀬名真琴
     role: witness
+    publicIntroduction: "気さくな喫茶店主で、商店街の人間関係には詳しい。"
     personality: 気さくな喫茶店主で、商店街の人間関係には詳しい。借金のことだけは強い引け目があり、水野との金銭関係を聞かれると曖昧になる。
     goals:
       - 水野から借金していたことを知られたくない

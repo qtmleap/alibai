@@ -125,6 +125,7 @@ characters:
   - id: sagisawa
     name: 鷺沢怜
     role: suspect
+    publicIntroduction: "数字と手順を盾にする生命維持技術者。"
     personality: 数字と手順を盾にする生命維持技術者。異常時でも声を荒らげないが、自分の整備判断を否定されると頑なになる。点検画面に署名が並んでいることを強調する。
     goals:
       - 点検記録の改ざんを隠したい
@@ -165,6 +166,7 @@ characters:
   - id: narumi
     name: 鳴海俊
     role: suspect
+    publicIntroduction: "好奇心旺盛で研究成果への執着が強い地質学者。"
     personality: 好奇心旺盛で研究成果への執着が強い地質学者。規約違反の試料取り置きを知られたくないため試料庫の話を避ける。
     goals:
       - 個人研究用に試料を取り置いたことを隠したい
@@ -186,6 +188,7 @@ characters:
   - id: kohinata
     name: 小日向茜
     role: witness
+    publicIntroduction: "時刻と通信記録に几帳面な担当者。"
     personality: 時刻と通信記録に几帳面な担当者。自分の手順ミスを消したことには後ろめたさがあるが、中央通路で見た人物と時計表示は正確に覚えている。
     goals:
       - 支援船との通信一件を削除したことを隠したい
@@ -207,6 +210,7 @@ characters:
   - id: toki
     name: 土岐誠
     role: suspect
+    publicIntroduction: "経験則を重んじる機械整備担当。"
     personality: 経験則を重んじる機械整備担当。期限切れ設備への応急処置を隠すが、点検システムの画面仕様は保守教育で知っている。
     goals:
       - 昇降機構を手順外で使い続けていたことを隠したい

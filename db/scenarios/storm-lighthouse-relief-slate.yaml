@@ -111,6 +111,7 @@ characters:
   - id: torigoe
     name: 鳥越玲
     role: suspect
+    publicIntroduction: "実直に見える設備当直員。"
     personality: 実直に見える設備当直員。手順や記録を重視する話し方をし、数字を示して自分の説明を固めようとする。記録ミスを倉橋に見つけられたことを強く恐れている。
     goals:
       - 当直板と濡れた外套を西側巡回の証拠として通したい
@@ -153,6 +154,7 @@ characters:
   - id: hashiba
     name: 橋場圭
     role: witness
+    publicIntroduction: "観察力のある通信担当。"
     personality: 観察力のある通信担当。時刻は通信時計で確認する癖がある一方、規定外の個人的な受信をしていたため通信記録を調べられるのを嫌がる。
     goals:
       - 個人的な無線受信を隠したい
@@ -177,6 +179,7 @@ characters:
   - id: morishita
     name: 森下透
     role: witness
+    publicIntroduction: "若い補助員。"
     personality: 若い補助員。素直だが自分の勤務態度に自信がなく、居眠りを知られるのを恐れている。設備の封鎖確認には橋場より詳しい。
     goals:
       - 発電室で眠っていたことを隠したい

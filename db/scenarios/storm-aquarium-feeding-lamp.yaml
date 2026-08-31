@@ -125,6 +125,7 @@ characters:
   - id: morishita
     name: 森下莉央
     role: suspect
+    publicIntroduction: "生き物の状態変化には鋭いが、責任を問われると防御的になる飼育員。"
     personality: 生き物の状態変化には鋭いが、責任を問われると防御的になる飼育員。担当展示への愛着が強く、給餌灯を自分のアリバイとして強調する。
     goals:
       - 飼育記録を改ざんしたことを隠したい
@@ -165,6 +166,7 @@ characters:
   - id: sakakibara
     name: 榊原直
     role: suspect
+    publicIntroduction: "几帳面で理屈っぽい獣医師。"
     personality: 几帳面で理屈っぽい獣医師。在庫管理ミスが表に出るのを恐れているが、給餌設備の基本仕様は把握している。
     goals:
       - 在庫記録を後から修正したことを隠したい
@@ -186,6 +188,7 @@ characters:
   - id: mikoshiba
     name: 御子柴徹
     role: suspect
+    publicIntroduction: "豪放で口数の多い潜水設備担当。"
     personality: 豪放で口数の多い潜水設備担当。無断の私物カメラを隠したいが、給餌装置の整備も担当しており機械の挙動には詳しい。
     goals:
       - 私物カメラの無断設置を隠したい
@@ -207,6 +210,7 @@ characters:
   - id: sagara
     name: 相良芳江
     role: witness
+    publicIntroduction: "落ち着いた夜間警備員。"
     personality: 落ち着いた夜間警備員。巡回を一回省略したことだけは隠したいが、零時すぎにバックヤードで森下とすれ違った記憶は鮮明。
     goals:
       - 西展示区画の巡回を省略したことを隠したい

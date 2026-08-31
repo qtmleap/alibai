@@ -131,6 +131,7 @@ characters:
   - id: hiiragi
     name: 柊木慧
     role: suspect
+    publicIntroduction: "機器の性能を熟知し、点検記録を客観的な証拠として扱う技師。"
     personality: 機器の性能を熟知し、点検記録を客観的な証拠として扱う技師。自分の作業効率に自信があり、不正を「現場の合理化」と言い換えがち。飛行軌跡と写真を自分の在席証明として押し出す。
     goals:
       - 過去写真を使った点検不正を隠したい
@@ -174,6 +175,7 @@ characters:
   - id: saegusa
     name: 三枝千尋
     role: witness
+    publicIntroduction: "保護装置の理屈に厳しい電気主任。"
     personality: 保護装置の理屈に厳しい電気主任。無断リセットを隠したいが、01時08分に連絡階段で柊木を見た記憶は明確。ドローンが自動運転できることも知っている。
     goals:
       - 保護装置を無断リセットしたことを隠したい
@@ -195,6 +197,7 @@ characters:
   - id: nami
     name: 波木恵
     role: suspect
+    publicIntroduction: "数字に慎重な気象担当。"
     personality: 数字に慎重な気象担当。風速記録の書き直しを隠したいが、点検ドローンが事前経路を自律飛行する運用は日常的に見ている。
     goals:
       - 風速の手書き記録を後から修正したことを隠したい
@@ -219,6 +222,7 @@ characters:
   - id: kokubu
     name: 国分透
     role: suspect
+    publicIntroduction: "在庫と数字に敏感な資材担当。"
     personality: 在庫と数字に敏感な資材担当。棚卸し不足を隠すため部品の付け替えをしており、芳賀に追及されていた。事件を自分の不正と結びつけられたくない。
     goals:
       - 予備部品の在庫付け替えを隠したい

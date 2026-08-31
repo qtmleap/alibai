@@ -121,6 +121,7 @@ characters:
   - id: kido
     name: 城戸真琴
     role: suspect
+    publicIntroduction: "古い設備の癖まで覚えている保守主任。"
     personality: 古い設備の癖まで覚えている保守主任。発見時の歩廊が通れなかった事実を強調し、「あの部屋へは誰も入れない」と言い張る。点検記録の話には神経質になる。
     goals:
       - 点検記録の改ざんを隠したい
@@ -162,6 +163,7 @@ characters:
   - id: saionji
     name: 西園寺悠
     role: witness
+    publicIntroduction: "記録を一つずつ照合する監査員。"
     personality: 記録を一つずつ照合する監査員。発見時の現場を見て「密室」と判断したが、その状態がいつ成立したかまでは考えていなかった。報告書漏洩を隠している。
     goals:
       - 監査報告の漏洩を隠したい
@@ -189,6 +191,7 @@ characters:
   - id: taniguchi
     name: 谷口航
     role: suspect
+    publicIntroduction: "数値監視を担当する若い運転員。"
     personality: 数値監視を担当する若い運転員。警報の扱いで規則違反をしたためログの話題を避けるが、水位の上昇時刻については正確に答えられる。
     goals:
       - 警報を非表示にした規則違反を隠したい

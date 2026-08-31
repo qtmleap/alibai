@@ -127,6 +127,7 @@ characters:
   - id: tozuka
     name: 戸塚岳
     role: suspect
+    publicIntroduction: "現場慣れした電気技師で、トラブル時ほど落ち着いて話す。"
     personality: 現場慣れした電気技師で、トラブル時ほど落ち着いて話す。専門知識への自負が強く、素人には設備の細部まで分からないと思っている。神谷とは発注費を巡って関係が悪化していた。
     goals:
       - 発注額の水増しと謝礼の受領を隠したい
@@ -161,6 +162,7 @@ characters:
   - id: makabe
     name: 真壁聡
     role: suspect
+    publicIntroduction: "真面目で融通の利かない禰宜。"
     personality: 真面目で融通の利かない禰宜。神社を守る責任感は強いが、修繕費の不足から寄付金を一時流用したことを深く後悔している。鍵の管理について聞かれると必要以上に神経質になる。
     goals:
       - 寄付金の流用を隠したい
@@ -184,6 +186,7 @@ characters:
   - id: aihara
     name: 相原夏帆
     role: witness
+    publicIntroduction: "活発で世話焼きな屋台会のまとめ役。"
     personality: 活発で世話焼きな屋台会のまとめ役。祭りの成功を優先するあまり、申請前の知人を出店させた後ろめたさがある。暗闇で見た人物について断定するのをためらうが、服装と歩き方には自信がある。
     goals:
       - 無許可に近い状態で知人の屋台を出したことを隠したい

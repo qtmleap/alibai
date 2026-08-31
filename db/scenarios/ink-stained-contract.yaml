@@ -120,6 +120,7 @@ characters:
   - id: kawase
     name: 川瀬梨奈
     role: suspect
+    publicIntroduction: "交渉上手で感情を表に出さない著作権エージェント。"
     personality: 交渉上手で感情を表に出さない著作権エージェント。契約書や入金記録の細部まで把握しているが、自分の管理する口座について尋ねられると話を一般論へそらす。石橋とは長く仕事をしてきた。
     goals:
       - 海外版権収入の不正を隠したい
@@ -156,6 +157,7 @@ characters:
   - id: fujimoto
     name: 藤本圭
     role: witness
+    publicIntroduction: "几帳面で締切に厳しい編集者。"
     personality: 几帳面で締切に厳しい編集者。話題作りのため未発表原稿を流したことを強く後悔しており、端末ログを詳しく調べられるのを嫌がる。人の出入りにはよく気づく。
     goals:
       - 未発表原稿の漏洩を隠したい
@@ -180,6 +182,7 @@ characters:
   - id: shido
     name: 志堂透
     role: suspect
+    publicIntroduction: "評判を気にする中堅作家。"
     personality: 評判を気にする中堅作家。自尊心が高く、盗用疑惑を認めるくらいなら石橋との口論自体を隠したいと思っている。感情的にはなるが、事件後は露骨に怯えている。
     goals:
       - 新作の盗用を隠したい

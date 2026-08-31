@@ -25,7 +25,7 @@ export type ScenarioDetail = {
   floorPlan: FloorPlan | null
   difficulty: number
   estimatedMinutes: number
-  characters: { id: string; name: string; personality: string }[]
+  characters: { id: string; name: string; publicIntroduction: string }[]
 }
 
 /** 公開シナリオの一覧。読みは多いが滅多に書き換わらないので KV から返す。 */
@@ -35,8 +35,8 @@ export const listScenarios = (kv: KVNamespace, db: Db): Promise<PublishedScenari
 /**
  * シナリオ詳細。プレイ開始前に見せてよい範囲だけを返す。
  *
- * knowledge / secrets / lies / memories は絶対に返さない。personality だけが
- * 表向きの人物紹介。証拠の一覧もここでは返さない。未発見の証拠名を見せると
+ * personality / knowledge / secrets / goals / lies / memories は絶対に返さない。
+ * publicIntroduction だけが表向きの人物紹介。証拠の一覧もここでは返さない。未発見の証拠名を見せると
  * それ自体がネタバレになるため（証拠は discoveries 経由で発見済みの分だけ出す）。
  *
  * 一覧と違ってIDごとのアクセスは少数かつシナリオ数分しか存在しないので、
@@ -74,7 +74,11 @@ export const findScenarioDetail = async (
   }
 
   const characterRows = await db
-    .select({ id: characters.id, name: characters.name, personality: characters.personality })
+    .select({
+      id: characters.id,
+      name: characters.name,
+      publicIntroduction: characters.publicIntroduction,
+    })
     .from(characters)
     .where(eq(characters.scenarioId, scenarioId))
 

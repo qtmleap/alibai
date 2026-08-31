@@ -123,7 +123,8 @@ characters:
   - id: fukagawa
     name: 深川誠也
     role: suspect                      # 省略可
-    personality: 気弱で愛想笑いが多い税理士。追い詰められると目が泳ぐ。
+    publicIntroduction: 月見荘の経理を長年任されている税理士。  # プレイヤーへ最初から公開
+    personality: 気弱で愛想笑いが多い税理士。追い詰められると目が泳ぐ。  # NPC内部用、非公開
     goals:
       - 横領が誰にもバレないまま今夜をやり過ごしたい
     knowledge:                         # facts[].id
@@ -144,6 +145,21 @@ characters:
       - character: mizuki              # characters[].id
         relation: 顔見知り
         attitude: 苦手意識がある        # 省略可
+```
+
+### `publicIntroduction` と `personality`
+
+`publicIntroduction` は**プレイヤーへ事件開始前から見せる人物紹介**です。名前と一緒に概要画面・聞き込み画面へ表示されます。
+
+ここに書いてよいのは、職業・立場・表向きの性格など、事件前から知っていて不自然でない情報だけです。**秘密、動機、未公開の目撃、アリバイの真偽、嘘、規則違反、借金・横領・不正、犯人を示唆する心理は書いてはいけません。** 「何かを隠している」「追及されると○○の話題を避ける」のような匂わせも不可です。
+
+`personality` はNPCを演じるための**非公開の内部情報**です。追及されたときの反応、被害者への感情、秘密を抱えているときの態度などはこちらへ置きます。`relationships` もコンパイル時に `personality` の続きへ入り、プレイヤーには直接公開されません。
+
+公開紹介を短く安全に保つ例:
+
+```yaml
+publicIntroduction: 月見荘の経理を長年任されている税理士。
+personality: 気弱で愛想笑いが多い。横領の話題では動揺し、追い詰められると目が泳ぐ。
 ```
 
 ### `knowledge` と `secrets` の使い分け
@@ -301,7 +317,7 @@ quality:
 悪い例: 美月 / トリカブト / 毒殺 / 書斎
 ```
 
-- `synopsis` と `briefing` に含まれる文字列は入れられません（検証で落ちます）。
+- `synopsis` / `briefing` / `publicIntroduction` など公開情報に含まれる文字列は入れられません（検証で落ちます）。
 - **短く保ってください。** 一番長いキーワードの長さが、返答が画面に出るまでの遅延に直結します。
 
 ---
@@ -337,6 +353,7 @@ quality:
 
 - **`#` で始まる行を書かないでください。** プロンプトの見出しと衝突して構造が壊れます。
 - `reveal.condition` と `revealCondition` に**改行を入れない**でください。
+- 公開人物紹介 `publicIntroduction` は短く、事件前から知っていて不自然でない情報だけを書く。
 - 人物に渡る文章（`personality` / `statement` / `detail` / `claim` / `goals`）は、そのまま読んで自然な日本語にしてください。
 
 ---

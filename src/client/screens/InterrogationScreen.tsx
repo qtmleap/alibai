@@ -251,7 +251,7 @@ export const InterrogationScreen = ({
               {activeCharacter === undefined ? '' : activeCharacter.name}
             </span>
             <span className="block truncate text-[10.5px] text-nezumi-dim">
-              {activeCharacter === undefined ? '' : activeCharacter.personality}
+              {activeCharacter === undefined ? '' : activeCharacter.publicIntroduction}
             </span>
           </div>
         </header>

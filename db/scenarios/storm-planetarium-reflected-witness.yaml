@@ -105,6 +105,7 @@ characters:
   - id: onodera
     name: 小野寺莉香
     role: suspect
+    publicIntroduction: "空間演出に詳しく、人の視線や展示の見え方を意識する企画担当。"
     personality: 空間演出に詳しく、人の視線や展示の見え方を意識する企画担当。落ち着いて松田の目撃を肯定するが、ガラスの反射条件を誰より理解している。
     goals:
       - 21時35分の白い人物像を犬塚の生存証明として成立させたい
@@ -147,6 +148,7 @@ characters:
   - id: matsuda
     name: 松田圭介
     role: witness
+    publicIntroduction: "機械には強いが、視覚的な思い込みには無自覚な投影技師。"
     personality: 機械には強いが、視覚的な思い込みには無自覚な投影技師。白い上着を見て犬塚だと判断したが、顔までは確認していない。機器テストを省略したことを隠したい。
     goals:
       - 投影機器の事前テストを省略したことを隠したい
@@ -174,6 +176,7 @@ characters:
   - id: asakura
     name: 朝倉葉月
     role: witness
+    publicIntroduction: "現実的な売店責任者で、人の服装をよく覚えている。"
     personality: 現実的な売店責任者で、人の服装をよく覚えている。閉館作業中に小野寺が白い展示用上着を着ていたことを見ているが、在庫不足を隠している。
     goals:
       - 売店在庫の不足を隠したい

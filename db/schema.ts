@@ -108,6 +108,8 @@ export const characters = sqliteTable(
       .notNull()
       .references(() => scenarios.id, { onDelete: 'cascade' }),
     name: text('name').notNull(),
+    /** プレイヤーへ最初から見せてよい、完全公開の人物紹介。 */
+    publicIntroduction: text('public_introduction').notNull().default(''),
     personality: text('personality').notNull(),
     knowledge: text('knowledge').notNull(),
     secrets: text('secrets').notNull(),

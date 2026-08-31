@@ -104,6 +104,7 @@ characters:
   - id: maki
     name: 高瀬真紀
     role: suspect
+    publicIntroduction: "2026年現在は穏やかな元教師。"
     personality: 2026年現在は穏やかな元教師。47年間「22時30分に暖炉前で野上を見た」と繰り返してきたため、本人にもそれが固い記憶になっている。だが事件当時の現金窃盗は今でも恥じている。
     goals:
       - 1979年の現金窃盗を隠したい
@@ -137,6 +138,7 @@ characters:
   - id: tatsuya
     name: 藤村達也
     role: witness
+    publicIntroduction: "2026年現在は慎重な会社員OB。"
     personality: 2026年現在は慎重な会社員OB。今は自分も暖炉前の野上を見た気がしているが、古い供述を読むと自信を失う。若いころの秘密の交際だけは話したくない。
     goals:
       - 当時の秘密の交際を隠したい
@@ -164,6 +166,7 @@ characters:
   - id: megumi
     name: 倉田恵
     role: suspect
+    publicIntroduction: "2026年現在は物静かな元経理職。"
     personality: 2026年現在は物静かな元経理職。事件当夜は22時15分から眠っていたという最初の供述を強調する。仕入れ代の水増しを問われると防御的になる。
     goals:
       - 仕入れ代の水増しを隠したい

@@ -3,8 +3,8 @@ import type { ChatTurn } from '@/client/hooks/useInterrogation'
 import { buildHistory } from '@/client/lib/history'
 
 const characters = [
-  { id: 'a', name: '早坂美月', personality: '明るい' },
-  { id: 'b', name: '桐生涼', personality: '落ち着いている' },
+  { id: 'a', name: '早坂美月', publicIntroduction: '旅館に居合わせた人物。' },
+  { id: 'b', name: '桐生涼', publicIntroduction: '旅館に居合わせた人物。' },
 ]
 
 const pair = (q: string, a: string, at: number): ChatTurn[] => [

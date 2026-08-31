@@ -129,6 +129,7 @@ characters:
   - id: yagami
     name: 八神琴子
     role: suspect
+    publicIntroduction: "手仕事への誇りが高く、修復結果を批判されることに強く反発する修復士。"
     personality: 手仕事への誇りが高く、修復結果を批判されることに強く反発する修復士。鍵が今泉のポケットにあったことを何度も強調し、資料庫へ入れるはずがないという印象を作ろうとする。
     goals:
       - 修復失敗と処置記録の改ざんを隠したい
@@ -171,6 +172,7 @@ characters:
   - id: kuga
     name: 久我遼
     role: witness
+    publicIntroduction: "細かな動線を覚えている学芸員。"
     personality: 細かな動線を覚えている学芸員。資料を傷めたことを隠したいが、21時14分ごろ八神が開いた資料庫へ入った場面ははっきり見ている。
     goals:
       - 資料を傷めて報告しなかったことを隠したい
@@ -192,6 +194,7 @@ characters:
   - id: tozuka
     name: 戸塚誠
     role: witness
+    publicIntroduction: "規則には詳しい警備担当。"
     personality: 規則には詳しい警備担当。閲覧室のカメラ停止を隠したいが、希少資料庫の扉が閉まるだけで自動施錠される仕様は日常業務として知っている。
     goals:
       - 閲覧室の監視カメラを私用のため止めたことを隠したい
@@ -213,6 +216,7 @@ characters:
   - id: majima
     name: 真島香苗
     role: suspect
+    publicIntroduction: "自信家の外部鑑定人。"
     personality: 自信家の外部鑑定人。来歴写真の差し替えを隠したいので今泉との鑑定上の衝突を小さく見せるが、21時台前半は別の資料室で作業していた。
     goals:
       - 鑑定写真を差し替えたことを隠したい

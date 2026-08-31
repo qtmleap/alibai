@@ -127,6 +127,7 @@ characters:
   - id: kuze
     name: 久世秋穂
     role: suspect
+    publicIntroduction: "冷静で手順を重んじるシステム技術者。"
     personality: 冷静で手順を重んじるシステム技術者。ログを強い根拠として話す一方、自分の不正を追及されると急に言葉数が減る。
     goals:
       - 保守費の水増しを隠したい
@@ -167,6 +168,7 @@ characters:
   - id: koda
     name: 甲田修
     role: suspect
+    publicIntroduction: "口が達者な外部技術者。"
     personality: 口が達者な外部技術者。契約外の設定ファイルを持ち出していたため、自分の作業内容を細かく話したがらない。
     goals:
       - 顧客設定ファイルの無断複製を隠したい
@@ -188,6 +190,7 @@ characters:
   - id: hatano
     name: 波多野結
     role: suspect
+    publicIntroduction: "現場優先で判断の速い設備技術者。"
     personality: 現場優先で判断の速い設備技術者。警報を勝手に止めたことには後ろめたさがあるが、部品庫の扉の状態はよく覚えている。
     goals:
       - 温度警報を無断停止したことを隠したい
@@ -209,6 +212,7 @@ characters:
   - id: makabe
     name: 真壁徹
     role: witness
+    publicIntroduction: "規則に厳しい警備員。"
     personality: 規則に厳しい警備員。長時間勤務で居眠りしたことを隠したいが、廊下ですれ違った人物の記憶には自信がある。
     goals:
       - 監視席で居眠りしたことを隠したい

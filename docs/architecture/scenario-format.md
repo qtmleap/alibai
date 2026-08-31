@@ -268,6 +268,8 @@ characters:
     name: 美術部員 A
     role: witness
 
+    publicIntroduction: 美術部に所属する生徒。
+
     personality: |
       真面目で慎重。断定できないことは断定しない。
 
@@ -297,12 +299,15 @@ characters:
 
 - `id`
 - `name`
+- `publicIntroduction`
 - `personality`
 - `knowledge`
 - `secrets`
 - `goals`
 - `lies`
 - `memories`
+
+`publicIntroduction` はプレイヤーへ最初から公開する短い人物紹介です。職業・立場・表向きの性格だけを書き、秘密・動機・未公開の目撃・アリバイ・嘘・違反行為など、聞き込みで判明すべき情報を含めません。`personality` と `relationships` はActor専用の非公開情報です。
 
 `knowledge` は原則 `facts[].id` の参照です。
 
@@ -482,6 +487,7 @@ characters:
   - id: a
     name: 美術部員 A
     role: witness
+    publicIntroduction: 美術部に所属する生徒。
     personality: 真面目で慎重。
     goals:
       - 知っていることには正直に答える
@@ -502,6 +508,7 @@ characters:
   - id: b
     name: 美術部員 B
     role: suspect
+    publicIntroduction: 美術部に所属する生徒。
     personality: 負けず嫌い。追及されると防御的になる。
     goals:
       - 自分が作品を持ち出したことを隠す
@@ -591,7 +598,7 @@ Author LLM の Structured Output も同じ構造を使います。
 3. `solution.culprit` が存在する人物を指す
 4. `timeline.participants` が存在する人物を指す
 5. `lie:*` が存在する嘘を指す
-6. `briefing` / 公開メタ情報に `secretKeywords` が含まれない
+6. `briefing` / 公開メタ情報 / `publicIntroduction` に `secretKeywords` が含まれない
 7. Actor 用キャラクターシートへ他人物の秘密や `solution.summary` が混入しない
 8. `requiredFacts` の各要素に、プレイヤーが到達できる情報経路が最低一つ存在する
 9. 互いに両立しない truth fact が存在しない
@@ -617,7 +624,7 @@ Author は一発で完成 YAML を書くのではなく、段階的に生成し�
    requiredFacts にプレイヤーが到達できる経路を作る
 
 5. Public Layer
-   synopsis / briefing を作る。真相は含めない
+   synopsis / briefing / publicIntroduction を作る。真相や聞き込みで判明すべき情報は含めない
 
 6. Structural Validation
    Zod で検証
@@ -666,7 +673,8 @@ Author は一発で完成 YAML を書くのではなく、段階的に生成し�
 | `solution.summary` | `scenario_truths.truth` |
 | `timeline` | `scenario_truths.timeline` |
 | `solution.secretKeywords` | `scenario_truths.secret_keywords` |
-| `characters[].personality` | `characters.personality` |
+| `characters[].publicIntroduction` | `characters.public_introduction` |
+| `characters[].personality` + `relationships` | `characters.personality` |
 | compiled `knowledge` | `characters.knowledge` |
 | compiled `secrets` | `characters.secrets` |
 | compiled `goals` | `characters.goals` |
@@ -675,7 +683,7 @@ Author は一発で完成 YAML を書くのではなく、段階的に生成し�
 | `evidences[].label` | `evidences.label` |
 | `evidences[].reveal.condition` | `evidences.reveal_condition` |
 
-`facts`、`relationships`、`supports`、`contradicts`、`quality` は当面 Authoring/Validation 用の情報です。必要になった段階で Runtime schema を拡張します。
+`facts`、`supports`、`contradicts`、`quality` は当面 Authoring/Validation 用の情報です。`relationships` は人物像へコンパイルされ、Actor にだけ渡されます。必要になった段階で Runtime schema を拡張します。
 
 ## 18. 秘匿境界
 

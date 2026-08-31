@@ -111,6 +111,7 @@ characters:
   - id: akiwa
     name: 秋庭澄
     role: suspect
+    publicIntroduction: "穏やかな料理長で、客の好みをよく覚えている。"
     personality: 穏やかな料理長で、客の好みをよく覚えている。厨房と旧階段を自由に使える。九時二十五分の杖音を桐谷本人の行動と断定し、仕入れの話を避けようとする。
     goals:
       - 業者から謝礼を受け取っていたことを隠したい
@@ -152,6 +153,7 @@ characters:
   - id: morisaki
     name: 森崎透
     role: witness
+    publicIntroduction: "桐谷と長い付き合いがあり、杖の音を何度も聞いてきた常連客。"
     personality: 桐谷と長い付き合いがあり、杖の音を何度も聞いてきた常連客。その親しさゆえに、特徴的な音を聞いた瞬間に桐谷本人だと決めつけた。宿泊代の未払いを隠している。
     goals:
       - 宿泊代の未払いを隠したい
@@ -179,6 +181,7 @@ characters:
   - id: sakakibara
     name: 榊原蓮
     role: suspect
+    publicIntroduction: "古い木造建築の癖を体で覚えている大工。"
     personality: 古い木造建築の癖を体で覚えている大工。余剰材料を持ち帰ろうとした後ろめたさはあるが、音の伝わり方については具体的に説明できる。
     goals:
       - 余剰木材の持ち出し計画を隠したい

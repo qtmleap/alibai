@@ -113,6 +113,7 @@ characters:
   - id: ayase
     name: 綾瀬環
     role: suspect
+    publicIntroduction: "愛想がよく館内の細かな要望にもすぐ対応するフロント主任。"
     personality: 愛想がよく館内の細かな要望にもすぐ対応するフロント主任。備品の位置や客の動線を熟知している。請求書の話になると説明を曖昧にし、21時半の人影を長峰本人だったと強く主張する。
     goals:
       - 改装費の流用を隠したい
@@ -152,6 +153,7 @@ characters:
   - id: kanda
     name: 神田理一
     role: witness
+    publicIntroduction: "観察したことを文章にする癖がある作家だが、一度意味づけした光景を事実そのものと思い込みやすい。"
     personality: 観察したことを文章にする癖がある作家だが、一度意味づけした光景を事実そのものと思い込みやすい。人影を見たことには自信があるが、顔も声も確認していない。
     goals:
       - 無断で回想録を複写したことを隠したい
@@ -179,6 +181,7 @@ characters:
   - id: hoshino
     name: 星野結
     role: suspect
+    publicIntroduction: "光や構図に敏感な写真家。"
     personality: 光や構図に敏感な写真家。物の位置が変わるとすぐ気づく。契約外の写真を売ろうとした後ろめたさがあり、その話題では歯切れが悪い。
     goals:
       - 契約外写真の売却計画を隠したい

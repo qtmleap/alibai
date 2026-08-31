@@ -133,6 +133,7 @@ characters:
   - id: shiba
     name: 志波沙月
     role: suspect
+    publicIntroduction: "古時計への知識と誇りが強い修復技師。"
     personality: 古時計への知識と誇りが強い修復技師。細部をよく覚えているように話すが、時刻については館内の鐘を意図的に基準にする。倉橋に記録改ざんを見抜かれたことを隠したい。
     goals:
       - 展示時計の来歴を偽ったことを隠したい
@@ -174,6 +175,7 @@ characters:
   - id: asakura
     name: 朝倉真紀
     role: witness
+    publicIntroduction: "事務処理に強い受付責任者。"
     personality: 事務処理に強い受付責任者。売上金の集計ミスを隠したいので閉館後の帳簿作業を曖昧にするが、人とすれ違った順番はよく覚えている。時刻は大時計の鐘を信用していた。
     goals:
       - 売上金不足が自分の集計ミスだったことを隠したい
@@ -198,6 +200,7 @@ characters:
   - id: hoshina
     name: 保科悠人
     role: suspect
+    publicIntroduction: "研究熱心だが承認欲求の強い若手学芸員。"
     personality: 研究熱心だが承認欲求の強い若手学芸員。未公開写真を外部へ送ったことが露見するのを恐れ、収蔵庫周辺の行動を隠す。倉橋とは展示方針で衝突していた。
     goals:
       - 未公開収蔵品の写真を外部へ送ったことを隠したい
@@ -222,6 +225,7 @@ characters:
   - id: kido
     name: 城戸篤
     role: suspect
+    publicIntroduction: "機器の仕組みを平易に説明できる設備技術者。"
     personality: 機器の仕組みを平易に説明できる設備技術者。夕方の同期試験ミスを隠したいので最初は時計の精度に問題はなかったと言い張るが、防災端末と親時計が別系統であることは知っている。
     goals:
       - 親時計を十一分進ませたままにした作業ミスを隠したい

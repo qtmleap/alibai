@@ -97,6 +97,7 @@ characters:
   - id: lin
     name: 林雪梅
     role: suspect
+    publicIntroduction: "冷静で計算高い番頭。"
     personality: 冷静で計算高い番頭。書類の扱いに慣れており、署名入り伝票を強い生存証明として押し出そうとする。帳簿外の荷について問われると警戒する。
     goals:
       - 帳簿外の絹荷を隠したい
@@ -134,6 +135,7 @@ characters:
   - id: chen
     name: 陳伯安
     role: suspect
+    publicIntroduction: "細部に強い通関書記。"
     personality: 細部に強い通関書記。紙の筆圧や控えの違いに敏感だが、自分の不正な謝礼については口を濁す。
     goals:
       - 役人への不正な謝礼を隠したい
@@ -161,6 +163,7 @@ characters:
   - id: wang
     name: 王世傑
     role: witness
+    publicIntroduction: "豪胆な荷役監督。"
     personality: 豪胆な荷役監督。細かな帳簿は苦手だが、物品の状態には目が利く。破損品の持ち出しだけは隠したい。
     goals:
       - 破損品の持ち出しを隠したい

@@ -140,6 +140,7 @@ const compileDefinition = (
     id: characterUuid(character.id),
     scenarioId,
     name: character.name,
+    publicIntroduction: character.publicIntroduction,
     /*
       関係は「事実」ではなく「相手への態度」なので、知っていることに混ぜると
       Actor が事実として喋り出す。人物像の続きとして書くのが正しい置き場所。

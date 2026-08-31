@@ -48,7 +48,7 @@ bun run db:seed:apply # 生成したSQLをローカルのD1へ流す
 ```text
 scenarios          シナリオ本体（公開設定、難易度、想定プレイ時間、事件の記録、見取り図）
 scenario_truths    真相（サーバー限定。APIレスポンスに絶対含めない）
-characters         登場人物（人格・知識・秘密・目的・嘘・記憶）
+characters         登場人物（公開紹介・人格・知識・秘密・目的・嘘・記憶）
 evidences          証拠（Judgeが開示を判定するための条件文）
 play_sessions      プレイセッション（匿名可。プレイヤーが演じる探偵を持つ）
 messages           会話ログ（NPC別、トークン使用量・プロバイダ・モデルも記録）
@@ -61,7 +61,7 @@ reports            UGC通報
 
 **`scenario_truths` の分離。** 真相・犯人・時系列・秘匿キーワードを `scenarios` から切り出しています。テーブルを分けておけば、クライアント向けのクエリで誤って真相を JOIN する事故を構造的に防げます。Actor 向けのプロンプト組み立てでも参照しません。
 
-**`characters` の列がプロンプトの上限。** `personality` / `knowledge` / `secrets` / `goals` / `lies` / `memories` の6列に入る情報が、そのNPCのプロンプトになる最大範囲です。他人物の秘密や真相はここに入りません。
+**`characters` は公開紹介とNPC内部情報を分離する。** `public_introduction` だけがプレイヤー向けで、Actor のプロンプトには使いません。`personality` / `knowledge` / `secrets` / `goals` / `lies` / `memories` の6列が、そのNPCのプロンプトになる最大範囲です。他人物の秘密や真相はここに入りません。
 
 **`play_sessions.user_id` が nullable。** 匿名プレイを一級市民として扱うためです。「URLから即プレイ」を掲げる以上、ログイン壁は致命的になります。
 

@@ -360,6 +360,7 @@ characters:
   - id: fukagawa
     name: 深川誠也
     role: suspect
+    publicIntroduction: "気弱で愛想笑いが多い税理士。"
     personality: 気弱で愛想笑いが多い税理士。人当たりは柔らかいが、追い詰められるとしどろもどろになり目が泳ぐ。涼子には昔から頭が上がらない。
     goals:
       - 横領が誰にもバレないまま今夜をやり過ごしたい
@@ -395,6 +396,7 @@ characters:
   - id: mizuki
     name: 早坂美月
     role: suspect
+    publicIntroduction: "明るく気配り上手で場の空気をよく読む。"
     personality: 明るく気配り上手で場の空気をよく読む。涼子の親戚の中でも一番可愛がられてきた自覚がある。内心は打算的で、追い詰められると笑顔の下で早口になる。
     goals:
       - 月見荘と遺産を確実に手に入れたい
@@ -430,6 +432,7 @@ characters:
   - id: kiryu
     name: 桐生涼
     role: witness
+    publicIntroduction: "落ち着いた物腰で観察力が鋭い医師。"
     personality: 落ち着いた物腰で観察力が鋭い医師。淡々と話すが、涼子への想いだけは昔から変わらず深い。
     goals:
       - 涼子への想いを誰にも知られたくない

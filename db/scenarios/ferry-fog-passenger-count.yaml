@@ -118,6 +118,7 @@ characters:
   - id: kanda
     name: 神田美奈
     role: suspect
+    publicIntroduction: "手際がよく、乗客対応にも慣れた事務長。"
     personality: 手際がよく、乗客対応にも慣れた事務長。数字と帳簿を扱う仕事に自信を持ち、記録さえ整っていれば説明は通ると考えがち。柴田の監査には以前から強い緊張を感じていた。
     goals:
       - 船内売上金の抜き取りを隠したい
@@ -152,6 +153,7 @@ characters:
   - id: ogiwara
     name: 荻原陸
     role: witness
+    publicIntroduction: "明るく人懐っこい若い甲板員。"
     personality: 明るく人懐っこい若い甲板員。乗客へのサービス精神が強すぎて、出航前に知人を乗員通路へ入れた規則違反を隠したい。船内で見た人の移動はよく覚えている。
     goals:
       - 知人を乗員通路へ入れたことを隠したい
@@ -176,6 +178,7 @@ characters:
   - id: fujiwara
     name: 藤原奈緒
     role: suspect
+    publicIntroduction: "粘り強い地方紙記者。"
     personality: 粘り強い地方紙記者。情報源を守る意識が強く、柴田との秘密の面会を簡単には認めない。会社の安全管理問題を追っていたため、監査役との接触自体が取材先へ漏れることを恐れている。
     goals:
       - 柴田から内部資料を受け取ったことを隠したい

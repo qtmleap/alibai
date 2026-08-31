@@ -102,6 +102,7 @@ characters:
   - id: bell
     name: アーサー・ベル
     role: suspect
+    publicIntroduction: "実務能力の高い施工監督。"
     personality: 実務能力の高い施工監督。工期と費用の話になると強気だが、帳簿の細部を問われると苛立つ。電信の符号がヘイル本人の生存証明だと言い張りたい。
     goals:
       - 資材費の水増しを隠したい
@@ -141,6 +142,7 @@ characters:
   - id: clara
     name: クララ・ウェッブ
     role: witness
+    publicIntroduction: "正確さを誇る若い電信係。"
     personality: 正確さを誇る若い電信係。受信した文字列については自信がある一方、私的な通信を写していた規則違反は隠したい。送信者を実際に見てはいない。
     goals:
       - 無断で私信を写していたことを隠したい
@@ -168,6 +170,7 @@ characters:
   - id: thomas
     name: トーマス・リード
     role: suspect
+    publicIntroduction: "無骨な機関助手。"
     personality: 無骨な機関助手。工事用石炭の横流しをしていたため帳簿調査を恐れている。坑道で見たベルの位置については妙に具体的に覚えている。
     goals:
       - 石炭の横流しを隠したい

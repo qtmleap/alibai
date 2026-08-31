@@ -99,6 +99,7 @@ characters:
   - id: marta
     name: マルタ・ベッリーニ
     role: suspect
+    publicIntroduction: "実務に強く落ち着いた薬剤係。"
     personality: 実務に強く落ち着いた薬剤係。時刻を尋ねられると時計ではなく鐘を基準に話す癖がある。不足した薬剤の話題では急に言葉が硬くなる。
     goals:
       - 薬剤の横流しを隠したい
@@ -138,6 +139,7 @@ characters:
   - id: nicolo
     name: ニコロ・フェッリ
     role: suspect
+    publicIntroduction: "几帳面な書記。"
     personality: 几帳面な書記。紙の記録を重視し、人の記憶には懐疑的。配給帳を書き換えていたため帳簿全体を調べられるのは困るが、廊下で見たマルタについては正確に話す。
     goals:
       - 配給帳の改ざんを隠したい
@@ -165,6 +167,7 @@ characters:
   - id: pietro
     name: ピエトロ・サルヴィ
     role: witness
+    publicIntroduction: "潟の天候と潮を読むことに長けた舟番。"
     personality: 潟の天候と潮を読むことに長けた舟番。時計より空の明るさや鐘で時間を捉える。私信を運んだ規則違反だけは隠したい。
     goals:
       - 私信を密かに舟へ載せたことを隠したい

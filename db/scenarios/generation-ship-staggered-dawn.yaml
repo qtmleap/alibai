@@ -104,6 +104,7 @@ characters:
   - id: sera
     name: セラ・イワノフ
     role: suspect
+    publicIntroduction: "有能な農業主任。"
     personality: 有能な農業主任。自分の区画時間で物事を話す癖があり、「六時過ぎには農業区にいた」と繰り返す。希少種子の管理を問われると強く反発する。
     goals:
       - 希少種子の流用を隠したい
@@ -141,6 +142,7 @@ characters:
   - id: dario
     name: ダリオ・ケイン
     role: witness
+    publicIntroduction: "船内標準時で考える電力管制官。"
     personality: 船内標準時で考える電力管制官。区画時間を標準時へ換算するのが習慣になっている。個人工作室への電力流用は隠したい。
     goals:
       - 個人工作室への規定外電力を隠したい
@@ -168,6 +170,7 @@ characters:
   - id: yuna
     name: ユナ・パク
     role: suspect
+    publicIntroduction: "穏やかな医療技師。"
     personality: 穏やかな医療技師。患者の生活周期に合わせて医療区時間で話す。友人へ医療用品を融通した件は隠したい。
     goals:
       - 手続き外の医療用品融通を隠したい
