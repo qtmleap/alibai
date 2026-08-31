@@ -7,6 +7,9 @@ meta:
   difficulty: 5
   estimatedMinutes: 15
   tags: [2147年, 火星, 通信遅延, 基地]
+victim:
+  name: エレナ・ヴァルガ
+  introduction: 火星エリュシオン観測基地主任研究員
 briefing: |-
   2147年、火星エリュシオン観測基地。大規模な砂嵐で地表車両も通信中継ドローンも停止するなか、主任研究員エレナ・ヴァルガが解析室で死亡しました。
 

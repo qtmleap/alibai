@@ -7,6 +7,9 @@ meta:
   difficulty: 5
   estimatedMinutes: 15
   tags: [2312年, 世代船, 人工昼夜, 時刻]
+victim:
+  name: ミラ・ヴォス
+  introduction: 恒星間世代船《アステリア》生態系主任
 briefing: |-
   2312年、恒星間世代船《アステリア》。外部航行中のため、居住リングから船外へ出ることはできません。
 

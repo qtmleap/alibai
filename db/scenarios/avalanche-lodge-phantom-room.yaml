@@ -7,6 +7,9 @@ meta:
   difficulty: 5
   estimatedMinutes: 15
   tags: [山荘, 雪崩, 偽の呼び出し, アリバイ]
+victim:
+  name: 早瀬隆司
+  introduction: 白樺峰ホテル支配人
 briefing: |-
   ——事件の記録を読み上げます。
 

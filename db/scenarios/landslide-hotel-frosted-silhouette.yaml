@@ -7,6 +7,9 @@ meta:
   difficulty: 5
   estimatedMinutes: 15
   tags: [ホテル, 土砂崩れ, 目撃, 死亡時刻]
+victim:
+  name: 長峰宗一
+  introduction: 山腹のホテル支配人
 briefing: |-
   ——事件の記録を読み上げます。
 

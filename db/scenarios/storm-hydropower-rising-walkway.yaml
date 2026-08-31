@@ -7,6 +7,9 @@ meta:
   difficulty: 5
   estimatedMinutes: 18
   tags: [発電所, 豪雨, 密室, 水位]
+victim:
+  name: 峰岸達也
+  introduction: 山中の水力発電所所長
 briefing: |-
   ——事件の記録を読み上げます。
 

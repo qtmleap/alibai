@@ -23,6 +23,8 @@ export type ScenarioDetail = {
   briefing: string
   /** 事件が動いていた時間の幅。軸を引けないシナリオもあるので null あり。 */
   timeWindow: { start: string; end: string } | null
+  /** 亡くなった人。聞き込みの相手ではないので characters とは別に返す。 */
+  victim: { name: string; introduction: string } | null
   /** 既定値を埋めたあとの形。列そのものの型（入力側）ではない。 */
   floorPlan: FloorPlan | null
   difficulty: number
@@ -81,6 +83,8 @@ export const findScenarioDetail = async (
       // （db/time-window.ts）。ここで scenario_truths を引かずに済むのはそのため。
       timeStart: scenarios.timeStart,
       timeEnd: scenarios.timeEnd,
+      victimName: scenarios.victimName,
+      victimIntroduction: scenarios.victimIntroduction,
       difficulty: scenarios.difficulty,
       estimatedMinutes: scenarios.estimatedMinutes,
     })
@@ -127,6 +131,12 @@ export const findScenarioDetail = async (
       scenario.timeStart === null || scenario.timeEnd === null
         ? null
         : { start: scenario.timeStart, end: scenario.timeEnd },
+    // 名前だけあって紹介が無い行は出さない。肩書きの無い名前が一行だけ並ぶと、
+    // それが被害者だと分かるのはラベルだけになる。
+    victim:
+      scenario.victimName === null || scenario.victimIntroduction === null
+        ? null
+        : { name: scenario.victimName, introduction: scenario.victimIntroduction },
     characters: characterRows,
   }
 }

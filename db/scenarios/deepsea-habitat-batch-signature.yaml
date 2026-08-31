@@ -7,6 +7,9 @@ meta:
   difficulty: 5
   estimatedMinutes: 18
   tags: [海底基地, 荒天, 点検記録, 時刻]
+victim:
+  name: 篠宮亮
+  introduction: 海底居住実験区「アビス3」主任研究者
 briefing: |-
   ——事件の記録を読み上げます。
 

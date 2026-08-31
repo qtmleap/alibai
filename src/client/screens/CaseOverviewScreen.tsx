@@ -174,6 +174,32 @@ export const CaseOverviewScreen = ({
                 </span>
               </li>
             ))}
+
+            {/*
+              亡くなった人も同じ列に並べる。別枠にすると、事件のあいだ誰がその場に
+              いたのかという一覧が二つに割れる。話しかけられないことは右端の
+              ラベルで足りていて、聞き込みの列（左のレール）には最初から出てこない。
+            */}
+            {scenario.victim !== null && (
+              <li className="flex items-center gap-2.5 border-keisen border-b py-[7px]">
+                <CharacterAvatar
+                  name={scenario.victim.name}
+                  index={scenario.characters.length}
+                  size="sm"
+                />
+                <span className="flex min-w-0 flex-col gap-px">
+                  <span className={`text-[13px] ${inkOf(scenario.characters.length)}`}>
+                    {scenario.victim.name}
+                  </span>
+                  <span className="text-[10.5px] text-nezumi-dim leading-[1.6]">
+                    {scenario.victim.introduction}
+                  </span>
+                </span>
+                <span className="ml-auto shrink-0 text-[10px] text-nezumi-dim tracking-[0.1em]">
+                  被害者
+                </span>
+              </li>
+            )}
           </ul>
         </section>
       )}

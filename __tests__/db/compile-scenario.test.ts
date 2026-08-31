@@ -472,3 +472,32 @@ describe('compileScenario: 失敗経路', () => {
     expect(result.issues.join('\n')).toContain('nowhere')
   })
 })
+
+describe('compileScenario: 被害者', () => {
+  test('victim を書いた行はそのまま scenarios へ載る', () => {
+    const definition = makeMinimal()
+    const result = compileOrThrow({
+      ...definition,
+      victim: { name: '水野英治', introduction: '青雨堂店主' },
+    })
+
+    expect(result.scenario.victimName).toBe('水野英治')
+    expect(result.scenario.victimIntroduction).toBe('青雨堂店主')
+  })
+
+  test('victim は任意。書かなければ null で、登場人物には混ざらない', () => {
+    const result = compileOrThrow(makeMinimal())
+
+    expect(result.scenario.victimName).toBeNull()
+    expect(result.scenario.victimIntroduction).toBeNull()
+    // 被害者は聞き込みの相手ではないので、characters には一切足さない。
+    expect(result.characters.every((character) => character.name !== '水野英治')).toBe(true)
+  })
+
+  test('時刻軸の両端も同じ行に焼かれる', () => {
+    const result = compileOrThrow(makeMinimal())
+
+    expect(result.scenario.timeStart).not.toBeNull()
+    expect(result.scenario.timeEnd).not.toBeNull()
+  })
+})

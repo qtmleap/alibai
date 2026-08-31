@@ -7,6 +7,9 @@ meta:
   difficulty: 3
   estimatedMinutes: 10
   tags: [フェリー, 濃霧, 点呼表]
+victim:
+  name: 柴田功
+  introduction: 離島航路運航会社監査役
 briefing: |-
   ——事件の記録を読み上げます。
 

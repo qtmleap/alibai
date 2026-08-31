@@ -7,6 +7,9 @@ meta:
   difficulty: 3
   estimatedMinutes: 10
   tags: [出版社, 契約書, 時刻]
+victim:
+  name: 石橋礼司
+  introduction: 出版社「青燈社」編集長
 briefing: |-
   ——事件の記録を読み上げます。
 

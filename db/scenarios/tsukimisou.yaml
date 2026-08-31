@@ -31,6 +31,9 @@ meta:
 # 絞れてしまったら、この10分は聞き込みではなく答え合わせになる。
 #
 # solution.secretKeywords がここに混ざっていないかはスキーマが検査する。
+victim:
+  name: 高瀬涼子
+  introduction: 老舗旅館「月見荘」女将
 briefing: |-
   ——事件の記録を読み上げます。
 

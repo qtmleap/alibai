@@ -7,6 +7,9 @@ meta:
   difficulty: 3
   estimatedMinutes: 10
   tags: [美術館, 贋作, 記録]
+victim:
+  name: 鳥羽薫
+  introduction: 市立青環美術館主任学芸員
 briefing: |-
   ——事件の記録を読み上げます。
 

@@ -7,6 +7,9 @@ meta:
   difficulty: 3
   estimatedMinutes: 10
   tags: [夏祭り, 停電, アリバイ]
+victim:
+  name: 神谷宗一
+  introduction: 八坂野神社夏祭り実行委員長
 briefing: |-
   ——事件の記録を読み上げます。
 

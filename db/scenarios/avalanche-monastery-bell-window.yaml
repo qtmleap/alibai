@@ -7,6 +7,9 @@ meta:
   difficulty: 5
   estimatedMinutes: 15
   tags: [修道院, 雪崩, 鐘, 時系列]
+victim:
+  name: 高瀬静一
+  introduction: 修道院資料館館長
 briefing: |-
   ——事件の記録を読み上げます。
 

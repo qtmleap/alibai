@@ -73,6 +73,15 @@ export const scenarios = sqliteTable('scenarios', {
    */
   timeStart: text('time_start'),
   timeEnd: text('time_end'),
+  /**
+   * 亡くなった人。characters に入れないのは、あちらが聞き込みの相手の一覧で、
+   * NPC のプロンプトになる列だから（話しかけられる相手に死者を並べない）。
+   *
+   * 事件の記録が名前を語っているので伏せる情報ではない。
+   * 殺人以外の事件を書けるよう nullable。
+   */
+  victimName: text('victim_name'),
+  victimIntroduction: text('victim_introduction'),
   authorId: text('author_id'),
   isPublished: integer('is_published', { mode: 'boolean' }).notNull().default(false),
   difficulty: integer('difficulty').notNull().default(3),

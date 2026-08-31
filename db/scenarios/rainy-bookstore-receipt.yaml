@@ -7,6 +7,9 @@ meta:
   difficulty: 2
   estimatedMinutes: 10
   tags: [古書店, 雨, アリバイ]
+victim:
+  name: 水野英治
+  introduction: 青雨堂店主
 briefing: |-
   ——事件の記録を読み上げます。
 

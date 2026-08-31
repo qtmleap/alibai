@@ -7,6 +7,9 @@ meta:
   difficulty: 5
   estimatedMinutes: 15
   tags: [データセンター, 台風, ログ, アリバイ]
+victim:
+  name: 真田啓介
+  introduction: 湾岸データセンター運用責任者
 briefing: |-
   ——事件の記録を読み上げます。
 

@@ -238,6 +238,8 @@ const compileDefinition = (
       category: definition.meta.category,
       timeStart: window === undefined ? null : window.start,
       timeEnd: window === undefined ? null : window.end,
+      victimName: definition.victim === undefined ? null : definition.victim.name,
+      victimIntroduction: definition.victim === undefined ? null : definition.victim.introduction,
       isPublished: options.isPublished,
       difficulty: definition.meta.difficulty,
       estimatedMinutes: definition.meta.estimatedMinutes,

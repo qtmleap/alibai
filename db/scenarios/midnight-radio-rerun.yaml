@@ -7,6 +7,9 @@ meta:
   difficulty: 3
   estimatedMinutes: 10
   tags: [ラジオ, 時刻トリック, 偽装アリバイ]
+victim:
+  name: 大門修一
+  introduction: FMラジオ局「レイライン」パーソナリティ
 briefing: |-
   ——事件の記録を読み上げます。
 

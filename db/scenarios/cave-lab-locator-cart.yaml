@@ -7,6 +7,9 @@ meta:
   difficulty: 5
   estimatedMinutes: 18
   tags: [洞窟, 落盤, 位置情報, 測量]
+victim:
+  name: 岩代圭吾
+  introduction: 地下洞窟研究所調査主任
 briefing: |-
   ——事件の記録を読み上げます。
 

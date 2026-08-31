@@ -7,6 +7,9 @@ meta:
   difficulty: 5
   estimatedMinutes: 15
   tags: [天象館, 反射, 目撃証言, 死亡時刻]
+victim:
+  name: 犬塚誠
+  introduction: 星見ヶ丘天象館館長
 briefing: |-
   ——事件の記録を読み上げます。
 

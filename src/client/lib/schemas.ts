@@ -50,6 +50,11 @@ export const scenarioDetailSchema = scenarioSummarySchema.omit({ characterCount:
    * 真相ではなく、事件の記録が語っているのと同じ幅（db/time-window.ts）。
    */
   timeWindow: z.object({ start: z.string(), end: z.string() }).nullable(),
+  /**
+   * 亡くなった人。characters には入らない——あちらは聞き込みの相手の一覧なので、
+   * 混ぜると話しかけられる列に死者が並ぶ。
+   */
+  victim: z.object({ name: z.string(), introduction: z.string() }).nullable(),
   characters: z.array(characterSchema),
 })
 

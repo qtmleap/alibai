@@ -7,6 +7,9 @@ meta:
   difficulty: 5
   estimatedMinutes: 15
   tags: [灯台, 暴風, 記録, 時刻]
+victim:
+  name: 倉橋徹
+  introduction: 夕凪灯台主任灯台守
 briefing: |-
   ——事件の記録を読み上げます。
 

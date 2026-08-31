@@ -7,6 +7,9 @@ meta:
   difficulty: 4
   estimatedMinutes: 15
   tags: [ロッジ, 吹雪, アリバイ, 記録]
+victim:
+  name: 塚本誠
+  introduction: 研修ロッジ運営責任者
 briefing: |-
   ——事件の記録を読み上げます。
 

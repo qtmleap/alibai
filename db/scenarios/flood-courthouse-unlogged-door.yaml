@@ -7,6 +7,9 @@ meta:
   difficulty: 5
   estimatedMinutes: 15
   tags: [裁判所, 洪水, 電子錠, 密室]
+victim:
+  name: 磯崎章
+  introduction: 旧南央裁判所主任記録官
 briefing: |-
   ——事件の記録を読み上げます。
 
