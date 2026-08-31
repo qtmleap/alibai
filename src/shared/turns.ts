@@ -111,6 +111,15 @@ export const clampLimits = (
  */
 export const modelCallsPerTopic = (exchangesPerTopic: number): number => 2 * exchangesPerTopic + 1
 
+/**
+ * 遺体を検分するときのモデル呼び出しの回数。
+ *
+ * 何を調べるかを組み立てて1回、所見を書き起こして1回、判定で1回。
+ * 相手が喋らないので往復しない——聞き込み（既定7回）より軽い。
+ * ターンは同じく1問ぶん使うが、予算の減り方はこの重みで数える。
+ */
+export const EXAMINATION_MODEL_CALLS = 3
+
 export type TurnState = {
   /** 何ターン目か。1始まり。使い切ったあとは最終ターンの番号で止まる。 */
   turn: number

@@ -12,6 +12,7 @@ import { fetchSessionState } from '@/client/lib/api'
 import { formatSeconds } from '@/client/lib/format'
 import { settledSentences } from '@/client/lib/paragraphs'
 import type { ScenarioDetail, SessionState } from '@/client/lib/schemas'
+import { VICTIM_ID } from '~/db/scenario-definition'
 
 /**
  * アリバイ表に立てる線。
@@ -196,7 +197,8 @@ type Block = { id: string; who: number; name: string; lines: { id: string; text:
  * 相手を切り替えても読んでいた場所が消えない。
  */
 const buildBlocks = (
-  characters: ScenarioDetail['characters'],
+  /** 話題を投げられる相手。被害者を含むので ScenarioDetail['characters'] より広い。 */
+  characters: { id: string; logName: string }[],
   conversations: Record<string, ChatTurn[]>,
   askerName: string,
   /** 今まさに返答が流れてきている相手。書きかけの一文を伏せるのに要る。 */
@@ -213,7 +215,7 @@ const buildBlocks = (
           turn,
           seq,
           index,
-          name: character.name,
+          name: character.logName,
           streaming: seq === streamingSeq && turn.role === 'assistant',
         }))
         // 話題はプレイヤーの指示であって発言ではない。探偵が投げた質問のほうが残る。
@@ -442,10 +444,40 @@ export const InterrogationScreen = ({
     setInputText('')
   }
 
-  const activeIndex = scenario.characters.findIndex(
-    (character) => character.id === activeCharacterId,
-  )
-  const activeCharacter = scenario.characters[activeIndex]
+  /*
+   * 話題を投げられる相手。遺体を調べられる事件では、被害者もここに並ぶ。
+   *
+   * 顔料の添字はアリバイ表の列と揃える（被害者は登場人物の次）。ずらすと、
+   * 表の列と会話の縦罫が違う色になって、同じ相手だと分からなくなる。
+   *
+   * ログに出す名前だけは被害者を「所見」にする。喋ったのではなく探偵が見たものなので、
+   * 名前を出すと死者が証言しているように読める。
+   */
+  const subjects = [
+    ...scenario.characters.map((character, index) => ({
+      id: character.id,
+      name: character.name,
+      logName: character.name,
+      introduction: character.publicIntroduction,
+      index,
+    })),
+    ...(scenario.victim === null || !scenario.victim.investigable
+      ? []
+      : [
+          {
+            id: VICTIM_ID,
+            name: scenario.victim.name,
+            logName: '所見',
+            introduction: `被害者・${scenario.victim.introduction}`,
+            index: scenario.characters.length,
+          },
+        ]),
+  ]
+
+  const activeIndex = subjects.findIndex((subject) => subject.id === activeCharacterId)
+  const activeCharacter = subjects[activeIndex]
+  /** 遺体を調べているあいだ。訊くのではなく見るので、文言が変わる。 */
+  const examining = activeCharacterId === VICTIM_ID
   const activeSuggestions = suggestedQuestions[activeCharacterId]
   const suggestionsToShow = activeSuggestions === undefined ? [] : activeSuggestions
   const isAsking = askingCharacterId !== undefined
@@ -517,7 +549,7 @@ export const InterrogationScreen = ({
       ]),
   )
 
-  const said = buildBlocks(scenario.characters, conversations, askerName, askingCharacterId)
+  const said = buildBlocks(subjects, conversations, askerName, askingCharacterId)
   const shown = usePacedReveal(
     said.reduce((count, block) => count + block.lines.length, 0),
     isAsking,
@@ -583,22 +615,22 @@ export const InterrogationScreen = ({
           押せる見出しを持たないので、名前の隣に控えめに並べておく。
         */}
         <nav aria-label="話す相手" className="flex shrink-0 items-baseline gap-3">
-          {scenario.characters
-            .filter((character) => character.id !== activeCharacterId)
-            .map((character) => (
+          {subjects
+            .filter((subject) => subject.id !== activeCharacterId)
+            .map((subject) => (
               <button
-                key={character.id}
+                key={subject.id}
                 type="button"
-                onClick={() => setActiveCharacterId(character.id)}
+                onClick={() => setActiveCharacterId(subject.id)}
                 className={`${switchClass} text-nezumi-dim hover:text-nezumi`}
               >
-                {character.name}
+                {subject.name}
               </button>
             ))}
         </nav>
       </div>
       <p className={introClass}>
-        {activeCharacter === undefined ? '' : activeCharacter.publicIntroduction}
+        {activeCharacter === undefined ? '' : activeCharacter.introduction}
       </p>
     </>
   )
@@ -892,7 +924,7 @@ export const InterrogationScreen = ({
                     }
                   }}
                   maxLength={500}
-                  placeholder="何について訊く？"
+                  placeholder={examining ? '何を調べる？' : '何について訊く？'}
                   aria-label="訊きたいこと"
                   disabled={isAsking}
                   className="min-w-0 flex-1 border-keisen border-b bg-transparent px-0.5 py-[7px] text-[12px] outline-none placeholder:text-nezumi-dim focus-visible:border-nezumi-dim disabled:opacity-40 lg:py-[9px] lg:text-[13.5px]"
@@ -903,7 +935,7 @@ export const InterrogationScreen = ({
                   disabled={isAsking || inputText.trim().length === 0}
                   className="shrink-0 border border-keisen px-3.5 py-[7px] text-[12px] hover:border-nezumi-dim disabled:opacity-40 lg:px-[22px] lg:py-2 lg:text-[13px]"
                 >
-                  {isAsking ? '…' : '訊く'}
+                  {isAsking ? '…' : examining ? '調べる' : '訊く'}
                 </button>
               </div>
             )}

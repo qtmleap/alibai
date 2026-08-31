@@ -34,6 +34,23 @@ meta:
 victim:
   name: 高瀬涼子
   introduction: 老舗旅館「月見荘」女将
+  foundAt: "20:30"
+  foundIn: 書斎
+  causeOfDeath: 植物性の毒物による中毒死
+  # 遺体と現場から目にできることだけを書く。誰がやったかの解釈は書かない。
+  findings:
+    - id: no-struggle
+      statement: 争った跡が無い。着衣も髪も乱れておらず、文机の上も片付いたままになっている。
+    - id: numbness-signs
+      statement: 唇のまわりと指先に、しびれが出たときの跡が残っている。
+    - id: single-glass
+      statement: 文机に、飲みかけのグラスが一つだけ置かれている。誰かと酌み交わした跡は無い。
+    # 後継者指定を知ってから読むと意味が変わる草案。順序を作るために前提を置く。
+    - id: heir-draft
+      statement: 硯箱の下に、書き直しかけの遺言書の草案が伏せてある。後継者の項に線が引かれ、余白に書き込みがある。
+      requires:
+        evidences:
+          - will-record
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -565,6 +582,19 @@ evidences:
         id: mizuki
     supports:
       - mizuki-named-heir
+    contradicts: []
+  # 遺体を調べて初めて出てくる一件。動機へ繋がる手掛かりを、人の口以外にも一つ置く。
+  - id: will-draft
+    label: 書き直しかけの遺言書の草案
+    description: 後継者の項に線が引かれ、余白に書き込みがある。日付はごく最近。
+    reveal:
+      mode: conversation
+      condition: プレイヤーが遺体または書斎の文机まわりを調べ、探偵が硯箱の下の草案に触れたら開示する。
+    sources:
+      - type: victim
+        id: victim
+    supports:
+      - ryoko-reconsidering-heir
     contradicts: []
   - id: brandy-bottle
     label: 書斎に残されたブランデーの瓶とグラス

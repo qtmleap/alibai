@@ -306,7 +306,22 @@ const compileDefinition = (
       timelineEvents,
       victimCauseOfDeath:
         victim === undefined || victim.causeOfDeath === undefined ? null : victim.causeOfDeath,
-      victimFindings: victim === undefined ? [] : victim.findings,
+      /*
+        所見の解禁前提も採番する。DO が持っている発見済みのIDは uuid なので、
+        authoring のローカルIDのまま焼くと、前提が永久に満たされない所見になる。
+        （所見自身の id は他から参照されないので、そのまま残す。）
+      */
+      victimFindings:
+        victim === undefined
+          ? []
+          : victim.findings.map((finding) => ({
+              id: finding.id,
+              statement: finding.statement,
+              requires: {
+                revelations: finding.requires.revelations.map(revelationUuid),
+                evidences: finding.requires.evidences.map(evidenceUuid),
+              },
+            })),
       secretKeywords: definition.solution.secretKeywords,
     },
   }

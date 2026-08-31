@@ -3,6 +3,7 @@ import { detectiveSchema } from '~/db/detective'
 import { floorPlanSchema } from '~/db/floor-plan'
 import { gameModeSchema, hintSchema } from '~/db/game-mode'
 import { llmProviderSchema, settableLlmRoleSchema } from '~/db/llm-catalog'
+import { VICTIM_ID } from '~/db/scenario-definition'
 
 /**
  * サーバのレスポンスは fetch の時点では unknown。
@@ -227,11 +228,19 @@ export const historyExchangeSchema = z.object({
   topic: z.string().nonempty().nullable(),
 })
 
+/**
+ * 話しかけた相手のID。
+ *
+ * 登場人物は uuid だが、被害者だけは決め打ちの `victim`（採番する先が一人しか無い）。
+ * ここを uuid で縛ると、遺体を調べたセッションが復元できずに画面ごと落ちる。
+ */
+const subjectIdSchema = z.union([z.uuid(), z.literal(VICTIM_ID)])
+
 export const sessionHistorySchema = z.object({
   sessionId: z.uuid(),
   histories: z.array(
     z.object({
-      characterId: z.uuid(),
+      characterId: subjectIdSchema,
       exchanges: z.array(historyExchangeSchema),
     }),
   ),

@@ -15,6 +15,7 @@ import {
   scenarioSecretSchema,
   scenarioSolutionSchema,
   scenarioTimelineEventSchema,
+  VICTIM_ID,
 } from '~/db/scenario-definition'
 
 const validScenario: ScenarioDefinition = {
@@ -1472,5 +1473,66 @@ describe('ScenarioDefinitionSchema: evidence の sources', () => {
 
     expect(parsed.success).toBe(true)
     expect(parsed.success ? requiredAt(parsed.data.evidences, 0).sources : undefined).toEqual([])
+  })
+})
+
+describe('被害者を出どころにする', () => {
+  test('type: victim は id が victim なら通る', () => {
+    const scenario = makeScenario()
+    scenario.victim = { name: '被害者', introduction: '館の主', findings: [] }
+    const evidence = scenario.evidences[0]
+
+    if (evidence === undefined) {
+      throw new Error('この試験は証拠が1件以上ある前提で組んである。')
+    }
+
+    evidence.sources = [{ type: 'victim', id: VICTIM_ID }]
+
+    expect(ScenarioDefinitionSchema.safeParse(scenario).success).toBe(true)
+  })
+
+  test('被害者の居ない事件では使えない', () => {
+    const scenario = makeScenario()
+    scenario.victim = undefined
+    const evidence = scenario.evidences[0]
+
+    if (evidence === undefined) {
+      throw new Error('この試験は証拠が1件以上ある前提で組んである。')
+    }
+
+    evidence.sources = [{ type: 'victim', id: VICTIM_ID }]
+
+    expect(ScenarioDefinitionSchema.safeParse(scenario).success).toBe(false)
+  })
+
+  test('id は victim で固定', () => {
+    const scenario = makeScenario()
+    scenario.victim = { name: '被害者', introduction: '館の主', findings: [] }
+    const evidence = scenario.evidences[0]
+
+    if (evidence === undefined) {
+      throw new Error('この試験は証拠が1件以上ある前提で組んである。')
+    }
+
+    evidence.sources = [{ type: 'victim', id: 'ryoko' }]
+
+    expect(ScenarioDefinitionSchema.safeParse(scenario).success).toBe(false)
+  })
+
+  test('所見の解禁前提は実在する証拠しか指せない', () => {
+    const scenario = makeScenario()
+    scenario.victim = {
+      name: '被害者',
+      introduction: '館の主',
+      findings: [
+        {
+          id: 'draft',
+          statement: '草案が伏せてある。',
+          requires: { revelations: [], evidences: ['no-such-evidence'] },
+        },
+      ],
+    }
+
+    expect(ScenarioDefinitionSchema.safeParse(scenario).success).toBe(false)
   })
 })

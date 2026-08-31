@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import { compileScenario } from '~/db/compile-scenario'
 import { parseFloorPlan } from '~/db/floor-plan'
 import { TSUKIMISOU_PLAN } from '~/db/floor-plans/tsukimisou'
-import type { ScenarioDefinitionInput } from '~/db/scenario-definition'
+import { type ScenarioDefinitionInput, VICTIM_ID } from '~/db/scenario-definition'
 import { loadScenarioYaml } from '~/db/scenario-file'
 
 const TSUKIMISOU_SCENARIO = await loadScenarioYaml('tsukimisou')
@@ -151,7 +151,7 @@ describe('compileScenario: 月見荘のコンパイル', () => {
     expect(compiled.scenario.isPublished).toBe(true)
     expect(compiled.scenario.title).toBe('月見荘、十七回忌の夜')
     expect(compiled.characters).toHaveLength(3)
-    expect(compiled.evidences).toHaveLength(6)
+    expect(compiled.evidences).toHaveLength(7)
     expect(compiled.revelations).toHaveLength(2)
   })
 
@@ -220,6 +220,11 @@ describe('compileScenario: プロンプトを壊さない不変条件', () => {
     for (const source of sources) {
       if (source.type === 'character') {
         expect(characterIds.has(source.id)).toBe(true)
+        expect(roomIds.has(source.id)).toBe(false)
+      } else if (source.type === 'victim') {
+        // 被害者は一人しか居ないので採番しない。決め打ちのIDのまま焼かれる。
+        expect(source.id).toBe(VICTIM_ID)
+        expect(characterIds.has(source.id)).toBe(false)
         expect(roomIds.has(source.id)).toBe(false)
       } else {
         expect(roomIds.has(source.id)).toBe(true)
@@ -499,5 +504,25 @@ describe('compileScenario: 被害者', () => {
 
     expect(result.scenario.timeStart).not.toBeNull()
     expect(result.scenario.timeEnd).not.toBeNull()
+  })
+})
+
+describe('被害者の所見', () => {
+  test('解禁の前提は uuid へ採番される', () => {
+    // ローカルIDのまま焼くと、DOが持つ uuid と突き合わない＝前提が永久に満たされない。
+    const evidenceIds = new Set(compiled.evidences.map((evidence) => evidence.id))
+    const required = compiled.truth.victimFindings.flatMap((finding) => finding.requires.evidences)
+
+    expect(required.length).toBeGreaterThan(0)
+
+    for (const id of required) {
+      expect(evidenceIds.has(id)).toBe(true)
+    }
+  })
+
+  test('遺体を調べられる事件として焼かれる', () => {
+    expect(compiled.scenario.victimInvestigable).toBe(true)
+    expect(compiled.scenario.victimFoundAt).toBe('20:30')
+    expect(compiled.truth.victimCauseOfDeath).not.toBeNull()
   })
 })
