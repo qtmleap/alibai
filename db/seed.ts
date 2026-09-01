@@ -48,14 +48,55 @@ const render = (query: SQLWrapper): string =>
   `${dialect.sqlToQuery(query.getSQL().inlineParams()).sql};`
 
 /**
+ * ファイル名から決まるシナリオID。
+ *
+ * 焼き直しのたびに採番し直すと、題名で古い行を探すしかなくなる。そして題名を変えた回に、
+ * 古い題名の行が消えないまま二重に残った（実際に起きた）。ファイル名は事件の同一性そのものなので、
+ * そこから決まる値をIDにして、IDで消してからIDで入れ直す。
+ *
+ * UUID v5（RFC 4122）。名前空間は AlibAI のシナリオ用に固定した一つ。
+ */
+const SCENARIO_NAMESPACE = '6f1c9a2e-4b83-4d51-9a7c-2e5d8f0b1a34'
+
+const scenarioIdOf = (name: string): string => {
+  const hex = SCENARIO_NAMESPACE.replace(/-/g, '')
+  const namespace = new DataView(new ArrayBuffer(16))
+
+  for (const index of Array.from({ length: 16 }, (_value, at) => at)) {
+    namespace.setUint8(index, Number.parseInt(hex.slice(index * 2, index * 2 + 2), 16))
+  }
+
+  const hasher = new Bun.CryptoHasher('sha1')
+  hasher.update(new Uint8Array(namespace.buffer))
+  hasher.update(new TextEncoder().encode(name))
+
+  /*
+    先頭16バイトを DataView 越しに触る。添字で読むと number | undefined になり、
+    埋め合わせの既定値を書く羽目になる（この計算に「値が無い」場合は存在しない）。
+  */
+  const digest = hasher.digest()
+  const view = new DataView(digest.buffer, digest.byteOffset, 16)
+
+  // 版（5）と variant（RFC 4122）のビットを立てる。ここを省くと UUID として不正になる。
+  view.setUint8(6, (view.getUint8(6) & 0x0f) | 0x50)
+  view.setUint8(8, (view.getUint8(8) & 0x3f) | 0x80)
+
+  const text = Array.from({ length: 16 }, (_value, index) =>
+    view.getUint8(index).toString(16).padStart(2, '0'),
+  ).join('')
+
+  return `${text.slice(0, 8)}-${text.slice(8, 12)}-${text.slice(12, 16)}-${text.slice(16, 20)}-${text.slice(20)}`
+}
+
+/**
  * 1シナリオぶんの SQL。
  *
- * 何度流しても壊れないように、同タイトルの既存シナリオを先に消す。
+ * 何度流しても壊れないように、同じIDの既存シナリオを先に消す。
  * 子テーブルはすべて scenarios への外部キーが onDelete: 'cascade' なので、
  * scenarios の行を消すだけで芋づる式に片付く（D1 は外部キーを既定で強制する）。
  */
 const statementsFor = ({ scenario, truth, ...rows }: CompiledScenario): string[] => [
-  render(builder.delete(scenarios).where(eq(scenarios.title, scenario.title))),
+  render(builder.delete(scenarios).where(eq(scenarios.id, scenario.id))),
   render(builder.insert(scenarios).values(scenario)),
   render(builder.insert(characters).values(rows.characters)),
   render(builder.insert(evidences).values(rows.evidences)),
@@ -88,6 +129,7 @@ const compileAll = async (names: string[]) => {
       result: compileScenario(await loadScenarioYaml(name), {
         isPublished: true,
         newId: () => crypto.randomUUID(),
+        scenarioId: scenarioIdOf(name),
       }),
     })),
   )

@@ -28,7 +28,8 @@ type RevelationRow = typeof revelations.$inferInsert
 type TruthRow = typeof scenarioTruths.$inferInsert
 
 export type CompiledScenario = {
-  scenario: ScenarioRow
+  /** id は必ず決まっている（採番するか、呼び出し側が渡すか）。焼き直しの消去にこれを使う。 */
+  scenario: ScenarioRow & { id: string }
   characters: CharacterRow[]
   evidences: EvidenceRow[]
   revelations: RevelationRow[]
@@ -43,6 +44,13 @@ export type CompileScenarioOptions = {
   isPublished: boolean
   /** uuid の採番。テストから決定的な採番を差し込めるように注入で受け取る。 */
   newId: () => string
+  /**
+   * シナリオ行のID。省略すると採番する。
+   *
+   * seed が渡してくる。あちらは焼き直しのたびに同じIDを作り、そのIDで古い行を消してから
+   * 入れ直す——題名で消していた頃は、題名を変えた回の行が消えずに二重に残った。
+   */
+  scenarioId?: string
 }
 
 /**
@@ -78,7 +86,7 @@ const compileDefinition = (
   definition: ScenarioDefinition,
   options: CompileScenarioOptions,
 ): CompiledScenario => {
-  const scenarioId = options.newId()
+  const scenarioId = options.scenarioId === undefined ? options.newId() : options.scenarioId
 
   const characterIds = new Map(
     definition.characters.map((character) => [character.id, options.newId()]),
