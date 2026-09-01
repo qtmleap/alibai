@@ -39,7 +39,10 @@
           <span style="flex: none" id="count"></span>
           <a class="acc" href="./accusation.html" data-mock-id="ALI_INT_03">告発</a>
         </div>
-        <div class="nm" id="who" data-mock-id="ALI_INT_05"></div>
+        <div class="row2">
+          <div class="nm" id="who" data-mock-id="ALI_INT_05"></div>
+          <nav class="swap" id="swap" aria-label="話す相手"></nav>
+        </div>
         <div class="pers" id="pers"></div>
       </div>
 
@@ -53,8 +56,8 @@
 
       <div class="int-foot" style="border-top: 1px solid var(--keisen)">
         <div class="askbar">
-          <span class="box" data-mock-id="ALI_INT_10">何について訊く？</span>
-          <span class="btn" data-mock-id="ALI_INT_11">訊く</span>
+          <span class="box" id="ask" data-mock-id="ALI_INT_10">何について訊く？</span>
+          <span class="btn" id="askBtn" data-mock-id="ALI_INT_11">訊く</span>
         </div>
       </div>
     </div>
@@ -75,9 +78,58 @@
           Mock.clock(st.turn) +
           '</span>'
 
+        /*
+          遺体を調べているあいだ。相手は喋らないので、訊くのではなく見ることになる。
+          文言だけが変わり、組みは人物のときと同じにしておく——
+          同じ場所で同じ一手を使うので、別の画面に見せる理由がない。
+        */
+        var examining = st.current === C.victim.key
+
         document.getElementById('who').textContent = me.name
         document.getElementById('who').style.color = 'var(--' + me.hue + Mock.lit + ')'
-        document.getElementById('pers').textContent = me.persona
+        document.getElementById('pers').textContent = examining
+          ? '被害者・' + me.blurb
+          : me.persona
+
+        document.getElementById('ask').textContent = examining ? '何を調べる？' : '何について訊く？'
+        document.getElementById('askBtn').textContent = examining ? '調べる' : '訊く'
+
+        /*
+          相手を替える口。遺体を調べられる事件では被害者も並ぶ。
+          調べられない事件では並べない——押せるのに何も出ない相手を出さない。
+
+          このモックは台本の何手目かで画面を作るので、行き先はターン番号で指す。
+          その相手が最後に出てくる手へ跳ばす（who= を渡しても読む側が居ない）。
+        */
+        var lastTurnOf = function (key) {
+          var found = 0
+          for (var t = 1; t <= C.turns; t++) {
+            if (Mock.play(t).current === key) found = t
+          }
+          return found
+        }
+
+        document.getElementById('swap').innerHTML = C.cast
+          .concat(C.victim.investigable ? [C.victim] : [])
+          .filter(function (p) {
+            return p.key !== st.current
+          })
+          .map(function (p) {
+            var to = lastTurnOf(p.key)
+            return to === 0
+              ? ''
+              : '<a href="#turn=' + to + '" data-turn="' + to + '">' + Mock.esc(p.short) + '</a>'
+          })
+          .join('')
+
+        // ハッシュを書き換えるだけでは描き直されない。この台の他の画面と同じく読み込み直す。
+        Array.prototype.forEach.call(document.querySelectorAll('#swap a'), function (el) {
+          el.addEventListener('click', function (e) {
+            e.preventDefault()
+            location.hash = 'turn=' + el.dataset.turn
+            location.reload()
+          })
+        })
 
         var rail = document.getElementById('rail')
         rail.innerHTML = Mock.rail({ segments: st.segments })

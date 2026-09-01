@@ -336,6 +336,23 @@ textarea {
   font-weight: 500;
   margin-top: 4px;
 }
+/*
+  相手を替える口。名前と同じ行の右端へ小さく並べる。
+  端末には表の列見出しが無いので、切り替えられる場所はここだけになる。
+*/
+.int-head .row2 {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.int-head .row2 .swap {
+  display: flex;
+  flex: none;
+  gap: 10px;
+  font-size: 10.5px;
+  color: var(--nezumi-dim);
+}
 .int-head .pers {
   font-size: 10.5px;
   color: var(--nezumi-dim);
@@ -412,7 +429,11 @@ textarea {
   padding: 9px 12px;
   border-top: 1px solid var(--asagi);
   border-bottom: 1px solid var(--asagi);
-  background: rgba(20, 19, 23, 0.93);
+  /*
+    透かさない。端末は幅が狭く帯が会話の行を丸ごと覆うので、わずかでも透けると
+    後ろの字が帯の字と重なって、どちらも読めなくなる。
+  */
+  background: var(--sumi);
   pointer-events: none;
 }
 .newfact .k {

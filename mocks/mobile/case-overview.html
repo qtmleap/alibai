@@ -73,11 +73,17 @@
           .concat([C.victim])
           .map(function (p) {
             var isVictim = p.key === C.victim.key
+            /*
+              遺体と現場は調べられる。調べられる事件では被害者も選べるようにして、
+              右端の札を「調べる」に替える——押せる相手なのか、名簿の上で分かるように。
+              所見も死因も無い事件では押せないまま（押せるのに何も出ない行を作らない）。
+            */
+            var canPick = !isVictim || C.victim.investigable
             return (
               '<button class="r" type="button" data-mock-id="ALI_OVW_07" data-who="' +
               p.key +
               '"' +
-              (isVictim ? ' disabled' : '') +
+              (canPick ? '' : ' disabled') +
               '><span class="face' +
               (pick === p.key ? ' on' : '') +
               '" style="color:var(--' +
@@ -94,7 +100,9 @@
               '</span><span class="ps">' +
               Mock.esc(isVictim ? p.blurb : p.role + '。' + p.persona) +
               '</span></span>' +
-              (isVictim ? '<span class="role">被害者</span>' : '') +
+              (isVictim
+                ? '<span class="role">' + (C.victim.investigable ? '調べる' : '被害者') + '</span>'
+                : '') +
               '</button>'
             )
           })
@@ -102,7 +110,8 @@
 
         var who = Mock.cast[pick]
         var go = document.getElementById('go')
-        go.textContent = who.name + 'に聞き込みをする'
+        // 喋らない相手には「聞き込み」をしない。同じ一手でも、することが違う。
+        go.textContent = who.name + (pick === C.victim.key ? 'を調べる' : 'に聞き込みをする')
         go.href = './interrogation.html#turn=1&who=' + pick
 
         Array.prototype.forEach.call(document.querySelectorAll('[data-who]'), function (el) {

@@ -61,9 +61,10 @@
             <div class="hd"><span>訊けそうなこと</span><span>▲</span></div>
           </div>
 
+          <!-- 文言は相手で変わる。人には訊き、遺体は調べる（下の script が差し替える）。 -->
           <div class="askbar">
-            <span class="box" data-mock-id="ALI_INT_10">何について訊く？</span>
-            <span class="btn" data-mock-id="ALI_INT_11">訊く</span>
+            <span class="box" id="askbox" data-mock-id="ALI_INT_10">何について訊く？</span>
+            <span class="btn" id="askbtn" data-mock-id="ALI_INT_11">訊く</span>
           </div>
         </div>
       </div>
@@ -77,6 +78,8 @@
         // 一枚だけ開いて撮ったときに白紙にならないよう、既定を中盤に置く。
         var st = Mock.play(Mock.num('turn', 4))
         var me = Mock.cast[st.current]
+        // 遺体を調べているあいだ。喋る相手ではないので、文言も肩書も変わる。
+        var examining = st.current === C.victim.key
 
         document.getElementById('ttl').textContent = C.title
         document.getElementById('turns').textContent = st.turn + ' / ' + C.turns + ' ターン'
@@ -86,7 +89,7 @@
 
         document.getElementById('head').innerHTML = Mock.chartHead({
           active: st.current,
-          activeLabel: '聞き込み中',
+          activeLabel: examining ? '検分中' : '聞き込み中',
         })
         document.getElementById('chart').innerHTML = Mock.chart({
           segments: st.segments,
@@ -98,6 +101,9 @@
         document.getElementById('who').textContent = me.name
         document.getElementById('who').style.color = 'var(--' + me.hue + Mock.lit + ')'
         document.getElementById('pers').textContent = me.role + '。' + me.persona
+
+        document.getElementById('askbox').textContent = examining ? '何を調べる？' : '何について訊く？'
+        document.getElementById('askbtn').textContent = examining ? '調べる' : '訊く'
 
         // 直近の三塊だけ残す。上は溢れるに任せ、切れ口は CSS の霞が引き受ける。
         document.getElementById('log').innerHTML = Mock.log(st.log.slice(-6))
@@ -175,8 +181,15 @@
         fold.appendChild(inner)
         document.getElementById('hint').appendChild(fold)
 
-        // 列見出しを押すと、その人に相手を替える。
+        /*
+         * 列見出しを押すと、その人に相手を替える。
+         * 調べられない事件の被害者だけは押せる形にしない——押せるのに何も起きない列があると、
+         * 押し方を間違えたのだと思わせてしまう（AlibiChart の pickable と同じ考え）。
+         */
         Array.prototype.forEach.call(document.querySelectorAll('[data-who]'), function (el) {
+          if (el.dataset.who === C.victim.key && !C.victim.investigable) {
+            return
+          }
           el.addEventListener('click', function () {
             location.hash = 'turn=' + st.turn + '&who=' + el.dataset.who
             location.reload()

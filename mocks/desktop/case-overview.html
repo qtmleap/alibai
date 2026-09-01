@@ -147,10 +147,16 @@
         document.getElementById('head').innerHTML = Mock.chartHead({})
         document.getElementById('chart').innerHTML = Mock.chart({ segments: [] })
 
+        /*
+         * 名簿には亡くなった人も並べる。別枠にすると、その夜そこに居たのは誰かという
+         * 一覧が二つに割れる。喋らないが遺体と現場は調べられるので、調べられる事件では
+         * 押せるようにして、右端の札を「調べる」に替える——押せる相手なのか名簿の上で分かるように。
+         */
         document.getElementById('cast').innerHTML = C.cast
           .concat([C.victim])
           .map(function (p) {
             var isVictim = p.key === C.victim.key
+            var examinable = isVictim && C.victim.investigable
             return (
               '<button class="r" type="button" style="color:var(--' +
               p.hue +
@@ -158,7 +164,7 @@
               ')" data-mock-id="ALI_OVW_07" data-who="' +
               p.key +
               '"' +
-              (isVictim ? ' disabled' : '') +
+              (isVictim && !examinable ? ' disabled' : '') +
               '>' +
               '<span class="face' +
               (pick === p.key ? ' on' : '') +
@@ -170,7 +176,9 @@
               '</span><span class="ps">' +
               Mock.esc(p.blurb) +
               '</span></span>' +
-              (isVictim ? '<span class="role">被害者</span>' : '') +
+              (isVictim
+                ? '<span class="role">' + (examinable ? '調べる' : '被害者') + '</span>'
+                : '') +
               '</button>'
             )
           })
@@ -178,7 +186,8 @@
 
         var who = Mock.cast[pick]
         var go = document.getElementById('go')
-        go.textContent = who.name + 'に聞き込みをする'
+        // 遺体は訊く相手ではないので、開始の文言も「調べる」に替わる。
+        go.textContent = who.name + (pick === C.victim.key ? 'を調べる' : 'に聞き込みをする')
         go.href = './interrogation.html#turn=1&who=' + pick
 
         Array.prototype.forEach.call(document.querySelectorAll('[data-who]'), function (el) {
