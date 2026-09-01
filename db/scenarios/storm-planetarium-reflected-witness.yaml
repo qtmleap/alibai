@@ -1,7 +1,7 @@
 schemaVersion: 1
 id: storm-planetarium-reflected-witness
 meta:
-  title: 星見ヶ丘天象館、山頂の夜
+  title: 星見ヶ丘、ロープウェイ停止
   synopsis: "午後十時、暴風で山道とロープウェイが停止した星見ヶ丘天象館で、館長の犬塚誠が投影準備室内で死亡しているのが見つかりました。館内に残っていたのは展示担当の小野寺莉香、投影技師の松田圭介、売店責任者の朝倉葉月の三人だけです。"
   category: クローズドサークル
   difficulty: 5
@@ -10,6 +10,14 @@ meta:
 victim:
   name: 犬塚誠
   introduction: 星見ヶ丘天象館館長
+  foundAt: 22:00
+  foundIn: 投影準備室
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 犬塚誠は投影準備室で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「運営法人への予算報告草案」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -95,21 +103,25 @@ timeline:
     participants: [onodera]
     facts: [inuzuka-death-2124, onodera-killed-inuzuka]
     description: 小野寺が投影準備室で犬塚を襲い、犬塚は死亡する。
+    location: 投影準備室
   - id: booth-lights-down
     at: "21:30"
     participants: [matsuda]
     facts: [booth-dark-2130, glass-reflects-dark-booth]
     description: 機器点検のため投影室内の主照明が落とされ、観察ガラスが廊下側を反射しやすい状態になる。
+    location: 投影室
   - id: reflected-sighting
     at: "21:35"
     participants: [onodera, matsuda]
     facts: [onodera-behind-matsuda-2135, matsuda-saw-white-figure, figure-was-reflection, onodera-endorsed-sighting]
     description: 松田が観察ガラスに映った白い人物像を犬塚だと思い込み、小野寺がその誤認を訂正せず生存証言として補強する。
+    location: 天象館内
   - id: discovery
     at: "22:00"
     participants: [asakura, onodera, matsuda]
     facts: [body-found-2200]
     description: 朝倉が投影準備室で犬塚の死を発見する。
+    location: 投影準備室
 characters:
   - id: onodera
     name: 小野寺莉香
@@ -287,12 +299,14 @@ evidences:
     description: 犬塚の端末に、小野寺による正式承認のない予算振替を翌朝報告する草案が残っている。
     reveal:
       mode: conversation
-      condition: 小野寺か朝倉に犬塚が翌朝運営法人へ提出予定だった報告について尋ねたら開示する。
+      condition: 小野寺か朝倉に犬塚が翌朝運営法人へ提出予定だった報告について尋ねたら開示する。または遺体・現場を調べ、「運営法人への予算報告草案」に関わる資料を確認したら開示する。
     sources:
       - type: character
         id: onodera
       - type: character
         id: asakura
+      - type: victim
+        id: victim
     supports: [exhibit-budget-found, budget-report-next-day]
     contradicts: []
   - id: skipped-projection-test

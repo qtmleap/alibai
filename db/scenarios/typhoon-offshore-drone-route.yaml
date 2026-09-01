@@ -1,7 +1,7 @@
 schemaVersion: 1
 id: typhoon-offshore-drone-route
 meta:
-  title: 洋上風力基地、台風圏の夜
+  title: 台風圏の洋上風力基地
   synopsis: "午前一時二十九分、沖合風力発電基地の会議室で、安全責任者の芳賀俊介が死亡しているのが見つかりました。台風接近で保守船は午後十一時に退避し、ヘリポートも閉鎖。基地には芳賀を含め五人だけが残っています。"
   category: クローズドサークル
   difficulty: 5
@@ -10,6 +10,14 @@ meta:
 victim:
   name: 芳賀俊介
   introduction: 沖合風力発電基地安全責任者
+  foundAt: 01:29
+  foundIn: 会議室
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 芳賀俊介は会議室で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「過去点検写真との一致」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -100,41 +108,49 @@ timeline:
     participants: [hiiragi]
     facts: [drone-repeat-route-capable, hiiragi-loaded-auto-route]
     description: 柊木が十八分間の反復点検ルートをドローンへ読み込ませる。
+    location: 屋上
   - id: drone-launch
     at: "01:00"
     participants: [hiiragi]
     facts: [drone-flew-auto, route-has-no-manual-input]
     description: 点検ドローンが自律飛行を開始し、指定地点の自動撮影を続ける。
+    location: 屋上
   - id: hiiragi-leaves-roof
     at: "01:02"
     participants: [hiiragi]
     facts: [hiiragi-left-roof]
     description: 柊木がドローンを飛ばしたまま屋上の操縦席を離れる。
+    location: 屋上
   - id: saegusa-sighting
     at: "01:08"
     participants: [hiiragi, saegusa]
     facts: [saegusa-saw-hiiragi-0108]
     description: 三枝が会議室へ続く連絡階段で柊木を目撃する。
+    location: 連絡階段
   - id: haga-death
     at: "01:12"
     participants: [hiiragi]
     facts: [hiiragi-killed-haga]
     description: 柊木が会議室で芳賀を襲い、芳賀は死亡する。
+    location: 会議室
   - id: hiiragi-return
     at: "01:17"
     participants: [hiiragi]
     facts: [hiiragi-returned-roof]
     description: 柊木が屋上の操縦席へ戻る。
+    location: 屋上
   - id: drone-lands
     at: "01:18"
     participants: [hiiragi]
     facts: [drone-flew-auto]
     description: 自律飛行を終えた点検ドローンが着陸する。
+    location: 屋上
   - id: discovery
     at: "01:29"
     participants: [kokubu, hiiragi, saegusa, nami]
     facts: [body-found-0129]
     description: 国分が会議室で芳賀の死を発見する。
+    location: 会議室
 
 characters:
   - id: hiiragi
@@ -331,10 +347,11 @@ evidences:
     description: 柊木が実施済みとした複数の点検写真が過去の画像と一致し、芳賀が翌朝の安全部報告と資格停止を記している。
     reveal:
       mode: conversation
-      condition: 柊木か三枝に芳賀が事件直前に確認していた点検写真について尋ね、過去画像との一致を追及したら開示する。
+      condition: 柊木か三枝に芳賀が事件直前に確認していた点検写真について尋ね、過去画像との一致を追及したら開示する。または遺体・現場を調べ、「過去点検写真との一致」に関わる資料を確認したら開示する。
     sources:
       - { type: character, id: hiiragi }
       - { type: character, id: saegusa }
+      - { type: victim, id: victim }
     supports: [hiiragi-falsified-inspections, haga-found-false-inspections, haga-planned-report]
     contradicts: []
   - id: protection-reset-log

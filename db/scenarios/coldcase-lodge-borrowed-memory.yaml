@@ -1,7 +1,7 @@
 schemaVersion: 1
 id: coldcase-lodge-borrowed-memory
 meta:
-  title: 1979年、雪山荘未解決事件
+  title: 四十七年目の白樺館
   synopsis: "2026年。47年前、雪崩で孤立した山荘「白樺館」で起きた未解決事件を再調査します。 1979年2月17日の夜、山荘主・野上修一が書斎で死亡しました。"
   category: 未解決事件再調査
   difficulty: 5
@@ -10,6 +10,14 @@ meta:
 victim:
   name: 野上修一
   introduction: 山荘「白樺館」主人
+  foundAt: 23:10
+  foundIn: 書斎
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 野上修一は書斎で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「仕入れ帳の水増し」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -86,31 +94,37 @@ timeline:
     participants: [megumi]
     facts: [megumi-forged-expenses, nogami-found-megumi-fraud]
     description: 野上が倉田の仕入れ代水増しを見抜き、翌朝警察へ相談すると告げる。
+    location: 山荘内
   - id: nogami-death
     at: "22:05"
     participants: [megumi]
     facts: [megumi-killed-nogami]
     description: 倉田が書斎で野上を襲う。
+    location: 書斎
   - id: maki-sees-megumi
     at: "22:08"
     participants: [maki, megumi]
     facts: [maki-saw-megumi-study]
     description: 真紀が書斎側の廊下から出てくる倉田を見かける。
+    location: 書斎
   - id: megumi-goes-room
     at: "22:15"
     participants: [megumi]
     facts: [megumi-originally-asleep-2215]
     description: 倉田が自室へ入り、その後は眠っていたと翌朝の供述で話す。
+    location: 自室
   - id: false-fireplace-sighting
     at: "22:30"
     participants: [maki]
     facts: [maki-lied-fireplace, original-only-maki-claimed-sighting]
     description: 真紀が自分の窃盗時間を隠すため、野上を暖炉前で見たという架空の目撃を後に申告する。
+    location: 暖炉前
   - id: discovery
     at: "23:10"
     participants: [maki, tatsuya, megumi]
     facts: [body-found-2310]
     description: 藤村が書斎で野上の死を発見する。
+    location: 書斎
 characters:
   - id: maki
     name: 高瀬真紀
@@ -299,9 +313,10 @@ evidences:
     description: 倉田の担当欄で仕入れ額が実際より増やされ、野上が事件当日に再確認の印を付けている。
     reveal:
       mode: conversation
-      condition: 倉田に野上と事件直前に揉めた帳簿の内容を追及したら開示する。
+      condition: 倉田に野上と事件直前に揉めた帳簿の内容を追及したら開示する。または遺体・現場を調べ、「仕入れ帳の水増し」に関わる資料を確認したら開示する。
     sources:
       - { type: character, id: megumi }
+      - { type: victim, id: victim }
     supports: [megumi-forged-expenses, nogami-found-megumi-fraud]
     contradicts: ["lie:megumi-no-fraud"]
 solution:

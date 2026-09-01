@@ -1,7 +1,7 @@
 schemaVersion: 1
 id: shanghai-warehouse-carbon-copy
 meta:
-  title: 1928年上海、河岸倉庫の夜
+  title: 1928年、上海河岸
   synopsis: "1928年、上海。暴風雨で河岸の道路が封鎖された夜、輸出倉庫の事務室で貿易商・周文海が死亡しているのが見つかりました。"
   category: 歴史クローズドサークル
   difficulty: 5
@@ -10,6 +10,14 @@ meta:
 victim:
   name: 周文海
   introduction: 上海の貿易商
+  foundAt: 22:20
+  foundIn: 事務室
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 周文海は事務室で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「絹荷の不一致」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -84,26 +92,31 @@ timeline:
     participants: [lin, chen]
     facts: [zhou-signed-blank-form]
     description: 周が翌朝の搬出用に、時刻欄が空白の伝票へ先に署名する。
+    location: 事務室
   - id: chen-sees-form
     at: "21:40"
     participants: [chen]
     facts: [chen-saw-blank-time]
     description: 陳が署名済み伝票を確認し、時刻欄がまだ空白なのを見る。
+    location: 事務室
   - id: zhou-death
     at: "21:52"
     participants: [lin]
     facts: [lin-killed-zhou, lin-smuggled-silk, zhou-found-smuggling]
     description: 林が帳簿外取引の発覚を恐れ、事務室で周を襲う。
+    location: 事務室
   - id: time-added
     at: "22:05"
     participants: [lin]
     facts: [lin-added-2205, top-sheet-time-added-later]
     description: 林が署名済み伝票の上紙だけに22時05分と書き足す。
+    location: 事務室
   - id: discovery
     at: "22:20"
     participants: [lin, chen, wang]
     facts: [body-found-2220]
     description: 王が事務室で周の死を発見する。
+    location: 事務室
 characters:
   - id: lin
     name: 林雪梅
@@ -253,10 +266,11 @@ evidences:
     description: 倉庫の実数と帳簿が合わず、周が林の担当欄に翌朝再検査の印を付けている。
     reveal:
       mode: conversation
-      condition: 林か陳に周が事件前に調べていた荷の不一致を尋ねたら開示する。
+      condition: 林か陳に周が事件前に調べていた荷の不一致を尋ねたら開示する。または遺体・現場を調べ、「絹荷の不一致」に関わる資料を確認したら開示する。
     sources:
       - { type: character, id: lin }
       - { type: character, id: chen }
+      - { type: victim, id: victim }
     supports: [lin-smuggled-silk, zhou-found-smuggling]
     contradicts: ["lie:lin-no-smuggling"]
   - id: broken-cargo-cache

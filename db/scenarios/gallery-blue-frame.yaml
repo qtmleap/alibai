@@ -1,7 +1,7 @@
 schemaVersion: 1
 id: gallery-blue-frame
 meta:
-  title: 青環美術館、内覧会の夜
+  title: 内覧会は終わっていた
   synopsis: "午後六時五十五分、市立青環美術館の収蔵庫前で、主任学芸員の鳥羽薫が死亡しているのが見つかりました。その夜は翌日から始まる企画展の内覧会で、一般客が帰った後も数人の関係者が館内に残っていました。"
   category: 美術館ミステリ
   difficulty: 3
@@ -10,6 +10,14 @@ meta:
 victim:
   name: 鳥羽薫
   introduction: 市立青環美術館主任学芸員
+  foundAt: 18:55
+  foundIn: 収蔵庫前
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 鳥羽薫は収蔵庫前で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「鳥羽の額装検査メモ」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -93,46 +101,55 @@ timeline:
     participants: [sakaki]
     facts: [toba-found-forgery]
     description: 鳥羽が作品のすり替えに気づく。
+    location: 美術館内
   - id: sakaki-confronted
     at: "18:29"
     participants: [sakaki]
     facts: [toba-confronted-sakaki]
     description: 鳥羽が榊へ贋作の件を問いただし、翌朝の報告を告げる。
+    location: 美術館内
   - id: mido-bribe
     at: "18:32"
     participants: [mido]
     facts: [mido-offered-bribe]
     description: 御堂が作品評価を巡る謝礼を鳥羽へ持ちかけ、拒否される。
+    location: 美術館内
   - id: uv-test-start
     at: "18:35"
     participants: [sakaki]
     facts: [uv-test-started]
     description: 榊が修復室で紫外線検査装置を起動する。
+    location: 修復室
   - id: sakaki-leaves
     at: "18:38"
     participants: [sakaki]
     facts: [uv-lamp-off-1837, sakaki-left-restoration]
     description: 装置の電源が切れた後、榊が修復室を離れて収蔵庫側へ向かう。
+    location: 修復室
   - id: enomoto-sighting
     at: "18:44"
     participants: [sakaki, enomoto]
     facts: [enomoto-saw-sakaki-1844]
     description: 榎本が収蔵庫前の通路で榊を目撃する。
+    location: 収蔵庫前
   - id: toba-death
     at: "18:46"
     participants: [sakaki]
     facts: [sakaki-killed-toba-1846]
     description: 榊が収蔵庫前で鳥羽を襲い、鳥羽は死亡する。
+    location: 収蔵庫前
   - id: sakaki-returns
     at: "18:50"
     participants: [sakaki]
     facts: [sakaki-returned-1850, uv-test-resumed]
     description: 榊が修復室へ戻り、ほどなく紫外線検査を再開する。
+    location: 修復室
   - id: discovery
     at: "18:55"
     participants: [mido, sakaki, enomoto]
     facts: [body-found-1855]
     description: 御堂が収蔵庫前で鳥羽の死を発見する。
+    location: 収蔵庫前
 characters:
   - id: sakaki
     name: 榊玲
@@ -279,12 +296,14 @@ evidences:
     description: 展示予定作品の額装と絵具層が過去の記録と一致せず、鳥羽が「原画ではない可能性」と書き残している。
     reveal:
       mode: conversation
-      condition: 榊か御堂に鳥羽が事件前に作品の真贋を調べていなかったか尋ね、額装の違いへ話が及んだら開示する。
+      condition: 榊か御堂に鳥羽が事件前に作品の真贋を調べていなかったか尋ね、額装の違いへ話が及んだら開示する。または遺体・現場を調べ、「鳥羽の額装検査メモ」に関わる資料を確認したら開示する。
     sources:
       - type: character
         id: sakaki
       - type: character
         id: mido
+      - type: victim
+        id: victim
     supports: [toba-found-forgery, sakaki-made-forgery]
     contradicts: []
   - id: mido-envelope

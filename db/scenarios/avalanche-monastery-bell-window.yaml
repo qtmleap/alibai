@@ -1,7 +1,7 @@
 schemaVersion: 1
 id: avalanche-monastery-bell-window
 meta:
-  title: 雪崩の修道院、山上の三人
+  title: 山上の修道院から誰も帰れない
   synopsis: "午後九時四十分、雪崩で麓への道を断たれた山上の修道院資料館で、館長・高瀬静一が死亡しているのが見つかりました。"
   category: クローズドサークル
   difficulty: 5
@@ -10,6 +10,14 @@ meta:
 victim:
   name: 高瀬静一
   introduction: 修道院資料館館長
+  foundAt: 21:40
+  foundIn: 資料整理室
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 高瀬静一は資料整理室で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「修復費の追加請求一覧」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -90,26 +98,31 @@ timeline:
     participants: [mizuki]
     facts: [repair-overbilling, mizuki-overbilled, takase-confronted-mizuki]
     description: 高瀬が水城に修復費の追加請求について説明を求める。
+    location: 修道院内
   - id: takase-death
     at: "21:05"
     participants: [mizuki]
     facts: [mizuki-killed-takase]
     description: 水城が資料整理室で高瀬を襲う。
+    location: 資料整理室
   - id: bell-rung
     at: "21:20"
     participants: [mizuki, kurokawa, genda]
     facts: [mizuki-rang-bell-remotely, all-heard-bell, no-one-saw-takase-bell]
     description: 九時二十分の鐘が鳴り、三人はいつもの高瀬の閉館合図だと思い込む。
+    location: 鐘楼
   - id: test-line-clue
     at: "21:27"
     participants: [genda]
     facts: [temporary-test-line-exists, genda-thought-line-removed, test-line-tag-remained]
     description: 玄田が聖歌席裏の点検口を通るが、残った工事タグを気に留めない。
+    location: 聖歌席裏
   - id: discovery
     at: "21:40"
     participants: [kurokawa, mizuki, genda]
     facts: [body-found-2140]
     description: 黒川が資料整理室で高瀬の死を発見する。
+    location: 資料整理室
 characters:
   - id: mizuki
     name: 水城奈央
@@ -293,12 +306,14 @@ evidences:
     description: 実施記録のない追加工事が水城の承認で請求され、高瀬がその項目へ印を付けている。
     reveal:
       mode: conversation
-      condition: 水城に高瀬から追及された修復費について尋ねるか、玄田に問題になっていた工事項目を確認したら開示する。
+      condition: 水城に高瀬から追及された修復費について尋ねるか、玄田に問題になっていた工事項目を確認したら開示する。または遺体・現場を調べ、「修復費の追加請求一覧」に関わる資料を確認したら開示する。
     sources:
       - type: character
         id: mizuki
       - type: character
         id: genda
+      - type: victim
+        id: victim
     supports: [repair-overbilling, mizuki-overbilled, takase-confronted-mizuki]
     contradicts: ["lie:mizuki-no-overbilling"]
   - id: forbidden-photos

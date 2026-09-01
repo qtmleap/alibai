@@ -1,7 +1,7 @@
 schemaVersion: 1
 id: storm-lighthouse-relief-slate
 meta:
-  title: 夕凪灯台、暴風の夜
+  title: 補給船の来ない夕凪灯台
   synopsis: "午後八時五十分、暴風で補給船の接岸が不可能となった夕凪灯台の整備室で、主任灯台守の倉橋徹が死亡しているのが見つかりました。島にいるのは当直員の鳥越玲、通信担当の橋場圭、補助員の森下透の三人だけです。"
   category: クローズドサークル
   difficulty: 5
@@ -10,6 +10,14 @@ meta:
 victim:
   name: 倉橋徹
   introduction: 夕凪灯台主任灯台守
+  foundAt: 20:50
+  foundIn: 西外扉
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 倉橋徹は西外扉で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「補給報告の在庫差メモ」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -91,31 +99,37 @@ timeline:
     participants: [torigoe, morishita]
     facts: [west-gate-sealed]
     description: 暴風警戒により西側外扉が封鎖される。
+    location: 西外扉
   - id: east-round
     at: "19:25"
     participants: [torigoe]
     facts: [torigoe-coat-wet-before]
     description: 鳥越が東側巡回を行い、外套が雨で濡れる。
+    location: 東側
   - id: panel-reading
     at: "20:12"
     participants: []
     facts: [slate-entry-2012, slate-written-after-round, torigoe-copied-panel-reading]
     description: 西設備の自動計測値が制御盤に記録され、後に鳥越がその時刻を当直板へ転記する。
+    location: 制御盤
   - id: stair-sighting
     at: "20:21"
     participants: [torigoe, hashiba]
     facts: [hashiba-saw-torigoe-2021]
     description: 橋場が整備室近くの内階段で鳥越とすれ違う。
+    location: 内階段
   - id: kurahashi-death
     at: "20:24"
     participants: [torigoe]
     facts: [kurahashi-death-2024, torigoe-killed-kurahashi]
     description: 鳥越が整備室で倉橋を襲い、倉橋は死亡する。
+    location: 灯台内
   - id: discovery
     at: "20:50"
     participants: [morishita, torigoe, hashiba]
     facts: [body-found-2050, west-seal-intact]
     description: 森下が倉橋の死を発見し、西側外扉の封鎖も保たれていることが確認される。
+    location: 西外扉
 characters:
   - id: torigoe
     name: 鳥越玲
@@ -303,12 +317,14 @@ evidences:
     description: 倉橋の翌日提出予定資料に、鳥越の担当分だけ燃料在庫の差を本部へ報告する注記がある。
     reveal:
       mode: conversation
-      condition: 鳥越か森下に翌日の補給報告と燃料在庫の差について尋ねたら開示する。
+      condition: 鳥越か森下に翌日の補給報告と燃料在庫の差について尋ねたら開示する。または遺体・現場を調べ、「補給報告の在庫差メモ」に関わる資料を確認したら開示する。
     sources:
       - type: character
         id: torigoe
       - type: character
         id: morishita
+      - type: victim
+        id: victim
     supports: [torigoe-hid-fuel-shortage, fuel-report-next-day]
     contradicts: []
   - id: private-radio-log

@@ -1,7 +1,7 @@
 schemaVersion: 1
 id: landslide-hotel-frosted-silhouette
 meta:
-  title: 崖上ホテル、孤立の夜
+  title: 崖の上から帰れない
   synopsis: "午後十時、山腹の小さなホテルで支配人・長峰宗一が執務室内で死亡しているのが見つかりました。夕方からの豪雨で道路は土砂崩れに塞がれ、ホテルには外部から出入りできません。"
   category: クローズドサークル
   difficulty: 5
@@ -10,6 +10,14 @@ meta:
 victim:
   name: 長峰宗一
   introduction: 山腹のホテル支配人
+  foundAt: 22:00
+  foundIn: 執務室
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 長峰宗一は執務室で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「水増しされた改装請求書」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -91,31 +99,37 @@ timeline:
     participants: [ayase]
     facts: [renovation-shortage, ayase-falsified-invoices, nagamine-called-ayase]
     description: 長峰が綾瀬を執務室へ呼び、改装費の不自然な請求について説明を求める。
+    location: 執務室
   - id: nagamine-death
     at: "21:05"
     participants: [ayase]
     facts: [ayase-killed-nagamine]
     description: 綾瀬が執務室で長峰を襲う。
+    location: 執務室
   - id: coat-missing
     at: "21:18"
     participants: [hoshino]
     facts: [hoshino-saw-empty-coat-hook]
     description: 星野がフロント裏の衣類掛けから長峰の長い上着がなくなっていることに気づく。
+    location: フロント裏
   - id: silhouette-staged
     at: "21:23"
     participants: [ayase]
     facts: [ayase-staged-silhouette, desk-lamp-left-on, stand-feet-dust-mark]
     description: 綾瀬が上着と衣紋掛け、机上灯を使って磨りガラス越しの人影を作る。
+    location: ホテル内
   - id: silhouette-seen
     at: "21:30"
     participants: [kanda]
     facts: [kanda-saw-silhouette, kanda-did-not-hear-voice]
     description: 神田が廊下から人影を見て、長峰本人が執務室にいると思い込む。
+    location: 執務室
   - id: discovery
     at: "22:00"
     participants: [hoshino, ayase, kanda]
     facts: [body-found-2200, coat-returned-after-discovery]
     description: 星野が執務室で長峰の死を発見し、室内の衣紋掛けには長峰の上着が残されている。
+    location: 執務室
 characters:
   - id: ayase
     name: 綾瀬環
@@ -299,12 +313,14 @@ evidences:
     description: 長峰が印を付けた請求書には、綾瀬が処理した項目に説明できない差額がまとまっている。
     reveal:
       mode: conversation
-      condition: 綾瀬に改装費の処理を尋ねるか、長峰が直前まで確認していた書類について追及したら開示する。
+      condition: 綾瀬に改装費の処理を尋ねるか、長峰が直前まで確認していた書類について追及したら開示する。または遺体・現場を調べ、「水増しされた改装請求書」に関わる資料を確認したら開示する。
     sources:
       - type: character
         id: ayase
       - type: character
         id: hoshino
+      - type: victim
+        id: victim
     supports: [renovation-shortage, ayase-falsified-invoices, nagamine-called-ayase]
     contradicts: ["lie:ayase-clean-invoices"]
   - id: manuscript-copy

@@ -1,7 +1,7 @@
 schemaVersion: 1
 id: storm-island-scheduled-mail
 meta:
-  title: 研修島青凪荘、暴風の夜
+  title: 船の来ない青凪荘
   synopsis: "午後十時二分、沖合の研修施設「青凪荘」の執務室で、奨学財団理事の榊原宗一が死亡しているのが見つかりました。午後八時から暴風で船便が全て欠航し、島に残ったのは榊原を含め五人だけです。"
   category: クローズドサークル
   difficulty: 5
@@ -10,6 +10,14 @@ meta:
 victim:
   name: 榊原宗一
   introduction: 奨学財団理事
+  foundAt: 22:02
+  foundIn: 執務室
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 榊原宗一は執務室で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「相沢の小口支出重複一覧」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -102,41 +110,49 @@ timeline:
     participants: [aizawa]
     facts: [mail-drafted-1811]
     description: 榊原が翌朝の資料確認を求めるメール本文を作成する。相沢は近くで予定を確認している。
+    location: 執務室
   - id: mail-scheduled
     at: "18:12"
     participants: [aizawa]
     facts: [mail-scheduled-2142, aizawa-knew-scheduled-mail]
     description: 榊原がメールを21時42分の予定送信へ設定し、相沢もその設定を知る。
+    location: 執務室
   - id: aizawa-enters-office
     at: "21:24"
     participants: [aizawa]
     facts: [aizawa-entered-office-2124]
     description: 相沢が榊原の執務室へ入る。
+    location: 執務室
   - id: sakakibara-death
     at: "21:28"
     participants: [aizawa]
     facts: [aizawa-killed-sakakibara]
     description: 相沢が執務室で榊原を襲い、榊原は死亡する。
+    location: 執務室
   - id: horie-sighting
     at: "21:29"
     participants: [aizawa, horie]
     facts: [horie-saw-aizawa-2129]
     description: 堀江が執務室前の廊下から出てくる相沢を目撃する。
+    location: 執務室
   - id: aizawa-joins-hatori
     at: "21:35"
     participants: [aizawa, hatori]
     facts: [aizawa-joined-hatori-2135, aizawa-with-hatori-until-2155]
     description: 相沢が講義室で羽鳥と翌朝の研修準備を始める。
+    location: 講義室
   - id: scheduled-mail-sends
     at: "21:42"
     participants: []
     facts: [mail-sent-automatically]
     description: 榊原が夕方に設定したメールが、端末への操作なしで自動送信される。
+    location: 執務室
   - id: discovery
     at: "22:02"
     participants: [mikage, aizawa, hatori, horie]
     facts: [body-found-2202]
     description: 御影が執務室で榊原の死を発見する。
+    location: 執務室
 
 characters:
   - id: aizawa
@@ -342,10 +358,11 @@ evidences:
     description: 相沢が処理した複数の小口支出に不自然な重複があり、榊原が翌朝の監査提出と担当変更を記している。
     reveal:
       mode: conversation
-      condition: 相沢か御影に榊原が夕方確認していた支出一覧を尋ね、重複と翌朝の監査予定を追及したら開示する。
+      condition: 相沢か御影に榊原が夕方確認していた支出一覧を尋ね、重複と翌朝の監査予定を追及したら開示する。または遺体・現場を調べ、「相沢の小口支出重複一覧」に関わる資料を確認したら開示する。
     sources:
       - { type: character, id: aizawa }
       - { type: character, id: mikage }
+      - { type: victim, id: victim }
     supports: [aizawa-diverted-funds, sakakibara-found-diversion, sakakibara-planned-audit]
     contradicts: []
   - id: mikage-budget-sheet

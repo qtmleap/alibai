@@ -1,7 +1,7 @@
 schemaVersion: 1
 id: generation-ship-staggered-dawn
 meta:
-  title: 世代船アステリア、居住リングの夜
+  title: 2312年、世代船アステリア
   synopsis: "2312年、恒星間世代船《アステリア》。外部航行中のため、居住リングから船外へ出ることはできません。 生態系主任ミラ・ヴォスが種子保管区で死亡しました。"
   category: SFクローズドサークル
   difficulty: 5
@@ -10,6 +10,14 @@ meta:
 victim:
   name: ミラ・ヴォス
   introduction: 恒星間世代船《アステリア》生態系主任
+  foundAt: 06:28
+  foundIn: 種子保管区
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: ミラ・ヴォスは種子保管区で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「希少種子の監査記録」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -86,31 +94,37 @@ timeline:
     participants: [sera]
     facts: [sera-seed-diversion, mira-found-diversion, mira-would-audit]
     description: ミラが希少種子の流用をセラへ突きつけ、中央評議会への報告を告げる。
+    location: 船内
   - id: dario-sees-sera
     at: "05:52"
     participants: [sera, dario]
     facts: [dario-saw-sera-0552]
     description: ダリオが種子保管区へ向かう連絡路でセラを見かける。
+    location: 種子保管区
   - id: mira-death
     at: "05:57"
     participants: [sera]
     facts: [sera-killed-mira]
     description: セラが種子保管区でミラを襲う。
+    location: 種子保管区
   - id: agriculture-six
     at: "06:00"
     participants: [sera]
     facts: [agriculture-dawn-0600-local, sera-claimed-after-six]
     description: 船内標準時ではすでに06時00分だが、セラは農業区の人工06時05分を基準に自分の行動を説明する。
+    location: 農業区
   - id: medical-six
     at: "06:20"
     participants: [yuna]
     facts: [medical-dawn-0600-local]
     description: 医療区が人工06時00分を迎える。
+    location: 医療区
   - id: discovery
     at: "06:28"
     participants: [sera, dario, yuna]
     facts: [body-found-0628]
     description: ユナが種子保管区でミラの死を発見する。
+    location: 種子保管区
 characters:
   - id: sera
     name: セラ・イワノフ
@@ -260,10 +274,11 @@ evidences:
     description: セラ管理の希少種子だけ在庫と割当先が合わず、ミラが中央評議会への報告を準備している。
     reveal:
       mode: conversation
-      condition: セラかダリオにミラが事件直前に確認していた種子在庫を尋ねたら開示する。
+      condition: セラかダリオにミラが事件直前に確認していた種子在庫を尋ねたら開示する。または遺体・現場を調べ、「希少種子の監査記録」に関わる資料を確認したら開示する。
     sources:
       - { type: character, id: sera }
       - { type: character, id: dario }
+      - { type: victim, id: victim }
     supports: [sera-seed-diversion, mira-found-diversion, mira-would-audit]
     contradicts: ["lie:sera-no-diversion"]
   - id: yuna-private-supply

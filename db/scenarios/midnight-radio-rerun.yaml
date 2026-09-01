@@ -1,7 +1,7 @@
 schemaVersion: 1
 id: midnight-radio-rerun
 meta:
-  title: ラジオ局レイライン、深夜の事件
+  title: 午前零時十二分、第二収録ブース
   synopsis: "午前零時十二分、FMラジオ局「レイライン」の第二収録ブースで、人気パーソナリティの大門修一が死亡しているのが見つかりました。局内に残っていたのは、番組プロデューサーの美濃部沙耶、音響技師の久世直人、スポンサー会社の担当者・夏目亮介の三人です。"
   category: 放送局ミステリ
   difficulty: 3
@@ -10,6 +10,14 @@ meta:
 victim:
   name: 大門修一
   introduction: FMラジオ局「レイライン」パーソナリティ
+  foundAt: 00:12
+  foundIn: 第2ブース
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 大門修一は第2ブースで倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「大門が保存したスポンサー報告の比較メモ」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -89,46 +97,55 @@ timeline:
     participants: [minobe, kuze]
     facts: [opening-recorded-2320]
     description: 大門が午前零時に流す番組冒頭を事前収録する。
+    location: 局内
   - id: natsume-meets-daimon
     at: "23:38"
     participants: [natsume]
     facts: [natsume-secret-meeting]
     description: 夏目が第二収録ブースで大門とスポンサー契約を巡って口論する。
+    location: 第2ブース
   - id: natsume-leaves
     at: "23:43"
     participants: [natsume]
     facts: [natsume-left-2343]
     description: 夏目が大門のもとを離れ、一階ロビーへ向かう。
+    location: ロビー
   - id: minobe-enters
     at: "23:46"
     participants: [minobe]
     facts: [minobe-entered-2346]
     description: 美濃部が第二収録ブースへ入る。
+    location: 第2ブース
   - id: daimon-death
     at: "23:48"
     participants: [minobe]
     facts: [daimon-died-2348]
     description: 美濃部が大門を襲い、大門はブース内で死亡する。
+    location: ブース
   - id: minobe-returns
     at: "23:50"
     participants: [minobe, kuze]
     facts: [kuze-saw-minobe-2350]
     description: 久世が第二収録ブース側の廊下から戻る美濃部を目撃する。
+    location: 第2ブース
   - id: recording-queued
     at: "23:53"
     participants: [minobe]
     facts: [minobe-queued-recording]
     description: 美濃部が事前収録音声を午前零時の自動送出枠へ登録する。
+    location: 送出室
   - id: opening-airs
     at: "00:00"
     participants: [kuze, minobe, natsume]
     facts: [recorded-opening-aired]
     description: 事前収録された大門の声が番組冒頭として放送される。
+    location: 局内
   - id: discovery
     at: "00:12"
     participants: [kuze, minobe, natsume]
     facts: [body-found-0012]
     description: 久世が第二収録ブースで大門の死を発見する。
+    location: 第2ブース
 characters:
   - id: minobe
     name: 美濃部沙耶
@@ -284,12 +301,14 @@ evidences:
     description: 公式報告と実際の放送枠に差があり、美濃部の報告水増しを大門が確認していたことが分かる。
     reveal:
       mode: conversation
-      condition: 美濃部に制作費やスポンサー報告の不一致について尋ねるか、夏目に大門が最近スポンサー実績を調べていなかったか尋ねたら開示する。
+      condition: 美濃部に制作費やスポンサー報告の不一致について尋ねるか、夏目に大門が最近スポンサー実績を調べていなかったか尋ねたら開示する。または遺体・現場を調べ、「大門が保存したスポンサー報告の比較メモ」に関わる資料を確認したら開示する。
     sources:
       - type: character
         id: minobe
       - type: character
         id: natsume
+      - type: victim
+        id: victim
     supports: [minobe-falsified-reports, daimon-confronted-minobe]
     contradicts: []
   - id: deleted-demo-log

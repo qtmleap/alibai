@@ -1,7 +1,7 @@
 schemaVersion: 1
 id: cave-lab-locator-cart
 meta:
-  title: 崩落洞窟、地下研究所の夜
+  title: 救助隊が来るまで
   synopsis: "午後九時二十七分、地下洞窟研究所の地図解析室で、調査主任の岩代圭吾が死亡しているのが見つかりました。午後八時四十分の落盤で唯一の坑道出口が塞がれ、救助隊が到着するまで外部との往来は不可能です。"
   category: クローズドサークル
   difficulty: 5
@@ -10,6 +10,14 @@ meta:
 victim:
   name: 岩代圭吾
   introduction: 地下洞窟研究所調査主任
+  foundAt: 21:27
+  foundIn: 地図解析室
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 岩代圭吾は地図解析室で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「試料ラベルと測量座標の不一致」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -100,41 +108,49 @@ timeline:
     participants: [kagawa]
     facts: [locator-tag-removable, kagawa-tag-on-cart]
     description: 香川が位置タグを作業ベストから外し、自動測量カートへ固定する。
+    location: 研究所内
   - id: cart-loop-start
     at: "21:00"
     participants: []
     facts: [mapping-cart-auto-loop, tag-track-matches-cart]
     description: 自動測量カートが無人で校正ルートの周回を始め、香川の位置タグも同じ軌跡を記録する。
+    location: 測量区画
   - id: kagawa-leaves
     at: "21:01"
     participants: [kagawa]
     facts: [kagawa-left-survey-zone]
     description: 香川が位置タグをカートに残したまま測量区画を離れる。
+    location: 測量区画
   - id: tono-sighting
     at: "21:07"
     participants: [kagawa, tono]
     facts: [tono-saw-kagawa-2107]
     description: 遠野が連絡通路で、位置タグを付けていない香川を目撃する。
+    location: 連絡通路
   - id: iwashiro-death
     at: "21:11"
     participants: [kagawa]
     facts: [kagawa-killed-iwashiro]
     description: 香川が地図解析室で岩代を襲い、岩代は死亡する。
+    location: 地図解析室
   - id: cart-loop-end
     at: "21:15"
     participants: []
     facts: [mapping-cart-auto-loop, tag-track-matches-cart]
     description: 自動測量カートが校正ルートの周回を終える。
+    location: 測量区画
   - id: tag-recovered
     at: "21:17"
     participants: [kagawa]
     facts: [kagawa-recovered-tag]
     description: 香川が測量区画へ戻り、自動カートから位置タグを回収する。
+    location: 測量区画
   - id: discovery
     at: "21:27"
     participants: [shindo, kagawa, yuki, tono]
     facts: [body-found-2127]
     description: 新堂が地図解析室で岩代の死を発見する。
+    location: 地図解析室
 
 characters:
   - id: kagawa
@@ -332,10 +348,11 @@ evidences:
     description: 香川が深部採取として登録した試料のラベルが、実際の測量データでは浅い区画の座標と一致する。岩代の訂正予定も残る。
     reveal:
       mode: conversation
-      condition: 香川か新堂に岩代が事件直前に照合していた試料採取地点について尋ね、測量座標との不一致を追及したら開示する。
+      condition: 香川か新堂に岩代が事件直前に照合していた試料採取地点について尋ね、測量座標との不一致を追及したら開示する。または遺体・現場を調べ、「試料ラベルと測量座標の不一致」に関わる資料を確認したら開示する。
     sources:
       - { type: character, id: kagawa }
       - { type: character, id: shindo }
+      - { type: victim, id: victim }
     supports: [kagawa-forged-sample-origin, iwashiro-found-forgery, iwashiro-planned-retraction]
     contradicts: []
   - id: shindo-private-case

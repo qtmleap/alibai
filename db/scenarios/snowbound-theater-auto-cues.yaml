@@ -1,7 +1,7 @@
 schemaVersion: 1
 id: snowbound-theater-auto-cues
 meta:
-  title: 小劇場白燕座、雪封じの夜
+  title: 白燕座、雪の終演後
   synopsis: "午後十時三十六分、市外れの小劇場「白燕座」の演出控室で、演出家の瀬尾雅人が死亡しているのが見つかりました。午後九時半から大雪で道路が封鎖され、劇場内に残っていたのは瀬尾を含め五人だけです。"
   category: クローズドサークル
   difficulty: 4
@@ -10,6 +10,14 @@ meta:
 victim:
   name: 瀬尾雅人
   introduction: 小劇場「白燕座」演出家
+  foundAt: 22:36
+  foundIn: 演出控室
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 瀬尾雅人は演出控室で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「架空スタッフを含む残業費一覧」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -100,41 +108,49 @@ timeline:
     participants: [kunieda]
     facts: [cue-console-auto-mode, kunieda-set-auto-cues]
     description: 国枝が二十分間の照明キューを自動進行へ設定する。
+    location: 調光卓
   - id: cues-start
     at: "22:00"
     participants: [kunieda, toba]
     facts: [cues-ran-automatically, toba-saw-light-changes]
     description: 調光卓が自動進行を開始し、舞台照明が設定順に切り替わる。
+    location: 調光卓
   - id: kunieda-leaves
     at: "22:03"
     participants: [kunieda]
     facts: [kunieda-left-console]
     description: 国枝が照明キューを動かしたまま調光卓を離れる。
+    location: 調光卓
   - id: sasai-sighting
     at: "22:10"
     participants: [kunieda, sasai]
     facts: [sasai-saw-kunieda-2210]
     description: 笹井が演出控室へ続く舞台袖通路で国枝を目撃する。
+    location: 演出控室
   - id: seo-death
     at: "22:14"
     participants: [kunieda]
     facts: [kunieda-killed-seo]
     description: 国枝が演出控室で瀬尾を襲い、瀬尾は死亡する。
+    location: 演出控室
   - id: kunieda-return
     at: "22:19"
     participants: [kunieda]
     facts: [kunieda-returned-console]
     description: 国枝が調光卓へ戻る。
+    location: 調光卓
   - id: cues-end
     at: "22:20"
     participants: [kunieda, toba]
     facts: [cues-ran-automatically]
     description: 自動進行の照明キューが最後まで終了する。
+    location: 調光卓
   - id: discovery
     at: "22:36"
     participants: [hiiragi, kunieda, toba, sasai]
     facts: [body-found-2236]
     description: 柊が演出控室で瀬尾の死を発見する。
+    location: 演出控室
 
 characters:
   - id: kunieda
@@ -329,10 +345,11 @@ evidences:
     description: 国枝の請求に実在しないスタッフ名が複数含まれ、瀬尾が翌朝の運営会社報告と進行担当変更を記している。
     reveal:
       mode: conversation
-      condition: 国枝か柊に瀬尾が事件前に問題視していた残業費請求について尋ね、スタッフ名の実在性を追及したら開示する。
+      condition: 国枝か柊に瀬尾が事件前に問題視していた残業費請求について尋ね、スタッフ名の実在性を追及したら開示する。または遺体・現場を調べ、「架空スタッフを含む残業費一覧」に関わる資料を確認したら開示する。
     sources:
       - { type: character, id: kunieda }
       - { type: character, id: hiiragi }
+      - { type: victim, id: victim }
     supports: [kunieda-falsified-overtime, seo-found-false-overtime, seo-planned-report]
     contradicts: []
   - id: script-leak-message

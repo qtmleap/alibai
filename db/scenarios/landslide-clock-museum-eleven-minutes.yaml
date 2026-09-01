@@ -1,7 +1,7 @@
 schemaVersion: 1
 id: landslide-clock-museum-eleven-minutes
 meta:
-  title: 崩落の時計博物館、閉館後の夜
+  title: 山道が崩れた時計博物館
   synopsis: "午後八時四十二分、山間の私設時計博物館の修復室で、学芸員長の倉橋宗一が死亡しているのが見つかりました。午後七時すぎの土砂崩れで唯一の山道は通行不能となり、館内には倉橋を含め五人しか残っていませんでした。"
   category: クローズドサークル
   difficulty: 5
@@ -10,6 +10,14 @@ meta:
 victim:
   name: 倉橋宗一
   introduction: 私設時計博物館学芸員長
+  foundAt: 20:42
+  foundIn: 修復室
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 倉橋宗一は修復室で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「倉橋の来歴照合メモ」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -102,41 +110,49 @@ timeline:
     participants: [kido]
     facts: [master-clock-fast-eleven, gallery-clocks-follow-master, kido-caused-clock-offset]
     description: 同期試験後、親時計と展示時計が正しい時刻より十一分進んだ状態で残る。
+    location: 館内
   - id: false-half-past-chime
     at: "20:19"
     participants: [shiba, asakura, hoshina]
     facts: [half-past-chime-actual-2019, security-clock-accurate]
     description: 館内時計が20時30分を示し、大時計が半時の鐘を鳴らす。実際の時刻は20時19分だった。
+    location: 館内
   - id: shiba-kurahashi-talk
     at: "20:20"
     participants: [shiba]
     facts: [shiba-spoke-kurahashi-2020]
     description: 志波が西回廊で倉橋と短く話す。
+    location: 西回廊
   - id: shiba-leaves-west
     at: "20:22"
     participants: [shiba]
     facts: [shiba-left-west-corridor]
     description: 志波が西回廊を離れ、修復室側へ向かう。
+    location: 西回廊
   - id: asakura-sighting
     at: "20:24"
     participants: [shiba, asakura]
     facts: [asakura-saw-shiba-2024]
     description: 朝倉が北廊下で志波を目撃する。
+    location: 北廊下
   - id: kurahashi-death
     at: "20:28"
     participants: [shiba]
     facts: [shiba-killed-kurahashi]
     description: 志波が修復室で倉橋を襲い、倉橋は死亡する。
+    location: 修復室
   - id: shiba-return
     at: "20:34"
     participants: [shiba]
     facts: [shiba-returned-gallery]
     description: 志波が展示準備室へ戻る。
+    location: 展示準備室
   - id: discovery
     at: "20:42"
     participants: [hoshina, shiba, asakura, kido]
     facts: [body-found-2042]
     description: 保科が修復室で倉橋の死を発見する。
+    location: 修復室
 
 characters:
   - id: shiba
@@ -340,10 +356,11 @@ evidences:
     description: 志波が登録した著名工房の来歴と原資料が一致せず、倉橋が翌朝の展示撤去と理事会報告を予定していたことが分かる。
     reveal:
       mode: conversation
-      condition: 志波か保科に倉橋が事件直前に調べていた展示時計の来歴について尋ね、登録内容の不一致を追及したら開示する。
+      condition: 志波か保科に倉橋が事件直前に調べていた展示時計の来歴について尋ね、登録内容の不一致を追及したら開示する。または遺体・現場を調べ、「倉橋の来歴照合メモ」に関わる資料を確認したら開示する。
     sources:
       - { type: character, id: shiba }
       - { type: character, id: hoshina }
+      - { type: victim, id: victim }
     supports: [shiba-faked-provenance, kurahashi-found-provenance-fraud, kurahashi-planned-withdrawal]
     contradicts: []
   - id: hoshina-image-history

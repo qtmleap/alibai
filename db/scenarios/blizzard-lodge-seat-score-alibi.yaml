@@ -1,7 +1,7 @@
 schemaVersion: 1
 id: blizzard-lodge-seat-score-alibi
 meta:
-  title: 吹雪の研修ロッジ、四人の夜
+  title: 四人だけの研修ロッジ
   synopsis: "午後九時四十分、吹雪で道路が閉鎖された研修ロッジで、運営責任者・塚本誠が書斎で死亡しているのが見つかりました。"
   category: クローズドサークル
   difficulty: 4
@@ -10,6 +10,14 @@ meta:
 victim:
   name: 塚本誠
   introduction: 研修ロッジ運営責任者
+  foundAt: 21:40
+  foundIn: 書斎
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 塚本誠は書斎で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「外部講師費の精算書」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -101,36 +109,43 @@ timeline:
     participants: [katase, yoshioka]
     facts: [payment-fraud, tsukamoto-found-fraud]
     description: 塚本が講師費の精算書から架空計上を見つける。
+    location: ロッジ内
   - id: summon-note
     at: "21:10"
     participants: [katase]
     facts: [tsukamoto-summoned-katase]
     description: 塚本が片瀬へ書斎に来るようメモを渡す。
+    location: 書斎
   - id: katase-leaves-game
     at: "21:12"
     participants: [katase, mamiya, todo, yoshioka]
     facts: [katase-left-2112, mamiya-substituted-blue, game-tracks-seats]
     description: 片瀬が談話室を離れ、間宮が青席へ座ってゲームを続ける。
+    location: 談話室
   - id: tsukamoto-death
     at: "21:18"
     participants: [katase]
     facts: [katase-killed-tsukamoto]
     description: 片瀬が書斎で塚本を襲う。
+    location: 書斎
   - id: score-continues
     at: "21:21"
     participants: [mamiya, todo, yoshioka]
     facts: [blue-score-continued, yoshioka-copied-score-later]
     description: 片瀬不在のまま青席の得点が続き、吉岡が後から席単位で清書する。
+    location: ロッジ内
   - id: katase-returns
     at: "21:25"
     participants: [katase, todo, mamiya, yoshioka]
     facts: [katase-returned-2125, todo-saw-katase-return]
     description: 片瀬が談話室へ戻り、間宮から青席を引き継ぐ。
+    location: 談話室
   - id: discovery
     at: "21:40"
     participants: [yoshioka, katase, todo, mamiya]
     facts: [body-found-2140]
     description: 吉岡が書斎で塚本の死を発見する。
+    location: 書斎
 characters:
   - id: katase
     name: 片瀬真央
@@ -354,12 +369,14 @@ evidences:
     description: 実在しない追加講師枠が片瀬の処理で計上され、塚本が該当欄に確認印を付けている。
     reveal:
       mode: conversation
-      condition: 片瀬か吉岡に事件前に塚本が確認していた精算書について尋ねたら開示する。
+      condition: 片瀬か吉岡に事件前に塚本が確認していた精算書について尋ねたら開示する。または遺体・現場を調べ、「外部講師費の精算書」に関わる資料を確認したら開示する。
     sources:
       - type: character
         id: katase
       - type: character
         id: yoshioka
+      - type: victim
+        id: victim
     supports: [payment-fraud, tsukamoto-found-fraud, tsukamoto-summoned-katase]
     contradicts: ["lie:katase-no-fake-fee"]
   - id: copied-material

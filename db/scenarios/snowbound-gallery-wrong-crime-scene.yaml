@@ -1,7 +1,7 @@
 schemaVersion: 1
 id: snowbound-gallery-wrong-crime-scene
 meta:
-  title: 私設画廊白環館、雪の夜
+  title: 白環館、雪の作品保存庫
   synopsis: "午後十時五分、大雪で道路を断たれた私設画廊「白環館」で、館長・荻原直哉が作品保存庫内で死亡しているのが発見されました。"
   category: 不可能犯罪
   difficulty: 5
@@ -10,6 +10,14 @@ meta:
 victim:
   name: 荻原直哉
   introduction: 私設画廊「白環館」館長
+  foundAt: 22:05
+  foundIn: 保存庫
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 荻原直哉は保存庫で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「修復工程と材料在庫の不一致」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -94,31 +102,37 @@ timeline:
     participants: [kosaka]
     facts: [forged-restoration-report, ogiwara-found-forgery, ogiwara-called-kosaka]
     description: 荻原が香坂を額装作業室へ呼び、修復報告と材料在庫の不一致を問いただす。
+    location: 額装作業室
   - id: ogiwara-death
     at: "21:10"
     participants: [kosaka]
     facts: [kosaka-killed-ogiwara-framing, framing-paper-fibers]
     description: 香坂が額装作業室で荻原を襲う。
+    location: 額装作業室
   - id: transfer-to-vault
     at: "21:18"
     participants: [kosaka]
     facts: [kosaka-moved-ogiwara, cart-used-after-cleaning]
     description: 香坂が作品搬送台車を使い、荻原を保存庫へ移す。
+    location: 保存庫
   - id: kosaka-exits-vault
     at: "21:23"
     participants: [kosaka]
     facts: [kosaka-left-vault-before-lock, kosaka-apron-dust]
     description: 香坂が保存庫を離れ、夜間環境管理が始まる前に搬送廊下へ戻る。
+    location: 搬送廊下
   - id: vault-seals
     at: "21:30"
     participants: [tada]
     facts: [vault-night-mode, framing-room-open-before-2130, vault-closed-2130]
     description: 保存庫が夜間環境管理へ移行し、発見時の密室状態が成立する。
+    location: 保存庫
   - id: discovery
     at: "22:05"
     participants: [asakura, tada, kosaka]
     facts: [body-found-2205]
     description: 朝倉と多田が保存庫内で荻原の死を発見する。
+    location: 保存庫
 characters:
   - id: kosaka
     name: 香坂澪
@@ -317,12 +331,14 @@ evidences:
     description: 香坂の報告上は使用したことになっている材料が在庫から減っておらず、荻原が確認印を付けている。
     reveal:
       mode: conversation
-      condition: 香坂に事件前に荻原から指摘された修復報告を尋ねるか、朝倉に材料在庫の不一致を確認したら開示する。
+      condition: 香坂に事件前に荻原から指摘された修復報告を尋ねるか、朝倉に材料在庫の不一致を確認したら開示する。または遺体・現場を調べ、「修復工程と材料在庫の不一致」に関わる資料を確認したら開示する。
     sources:
       - type: character
         id: kosaka
       - type: character
         id: asakura
+      - type: victim
+        id: victim
     supports: [forged-restoration-report, ogiwara-found-forgery, ogiwara-called-kosaka]
     contradicts: ["lie:kosaka-report-clean"]
   - id: private-loan

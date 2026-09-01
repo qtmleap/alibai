@@ -101,6 +101,8 @@
     { who: 'makino', i: 4 },
     { who: 'kuroda', i: 3 },
     { who: 'sena', i: 2 },
+    // 遺体の検分もターンを1つ使う。人に訊くか現場を見るかは、同じ財布から出る。
+    { who: 'mizuno', i: 0 },
   ]
 
   var play = (turn) => {
@@ -348,6 +350,11 @@
           )
         }
         var p = CAST_BY_KEY[t.who]
+        /*
+         * 遺体の欄だけ名前を出さず「所見」にする。
+         * 名前を出すと、死んだ人が証言しているように読める。
+         */
+        var label = t.who === C.victim.key ? '所見' : p.name
         var body = t.lines
           .map((line, i) => {
             var tail = t.last && i === t.lines.length - 1 ? '<span class="beat">▼</span>' : ''
@@ -362,7 +369,7 @@
           p.hue +
           LIT +
           ')">' +
-          esc(p.name) +
+          esc(label) +
           '</span>' +
           body +
           '</div>'

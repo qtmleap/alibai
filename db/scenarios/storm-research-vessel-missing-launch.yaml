@@ -1,7 +1,7 @@
 schemaVersion: 1
 id: storm-research-vessel-missing-launch
 meta:
-  title: 調査船みなも、暴風海域の夜
+  title: 退避航行中の「みなも」
   synopsis: "午後八時四十分、暴風海域で退避航行中の海洋調査船みなもで、主任研究者の瀬尾俊が解析室内で死亡しているのが見つかりました。荒天のため他船との接触はなく、船内にいた関係者は研究員の狩谷琴音、機関担当の水城明、通信担当の野々村岳の三人です。"
   category: クローズドサークル
   difficulty: 4
@@ -10,6 +10,14 @@ meta:
 victim:
   name: 瀬尾俊
   introduction: 海洋調査船みなも主任研究者
+  foundAt: 20:40
+  foundIn: 解析室
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 瀬尾俊は解析室で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「共同研究データの提出履歴」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -91,36 +99,43 @@ timeline:
     participants: [kariya, mizuki]
     facts: [launch-lost-1942, kariya-saw-launch-loss]
     description: 暴風による甲板設備の異常が起き、小型作業艇が既に失われたことを狩谷と水城が確認する。
+    location: 甲板
   - id: launch-note
     at: "19:48"
     participants: [kariya, mizuki]
     facts: [launch-note-signed]
     description: 作業艇消失を含む甲板異常メモに狩谷と水城が署名する。
+    location: 甲板
   - id: seo-call
     at: "19:56"
     participants: [nonomura]
     facts: [seo-alive-1956, launch-gone-before-death]
     description: 野々村が瀬尾と船内通話を行い、作業艇消失後にも瀬尾が生存していたことが確認される。
+    location: 船内
   - id: kariya-analysis
     at: "20:14"
     participants: [kariya]
     facts: [kariya-entered-analysis-2014]
     description: 狩谷が解析室へ向かう。
+    location: 解析室
   - id: seo-death
     at: "20:18"
     participants: [kariya]
     facts: [seo-death-2018, kariya-killed-seo]
     description: 狩谷が解析室で瀬尾を襲い、瀬尾は死亡する。
+    location: 解析室
   - id: corridor-sighting
     at: "20:22"
     participants: [kariya, mizuki]
     facts: [mizuki-saw-kariya-2022]
     description: 水城が解析室側の通路から戻る狩谷を目撃する。
+    location: 解析室
   - id: discovery
     at: "20:40"
     participants: [nonomura, kariya, mizuki]
     facts: [body-found-2040]
     description: 野々村が解析室で瀬尾の死を発見する。
+    location: 解析室
 characters:
   - id: kariya
     name: 狩谷琴音
@@ -296,12 +311,14 @@ evidences:
     description: 狩谷が共同研究データを単独成果として外部提出しようとし、瀬尾がその経緯を問題視していたことが分かる。
     reveal:
       mode: conversation
-      condition: 狩谷か野々村に瀬尾が直前まで確認していた研究データの提出経緯を尋ねたら開示する。
+      condition: 狩谷か野々村に瀬尾が直前まで確認していた研究データの提出経緯を尋ねたら開示する。または遺体・現場を調べ、「共同研究データの提出履歴」に関わる資料を確認したら開示する。
     sources:
       - type: character
         id: kariya
       - type: character
         id: nonomura
+      - type: victim
+        id: victim
     supports: [seo-found-copying, seo-report-next-port]
     contradicts: []
   - id: delayed-maintenance

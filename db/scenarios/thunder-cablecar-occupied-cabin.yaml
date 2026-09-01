@@ -1,7 +1,7 @@
 schemaVersion: 1
 id: thunder-cablecar-occupied-cabin
 meta:
-  title: 霧岳山頂駅、落雷の夜
+  title: 落雷停止、霧岳山頂駅
   synopsis: "午後九時三十八分、霧岳ロープウェイ山頂駅の運行事務室で、駅長の高瀬修司が死亡しているのが見つかりました。落雷で本線索道は停止し、山道も土砂流入で通行できません。午後八時五十分以降、山頂駅へ出入りした者はいません。"
   category: クローズドサークル
   difficulty: 4
@@ -10,6 +10,14 @@ meta:
 victim:
   name: 高瀬修司
   introduction: 霧岳ロープウェイ山頂駅駅長
+  foundAt: 21:38
+  foundIn: 運行事務室
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 高瀬修司は運行事務室で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「制動点検記録と作業履歴の不一致」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -100,41 +108,49 @@ timeline:
     participants: [sudo]
     facts: [cabin-display-weight-based, tool-case-heavy-enough, sudo-left-tool-case]
     description: 須藤が保守用工具ケースを非常用搬器の点検席へ置く。
+    location: 非常搬器
   - id: occupancy-start
     at: "21:10"
     participants: []
     facts: [occupancy-display-on]
     description: 工具ケースの荷重で監視盤に『乗員1』が表示される。
+    location: 山頂駅
   - id: sudo-leaves-cabin
     at: "21:12"
     participants: [sudo]
     facts: [sudo-left-cabin-area]
     description: 須藤が非常用搬器前を離れる。
+    location: 非常搬器
   - id: enomoto-sighting
     at: "21:18"
     participants: [sudo, enomoto]
     facts: [enomoto-saw-sudo-2118]
     description: 榎本が職員通路で須藤を目撃する。
+    location: 職員通路
   - id: takase-death
     at: "21:22"
     participants: [sudo]
     facts: [sudo-killed-takase]
     description: 須藤が運行事務室で高瀬を襲い、高瀬は死亡する。
+    location: 運行事務室
   - id: sudo-return
     at: "21:28"
     participants: [sudo]
     facts: [sudo-returned-cabin]
     description: 須藤が非常用搬器前へ戻る。
+    location: 非常搬器
   - id: occupancy-end
     at: "21:30"
     participants: [sudo]
     facts: [occupancy-display-on]
     description: 須藤が工具ケースを点検席から下ろし、『乗員1』表示が消える。
+    location: 非常搬器
   - id: discovery
     at: "21:38"
     participants: [nagamine, sudo, enomoto, orihara]
     facts: [body-found-2138]
     description: 長峰が運行事務室で高瀬の死を発見する。
+    location: 運行事務室
 
 characters:
   - id: sudo
@@ -332,10 +348,11 @@ evidences:
     description: 須藤が実施済みと記した点検の一部に作業履歴がなく、高瀬が翌朝の運転停止と安全管理部への報告を記している。
     reveal:
       mode: conversation
-      condition: 須藤か長峰に高瀬が事件直前に確認していた制動点検について尋ね、記録と実作業の不一致を追及したら開示する。
+      condition: 須藤か長峰に高瀬が事件直前に確認していた制動点検について尋ね、記録と実作業の不一致を追及したら開示する。または遺体・現場を調べ、「制動点検記録と作業履歴の不一致」に関わる資料を確認したら開示する。
     sources:
       - { type: character, id: sudo }
       - { type: character, id: nagamine }
+      - { type: victim, id: victim }
     supports: [sudo-falsified-brake-tests, takase-found-false-tests, takase-planned-suspension]
     contradicts: []
   - id: lost-wallet

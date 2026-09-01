@@ -21,7 +21,7 @@ const SENA = 'c5a9f108-2e73-4b91-8d64-0af31c9e2b47'
 
 export const SCENARIO: ScenarioDetail = {
   id: 'a1d7e930-4c62-4b18-9f05-6e83d2a4c710',
-  title: '雨の古書店、十九時八分のレシート',
+  title: '青雨堂、閉店後の商談',
   category: '日常系本格',
   difficulty: 2,
   estimatedMinutes: 10,
@@ -52,7 +52,7 @@ export const SCENARIO: ScenarioDetail = {
 export const SCENARIOS: ScenarioSummary[] = [
   {
     id: '0f6b1c44-9d21-4e07-8a53-b7c2e9d10456',
-    title: '世代船、三つの夜明け',
+    title: '2312年、世代船アステリア',
     category: 'SFクローズドサークル',
     characterCount: 3,
     difficulty: 5,
@@ -60,7 +60,7 @@ export const SCENARIOS: ScenarioSummary[] = [
   },
   {
     id: '1a7c2d55-0e32-4f18-9b64-c8d3f0e21567',
-    title: '火星基地、遅れて届いた返事',
+    title: '火星、エリュシオン観測基地',
     category: 'SFクローズドサークル',
     characterCount: 3,
     difficulty: 5,
@@ -68,7 +68,7 @@ export const SCENARIOS: ScenarioSummary[] = [
   },
   {
     id: '2b8d3e66-1f43-4029-ac75-d9e401f32678',
-    title: '台風のデータセンター、無人の保守窓',
+    title: '冠水する湾岸データセンター',
     category: 'クローズドサークル',
     characterCount: 4,
     difficulty: 5,
@@ -76,7 +76,7 @@ export const SCENARIOS: ScenarioSummary[] = [
   },
   {
     id: '3c9e4f77-2054-413a-bd86-ea0512043789',
-    title: '崩落の時計博物館、十一分早い八時半',
+    title: '山道が崩れた時計博物館',
     category: 'クローズドサークル',
     characterCount: 4,
     difficulty: 5,
@@ -84,7 +84,7 @@ export const SCENARIOS: ScenarioSummary[] = [
   },
   {
     id: '4da05088-3165-424b-ce97-fb162315489a',
-    title: '暴風の灯台、濡れた外套と当直板',
+    title: '補給船の来ない夕凪灯台',
     category: 'クローズドサークル',
     characterCount: 3,
     difficulty: 5,
@@ -92,7 +92,7 @@ export const SCENARIOS: ScenarioSummary[] = [
   },
   {
     id: '5eb16199-4276-435c-dfa8-0c27342659ab',
-    title: '雪の天文台、最後の連続写真',
+    title: '北岳観測所、吹雪の午後十時',
     category: 'クローズドサークル',
     characterCount: 3,
     difficulty: 3,
@@ -100,7 +100,7 @@ export const SCENARIOS: ScenarioSummary[] = [
   },
   {
     id: '6fc272aa-5387-446d-e0b9-1d38453760bc',
-    title: '豪雨の発電所、水位線の密室',
+    title: '増水する山中発電所',
     category: '不可能犯罪',
     characterCount: 3,
     difficulty: 5,
@@ -108,7 +108,7 @@ export const SCENARIOS: ScenarioSummary[] = [
   },
   {
     id: '70d383bb-6498-4570-f1ca-2e49564871cd',
-    title: '二十時四十七分の契約書',
+    title: '締切後の青燈社',
     category: '出版社ミステリ',
     characterCount: 3,
     difficulty: 3,
@@ -124,7 +124,7 @@ export const SCENARIOS: ScenarioSummary[] = [
   },
   {
     id: '92f5a5dd-86ba-4792-13ec-406b786093ef',
-    title: '1979年、雪山荘の借り物の記憶',
+    title: '四十七年目の白樺館',
     category: '未解決事件再調査',
     characterCount: 3,
     difficulty: 5,
@@ -132,7 +132,7 @@ export const SCENARIOS: ScenarioSummary[] = [
   },
   {
     id: 'a306b6ee-97cb-48a3-24fd-517c89719400',
-    title: '月見荘、十七回忌の夜',
+    title: '十七回忌、月見荘にて',
     category: '館もの',
     characterCount: 3,
     difficulty: 2,
@@ -140,7 +140,7 @@ export const SCENARIOS: ScenarioSummary[] = [
   },
   {
     id: 'b417c7ff-a8dc-49b4-350e-628d9a820511',
-    title: '終電後、遅延証明書はまだ白紙だった',
+    title: '終電が八分遅れた夜',
     category: '駅ミステリ',
     characterCount: 3,
     difficulty: 3,

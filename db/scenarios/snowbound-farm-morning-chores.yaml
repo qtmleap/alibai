@@ -1,7 +1,7 @@
 schemaVersion: 1
 id: snowbound-farm-morning-chores
 meta:
-  title: 高原農園、雪籠りの朝
+  title: 朝七時、高原農園
   synopsis: "午前七時十分、雪に閉ざされた高原農園の事務室で、経営者の佐久間隆志が死亡しているのが発見されました。夜半から猛吹雪となり、農園へ通じる一本道は完全に塞がれています。"
   category: クローズドサークル
   difficulty: 5
@@ -10,6 +10,14 @@ meta:
 victim:
   name: 佐久間隆志
   introduction: 高原農園経営者
+  foundAt: 2026-01-16T07:10:00+09:00
+  foundIn: 事務室
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 佐久間隆志は事務室で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「出荷伝票の不足メモ」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -91,36 +99,43 @@ timeline:
     participants: [fuyuki, nozomi]
     facts: [audit-shortage-found]
     description: 佐久間が夜の帳簿確認で出荷代金の不足に気づく。
+    location: 事務室
   - id: confrontation
     at: "2026-01-15T21:50:00+09:00"
     participants: [fuyuki]
     facts: [sakuma-confronted-fuyuki, fuyuki-diverted-sales]
     description: 佐久間が冬木に不足分を問い、翌朝に帳簿を再確認すると告げる。
+    location: 事務室
   - id: corridor-sighting
     at: "2026-01-15T22:06:00+09:00"
     participants: [fuyuki, kuze]
     facts: [kuze-saw-fuyuki-office-side]
     description: 久世が事務室側の廊下から戻ってくる冬木を見かける。
+    location: 事務室
   - id: sakuma-death
     at: "2026-01-15T22:10:00+09:00"
     participants: [fuyuki]
     facts: [fuyuki-killed-sakuma, fuyuki-left-victim-coat]
     description: 冬木が事務室で佐久間を襲い、その後に朝まで生きていたように見せる準備をする。
+    location: 事務室
   - id: staged-chores
     at: "2026-01-16T05:35:00+09:00"
     participants: [fuyuki]
     facts: [fuyuki-did-morning-chores, feed-board-magnet-moved, fuyuki-boots-wet-straw]
     description: 冬木が普段は佐久間が行う朝の家畜の世話を代わりに済ませる。
+    location: 農園内
   - id: kitchen-light-seen
     at: "2026-01-16T05:48:00+09:00"
     participants: [nozomi]
     facts: [kitchen-light-on, nozomi-assumed-uncle-awake]
     description: 希が台所の灯りを見て、叔父がいつも通り起きていると思い込む。
+    location: 農園内
   - id: discovery
     at: "2026-01-16T07:10:00+09:00"
     participants: [nozomi, fuyuki, kuze]
     facts: [body-found-0710]
     description: 希が事務室で佐久間の死を発見する。
+    location: 事務室
 characters:
   - id: fuyuki
     name: 冬木紬
@@ -304,12 +319,14 @@ evidences:
     description: 佐久間の手元には不足額と冬木担当分の伝票番号、翌朝再確認する旨のメモが残っている。
     reveal:
       mode: conversation
-      condition: 希か冬木に前夜の帳簿確認と不足伝票について尋ね、経理上の問題を追及したら開示する。
+      condition: 希か冬木に前夜の帳簿確認と不足伝票について尋ね、経理上の問題を追及したら開示する。または遺体・現場を調べ、「出荷伝票の不足メモ」に関わる資料を確認したら開示する。
     sources:
       - type: character
         id: nozomi
       - type: character
         id: fuyuki
+      - type: victim
+        id: victim
     supports: [audit-shortage-found, fuyuki-diverted-sales, sakuma-confronted-fuyuki]
     contradicts: ["lie:fuyuki-no-account-problem"]
   - id: debt-note

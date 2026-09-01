@@ -1,7 +1,7 @@
 schemaVersion: 1
 id: flood-courthouse-unlogged-door
 meta:
-  title: 水没寸前の裁判所、資料棟の夜
+  title: 河川氾濫、旧南央裁判所
   synopsis: "午後八時三十五分、河川氾濫により周辺道路が閉鎖された旧南央裁判所の資料棟で、主任記録官の磯崎章が死亡しているのが見つかりました。資料棟に残っていたのは書記官の矢吹梓、設備担当の三田村悟、警備員の木瀬亮の三人だけです。"
   category: クローズドサークル
   difficulty: 5
@@ -10,6 +10,14 @@ meta:
 victim:
   name: 磯崎章
   introduction: 旧南央裁判所主任記録官
+  foundAt: 20:35
+  foundIn: 保存記録室
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 磯崎章は保存記録室で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「監督部署への報告草案」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -90,36 +98,43 @@ timeline:
     participants: [mitamura]
     facts: [door-held-open-1950, door-remained-open-2022, no-new-unlock]
     description: 設備点検の資材搬入のため、保存記録室の扉が開放状態になる。
+    location: 保存記録室
   - id: mitamura-warning
     at: "20:00"
     participants: [mitamura, yabuki]
     facts: [mitamura-told-yabuki-open]
     description: 三田村が矢吹に、保存記録室の扉が点検中で開いていることを伝える。
+    location: 保存記録室
   - id: yabuki-enters
     at: "20:09"
     participants: [yabuki]
     facts: [yabuki-entered-unlogged]
     description: 矢吹が職員証を使わず、開放中の保存記録室へ入る。
+    location: 保存記録室
   - id: isozaki-death
     at: "20:12"
     participants: [yabuki]
     facts: [isozaki-death-2012, yabuki-killed-isozaki]
     description: 矢吹が保存記録室で磯崎を襲い、磯崎は死亡する。
+    location: 保存記録室
   - id: corridor-return
     at: "20:16"
     participants: [yabuki, kise]
     facts: [kise-saw-yabuki-return-2016]
     description: 木瀬が保存記録室側の廊下から戻る矢吹を目撃する。
+    location: 保存記録室
   - id: door-closes
     at: "20:22"
     participants: [mitamura]
     facts: [door-remained-open-2022]
     description: 設備点検が終わり、保存記録室の扉が通常の施錠状態へ戻る。
+    location: 保存記録室
   - id: discovery
     at: "20:35"
     participants: [mitamura, yabuki, kise]
     facts: [body-found-2035]
     description: 三田村が保存記録室で磯崎の死を発見する。
+    location: 保存記録室
 characters:
   - id: yabuki
     name: 矢吹梓
@@ -290,12 +305,14 @@ evidences:
     description: 磯崎の端末に、矢吹による不適切な記録修正を翌朝報告するための草案が残っている。
     reveal:
       mode: conversation
-      condition: 矢吹か三田村に磯崎が翌朝提出予定だった報告について尋ねたら開示する。
+      condition: 矢吹か三田村に磯崎が翌朝提出予定だった報告について尋ねたら開示する。または遺体・現場を調べ、「監督部署への報告草案」に関わる資料を確認したら開示する。
     sources:
       - type: character
         id: yabuki
       - type: character
         id: mitamura
+      - type: victim
+        id: victim
     supports: [altered-file-discovered, report-next-morning]
     contradicts: []
   - id: skipped-maintenance-item

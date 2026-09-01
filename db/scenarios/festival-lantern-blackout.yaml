@@ -1,7 +1,7 @@
 schemaVersion: 1
 id: festival-lantern-blackout
 meta:
-  title: 夏祭り、祭具倉庫の夜
+  title: 祭りが暗くなった八分間
   synopsis: "午後八時三十五分、八坂野神社の夏祭りで、実行委員長の神谷宗一が祭具倉庫の中で死亡しているのが見つかりました。会場には多くの客がいましたが、事件の直前、午後八時十八分から八時二十六分まで提灯と舞台照明が一斉に消えるトラブルが起きています。"
   category: 祭りの夜
   difficulty: 3
@@ -10,6 +10,14 @@ meta:
 victim:
   name: 神谷宗一
   introduction: 八坂野神社夏祭り実行委員長
+  foundAt: 20:35
+  foundIn: 祭具倉庫
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 神谷宗一は祭具倉庫で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「照明設備の発注帳簿」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -92,46 +100,55 @@ timeline:
     participants: [tozuka]
     facts: [kamiya-warned-tozuka, kamiya-found-kickbacks]
     description: 神谷が戸塚に発注帳簿を示し、祭り終了後に不正を公表すると告げる。
+    location: 事務室
   - id: blackout-start
     at: "20:18"
     participants: [tozuka, makabe, aihara]
     facts: [blackout-started-2018, lighting-preset-ran]
     description: 会場の照明が一斉に消え、自動復旧シーケンスが始まる。
+    location: 会場
   - id: tozuka-leaves
     at: "20:20"
     participants: [tozuka]
     facts: [tozuka-left-console-2020]
     description: 戸塚が操作卓を離れ、暗い境内を祭具倉庫へ向かう。
+    location: 祭具倉庫
   - id: aihara-sighting
     at: "20:22"
     participants: [tozuka, aihara]
     facts: [aihara-saw-tozuka-2022]
     description: 相原が非常灯の下で祭具倉庫方向へ急ぐ戸塚を目撃する。
+    location: 祭具倉庫
   - id: kamiya-death
     at: "20:23"
     participants: [tozuka]
     facts: [tozuka-killed-kamiya-2023, spare-key-borrowed]
     description: 戸塚が祭具倉庫へ入り、神谷を襲う。
+    location: 祭具倉庫
   - id: tozuka-returns
     at: "20:25"
     participants: [tozuka]
     facts: [tozuka-returned-2025]
     description: 戸塚が照明操作卓へ戻る。
+    location: 操作卓
   - id: lights-return
     at: "20:26"
     participants: [tozuka, makabe, aihara]
     facts: [lights-restored-2026]
     description: 自動復旧シーケンスが完了し、会場の照明が戻る。
+    location: 会場
   - id: key-check
     at: "20:28"
     participants: [makabe]
     facts: [makabe-checked-key-2028]
     description: 真壁が予備鍵の箱を確認し、鍵が戻されているのを見る。
+    location: 境内
   - id: discovery
     at: "20:35"
     participants: [makabe, aihara, tozuka]
     facts: [body-found-2035]
     description: 真壁が祭具倉庫で神谷の死を発見する。
+    location: 祭具倉庫
 characters:
   - id: tozuka
     name: 戸塚岳
@@ -291,12 +308,14 @@ evidences:
     description: 同規模の設備と比べて発注額が不自然に高く、戸塚へ還流した謝礼を神谷が照合したメモが挟まれている。
     reveal:
       mode: conversation
-      condition: 戸塚に設備費の内訳を尋ねるか、真壁に神谷が祭り前から確認していた帳簿について尋ねたら開示する。
+      condition: 戸塚に設備費の内訳を尋ねるか、真壁に神谷が祭り前から確認していた帳簿について尋ねたら開示する。または遺体・現場を調べ、「照明設備の発注帳簿」に関わる資料を確認したら開示する。
     sources:
       - type: character
         id: tozuka
       - type: character
         id: makabe
+      - type: victim
+        id: victim
     supports: [kamiya-found-kickbacks, kamiya-warned-tozuka]
     contradicts: []
   - id: donation-shortfall

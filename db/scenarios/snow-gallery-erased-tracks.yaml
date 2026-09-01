@@ -1,7 +1,7 @@
 schemaVersion: 1
 id: snow-gallery-erased-tracks
 meta:
-  title: 白庭彫刻館、雪の夜
+  title: 雪は白庭彫刻館を閉ざした
   synopsis: "午後八時五十分、吹雪で山道が閉ざされた白庭彫刻館の離れ展示室で、館長の青沼卓が死亡しているのが見つかりました。館内に残っていたのは学芸員の倉田真帆、施設員の安西雄、彫刻家の江波涼の三人だけです。"
   category: クローズドサークル
   difficulty: 4
@@ -10,6 +10,14 @@ meta:
 victim:
   name: 青沼卓
   introduction: 白庭彫刻館館長
+  foundAt: 20:50
+  foundIn: 館内
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 青沼卓は館内で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「来歴記録の修正履歴」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -87,31 +95,37 @@ timeline:
     participants: []
     facts: [snow-started-2010]
     description: 母屋と離れの間の通路に雪が積もり始める。
+    location: 母屋
   - id: kurata-crosses
     at: "20:17"
     participants: [kurata]
     facts: [kurata-crossed-2017]
     description: 倉田が母屋から離れ展示室へ向かう。
+    location: 離れ展示室
   - id: aoonuma-death
     at: "20:20"
     participants: [kurata]
     facts: [aoonuma-death-2020, kurata-killed-aoonuma]
     description: 倉田が離れ展示室で青沼を襲い、青沼は死亡する。
+    location: 離れ展示室
   - id: path-cleared
     at: "20:26"
     participants: [anzai]
     facts: [anzai-cleared-path-2026, snow-covered-after-clearing]
     description: 安西が排水口確認のため屋外通路を一度掃き直し、それ以前の足跡も雪面ごと崩れる。
+    location: 屋外通路
   - id: kurata-back-main
     at: "20:31"
     participants: [kurata, anzai]
     facts: [anzai-saw-kurata-2031]
     description: 安西が母屋裏口付近にいる倉田を目撃する。
+    location: 母屋裏口
   - id: discovery
     at: "20:50"
     participants: [enami, kurata, anzai]
     facts: [body-found-2050, no-tracks-at-discovery]
     description: 江波が離れで青沼の死を発見し、通路には判別できる足跡が残っていない。
+    location: 館内
 characters:
   - id: kurata
     name: 倉田真帆
@@ -281,12 +295,14 @@ evidences:
     description: 倉田が担当した複数作品で、根拠資料と合わない来歴修正が行われ、青沼が翌日理事会へ報告する印を付けている。
     reveal:
       mode: conversation
-      condition: 倉田か江波に青沼が直前まで確認していた作品来歴について尋ねたら開示する。
+      condition: 倉田か江波に青沼が直前まで確認していた作品来歴について尋ねたら開示する。または遺体・現場を調べ、「来歴記録の修正履歴」に関わる資料を確認したら開示する。
     sources:
       - type: character
         id: kurata
       - type: character
         id: enami
+      - type: victim
+        id: victim
     supports: [provenance-forgery-found, board-report-next-day]
     contradicts: []
   - id: broken-snow-sensor

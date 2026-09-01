@@ -78,6 +78,13 @@
       "when": 1788216627374,
       "tag": "0010_victim-findings",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1788231785231,
+      "tag": "0011_scenario-current-authoring-upgrade",
+      "breakpoints": true
     }
   ]
 }

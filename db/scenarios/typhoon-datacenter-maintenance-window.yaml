@@ -1,7 +1,7 @@
 schemaVersion: 1
 id: typhoon-datacenter-maintenance-window
 meta:
-  title: 湾岸データセンター、台風の夜
+  title: 冠水する湾岸データセンター
   synopsis: "午後十時十五分、湾岸データセンターの予備部品庫で、運用責任者の真田啓介が死亡しているのが見つかりました。台風による冠水で周辺道路は封鎖され、午後九時半以降に建物へ出入りした者はいません。"
   category: クローズドサークル
   difficulty: 5
@@ -10,6 +10,14 @@ meta:
 victim:
   name: 真田啓介
   introduction: 湾岸データセンター運用責任者
+  foundAt: 22:15
+  foundIn: 予備部品庫
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 真田啓介は予備部品庫で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「交換部品の請求書と在庫表」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -97,41 +105,49 @@ timeline:
     participants: [kuze]
     facts: [kuze-created-scheduled-job]
     description: 久世が三分間隔で復旧処理を実行する予約ジョブを監視端末に登録する。
+    location: 監視室
   - id: door-propped
     at: "21:55"
     participants: [hatano]
     facts: [parts-door-propped]
     description: 搬入のため予備部品庫の扉が半開きに固定される。
+    location: 予備部品庫
   - id: kuze-leaves
     at: "21:58"
     participants: [kuze]
     facts: [kuze-left-noc]
     description: 久世が予約ジョブを残して監視室を離れる。
+    location: 監視室
   - id: scheduled-execution
     at: "22:00"
     participants: []
     facts: [scheduled-jobs-ran]
     description: 監視端末で予約された復旧処理が自動実行され始める。
+    location: 監視室
   - id: corridor-sighting
     at: "22:01"
     participants: [kuze, makabe]
     facts: [makabe-saw-kuze]
     description: 真壁が東側廊下で久世を目撃する。
+    location: 東側廊下
   - id: sanada-death
     at: "22:04"
     participants: [kuze]
     facts: [kuze-killed-sanada]
     description: 久世が予備部品庫で真田を襲い、真田は死亡する。
+    location: 予備部品庫
   - id: kuze-return
     at: "22:08"
     participants: [kuze]
     facts: [kuze-returned-noc]
     description: 久世が監視室へ戻る。
+    location: 監視室
   - id: discovery
     at: "22:15"
     participants: [hatano, kuze, koda, makabe]
     facts: [body-found]
     description: 波多野が予備部品庫で真田の死を発見する。
+    location: 予備部品庫
 characters:
   - id: kuze
     name: 久世秋穂
@@ -316,10 +332,11 @@ evidences:
     description: 請求上は交換済みの機器が在庫に残り、久世の処理した保守費だけ数量が一致しない。真田の監査メモもある。
     reveal:
       mode: conversation
-      condition: 久世か波多野に真田が事件直前に照合していた保守費と在庫について尋ねたら開示する。
+      condition: 久世か波多野に真田が事件直前に照合していた保守費と在庫について尋ねたら開示する。または遺体・現場を調べ、「交換部品の請求書と在庫表」に関わる資料を確認したら開示する。
     sources:
       - { type: character, id: kuze }
       - { type: character, id: hatano }
+      - { type: victim, id: victim }
     supports: [kuze-invoice-fraud, sanada-found-fraud, sanada-planned-report]
     contradicts: []
   - id: koda-copy-history

@@ -1,7 +1,7 @@
 schemaVersion: 1
 id: flood-archive-self-locking-vault
 meta:
-  title: 高潮の文書館、閉館後の夜
+  title: 高潮警報、文書館閉鎖
   synopsis: "午後九時四十分、海辺歴史文書館の希少資料庫で、館長の今泉孝臣が死亡しているのが見つかりました。高潮で防潮扉が閉じ、午後八時半以降に館外へ出入りした者はいません。"
   category: クローズドサークル
   difficulty: 5
@@ -10,6 +10,14 @@ meta:
 victim:
   name: 今泉孝臣
   introduction: 海辺歴史文書館館長
+  foundAt: 21:40
+  foundIn: 資料庫
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 今泉孝臣は資料庫で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「修復処置記録と資料状態の不一致」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -108,31 +116,37 @@ timeline:
     participants: []
     facts: [vault-key-only-opens, vault-self-locks, vault-open-2109, vault-stayed-open]
     description: 今泉が鍵で希少資料庫を開け、資料搬入のため扉を開いたままにする。
+    location: 希少資料庫
   - id: yagami-enters
     at: "21:14"
     participants: [yagami, kuga]
     facts: [yagami-entered-vault-2114, kuga-saw-yagami-2114]
     description: 八神が開いたままの資料庫へ入り、久我がその姿を目撃する。
+    location: 資料庫
   - id: imaizumi-enters
     at: "21:17"
     participants: []
     facts: [imaizumi-entered-vault-2117]
     description: 今泉が資料箱を持って資料庫へ入り、開錠鍵をポケットへ戻す。
+    location: 資料庫
   - id: imaizumi-death
     at: "21:20"
     participants: [yagami]
     facts: [yagami-killed-imaizumi]
     description: 八神が希少資料庫で今泉を襲い、今泉は死亡する。
+    location: 希少資料庫
   - id: yagami-exits
     at: "21:22"
     participants: [yagami]
     facts: [yagami-left-vault-2122, vault-closed-2122]
     description: 八神が資料庫から出て扉を閉め、自動施錠させる。
+    location: 資料庫
   - id: discovery
     at: "21:40"
     participants: [tozuka, yagami, kuga, majima]
     facts: [key-found-on-imaizumi, body-found-2140]
     description: 戸塚が予備開錠手順で資料庫を開け、今泉の死とポケットの鍵を確認する。
+    location: 資料庫
 
 characters:
   - id: yagami
@@ -342,10 +356,11 @@ evidences:
     description: 八神の処置記録では完了したはずの工程が資料の実状態と合わず、今泉が翌朝の担当変更と外部委員提出を記している。
     reveal:
       mode: conversation
-      condition: 八神か久我に今泉が事件直前に調べていた修復記録について尋ね、実資料との不一致を追及したら開示する。
+      condition: 八神か久我に今泉が事件直前に調べていた修復記録について尋ね、実資料との不一致を追及したら開示する。または遺体・現場を調べ、「修復処置記録と資料状態の不一致」に関わる資料を確認したら開示する。
     sources:
       - { type: character, id: yagami }
       - { type: character, id: kuga }
+      - { type: victim, id: victim }
     supports: [yagami-forged-restoration-record, imaizumi-found-forgery, imaizumi-planned-review]
     contradicts: []
   - id: kuga-damaged-document

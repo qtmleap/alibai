@@ -1,7 +1,7 @@
 schemaVersion: 1
 id: storm-mountain-inn-echoed-cane
 meta:
-  title: 山宿梢庵、暴風雨の夜
+  title: 梢庵から出られない
   synopsis: "午後九時五十分、暴風雨で孤立した山宿「梢庵」で、主人・桐谷宗介が帳場奥の事務室で死亡しているのが見つかりました。"
   category: クローズドサークル
   difficulty: 5
@@ -10,6 +10,14 @@ meta:
 victim:
   name: 桐谷宗介
   introduction: 山宿「梢庵」主人
+  foundAt: 21:50
+  foundIn: 帳場奥
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 桐谷宗介は帳場奥で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「不自然な仕入れ伝票」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -94,26 +102,31 @@ timeline:
     participants: [akiwa]
     facts: [supplier-kickback, kiritani-found-kickback, kiritani-confronted-akiwa]
     description: 桐谷が秋庭に不自然な仕入れを問い、翌朝に契約を見直すと告げる。
+    location: 山宿内
   - id: kiritani-death
     at: "21:08"
     participants: [akiwa]
     facts: [akiwa-killed-kiritani, akiwa-took-cane]
     description: 秋庭が帳場奥で桐谷を襲い、愛用の杖を持ち出す。
+    location: 帳場奥
   - id: tapping-staged
     at: "21:25"
     participants: [akiwa, morisaki]
     facts: [akiwa-made-tapping, morisaki-heard-taps, morisaki-heard-no-steps]
     description: 秋庭が旧階段で杖の音を作り、森崎は二階廊下を桐谷が歩いていると思い込む。
+    location: 旧階段
   - id: cane-hidden
     at: "21:31"
     participants: [akiwa]
     facts: [cane-found-kitchen, rail-fresh-marks]
     description: 秋庭が杖を厨房脇の物入れへ戻し、旧階段には新しい打痕が残る。
+    location: 厨房脇
   - id: discovery
     at: "21:50"
     participants: [sakakibara, akiwa, morisaki]
     facts: [body-found-2150]
     description: 榊原が帳場奥で桐谷の死を発見する。
+    location: 帳場奥
 characters:
   - id: akiwa
     name: 秋庭澄
@@ -312,12 +325,14 @@ evidences:
     description: 同じ業者から相場より高い価格で仕入れた記録と、秋庭が処理した伝票がまとまっている。
     reveal:
       mode: conversation
-      condition: 秋庭に仕入れ業者との関係を尋ねるか、桐谷が事件前に確認していた伝票について追及したら開示する。
+      condition: 秋庭に仕入れ業者との関係を尋ねるか、桐谷が事件前に確認していた伝票について追及したら開示する。または遺体・現場を調べ、「不自然な仕入れ伝票」に関わる資料を確認したら開示する。
     sources:
       - type: character
         id: akiwa
       - type: character
         id: morisaki
+      - type: victim
+        id: victim
     supports: [supplier-kickback, kiritani-found-kickback, kiritani-confronted-akiwa]
     contradicts: ["lie:akiwa-clean-supplies"]
   - id: unpaid-bill

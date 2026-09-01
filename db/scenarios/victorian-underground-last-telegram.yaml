@@ -1,7 +1,7 @@
 schemaVersion: 1
 id: victorian-underground-last-telegram
 meta:
-  title: 1863年ロンドン、地下工事区画の夜
+  title: 1863年、地下鉄工事区画
   synopsis: "1863年、ロンドン。世界初の地下鉄が走り始めたその年、延伸工事の夜間区画で主任技師エドワード・ヘイルが死亡しているのが見つかりました。"
   category: 歴史クローズドサークル
   difficulty: 5
@@ -10,6 +10,14 @@ meta:
 victim:
   name: エドワード・ヘイル
   introduction: 地下鉄延伸工事主任技師
+  foundAt: 22:30
+  foundIn: 測量室
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: エドワード・ヘイルは測量室で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「水増しされた資材帳簿」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -88,31 +96,37 @@ timeline:
     participants: [bell]
     facts: [bell-bid-fraud, helale-confronted-bell]
     description: ヘイルがベルの資材費水増しを指摘し、翌朝に帳簿を提出すると告げる。
+    location: 事務室
   - id: bell-enters-tunnel
     at: "21:52"
     participants: [bell]
     facts: [bell-left-shaft-one]
     description: ベルが第一立坑を離れ、第二立坑へ続く連絡坑道へ入る。
+    location: 連絡坑道
   - id: thomas-sees-bell
     at: "21:58"
     participants: [bell, thomas]
     facts: [thomas-saw-bell-tunnel]
     description: トーマスが第二立坑寄りの坑道でベルを見かける。
+    location: 第2立坑
   - id: hale-death
     at: "22:03"
     participants: [bell]
     facts: [bell-killed-hale]
     description: ベルが第二立坑の測量室でヘイルを襲う。
+    location: 測量室
   - id: false-telegram
     at: "22:12"
     participants: [bell, clara]
     facts: [bell-sent-telegram, telegram-received-2212]
     description: ベルが第二立坑からヘイルの符号を添えた電信を送り、クララが第一立坑で受信する。
+    location: 第2立坑
   - id: discovery
     at: "22:30"
     participants: [bell, clara, thomas]
     facts: [body-found-2230]
     description: トーマスが測量室でヘイルの死を発見する。
+    location: 測量室
 characters:
   - id: bell
     name: アーサー・ベル
@@ -274,10 +288,11 @@ evidences:
     description: ベルの管理分だけ資材費が不自然に増えており、ヘイルが翌朝会社へ提出する印を付けている。
     reveal:
       mode: conversation
-      condition: ベルにヘイルと直前に揉めた帳簿について追及するか、クララに二人の口論について尋ねたら開示する。
+      condition: ベルにヘイルと直前に揉めた帳簿について追及するか、クララに二人の口論について尋ねたら開示する。または遺体・現場を調べ、「水増しされた資材帳簿」に関わる資料を確認したら開示する。
     sources:
       - { type: character, id: bell }
       - { type: character, id: clara }
+      - { type: victim, id: victim }
     supports: [bell-bid-fraud, helale-confronted-bell]
     contradicts: []
 solution:

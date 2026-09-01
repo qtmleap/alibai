@@ -1,7 +1,7 @@
 schemaVersion: 1
 id: mars-outpost-delayed-reply
 meta:
-  title: 火星基地、砂嵐の夜
+  title: 火星、エリュシオン観測基地
   synopsis: "2147年、火星エリュシオン観測基地。大規模な砂嵐で地表車両も通信中継ドローンも停止するなか、主任研究員エレナ・ヴァルガが解析室で死亡しました。"
   category: SFクローズドサークル
   difficulty: 5
@@ -10,6 +10,14 @@ meta:
 victim:
   name: エレナ・ヴァルガ
   introduction: 火星エリュシオン観測基地主任研究員
+  foundAt: 21:50
+  foundIn: 解析室
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: エレナ・ヴァルガは解析室で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「調達予算の監査ファイル」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -84,31 +92,37 @@ timeline:
     participants: [noah, amira]
     facts: [noah-sent-question-2118]
     description: ノアが地球管制へ観測予算について質問を送る。
+    location: 基地内
   - id: fraud-confrontation
     at: "21:25"
     participants: [noah]
     facts: [noah-budget-fraud, elena-found-fraud, elena-would-report]
     description: エレナが予算流用をノアへ突きつけ、翌朝に地球本部へ報告すると告げる。
+    location: 基地内
   - id: corridor-sighting
     at: "21:33"
     participants: [noah, luis]
     facts: [luis-saw-noah-corridor]
     description: ルイスが解析室へ続く連絡廊下でノアを見かける。
+    location: 連絡廊下
   - id: elena-death
     at: "21:36"
     participants: [noah]
     facts: [noah-killed-elena]
     description: ノアが解析室でエレナを襲う。
+    location: 解析室
   - id: delayed-reply
     at: "21:38"
     participants: [noah, amira]
     facts: [earth-reply-arrived-2138, noah-played-arrival-tone, earth-mars-delay]
     description: 21時18分の質問への返答が地球から到着し、ノアはそれを事件時刻の会話記録として扱わせる。
+    location: 基地内
   - id: discovery
     at: "21:50"
     participants: [noah, amira, luis]
     facts: [body-found-2150]
     description: アミラが解析室でエレナの死を発見する。
+    location: 解析室
 characters:
   - id: noah
     name: ノア・チェン
@@ -260,10 +274,11 @@ evidences:
     description: ノア管理の予算だけ用途が合わず、エレナが翌朝の地球送信用フォルダへ証拠をまとめている。
     reveal:
       mode: conversation
-      condition: ノアかアミラにエレナが翌朝送ろうとしていた監査資料について尋ねたら開示する。
+      condition: ノアかアミラにエレナが翌朝送ろうとしていた監査資料について尋ねたら開示する。または遺体・現場を調べ、「調達予算の監査ファイル」に関わる資料を確認したら開示する。
     sources:
       - { type: character, id: noah }
       - { type: character, id: amira }
+      - { type: victim, id: victim }
     supports: [noah-budget-fraud, elena-found-fraud, elena-would-report]
     contradicts: ["lie:noah-no-fraud"]
   - id: private-bandwidth-log

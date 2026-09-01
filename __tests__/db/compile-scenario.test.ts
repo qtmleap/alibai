@@ -149,7 +149,7 @@ describe('compileScenario: 月見荘のコンパイル', () => {
 
   test('公開状態と件数', () => {
     expect(compiled.scenario.isPublished).toBe(true)
-    expect(compiled.scenario.title).toBe('月見荘、十七回忌の夜')
+    expect(compiled.scenario.title).toBe('十七回忌、月見荘にて')
     expect(compiled.characters).toHaveLength(3)
     expect(compiled.evidences).toHaveLength(7)
     expect(compiled.revelations).toHaveLength(2)

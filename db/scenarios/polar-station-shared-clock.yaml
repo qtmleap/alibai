@@ -1,7 +1,7 @@
 schemaVersion: 1
 id: polar-station-shared-clock
 meta:
-  title: 白夜第六観測基地、吹雪の夜
+  title: 白夜第六観測基地
   synopsis: "午後十一時十分、吹雪で完全に孤立した白夜第六観測基地の解析室で、主任研究員の牧瀬航が死亡しているのが見つかりました。基地内にいたのは観測員の篠宮怜、通信担当の樋口海、整備担当の沢渡直人の三人だけです。"
   category: クローズドサークル
   difficulty: 5
@@ -10,6 +10,14 @@ meta:
 victim:
   name: 牧瀬航
   introduction: 白夜第六観測基地主任研究員
+  foundAt: 23:10
+  foundIn: 解析室
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 牧瀬航は解析室で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「翌朝の研究会議議題」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -96,26 +104,31 @@ timeline:
     participants: [higuchi]
     facts: [central-clock-offset, higuchi-hid-sync-failure]
     description: 時刻同期系に障害が起き、基地の中央時刻系が実際より七分進んだ状態になる。
+    location: 基地内
   - id: false-alibi-window
     at: "22:13"
     participants: [shinomiya]
     facts: [terminal-uses-central-clock, access-uses-central-clock, observation-log-central-clock, wall-clock-synced, four-times-not-independent]
     description: 中央時刻系のずれを共有する複数の記録が、篠宮の通信区画滞在を実際より七分遅い時刻として残す。
+    location: 基地内
   - id: real-corridor-sighting
     at: "22:20"
     participants: [shinomiya, sawatari]
     facts: [handheld-clock-correct, sawatari-saw-shinomiya-real-2220, displayed-time-was-2227]
     description: 沢渡が独立した携帯時計で22時20分を確認し、解析室側の通路にいる篠宮を目撃する。
+    location: 解析室
   - id: makise-death
     at: "22:23"
     participants: [shinomiya]
     facts: [makise-death-real-2223, shinomiya-killed-makise]
     description: 篠宮が解析室で牧瀬を襲い、牧瀬は死亡する。
+    location: 解析室
   - id: discovery
     at: "23:10"
     participants: [higuchi, shinomiya, sawatari]
     facts: [body-found-2310]
     description: 樋口が解析室で牧瀬の死を発見する。
+    location: 解析室
 characters:
   - id: shinomiya
     name: 篠宮怜
@@ -282,12 +295,14 @@ evidences:
     description: 牧瀬の会議メモに、篠宮によるデータ除外の妥当性を全員の前で確認する予定が記されている。
     reveal:
       mode: conversation
-      condition: 篠宮か樋口に翌朝の研究会議で牧瀬が扱う予定だった議題を尋ねたら開示する。
+      condition: 篠宮か樋口に翌朝の研究会議で牧瀬が扱う予定だった議題を尋ねたら開示する。または遺体・現場を調べ、「翌朝の研究会議議題」に関わる資料を確認したら開示する。
     sources:
       - type: character
         id: shinomiya
       - type: character
         id: higuchi
+      - type: victim
+        id: victim
     supports: [data-manipulation-found, disclosure-next-morning]
     contradicts: []
   - id: hidden-sync-delay

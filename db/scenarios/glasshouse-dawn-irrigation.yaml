@@ -1,7 +1,7 @@
 schemaVersion: 1
 id: glasshouse-dawn-irrigation
 meta:
-  title: 緑苑植物園、開園前の事件
+  title: 開園前、標本庫にて
   synopsis: "午前六時三十分、市立緑苑植物園の標本庫で、主任研究員の木島祥子が死亡しているのが見つかりました。開園前の園内にいたのは、研究助手の楢原彩、支援企業の担当者・水沢浩司、園芸員の大西蒼太の三人です。"
   category: 植物園ミステリ
   difficulty: 2
@@ -10,6 +10,14 @@ meta:
 victim:
   name: 木島祥子
   introduction: 市立緑苑植物園主任研究員
+  foundAt: 06:30
+  foundIn: 標本庫
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 木島祥子は標本庫で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「木島の希少植物管理ノート」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -90,36 +98,43 @@ timeline:
     participants: [narahara]
     facts: [kijima-found-missing-tags, kijima-confronted-narahara]
     description: 木島が希少植物の持ち出しを楢原へ問いただし、開園後の報告を告げる。
+    location: 植物園内
   - id: narahara-leaves
     at: "05:52"
     participants: [narahara]
     facts: [narahara-left-east-house, manual-water-zero]
     description: 楢原が東温室を離れる。手灌水用水道は使われていない。
+    location: 東温室
   - id: auto-misting
     at: "06:00"
     participants: []
     facts: [auto-misting-ran-0600]
     description: 東温室で自動ミスト装置が予定どおり作動する。
+    location: 東温室
   - id: corridor-sighting
     at: "06:05"
     participants: [narahara, onishi]
     facts: [onishi-saw-narahara-0605]
     description: 大西が標本庫へ向かう通路で楢原を目撃する。
+    location: 標本庫
   - id: kijima-death
     at: "06:08"
     participants: [narahara]
     facts: [narahara-killed-kijima-0608]
     description: 楢原が標本庫で木島を襲い、木島は死亡する。
+    location: 標本庫
   - id: narahara-returns
     at: "06:15"
     participants: [narahara]
     facts: [narahara-returned-east-0615]
     description: 楢原が東温室へ戻る。
+    location: 東温室
   - id: discovery
     at: "06:30"
     participants: [mizusawa, narahara, onishi]
     facts: [body-found-0630]
     description: 水沢が標本庫で木島の死を発見する。
+    location: 標本庫
 characters:
   - id: narahara
     name: 楢原彩
@@ -272,12 +287,14 @@ evidences:
     description: 消えた挿し穂と楢原の担当日が一覧化され、管理札の欠落も記録されている。
     reveal:
       mode: conversation
-      condition: 楢原に希少植物の管理札が足りない理由を尋ねるか、大西に木島が前日から調べていた記録を尋ねたら開示する。
+      condition: 楢原に希少植物の管理札が足りない理由を尋ねるか、大西に木島が前日から調べていた記録を尋ねたら開示する。または遺体・現場を調べ、「木島の希少植物管理ノート」に関わる資料を確認したら開示する。
     sources:
       - type: character
         id: narahara
       - type: character
         id: onishi
+      - type: victim
+        id: victim
     supports: [narahara-sold-cuttings, kijima-found-missing-tags, missing-cuttings-list]
     contradicts: []
   - id: sponsor-email

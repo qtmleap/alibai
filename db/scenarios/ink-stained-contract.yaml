@@ -1,7 +1,7 @@
 schemaVersion: 1
 id: ink-stained-contract
 meta:
-  title: 青燈社、深夜の編集部
+  title: 締切後の青燈社
   synopsis: "午後九時、出版社「青燈社」の編集部で、編集長の石橋礼司が個室内で死亡しているのが見つかりました。夜遅くまで残っていたのは、著作権エージェントの川瀬梨奈、編集者の藤本圭、作家の志堂透の三人です。"
   category: 出版社ミステリ
   difficulty: 3
@@ -10,6 +10,14 @@ meta:
 victim:
   name: 石橋礼司
   introduction: 出版社「青燈社」編集長
+  foundAt: 21:00
+  foundIn: 編集長室
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 石橋礼司は編集長室で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「海外版権の送金記録と支払帳簿」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -90,41 +98,49 @@ timeline:
     participants: [kawase]
     facts: [kawase-diverted-royalties, ishibashi-found-royalty-gap, ishibashi-warned-kawase]
     description: 石橋が川瀬の版権収入の不正を指摘し、翌朝の契約打ち切りと報告を告げる。
+    location: 編集部内
   - id: shido-argument
     at: "20:31"
     participants: [shido]
     facts: [shido-argued-2031, shido-plagiarism]
     description: 志堂が盗用疑惑を巡って石橋と口論する。
+    location: 編集部内
   - id: kawase-enters
     at: "20:38"
     participants: [kawase]
     facts: [kawase-entered-2038]
     description: 川瀬が編集長室へ入る。
+    location: 編集長室
   - id: ishibashi-death
     at: "20:41"
     participants: [kawase]
     facts: [kawase-killed-ishibashi-2041]
     description: 川瀬が石橋を襲い、石橋は編集長室で死亡する。
+    location: 編集長室
   - id: kawase-leaves
     at: "20:44"
     participants: [kawase, fujimoto]
     facts: [fujimoto-saw-kawase-2044]
     description: 藤本が編集長室前から離れる川瀬を目撃する。
+    location: 編集長室
   - id: contract-print
     at: "20:47"
     participants: [kawase]
     facts: [contract-printed-2047, kawase-forged-signature]
     description: 川瀬が契約書を印刷し、石橋が後から署名したように見える書類を作る。
+    location: 編集部
   - id: claimed-signing
     at: "20:50"
     participants: [kawase]
     facts: [signed-contract-claims-2050]
     description: 川瀬は後に、この時刻に石橋本人から署名をもらったと説明する。
+    location: 編集部内
   - id: discovery
     at: "21:00"
     participants: [fujimoto, kawase, shido]
     facts: [body-found-2100]
     description: 藤本が編集長室で石橋の死を発見する。
+    location: 編集長室
 characters:
   - id: kawase
     name: 川瀬梨奈
@@ -279,12 +295,14 @@ evidences:
     description: 海外出版社からの入金額に対して作家へ報告された金額が少なく、川瀬の管理口座へ差額が残っている。
     reveal:
       mode: conversation
-      condition: 川瀬に石橋が調べていた版権収入について尋ねるか、藤本に石橋が事件前に確認していた帳簿を尋ねたら開示する。
+      condition: 川瀬に石橋が調べていた版権収入について尋ねるか、藤本に石橋が事件前に確認していた帳簿を尋ねたら開示する。または遺体・現場を調べ、「海外版権の送金記録と支払帳簿」に関わる資料を確認したら開示する。
     sources:
       - type: character
         id: kawase
       - type: character
         id: fujimoto
+      - type: victim
+        id: victim
     supports: [kawase-diverted-royalties, ishibashi-found-royalty-gap, ishibashi-warned-kawase]
     contradicts: []
   - id: plagiarism-comparison

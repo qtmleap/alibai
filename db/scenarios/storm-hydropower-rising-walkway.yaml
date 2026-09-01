@@ -1,7 +1,7 @@
 schemaVersion: 1
 id: storm-hydropower-rising-walkway
 meta:
-  title: 山中水力発電所、豪雨の夜
+  title: 増水する山中発電所
   synopsis: "午後九時十分、豪雨で孤立した山中の水力発電所。その旧制御室で所長・峰岸達也が死亡しているのが発見されました。"
   category: 不可能犯罪
   difficulty: 5
@@ -10,6 +10,14 @@ meta:
 victim:
   name: 峰岸達也
   introduction: 山中の水力発電所所長
+  foundAt: 21:10
+  foundIn: 旧制御室
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 峰岸達也は旧制御室で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「未実施箇所の点検票」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -94,36 +102,43 @@ timeline:
     participants: [kido]
     facts: [kido-falsified-inspection, minegishi-found-falsification, minegishi-called-kido]
     description: 峰岸が城戸を旧制御室へ呼び、未実施点検の記録について説明を求める。
+    location: 旧制御室
   - id: walkway-still-open
     at: "20:15"
     participants: [taniguchi]
     facts: [walkway-passable-2015, old-walkway-connects]
     description: 水位記録上、古い保守歩廊はまだ通行できる状態にある。
+    location: 保守歩廊
   - id: kido-enters
     at: "20:18"
     participants: [kido]
     facts: [kido-used-walkway]
     description: 城戸が正面扉を使わず、古い保守歩廊から旧制御室へ入る。
+    location: 旧制御室
   - id: minegishi-death
     at: "20:24"
     participants: [kido]
     facts: [kido-killed-minegishi]
     description: 城戸が旧制御室で峰岸を襲う。
+    location: 旧制御室
   - id: kido-leaves
     at: "20:29"
     participants: [kido]
     facts: [kido-left-before-rise, kido-boot-silt]
     description: 城戸が増水前に古い保守歩廊から戻る。
+    location: 保守歩廊
   - id: water-cuts-route
     at: "20:40"
     participants: [taniguchi]
     facts: [walkway-closed-2040, water-log-recorded-rise]
     description: 増水により古い保守歩廊が通行不能となり、発見時の「密室」が完成する。
+    location: 保守歩廊
   - id: discovery
     at: "21:10"
     participants: [saionji, kido, taniguchi]
     facts: [front-door-remained-locked, body-found-2110]
     description: 西園寺が旧制御室の正面扉を開けさせ、峰岸の死を発見する。
+    location: 旧制御室
 characters:
   - id: kido
     name: 城戸真琴
@@ -311,12 +326,14 @@ evidences:
     description: 実施済みの印がある項目に対応する現場記録がなく、峰岸が城戸の欄へ確認印を付けている。
     reveal:
       mode: conversation
-      condition: 城戸か西園寺に事件当日の監査対象となった点検票について尋ねたら開示する。
+      condition: 城戸か西園寺に事件当日の監査対象となった点検票について尋ねたら開示する。または遺体・現場を調べ、「未実施箇所の点検票」に関わる資料を確認したら開示する。
     sources:
       - type: character
         id: kido
       - type: character
         id: saionji
+      - type: victim
+        id: victim
     supports: [kido-falsified-inspection, minegishi-found-falsification, minegishi-called-kido]
     contradicts: ["lie:kido-inspection-complete"]
   - id: leaked-draft

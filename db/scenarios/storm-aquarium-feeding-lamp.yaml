@@ -1,7 +1,7 @@
 schemaVersion: 1
 id: storm-aquarium-feeding-lamp
 meta:
-  title: 海浜水族館、高潮の夜
+  title: 閉館後の海浜水族館
   synopsis: "午前零時十二分、海浜水族館の検疫準備室で、飼育部長の江波慎吾が死亡しているのが見つかりました。高潮で正面道路は通行止めとなり、防潮シャッターも閉鎖。午後十一時半以降、館内へ出入りした者はいません。"
   category: クローズドサークル
   difficulty: 5
@@ -10,6 +10,14 @@ meta:
 victim:
   name: 江波慎吾
   introduction: 海浜水族館飼育部長
+  foundAt: 00:12
+  foundIn: 検疫準備室
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 江波慎吾は検疫準備室で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「飼育記録の版差分」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -100,36 +108,43 @@ timeline:
     participants: [morishita]
     facts: [feeder-auto-capable, feeding-lamp-motor-linked, morishita-set-auto-feeder]
     description: 森下が給餌装置を四分間隔の自動運転へ切り替える。
+    location: 給餌台
   - id: first-cycle
     at: "23:55"
     participants: []
     facts: [feeder-cycled]
     description: 自動給餌装置が作動し、展示側から見える青い給餌灯が点く。
+    location: 展示側
   - id: morishita-leaves
     at: "23:57"
     participants: [morishita]
     facts: [morishita-left-station]
     description: 森下が給餌操作台を離れ、バックヤードへ向かう。
+    location: 給餌台
   - id: sagara-sighting
     at: "00:02"
     participants: [morishita, sagara]
     facts: [sagara-saw-morishita]
     description: 相良が検疫準備室へ続く通路で森下を目撃する。
+    location: 検疫準備室
   - id: enami-death
     at: "00:05"
     participants: [morishita]
     facts: [morishita-killed-enami]
     description: 森下が検疫準備室で江波を襲い、江波は死亡する。
+    location: 検疫準備室
   - id: morishita-return
     at: "00:09"
     participants: [morishita]
     facts: [morishita-returned]
     description: 森下が深海水槽の給餌操作台へ戻る。
+    location: 給餌台
   - id: discovery
     at: "00:12"
     participants: [mikoshiba, morishita, sakakibara, sagara]
     facts: [body-found]
     description: 御子柴が検疫準備室で江波の死を発見する。
+    location: 検疫準備室
 characters:
   - id: morishita
     name: 森下莉央
@@ -305,10 +320,11 @@ evidences:
     description: 森下の担当水槽だけ過去の記録と当日の記録で数値が不自然に変わり、江波が翌朝の報告予定を書き残している。
     reveal:
       mode: conversation
-      condition: 森下か榊原に江波が事件直前に調べていた飼育記録について尋ね、改ざんの可能性を追及したら開示する。
+      condition: 森下か榊原に江波が事件直前に調べていた飼育記録について尋ね、改ざんの可能性を追及したら開示する。または遺体・現場を調べ、「飼育記録の版差分」に関わる資料を確認したら開示する。
     sources:
       - { type: character, id: morishita }
       - { type: character, id: sakakibara }
+      - { type: victim, id: victim }
     supports: [morishita-falsified-records, enami-found-fraud, enami-planned-report]
     contradicts: []
   - id: stock-edit-history

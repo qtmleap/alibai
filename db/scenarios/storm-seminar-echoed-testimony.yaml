@@ -1,7 +1,7 @@
 schemaVersion: 1
 id: storm-seminar-echoed-testimony
 meta:
-  title: 山中研究会館、嵐の夜
+  title: 道路封鎖、山中研究会館
   synopsis: "午後九時四十五分、嵐で道路が閉鎖された山中の研究会館で、主催者・鷺沢修が西側の事務室で死亡しているのが見つかりました。"
   category: クローズドサークル
   difficulty: 5
@@ -10,6 +10,14 @@ meta:
 victim:
   name: 鷺沢修
   introduction: 山中の研究会館の研究会主催者
+  foundAt: 21:45
+  foundIn: 西側事務室
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 鷺沢修は西側事務室で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「単独名義の投稿原稿」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -94,36 +102,43 @@ timeline:
     participants: [kuga]
     facts: [kuga-stole-results, sagisawa-found-submission, sagisawa-confronted-kuga]
     description: 鷺沢が久我の無断投稿準備を知り、取り下げと共同研究からの除外を告げる。
+    location: 会館内
   - id: sagisawa-death
     at: "21:10"
     participants: [kuga]
     facts: [kuga-killed-sagisawa]
     description: 久我が西側事務室で鷺沢を襲う。
+    location: 西側事務室
   - id: west-corridor-sighting
     at: "21:16"
     participants: [kuga, shiraishi]
     facts: [shiraishi-saw-kuga-west]
     description: 白石が西側事務室へ続く廊下から出てくる久我を見かける。
+    location: 西側事務室
   - id: rumor-starts
     at: "21:18"
     participants: [kuga, naruse]
     facts: [kuga-claimed-saw-east, kuga-started-rumor, no-independent-east-sighting]
     description: 久我が成瀬に「鷺沢は東資料室へ行った」と伝え、存在しない目撃情報の起点を作る。
+    location: 東資料室
   - id: rumor-repeated
     at: "21:22"
     participants: [naruse, shiraishi]
     facts: [naruse-learned-from-kuga, naruse-repeated-rumor, shiraishi-learned-from-naruse]
     description: 成瀬が白石へ同じ話を伝え、一つの情報が複数人の証言へ増殖する。
+    location: 会館内
   - id: east-room-still-unused
     at: "21:40"
     participants: [shiraishi]
     facts: [east-room-unused]
     description: 東資料室は片付け時のままで、鷺沢が資料を使った痕跡がない。
+    location: 東資料室
   - id: discovery
     at: "21:45"
     participants: [naruse, kuga, shiraishi]
     facts: [body-found-2145]
     description: 成瀬が西側事務室で鷺沢の死を発見する。
+    location: 西側事務室
 characters:
   - id: kuga
     name: 久我真帆
@@ -328,12 +343,14 @@ evidences:
     description: 久我の端末には共同研究の未発表結果を自分単独の成果として投稿する準備が残り、鷺沢からの取り下げ要求も確認できる。
     reveal:
       mode: conversation
-      condition: 久我か成瀬に事件直前の投稿原稿と鷺沢との対立について尋ねたら開示する。
+      condition: 久我か成瀬に事件直前の投稿原稿と鷺沢との対立について尋ねたら開示する。または遺体・現場を調べ、「単独名義の投稿原稿」に関わる資料を確認したら開示する。
     sources:
       - type: character
         id: kuga
       - type: character
         id: naruse
+      - type: victim
+        id: victim
     supports: [kuga-stole-results, sagisawa-found-submission, sagisawa-confronted-kuga]
     contradicts: ["lie:kuga-no-stolen-results"]
   - id: embargo-leak

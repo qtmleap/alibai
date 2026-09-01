@@ -1,7 +1,7 @@
 schemaVersion: 1
 id: deepsea-habitat-batch-signature
 meta:
-  title: 深海居住区、海底の四人
+  title: 海底居住区アビス3
   synopsis: "午前零時二十二分、海底居住実験区「アビス3」の資料室で、主任研究者の篠宮亮が死亡しているのが見つかりました。海上は暴風で、午後十一時四十分に支援船との昇降カプセル接続が解除されて以降、外部との往来はありません。"
   category: クローズドサークル
   difficulty: 5
@@ -10,6 +10,14 @@ meta:
 victim:
   name: 篠宮亮
   introduction: 海底居住実験区「アビス3」主任研究者
+  foundAt: 00:22
+  foundIn: 資料室
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 篠宮亮は資料室で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「部品交換記録と実機番号の不一致」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -100,36 +108,43 @@ timeline:
     participants: [sagisawa]
     facts: [readings-automatic, signatures-batchable]
     description: 生命維持点検画面が二分間隔のセンサー値を自動記録し始める。
+    location: 制御室
   - id: sagisawa-leaves
     at: "00:01"
     participants: [sagisawa]
     facts: [sagisawa-left-control]
     description: 鷺沢が制御室を離れる。
+    location: 制御室
   - id: passage-sighting
     at: "00:05"
     participants: [sagisawa, kohinata]
     facts: [kohinata-saw-sagisawa]
     description: 小日向が中央通路で鷺沢とすれ違う。
+    location: 中央通路
   - id: shinomiya-death
     at: "00:08"
     participants: [sagisawa]
     facts: [sagisawa-killed-shinomiya]
     description: 鷺沢が資料室で篠宮を襲い、篠宮は死亡する。
+    location: 資料室
   - id: sagisawa-return
     at: "00:14"
     participants: [sagisawa]
     facts: [sagisawa-returned-control]
     description: 鷺沢が制御室へ戻る。
+    location: 制御室
   - id: batch-sign
     at: "00:16"
     participants: [sagisawa]
     facts: [sagisawa-batch-signed, one-signature-transaction]
     description: 鷺沢が00時00分から00時12分までの点検行をまとめて確認し、一括で署名を付ける。
+    location: 居住区内
   - id: discovery
     at: "00:22"
     participants: [narumi, sagisawa, kohinata, toki]
     facts: [body-found]
     description: 鳴海が資料室で篠宮の死を発見する。
+    location: 資料室
 characters:
   - id: sagisawa
     name: 鷺沢怜
@@ -305,10 +320,11 @@ evidences:
     description: 鷺沢の点検表では交換済みの部品が、実際には古い個体番号のまま残っている。篠宮の調査メモには帰還後の報告予定がある。
     reveal:
       mode: conversation
-      condition: 鷺沢か土岐に篠宮が事件直前に照合していた部品番号と点検表について尋ねたら開示する。
+      condition: 鷺沢か土岐に篠宮が事件直前に照合していた部品番号と点検表について尋ねたら開示する。または遺体・現場を調べ、「部品交換記録と実機番号の不一致」に関わる資料を確認したら開示する。
     sources:
       - { type: character, id: sagisawa }
       - { type: character, id: toki }
+      - { type: victim, id: victim }
     supports: [sagisawa-falsified-tests, shinomiya-found-falsification, shinomiya-planned-report]
     contradicts: []
   - id: narumi-sample

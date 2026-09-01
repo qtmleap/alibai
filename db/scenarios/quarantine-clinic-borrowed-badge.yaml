@@ -1,7 +1,7 @@
 schemaVersion: 1
 id: quarantine-clinic-borrowed-badge
 meta:
-  title: 白嶺診療所、隔離の夜
+  title: 封鎖された白嶺診療所
   synopsis: "午後九時四十分、感染対策のため一時閉鎖中の白嶺診療所で、事務長の星名悟が事務室内で死亡しているのが見つかりました。外扉は午後八時以降封鎖され、館内にいたのは看護主任の世良美冬、検査技師の久我夏樹、警備担当の相原誠の三人だけです。"
   category: クローズドサークル
   difficulty: 5
@@ -10,6 +10,14 @@ meta:
 victim:
   name: 星名悟
   introduction: 白嶺診療所事務長
+  foundAt: 21:40
+  foundIn: 事務室
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 星名悟は事務室で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「本部報告予定の確認メモ」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -92,21 +100,25 @@ timeline:
     participants: [sera, kuga]
     facts: [kuga-borrowed-badge, sera-approved-loan]
     description: 久我が星名の橙色バッジを借り、世良もその貸与を確認する。
+    location: 診療所内
   - id: hoshina-death
     at: "21:08"
     participants: [sera]
     facts: [hoshina-death-2108, sera-killed-hoshina]
     description: 世良が事務室で星名を襲い、星名は死亡する。
+    location: 事務室
   - id: orange-passage
     at: "21:18"
     participants: [kuga, aihara]
     facts: [orange-badge-passed-2118, aihara-saw-orange-suit, person-was-kuga-2118]
     description: 星名の橙色バッジを借りた久我が検査廊下を通り、相原がその姿を目撃する。
+    location: 診療所内
   - id: discovery
     at: "21:40"
     participants: [aihara, sera, kuga]
     facts: [body-found-2140]
     description: 相原が事務室で星名の死を発見する。
+    location: 事務室
 characters:
   - id: sera
     name: 世良美冬
@@ -287,12 +299,14 @@ evidences:
     description: 星名の予定表に、翌朝最初の案件として世良による同意書管理手順の独断変更を本部へ報告すると記されている。
     reveal:
       mode: conversation
-      condition: 世良か久我に星名が翌朝予定していた本部報告の内容を尋ねたら開示する。
+      condition: 世良か久我に星名が翌朝予定していた本部報告の内容を尋ねたら開示する。または遺体・現場を調べ、「本部報告予定の確認メモ」に関わる資料を確認したら開示する。
     sources:
       - type: character
         id: sera
       - type: character
         id: kuga
+      - type: victim
+        id: victim
     supports: [sera-changed-consent-process, consent-audit-next-day]
     contradicts: []
   - id: private-print-log

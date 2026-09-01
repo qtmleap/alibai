@@ -1,7 +1,7 @@
 schemaVersion: 1
 id: venetian-lazaretto-sunset-bell
 meta:
-  title: 1796年ヴェネツィア、検疫島の夜
+  title: 1796年、検疫島ラッザレット
   synopsis: "1796年、ヴェネツィア潟。感染症を警戒する検疫島ラッザレットで、監督医ロレンツォ・ヴァーレが記録室で死亡しているのが見つかりました。"
   category: 歴史クローズドサークル
   difficulty: 5
@@ -10,6 +10,14 @@ meta:
 victim:
   name: ロレンツォ・ヴァーレ
   introduction: 検疫島ラッザレット監督医
+  foundAt: 19:10
+  foundIn: 記録室
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: ロレンツォ・ヴァーレは記録室で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「不足した薬剤の帳簿」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -81,31 +89,37 @@ timeline:
     participants: [marta]
     facts: [marta-diverted-medicine, lorenzo-found-shortage, lorenzo-confronted-marta]
     description: ロレンツォが薬剤の不足をマルタへ突きつけ、翌朝の報告を告げる。
+    location: 検疫島
   - id: corridor-sighting
     at: "18:41"
     participants: [marta, nicolo]
     facts: [nicolo-saw-marta-before-bell]
     description: ニコロが記録室へ向かう廊下でマルタを見かける。
+    location: 記録室
   - id: lorenzo-death
     at: "18:44"
     participants: [marta]
     facts: [marta-killed-lorenzo]
     description: マルタが記録室でロレンツォを襲う。
+    location: 記録室
   - id: sunset-bell
     at: "18:47"
     participants: [pietro]
     facts: [bell-rang-1847, sunset-bell-not-fixed-hour]
     description: 当直のピエトロが夕暮れを確認し、日没の鐘を鳴らす。
+    location: 鐘楼
   - id: marta-returns
     at: "18:49"
     participants: [marta]
     facts: [marta-returned-after-bell]
     description: マルタが薬剤庫へ戻り、鐘の後はずっとそこにいたように振る舞う。
+    location: 薬剤庫
   - id: discovery
     at: "19:10"
     participants: [marta, nicolo, pietro]
     facts: [body-found-1910]
     description: ニコロが記録室でロレンツォの死を発見する。
+    location: 記録室
 characters:
   - id: marta
     name: マルタ・ベッリーニ
@@ -257,10 +271,11 @@ evidences:
     description: 高価な薬剤の実数と帳簿が合わず、ロレンツォが翌朝の報告を示す書き込みを残している。
     reveal:
       mode: conversation
-      condition: マルタかニコロに薬剤の不足とロレンツォの直前の調査を尋ねたら開示する。
+      condition: マルタかニコロに薬剤の不足とロレンツォの直前の調査を尋ねたら開示する。または遺体・現場を調べ、「不足した薬剤の帳簿」に関わる資料を確認したら開示する。
     sources:
       - { type: character, id: marta }
       - { type: character, id: nicolo }
+      - { type: victim, id: victim }
     supports: [marta-diverted-medicine, lorenzo-found-shortage, lorenzo-confronted-marta]
     contradicts: ["lie:marta-no-shortage"]
   - id: private-letter

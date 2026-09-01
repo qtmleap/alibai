@@ -1,7 +1,7 @@
 schemaVersion: 1
 id: avalanche-lodge-phantom-room
 meta:
-  title: 雪崩の山荘、白樺峰の夜
+  title: 白樺峰に雪崩が落ちた夜
   synopsis: "午後九時四十五分、雪崩で道路を失った白樺峰ホテルの支配人室で、支配人の早瀬隆司が死亡しているのが見つかりました。外部との電話も不通で、事件時刻に館内にいた従業員は三人だけです。"
   category: クローズドサークル
   difficulty: 5
@@ -10,6 +10,14 @@ meta:
 victim:
   name: 早瀬隆司
   introduction: 白樺峰ホテル支配人
+  foundAt: 21:45
+  foundIn: 支配人室
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 早瀬隆司は支配人室で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「翌朝の会計監査メモ」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -93,36 +101,43 @@ timeline:
     participants: [natsume]
     facts: [hayase-audit-next-morning, natsume-cash-shortage]
     description: 早瀬が夏目に、翌朝の夜勤会計監査を告げる。
+    location: 山荘内
   - id: fake-message
     at: "21:16"
     participants: [natsume]
     facts: [fake-message-left, no-214-call, paper-from-night-pad]
     description: フロントに二一四号室の設備苦情を装う伝言が置かれる。
+    location: フロント
   - id: ask-oda
     at: "21:24"
     participants: [natsume, oda]
     facts: [natsume-asked-oda]
     description: 夏目が小田に二一四号室の場所を尋ね、客室棟へ向かうように見せる。
+    location: 客室棟
   - id: management-corridor
     at: "21:27"
     participants: [natsume, oda]
     facts: [oda-saw-natsume-office-side]
     description: 小田が管理廊下から出てくる夏目を目撃する。
+    location: 管理廊下
   - id: hayase-death
     at: "21:30"
     participants: [natsume]
     facts: [hayase-death-2130, natsume-killed-hayase]
     description: 夏目が支配人室で早瀬を襲い、早瀬は死亡する。
+    location: 支配人室
   - id: ask-fujino
     at: "21:31"
     participants: [natsume, fujino]
     facts: [natsume-asked-fujino]
     description: 夏目が厨房前で藤野にも二一四号室の場所を尋ねる。
+    location: 厨房前
   - id: discovery
     at: "21:45"
     participants: [fujino, natsume, oda]
     facts: [body-found-2145]
     description: 藤野が支配人室で早瀬の死を発見する。
+    location: 支配人室
 characters:
   - id: natsume
     name: 夏目悠
@@ -308,12 +323,14 @@ evidences:
     description: 早瀬の予定表には、翌朝最初の業務として夏目の夜勤売上不足を確認する予定が記されている。
     reveal:
       mode: conversation
-      condition: 夏目か小田に早瀬が翌朝予定していた会計確認について尋ねたら開示する。
+      condition: 夏目か小田に早瀬が翌朝予定していた会計確認について尋ねたら開示する。または遺体・現場を調べ、「翌朝の会計監査メモ」に関わる資料を確認したら開示する。
     sources:
       - type: character
         id: natsume
       - type: character
         id: oda
+      - type: victim
+        id: victim
     supports: [hayase-audit-next-morning, natsume-cash-shortage]
     contradicts: []
   - id: linen-record

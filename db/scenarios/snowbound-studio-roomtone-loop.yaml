@@ -1,7 +1,7 @@
 schemaVersion: 1
 id: snowbound-studio-roomtone-loop
 meta:
-  title: 録音所ノース・レイク、吹雪の夜
+  title: ノース・レイクの深夜録音
   synopsis: "午後十一時十八分、山中の録音所「ノース・レイク」の編集室で、音楽監督の冬木圭介が死亡しているのが見つかりました。午後十時半から吹雪で道路が閉鎖され、館内には冬木を含め五人しかいませんでした。"
   category: クローズドサークル
   difficulty: 5
@@ -10,6 +10,14 @@ meta:
 victim:
   name: 冬木圭介
   introduction: 録音所「ノース・レイク」音楽監督
+  foundAt: 23:18
+  foundIn: 編集室
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 冬木圭介は編集室で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「未公開音源の複製履歴」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -101,41 +109,49 @@ timeline:
     participants: [manabe]
     facts: [manabe-made-roomtone-loop]
     description: 真鍋が第2ブースの四十七秒の室内音をループ素材として作成する。
+    location: 第2ブース
   - id: loop-recording-starts
     at: "22:50"
     participants: [manabe]
     facts: [loop-routed-to-recorder, recording-repeats-identically]
     description: 第2ブースの録音機へループ素材が入力され、連続収録が始まる。
+    location: 第2ブース
   - id: manabe-leaves
     at: "22:53"
     participants: [manabe]
     facts: [manabe-left-booth]
     description: 真鍋が録音を動かしたまま監視席を離れる。
+    location: 監視席
   - id: shirase-hearing
     at: "22:56"
     participants: [shirase]
     facts: [shirase-heard-loop]
     description: 白瀬が廊下から第2ブースの録音中らしい音を聞く。
+    location: 第2ブース
   - id: makimura-sighting
     at: "22:58"
     participants: [manabe, makimura]
     facts: [makimura-saw-manabe]
     description: 牧村が編集室へ続く機材廊下で真鍋を目撃する。
+    location: 機材廊下
   - id: fuyuki-death
     at: "23:02"
     participants: [manabe]
     facts: [manabe-killed-fuyuki]
     description: 真鍋が編集室で冬木を襲い、冬木は死亡する。
+    location: 編集室
   - id: manabe-return
     at: "23:08"
     participants: [manabe]
     facts: [manabe-returned-booth]
     description: 真鍋が第2ブースの監視席へ戻る。
+    location: 監視席
   - id: discovery
     at: "23:18"
     participants: [takano, manabe, shirase, makimura]
     facts: [body-found-2318]
     description: 鷹野が編集室で冬木の死を発見する。
+    location: 編集室
 
 characters:
   - id: manabe
@@ -337,10 +353,11 @@ evidences:
     description: 真鍋の作業端末から未公開マスターが外部媒体へ複製され、冬木が翌朝のアクセス停止を記したメモを残している。
     reveal:
       mode: conversation
-      condition: 真鍋か鷹野に冬木が事件前に調べていた音源データの持ち出しについて尋ね、複製履歴を追及したら開示する。
+      condition: 真鍋か鷹野に冬木が事件前に調べていた音源データの持ち出しについて尋ね、複製履歴を追及したら開示する。または遺体・現場を調べ、「未公開音源の複製履歴」に関わる資料を確認したら開示する。
     sources:
       - { type: character, id: manabe }
       - { type: character, id: takano }
+      - { type: victim, id: victim }
     supports: [manabe-copied-masters, fuyuki-found-master-leak, fuyuki-planned-report]
     contradicts: []
   - id: shirase-message

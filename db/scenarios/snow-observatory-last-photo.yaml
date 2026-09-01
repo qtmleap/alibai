@@ -1,7 +1,7 @@
 schemaVersion: 1
 id: snow-observatory-last-photo
 meta:
-  title: 北岳観測所、吹雪の夜
+  title: 北岳観測所、吹雪の午後十時
   synopsis: "午後十時十五分、北岳観測所の資料室で、所長の神崎遼が死亡しているのが見つかりました。外は激しい吹雪で、午後九時以降に天文台を出入りした者はいません。"
   category: クローズドサークル
   difficulty: 3
@@ -10,6 +10,14 @@ meta:
 victim:
   name: 神崎遼
   introduction: 北岳観測所所長
+  foundAt: 22:15
+  foundIn: 資料室
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 神崎遼は資料室で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「神崎の観測データ検証メモ」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -90,41 +98,49 @@ timeline:
     participants: [hiyama]
     facts: [kanzaki-found-fabrication, kanzaki-would-retract]
     description: 神崎が日山のデータ不正を指摘し、翌朝の論文撤回と報告を告げる。
+    location: 観測所内
   - id: kurose-data-room
     at: "21:48"
     participants: [kurose]
     facts: [kurose-entered-data-room, kurose-copied-data]
     description: 黒瀬が解析室へ入り、未公開データを無断で複製する。
+    location: 解析室
   - id: interval-start
     at: "21:50"
     participants: [hiyama]
     facts: [camera-interval-started, camera-kept-shooting]
     description: 日山が屋上のカメラを三分間隔の自動撮影に設定する。
+    location: 屋上
   - id: hiyama-leaves-roof
     at: "21:54"
     participants: [hiyama]
     facts: [hiyama-left-roof-2154]
     description: 日山がカメラを残したまま屋上を離れ、建物内へ戻る。
+    location: 屋上
   - id: muroi-sighting
     at: "21:57"
     participants: [hiyama, muroi]
     facts: [muroi-saw-hiyama-2157]
     description: 室井が資料室へ向かう廊下で日山とすれ違う。
+    location: 資料室
   - id: kanzaki-death
     at: "22:00"
     participants: [hiyama]
     facts: [hiyama-killed-kanzaki-2200]
     description: 日山が資料室で神崎を襲い、神崎は死亡する。
+    location: 資料室
   - id: hiyama-returns
     at: "22:06"
     participants: [hiyama]
     facts: [hiyama-returned-roof-2206]
     description: 日山が屋上へ戻り、自動撮影中のカメラのそばへ戻る。
+    location: 屋上
   - id: discovery
     at: "22:15"
     participants: [kurose, hiyama, muroi]
     facts: [body-found-2215]
     description: 黒瀬が資料室で神崎の死を発見する。
+    location: 資料室
 characters:
   - id: hiyama
     name: 日山澪
@@ -271,12 +287,14 @@ evidences:
     description: 日山の補正値だけが元データと合わず、翌朝の論文撤回を示す神崎の書き込みが残っている。
     reveal:
       mode: conversation
-      condition: 日山か黒瀬に神崎が直前まで調べていたデータについて尋ね、不正補正の可能性を追及したら開示する。
+      condition: 日山か黒瀬に神崎が直前まで調べていたデータについて尋ね、不正補正の可能性を追及したら開示する。または遺体・現場を調べ、「神崎の観測データ検証メモ」に関わる資料を確認したら開示する。
     sources:
       - type: character
         id: hiyama
       - type: character
         id: kurose
+      - type: victim
+        id: victim
     supports: [hiyama-fabricated-data, kanzaki-found-fabrication, kanzaki-would-retract]
     contradicts: []
   - id: data-room-access

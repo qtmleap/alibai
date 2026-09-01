@@ -1,7 +1,7 @@
 schemaVersion: 1
 id: last-train-delay-certificate
 meta:
-  title: 夕凪駅、終電後の事件
+  title: 終電が八分遅れた夜
   synopsis: "午後十時二十五分、郊外駅「夕凪駅」の駅務室で、駅長の藤崎正雄が死亡しているのが見つかりました。その夜は信号トラブルで終電が八分遅れ、ホームには普段より長く乗客が残っていました。"
   category: 駅ミステリ
   difficulty: 3
@@ -10,6 +10,14 @@ meta:
 victim:
   name: 藤崎正雄
   introduction: 夕凪駅駅長
+  foundAt: 22:25
+  foundIn: 駅務室
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 藤崎正雄は駅務室で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「券売機返金処理と現金残高の差」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -89,36 +97,43 @@ timeline:
     participants: [arima]
     facts: [arima-skimmed-refunds, fujisaki-found-refund-gap, fujisaki-warned-arima]
     description: 藤崎が有馬の返金処理の不正を指摘し、終電後の本部報告を告げる。
+    location: 駅構内
   - id: arima-office-corridor
     at: "22:05"
     participants: [arima, sawada]
     facts: [arima-entered-office-2205, sawada-saw-arima-2205]
     description: 沢田が駅務室へ向かう有馬を目撃する。
+    location: 駅務室
   - id: fujisaki-death
     at: "22:08"
     participants: [arima]
     facts: [arima-killed-fujisaki-2208]
     description: 有馬が駅務室で藤崎を襲い、藤崎は死亡する。
+    location: 駅務室
   - id: arima-returns-platform
     at: "22:12"
     participants: [arima, komori]
     facts: [arima-left-office-2212, komori-saw-arima-2212]
     description: 小森が駅務室側からホームへ戻る有馬を目撃する。
+    location: ホーム
   - id: last-train-departs
     at: "22:18"
     participants: [arima, sawada, komori]
     facts: [last-train-delayed]
     description: 八分遅れの終電が夕凪駅を出発する。
+    location: 駅構内
   - id: certificates-print
     at: "22:20"
     participants: [arima]
     facts: [certificates-printed-2220]
     description: 終電出発後、有馬が駅務室の専用プリンターで遅延証明書を一括印刷する。
+    location: 駅務室
   - id: discovery
     at: "22:25"
     participants: [komori, arima, sawada]
     facts: [body-found-2225]
     description: 小森が駅務室で藤崎の死を発見する。
+    location: 駅務室
 characters:
   - id: arima
     name: 有馬結衣
@@ -282,12 +297,14 @@ evidences:
     description: 少額返金が繰り返された日時と現金不足が一致し、有馬の担当時間帯へ集中している。
     reveal:
       mode: conversation
-      condition: 有馬に藤崎が事件前に確認していた返金処理について尋ねるか、小森に駅長が帳簿を調べていた理由を尋ねたら開示する。
+      condition: 有馬に藤崎が事件前に確認していた返金処理について尋ねるか、小森に駅長が帳簿を調べていた理由を尋ねたら開示する。または遺体・現場を調べ、「券売機返金処理と現金残高の差」に関わる資料を確認したら開示する。
     sources:
       - type: character
         id: arima
       - type: character
         id: komori
+      - type: victim
+        id: victim
     supports: [arima-skimmed-refunds, fujisaki-found-refund-gap, fujisaki-warned-arima]
     contradicts: []
   - id: kiosk-disposal-record
