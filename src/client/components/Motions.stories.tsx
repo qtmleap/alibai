@@ -159,13 +159,42 @@ const MotionCatalogue = () => (
       <Motion
         index="三"
         name="ひらめき"
-        why="離れた二つの証言が噛み合った瞬間。二本のあいだに線が引かれ、それぞれの目盛りが一度だけ伸びます。光らせず、繋ぐ。"
+        why={
+          <>
+            離れた二つの証言が噛み合わないと分かった瞬間。二本の柱のあいだに線が引かれ、
+            引き終わってから両端の目盛りが一度だけ伸びます。光らせず、繋ぐ。
+            アリバイ表は縦に時が流れるので目盛りは横棒——伸ばすのは <Code>pin-lift-x</Code>{' '}
+            です（横のレールで使う <Code>pin-lift</Code> の、向きだけ直交した片割れ。原典の横の絵は
+            mocks/direction.html にあります）。
+          </>
+        }
       >
-        <Rail>
-          <span className="draw origin-left absolute top-[11px] left-[26%] h-px w-[42%] bg-kinari" />
-          <span className="pin-lift origin-bottom absolute top-4 left-[26%] h-[13px] w-0.5 bg-asagi" />
-          <span className="pin-lift origin-bottom absolute top-4 left-[68%] h-[13px] w-0.5 bg-fuji" />
-        </Rail>
+        <div className="relative h-full">
+          {/* 左の柱。線の時刻までは裏付けがあり、そこから先は申告のみ。 */}
+          <span className="absolute top-2 bottom-1/2 left-[22%] w-[3px] bg-asagi" />
+          <span className="absolute top-1/2 bottom-2 left-[22%] border-l border-dashed border-l-asagi-fg opacity-45" />
+          {/* 右の柱は申告だけの線。破線は明色の顔料で引く——暗色は地に溶けて消える。 */}
+          <span className="absolute top-2 bottom-2 left-[72%] border-l border-dashed border-l-suou-fg opacity-55" />
+          {/* 噛み合わない時刻に、二本のあいだへ線が架かる。 */}
+          <span className="draw absolute top-1/2 left-[22%] w-[50%] origin-left border-t border-dashed border-t-nezumi-dim opacity-80" />
+          {/*
+            両端の目盛り。線を引き終わってから（700ms——draw の 180ms 遅れ＋520ms）、
+            芯を中心に一度だけ伸びる。AlibiChart と同じく、外の枠が浮き（line-in）、
+            中の棒が伸びる（pin-lift-x）。一要素に animation は一つしか持てない。
+          */}
+          <span
+            className="line-in -translate-x-1/2 absolute top-1/2 left-[22%] text-asagi-fg"
+            style={delay(700)}
+          >
+            <span className="pin-lift-x block h-px w-[11px] bg-current" style={delay(700)} />
+          </span>
+          <span
+            className="line-in -translate-x-1/2 absolute top-1/2 left-[72%] text-suou-fg"
+            style={delay(700)}
+          >
+            <span className="pin-lift-x block h-px w-[11px] bg-current" style={delay(700)} />
+          </span>
+        </div>
       </Motion>
 
       <Motion
