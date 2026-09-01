@@ -234,9 +234,28 @@ const compileDefinition = (
     揃えられない書式（ここに来る時点でスキーマは通っている）は落とす——
     軸に置けない線を持っていても、描く段で困るだけ。
 
-    在所は authoring の location をそのまま写す。43本中42本が書いていないので、
-    多くは空になる。空でも線は引ける（時刻は分かっている）ので、それでよい。
+    在所は authoring の location から取る。ただしそのままは写せない——
+    見取り図のある事件では、あそこには部屋のID（floorPlan.rooms[].id）が入っている。
+    IDのまま焼くと、表の在所に「study」と英字が並ぶ。引けるなら部屋の名前へ直し、
+    引けなければ場所の名前が直接書かれているものとして扱う。
+    空でも線は引ける（時刻は分かっている）ので、無ければ空のままでよい。
   */
+  const roomLabels = new Map(
+    definition.floorPlan === null
+      ? []
+      : definition.floorPlan.rooms.map((room) => [room.id, room.label]),
+  )
+
+  const placeOf = (location: string | undefined): string => {
+    if (location === undefined) {
+      return ''
+    }
+
+    const label = roomLabels.get(location)
+
+    return label === undefined ? location : label
+  }
+
   const timelineEvents = definition.timeline.flatMap((event) => {
     const minutes = minutesOf(event.at)
 
@@ -248,7 +267,7 @@ const compileDefinition = (
       {
         id: event.id,
         at: formatClock(minutes),
-        place: event.location === undefined ? '' : event.location,
+        place: placeOf(event.location),
         participants: event.participants.map(characterUuid),
         facts: event.facts,
         kind: kindOfEvent(event.facts.map((id) => factKinds.get(id))),
