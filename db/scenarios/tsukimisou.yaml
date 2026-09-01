@@ -335,17 +335,25 @@ timeline:
     facts:
       - fukagawa-returned-1945
     description: 深川が食堂に戻る。桐生がこれを見ている。
+  # 同じ19時50分でも、二人が居た場所は違う。一つの出来事にまとめると、
+  # アリバイ表で桐生まで書斎に居たことになる（participants はその場所に居た人だけ）。
+  - id: kiryu-passes-mizuki
+    at: 19:50
+    location: corridor
+    participants:
+      - kiryu
+    facts:
+      - kiryu-passed-mizuki-1950
+    description: 桐生が廊下で、書斎へ向かう手ぶらの美月とすれ違う。
   - id: mizuki-poisons
     at: 19:50
     location: study
     participants:
       - mizuki
-      - kiryu
     facts:
       - mizuki-poisoned-brandy-1950
-      - kiryu-passed-mizuki-1950
       - mizuki-took-aconite
-    description: 美月が書斎に忍び込み、ブランデーの瓶にトリカブトの粉末を混ぜる。書斎に向かう途中、廊下で桐生とすれ違う。
+    description: 美月が書斎に忍び込み、ブランデーの瓶にトリカブトの粉末を混ぜる。
   - id: mizuki-serves
     at: 20:00
     location: study

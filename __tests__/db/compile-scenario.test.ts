@@ -268,7 +268,7 @@ describe('compileScenario: プロンプトを壊さない不変条件', () => {
     const timeline = compiled.truth.timeline
 
     expect(Array.isArray(timeline)).toBe(true)
-    expect(timeline).toHaveLength(9)
+    expect(timeline).toHaveLength(10)
     expect(timeline).toEqual(
       expect.arrayContaining([
         { time: '19:00', event: '夕食会が始まる。涼子・深川・美月・桐生の4人が同席。' },
