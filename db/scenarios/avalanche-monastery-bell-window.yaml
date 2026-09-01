@@ -1,12 +1,11 @@
 schemaVersion: 1
 id: avalanche-monastery-bell-window
 meta:
-  title: 山上の修道院から誰も帰れない
+  title: "祈りの山は雪に閉ざされる"
   synopsis: "午後九時四十分、雪崩で麓への道を断たれた山上の修道院資料館で、館長・高瀬静一が死亡しているのが見つかりました。"
   category: クローズドサークル
   difficulty: 5
   estimatedMinutes: 15
-  tags: [修道院, 雪崩, 鐘, 時系列]
 victim:
   name: 高瀬静一
   introduction: 修道院資料館館長
@@ -46,15 +45,12 @@ facts:
   - id: repair-overbilling
     statement: 高瀬静一は事件当日、鐘塔修復費の一部に架空の追加工事が計上されていることを発見した
     kind: motive
-    secret: true
   - id: mizuki-overbilled
     statement: 水城奈央は協力業者と示し合わせ、実施していない追加工事を請求書へ載せていた
     kind: motive
-    secret: true
   - id: takase-confronted-mizuki
     statement: 20時48分ごろ、高瀬静一は水城奈央に翌朝までに追加工事の根拠を示すよう求めた
     kind: motive
-    secret: true
   - id: temporary-test-line-exists
     statement: 鐘の修復期間中、鐘塔へ入らず一階の聖歌席裏から鐘の作動確認を行える仮設試験線が設けられていた
     kind: physical
@@ -67,11 +63,9 @@ facts:
   - id: mizuki-killed-takase
     statement: 21時05分ごろ、水城奈央は資料整理室で高瀬静一を襲い死亡させた
     kind: truth
-    secret: true
   - id: mizuki-rang-bell-remotely
     statement: 21時20分、水城奈央は聖歌席裏に残っていた仮設試験線を使って鐘を一度鳴らした
     kind: truth
-    secret: true
   - id: all-heard-bell
     statement: 21時20分、館内にいた水城奈央、黒川玲、玄田修の三人は鐘が一度鳴るのを聞いた
     kind: observation
@@ -84,11 +78,9 @@ facts:
   - id: kurokawa-secret-photo
     statement: 黒川玲は撮影禁止の古文書を私物端末で撮影していた
     kind: other
-    secret: true
   - id: genda-secret-key-copy
     statement: 玄田修は紛失対策として無許可の予備鍵を一本作っていた
     kind: other
-    secret: true
   - id: body-found-2140
     statement: 21時40分、黒川玲が資料整理室で高瀬静一の死を発見した
     kind: observation
@@ -110,11 +102,12 @@ timeline:
     participants: [mizuki, kurokawa, genda]
     facts: [mizuki-rang-bell-remotely, all-heard-bell, no-one-saw-takase-bell]
     description: 九時二十分の鐘が鳴り、三人はいつもの高瀬の閉館合図だと思い込む。
-    location: 鐘楼
+    location: 修道院内
   - id: test-line-clue
     at: "21:27"
     participants: [genda]
     facts: [temporary-test-line-exists, genda-thought-line-removed, test-line-tag-remained]
+    record: 工事タグ
     description: 玄田が聖歌席裏の点検口を通るが、残った工事タグを気に留めない。
     location: 聖歌席裏
   - id: discovery
@@ -126,7 +119,6 @@ timeline:
 characters:
   - id: mizuki
     name: 水城奈央
-    role: suspect
     publicIntroduction: "修復設計士。"
     personality: 理屈が明快な修復設計士で、建物の構造と工事手順に詳しい。鐘は高瀬が鳴らしたという前提を強調し、自分だけが仮設試験線を熟知していることには触れたがらない。
     goals:
@@ -153,7 +145,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: test-line-design
-        about: mizuki-knew-test-line
         detail: 修復中だけ使う試験線を自分で図面に引いたので、聖歌席裏から鐘を作動確認できることを誰よりよく知っている。
     relationships:
       - character: kurokawa
@@ -164,7 +155,6 @@ characters:
         attitude: 工事の現状より昔からの運用を信じる癖があると見ている
   - id: kurokawa
     name: 黒川玲
-    role: witness
     publicIntroduction: "文献には厳密だが建築設備には疎い研究者。"
     personality: 文献には厳密だが建築設備には疎い研究者。鐘を聞いたことは確かだが、音が鳴る仕組みまでは知らない。撮影禁止史料を写したことを隠している。
     goals:
@@ -181,7 +171,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: heard-one-bell
-        about: all-heard-bell
         detail: 九時二十分に一度だけ鐘が響いたので、いつもの閉館合図だと思った。高瀬本人の姿は見ていない。
     relationships:
       - character: mizuki
@@ -192,7 +181,6 @@ characters:
         attitude: 館内の昔からの習慣について頼りにしている
   - id: genda
     name: 玄田修
-    role: suspect
     publicIntroduction: "長年勤める管理人。"
     personality: 長年勤める管理人。鍵の扱いにはうるさいが、工事中の仮設設備には疎い。無断で予備鍵を作ったため、鍵の話題になると妙に防御的になる。
     goals:
@@ -209,7 +197,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: assumed-removed
-        about: genda-thought-line-removed
         detail: 前日の作業員が「試験は終わり」と言っていたので、仮設線そのものも外したのだと思い込んでいた。
     relationships:
       - character: mizuki
@@ -266,7 +253,6 @@ evidences:
     label: 鐘塔修復の試験系統図
     description: 修復中は聖歌席裏の仮設試験線から鐘の作動確認ができることが図面に記されている。
     reveal:
-      mode: conversation
       condition: 水城に鐘の修復手順を詳しく尋ねるか、玄田に塔へ入らない試験方法の有無を確認したら開示する。
     sources:
       - type: character
@@ -279,7 +265,6 @@ evidences:
     label: 聖歌席裏の工事タグ
     description: 点検口には仮設試験線がまだ接続中であることを示す工事タグが残っている。
     reveal:
-      mode: conversation
       condition: 玄田に聖歌席裏の点検口で見たものを尋ねるか、水城に仮設線の撤去状況を確認したら開示する。
     sources:
       - type: character
@@ -292,7 +277,6 @@ evidences:
     label: 九時二十分の目撃不在
     description: 三人とも鐘を聞いているが、その時刻に高瀬本人が鐘塔へ向かう姿を見た者はいない。
     reveal:
-      mode: conversation
       condition: 黒川か玄田に鐘が鳴った時刻に高瀬本人を見たか尋ねたら開示する。
     sources:
       - type: character
@@ -305,7 +289,6 @@ evidences:
     label: 修復費の追加請求一覧
     description: 実施記録のない追加工事が水城の承認で請求され、高瀬がその項目へ印を付けている。
     reveal:
-      mode: conversation
       condition: 水城に高瀬から追及された修復費について尋ねるか、玄田に問題になっていた工事項目を確認したら開示する。または遺体・現場を調べ、「修復費の追加請求一覧」に関わる資料を確認したら開示する。
     sources:
       - type: character
@@ -320,7 +303,6 @@ evidences:
     label: 撮影禁止史料の画像
     description: 黒川の端末には撮影禁止の古文書画像が残るが、鐘の時刻とは関係しない。
     reveal:
-      mode: conversation
       condition: 黒川に事件前の史料閲覧と撮影について尋ね、無断撮影を否定したら開示する。
     sources:
       - type: character
@@ -331,7 +313,6 @@ evidences:
     label: 無許可の予備鍵
     description: 玄田が作った予備鍵が見つかるが、九時二十分の鐘は鍵を使わず鳴らせたため主経路ではない。
     reveal:
-      mode: conversation
       condition: 玄田に鍵の複製について尋ね、予備鍵を否定したら開示する。
     sources:
       - type: character
@@ -343,17 +324,8 @@ solution:
   summary: 犯人は水城奈央。修復費の架空請求を高瀬に見つけられ、翌朝までの説明を求められたことから高瀬を襲った。その後、水城は自分が設計した仮設試験線を利用し、21時20分に塔へ入らず鐘を鳴らした。三人は毎晩の習慣から高瀬本人が鐘を鳴らしたと解釈したが、誰もその時刻の高瀬を見ていない。工事系統図と聖歌席裏に残ったタグから、鐘は鍵なしでも鳴らせたと分かる。鐘の音は時刻の手掛かりではあっても、高瀬の生存証明ではなかった。
   method: 高瀬を襲った後、修復工事用の仮設試験線で定刻の鐘を鳴らし、犯行時刻を九時二十分以後だと思わせた
   motive: 修復費の架空請求が発覚し、翌朝の説明と責任追及を恐れたため
-  requiredFacts: [mizuki-overbilled, takase-confronted-mizuki, temporary-test-line-exists, mizuki-knew-test-line, mizuki-killed-takase, mizuki-rang-bell-remotely, no-one-saw-takase-bell]
   secretKeywords:
     - 犯人は水城
     - 水城が高瀬を襲
     - 水城が試験線で鐘
     - 鐘で死亡時刻を偽装
-quality:
-  expectedQuestionCount:
-    min: 10
-    max: 22
-  requiredEvidence:
-    min: 3
-  redHerrings: [kurokawa-secret-photo, genda-secret-key-copy]
-  notes: 「鍵を持つ者しか鐘を鳴らせない」という前提を、工事中の例外で崩す。予備鍵は意図的なミスリードであり、真相の操作経路とは結びつかない。

@@ -17,6 +17,8 @@
   --kinari: #e9e4d9;
   --nezumi: #8e8896;
   --nezumi-dim: #625d6c;
+  /* 場所は人物の色を持たない。他の色と同じ口から引けるよう、明るい側だけ揃えておく。 */
+  --nezumi-fg: #aaa4b2;
 
   --asagi: #5e8b8c;
   --asagi-fg: #8ab5b5;
@@ -37,6 +39,10 @@
 
 * {
   box-sizing: border-box;
+}
+/* 出し入れは hidden で切り替える。display を持つ要素にも効かせておく。 */
+[hidden] {
+  display: none !important;
 }
 html,
 body {
@@ -314,6 +320,15 @@ textarea {
 }
 .face.on {
   box-shadow: 0 0 0 1.5px currentColor;
+}
+/*
+  場所の印。人の丸に対して角を立て、塗らずに罫線で囲う。
+  名簿では人と場所が同じ列に並ぶので、色を抜いただけでは「暗い人物」に見える。
+  塗った四角にすると今度は箱になるので、線だけで区画を示す。
+*/
+.face.pl {
+  border-radius: 2px;
+  border: 1px solid var(--keisen);
 }
 .int-head {
   padding: 10px 12px;

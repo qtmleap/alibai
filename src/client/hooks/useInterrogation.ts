@@ -3,6 +3,7 @@ import { askTopic, describeError } from '@/client/lib/api'
 import { mergeById } from '@/client/lib/merge-by-id'
 import type {
   AlibiSegmentData,
+  Clash,
   Discovery,
   Hint,
   RevelationCard,
@@ -44,6 +45,8 @@ export type InterrogationSeed = {
   hint: Hint
   /** 時刻表に引ける線。掴んだ手掛かりから引ける分だけがサーバから届く。 */
   alibiSegments: AlibiSegmentData[]
+  /** 供述が噛み合わない区間。揃うまでは無い。 */
+  clash: Clash | undefined
   questionCount: number
   turn: TurnState | undefined
 }
@@ -71,6 +74,7 @@ export const useInterrogation = (seed: InterrogationSeed) => {
    * こちらで積むと、サーバが引き直した結果（線の終わりが縮むなど）を取りこぼす。
    */
   const [alibiSegments, setAlibiSegments] = useState<AlibiSegmentData[]>(seed.alibiSegments)
+  const [clash, setClash] = useState<Clash | undefined>(seed.clash)
   const [questionCount, setQuestionCount] = useState(seed.questionCount)
   /**
    * ターンの進行。正典はサーバ側（DOの質問回数から導かれる）で、
@@ -155,6 +159,7 @@ export const useInterrogation = (seed: InterrogationSeed) => {
             [params.characterId]: judgement.suggestedQuestions,
           }))
           setAlibiSegments(judgement.alibiSegments)
+          setClash(judgement.clash)
           setQuestionCount(judgement.questionCount)
           setTurn(judgement.turn)
         },
@@ -177,6 +182,7 @@ export const useInterrogation = (seed: InterrogationSeed) => {
     setHint,
     alibiSegments,
     setAlibiSegments,
+    clash,
     questionCount,
     askingCharacterId,
     error,

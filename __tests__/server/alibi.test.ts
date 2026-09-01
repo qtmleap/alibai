@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { alibiSegmentsOf, type RevealedClues } from '@/server/game/alibi'
+import { alibiSegmentsOf, clashOf, type LieRef, type RevealedClues } from '@/server/game/alibi'
 import type { TimelineEvent } from '~/db/timeline-event'
 
 const event = (
@@ -8,7 +8,8 @@ const event = (
   participants: string[],
   facts: string[],
   kind: TimelineEvent['kind'] = 'solid',
-): TimelineEvent => ({ id, at, place: '', participants, facts, kind })
+  record = '',
+): TimelineEvent => ({ id, at, place: '', room: '', record, participants, facts, kind })
 
 const MAKINO = 'makino-uuid'
 const KURODA = 'kuroda-uuid'
@@ -92,6 +93,32 @@ describe('alibiSegmentsOf', () => {
     expect(claim?.fix).toBeUndefined()
   })
 
+  test('記録の名前があれば、時刻に添えて札になる', () => {
+    const segments = alibiSegmentsOf({
+      events: [event('receipt', '19:08', [MAKINO], ['receipt-fact'], 'solid', '受付')],
+      end: END,
+      clues: clues({ evidenceSupports: ['receipt-fact'] }),
+    })
+
+    expect(segments[0]?.fix).toBe('19:08　受付')
+  })
+
+  test('記録の名前が無ければ、札は時刻だけ', () => {
+    const [solid] = segmentsOf({ evidenceSupports: ['store-open'] })
+
+    expect(solid?.fix).toBe('18:20')
+  })
+
+  test('申告だけの線には、記録の名前があっても札を付けない', () => {
+    const segments = alibiSegmentsOf({
+      events: [event('hearsay', '18:20', [MAKINO], ['said-so'], 'claim', '本人談')],
+      end: END,
+      clues: clues({ evidenceSupports: ['said-so'] }),
+    })
+
+    expect(segments[0]?.fix).toBeUndefined()
+  })
+
   test('幕切れに重なる出来事は線にならない', () => {
     const segments = alibiSegmentsOf({
       events: [event('late', END, [MAKINO], ['late-fact'])],
@@ -100,5 +127,47 @@ describe('alibiSegmentsOf', () => {
     })
 
     expect(segments).toEqual([])
+  })
+})
+
+/*
+  食い違いの印。証拠が嘘を突き崩したとき、その嘘が言い張っていた時刻に立つ。
+*/
+describe('clashOf', () => {
+  const LIES: LieRef[] = [
+    { id: 'makino-left-early', about: 'store-open' },
+    { id: 'kuroda-went-home', about: 'kuroda-visited' },
+  ]
+
+  const clashWith = (contradicts: string[]) => clashOf({ events: EVENTS, lies: LIES, contradicts })
+
+  test('崩された嘘が無ければ、印は立たない', () => {
+    expect(clashWith([])).toBeUndefined()
+  })
+
+  test('証拠が嘘を突き崩すと、その嘘が言い張っていた時刻に立つ', () => {
+    expect(clashWith(['lie:kuroda-went-home'])).toEqual({ at: '18:41', label: '食い違い' })
+  })
+
+  test('複数崩れても、印はいちばん早い時刻の一つだけ', () => {
+    expect(clashWith(['lie:kuroda-went-home', 'lie:makino-left-early'])).toEqual({
+      at: '18:20',
+      label: '食い違い',
+    })
+  })
+
+  test('存在しない嘘を指していても、印は立たない', () => {
+    expect(clashWith(['lie:no-such-lie'])).toBeUndefined()
+  })
+
+  /* contradicts は `lie:` の形だけを見る。将来ほかの接頭辞が増えても取り違えない。 */
+  test('lie: 以外の書き方は読まない', () => {
+    expect(clashWith(['kuroda-went-home'])).toBeUndefined()
+  })
+
+  test('嘘が指す事実がどの出来事にも無ければ、時刻が決まらないので立たない', () => {
+    const orphan: LieRef[] = [{ id: 'orphan', about: 'fact-without-event' }]
+
+    expect(clashOf({ events: EVENTS, lies: orphan, contradicts: ['lie:orphan'] })).toBeUndefined()
   })
 })

@@ -110,7 +110,8 @@
 
         document.getElementById('record').innerHTML = [
           [win ? '解決タイム' : 'かかった時間', '<span class="v">' + Mock.clock(Mock.total) + '</span>'],
-          ['質問回数', Mock.total + '回'],
+          // 訊くだけでなく遺体も現場も調べる。全部まとめて「手」なので、質問とは呼べない。
+          ['使ったターン', Mock.total + '回'],
           ['発見した証拠', '6個'],
         ]
           .map(function (r) {

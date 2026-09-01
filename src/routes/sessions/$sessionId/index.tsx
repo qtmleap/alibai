@@ -47,8 +47,18 @@ function Interrogation() {
       interrogation={interrogation}
       // 支度で選んだ相手。会話が始まっていればそちらが優先される。
       firstTarget={initialTarget}
-      // 刻限と食い違いはまだサーバから出ていないので、線だけを渡す。
-      alibi={{ segments: interrogation.alibiSegments }}
+      /*
+        刻限は死亡推定時刻から引く。事件の記録が既に語っている時刻なので、
+        聞き込みが一問も進んでいなくても最初から出してよい。
+      */
+      alibi={{
+        segments: interrogation.alibiSegments,
+        deadline:
+          scenario.victim?.estimatedDeathAt == null
+            ? undefined
+            : { at: scenario.victim.estimatedDeathAt, label: '死亡推定' },
+        clash: interrogation.clash,
+      }}
       onAccuse={() =>
         navigate({ to: '/sessions/$sessionId/accuse', params: { sessionId: state.sessionId } })
       }

@@ -1,17 +1,17 @@
 schemaVersion: 1
 id: victorian-underground-last-telegram
 meta:
-  title: 1863年、地下鉄工事区画
+  title: "地下鉄はまだ完成していない"
   synopsis: "1863年、ロンドン。世界初の地下鉄が走り始めたその年、延伸工事の夜間区画で主任技師エドワード・ヘイルが死亡しているのが見つかりました。"
   category: 歴史クローズドサークル
   difficulty: 5
   estimatedMinutes: 15
-  tags: [1863年, ロンドン, 地下鉄, 電信]
 victim:
   name: エドワード・ヘイル
   introduction: 地下鉄延伸工事主任技師
   foundAt: 22:30
   foundIn: 測量室
+  estimatedDeathAt: "22:03"
   causeOfDeath: 事件性のある外傷による死亡
   findings:
     - id: victim-state
@@ -50,18 +50,15 @@ facts:
   - id: bell-bid-fraud
     statement: アーサー・ベルは資材費の水増しをヘイルに見抜かれていた
     kind: motive
-    secret: true
   - id: helale-confronted-bell
     statement: 21時35分、ヘイルはアーサー・ベルに翌朝帳簿を会社へ提出すると告げた
     kind: motive
-    secret: true
   - id: telegraph-no-sender-id
     statement: 二つの立坑を結ぶ電信機は送信者の身元を記録せず、第二立坑の機械を操作できれば誰でも同じ符号を送れた
     kind: physical
   - id: victim-private-mark-known-bell
     statement: ヘイルが指示の末尾に付ける短い符号をアーサー・ベルは以前から知っていた
     kind: truth
-    secret: true
   - id: bell-left-shaft-one
     statement: 21時52分ごろ、アーサー・ベルは第一立坑から連絡坑道へ入った
     kind: observation
@@ -71,22 +68,18 @@ facts:
   - id: bell-killed-hale
     statement: 22時03分ごろ、アーサー・ベルは第二立坑の測量室でヘイルを襲い死亡させた
     kind: truth
-    secret: true
   - id: bell-sent-telegram
     statement: 22時12分、アーサー・ベルは第二立坑の電信機からヘイルの符号を添えた指示を送った
     kind: truth
-    secret: true
   - id: telegram-received-2212
     statement: 22時12分、第一立坑でヘイルの符号を添えた「換気弁Bを閉じろ」という電信が受信された
     kind: observation
   - id: clara-copied-private-wire
     statement: クララ・ウェッブは会社の私的な電信を無断で手帳へ写していた
     kind: other
-    secret: true
   - id: thomas-sold-coal
     statement: トーマス・リードは工事用石炭を少量ずつ外へ横流ししていた
     kind: other
-    secret: true
   - id: body-found-2230
     statement: 22時30分、トーマス・リードが第二立坑の測量室でヘイルの死を発見した
     kind: observation
@@ -108,7 +101,7 @@ timeline:
     participants: [bell, thomas]
     facts: [thomas-saw-bell-tunnel]
     description: トーマスが第二立坑寄りの坑道でベルを見かける。
-    location: 第2立坑
+    location: 坑道
   - id: hale-death
     at: "22:03"
     participants: [bell]
@@ -117,10 +110,17 @@ timeline:
     location: 測量室
   - id: false-telegram
     at: "22:12"
-    participants: [bell, clara]
-    facts: [bell-sent-telegram, telegram-received-2212]
+    participants: [bell]
+    facts: [bell-sent-telegram]
     description: ベルが第二立坑からヘイルの符号を添えた電信を送り、クララが第一立坑で受信する。
     location: 第2立坑
+  - id: telegram-received
+    at: "22:12"
+    participants: [clara]
+    facts: [telegram-received-2212]
+    record: 受信記録
+    description: クララが第一立坑で、ヘイルの符号が添えられた電信を受信する。
+    location: 第1立坑
   - id: discovery
     at: "22:30"
     participants: [bell, clara, thomas]
@@ -130,7 +130,6 @@ timeline:
 characters:
   - id: bell
     name: アーサー・ベル
-    role: suspect
     publicIntroduction: "実務能力の高い施工監督。"
     personality: 実務能力の高い施工監督。工期と費用の話になると強気だが、帳簿の細部を問われると苛立つ。電信の符号がヘイル本人の生存証明だと言い張りたい。
     goals:
@@ -159,7 +158,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: bell-morning-ledger
-        about: helale-confronted-bell
         detail: ヘイルに「朝になれば数字は会社の机に載る」と言われた声が頭から離れない。
     relationships:
       - character: clara
@@ -170,7 +168,6 @@ characters:
         attitude: 坑内で自分を見た可能性があり警戒している
   - id: clara
     name: クララ・ウェッブ
-    role: witness
     publicIntroduction: "正確さを誇る若い電信係。"
     personality: 正確さを誇る若い電信係。受信した文字列については自信がある一方、私的な通信を写していた規則違反は隠したい。送信者を実際に見てはいない。
     goals:
@@ -187,7 +184,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: clara-last-signal
-        about: telegram-received-2212
         detail: 22時12分の電文には見慣れた短い末尾符号があり、反射的にヘイルからだと思った。
     relationships:
       - character: bell
@@ -198,7 +194,6 @@ characters:
         attitude: 機械のことには詳しいが電信には疎いと思っている
   - id: thomas
     name: トーマス・リード
-    role: suspect
     publicIntroduction: "無骨な機関助手。"
     personality: 無骨な機関助手。工事用石炭の横流しをしていたため帳簿調査を恐れている。坑道で見たベルの位置については妙に具体的に覚えている。
     goals:
@@ -215,7 +210,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: thomas-tunnel-sighting
-        about: thomas-saw-bell-tunnel
         detail: 蒸気管の点検で振り返ったとき、第二立坑側へ急ぐベルの上着と帽子をはっきり見た。
     relationships:
       - character: bell
@@ -256,7 +250,6 @@ evidences:
     label: 22時12分の受信簿
     description: 第一立坑の受信簿には電文の内容と受信時刻だけがあり、第二立坑で誰がキーを叩いたかは記録されていない。
     reveal:
-      mode: conversation
       condition: クララに22時12分の電信が何を記録し、何を記録しないか具体的に尋ねたら開示する。
     sources:
       - { type: character, id: clara }
@@ -266,7 +259,6 @@ evidences:
     label: 第二立坑側での目撃
     description: トーマスは21時58分ごろ、第二立坑寄りの坑道でベルを見ている。
     reveal:
-      mode: conversation
       condition: トーマスに21時50分から22時ごろ坑道で誰を見たか尋ねたら開示する。
     sources:
       - { type: character, id: thomas }
@@ -276,7 +268,6 @@ evidences:
     label: 過去の工程電文
     description: 過去の工程電文にも同じ末尾符号が何度も現れ、施工監督のベルが日常的に閲覧していた。
     reveal:
-      mode: conversation
       condition: クララかベルにヘイル独自の末尾符号を誰が見られたか尋ね、過去の工程電文を確認したら開示する。
     sources:
       - { type: character, id: clara }
@@ -287,7 +278,6 @@ evidences:
     label: 水増しされた資材帳簿
     description: ベルの管理分だけ資材費が不自然に増えており、ヘイルが翌朝会社へ提出する印を付けている。
     reveal:
-      mode: conversation
       condition: ベルにヘイルと直前に揉めた帳簿について追及するか、クララに二人の口論について尋ねたら開示する。または遺体・現場を調べ、「水増しされた資材帳簿」に関わる資料を確認したら開示する。
     sources:
       - { type: character, id: bell }
@@ -300,14 +290,8 @@ solution:
   summary: 犯人はアーサー・ベル。資材費水増しの発覚を恐れ、第二立坑の測量室でヘイルを襲った。その後、ヘイルしか使わないように見えた末尾符号を付けて22時12分に電信を送り、被害者がその時刻まで生きていたように見せた。しかし電信機は送信者の身元を記録せず、ベルは以前から符号を知っていた。さらに21時58分にはトーマスが第二立坑側でベルを目撃しており、第一立坑にいたという説明も崩れる。
   method: 被害者の死後にその独自符号を使った電信を送り、電文の受信時刻を生存時刻に見せかけた
   motive: 資材費の水増しが翌朝会社へ報告されるのを防ぐため
-  requiredFacts: [bell-bid-fraud, helale-confronted-bell, telegraph-no-sender-id, victim-private-mark-known-bell, thomas-saw-bell-tunnel, bell-killed-hale, bell-sent-telegram]
   secretKeywords:
     - 犯人はベル
     - ベルがヘイルを襲
     - ベルが電信を送
     - 私が電信を送
-quality:
-  expectedQuestionCount: { min: 10, max: 22 }
-  requiredEvidence: { min: 3 }
-  redHerrings: [clara-copied-private-wire, thomas-sold-coal]
-  notes: 電信の内容が本物らしいことと、送信者が本人であることを分離する。符号の知識、坑道の目撃、動機の三系統を合わせて確定する。

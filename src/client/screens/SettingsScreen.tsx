@@ -124,7 +124,7 @@ export const SettingsScreen = ({
   const soundPickable = briefing === 'typewriter'
 
   return (
-    <div className="screen-enter mx-auto flex min-h-dvh max-w-md flex-col gap-[18px] bg-sumi px-[18px] pt-[26px] pb-6 text-kinari lg:max-w-[760px] lg:gap-[34px] lg:px-0 lg:pt-[46px] lg:pb-[60px]">
+    <div className="screen-enter mx-auto flex min-h-dvh-safe max-w-md flex-col gap-[18px] bg-sumi px-[18px] pt-[26px] pb-6 text-kinari lg:max-w-[760px] lg:gap-[34px] lg:px-0 lg:pt-[46px] lg:pb-[60px]">
       <header>
         {/*
           戻り口だけは机で等幅をやめる。ここは節の見出しではなく道しるべで、

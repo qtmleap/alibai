@@ -1,12 +1,12 @@
 schemaVersion: 1
 id: storm-research-vessel-missing-launch
 meta:
-  title: 退避航行中の「みなも」
-  synopsis: "午後八時四十分、暴風海域で退避航行中の海洋調査船みなもで、主任研究者の瀬尾俊が解析室内で死亡しているのが見つかりました。荒天のため他船との接触はなく、船内にいた関係者は研究員の狩谷琴音、機関担当の水城明、通信担当の野々村岳の三人です。"
+  title: "調査船みなも号事件"
+  synopsis: "午後八時四十分、暴風海域で退避航行中の海洋調査船みなもで、主任研究者の瀬尾俊が解析室内で死亡しているのが見つかりました。荒天のため他船と\
+    の接触はなく、船内にいた関係者は研究員の狩谷琴音、機関担当の水城明、通信担当の野々村岳の三人です。"
   category: クローズドサークル
   difficulty: 4
   estimatedMinutes: 15
-  tags: [調査船, 暴風, 消失物, 外部犯人]
 victim:
   name: 瀬尾俊
   introduction: 海洋調査船みなも主任研究者
@@ -49,7 +49,6 @@ facts:
   - id: kariya-saw-launch-loss
     statement: 狩谷琴音は19時42分、小型作業艇が既に失われたことを水城明とともに確認した
     kind: observation
-    secret: true
   - id: launch-note-signed
     statement: 19時48分の甲板異常メモには、小型作業艇消失の確認者として水城明と狩谷琴音の署名がある
     kind: physical
@@ -62,90 +61,84 @@ facts:
   - id: kariya-entered-analysis-2014
     statement: 20時14分ごろ、狩谷琴音は解析室へ向かった
     kind: truth
-    secret: true
   - id: seo-death-2018
     statement: 20時18分ごろ、瀬尾俊は解析室で襲われ死亡した
     kind: truth
-    secret: true
   - id: kariya-killed-seo
     statement: 狩谷琴音は20時18分ごろ解析室で瀬尾俊を襲い死亡させた
     kind: truth
-    secret: true
   - id: mizuki-saw-kariya-2022
     statement: 20時22分ごろ、水城明は解析室側の通路から戻る狩谷琴音を見た
     kind: observation
   - id: seo-found-copying
     statement: 瀬尾俊は狩谷琴音が共同研究データを自分単独の成果として外部提出しようとしていたことに気づいた
     kind: motive
-    secret: true
   - id: seo-report-next-port
     statement: 瀬尾俊は次の寄港後、狩谷琴音による研究データの不適切な持ち出しを所属機関へ報告する予定だった
     kind: motive
-    secret: true
   - id: mizuki-hid-maintenance-delay
     statement: 水城明は甲板設備の点検延期を上司に報告していなかった
     kind: other
-    secret: true
   - id: nonomura-private-message
     statement: 野々村岳は勤務中に業務外の個人的な通信を行っていた
     kind: other
-    secret: true
   - id: body-found-2040
     statement: 20時40分、野々村岳が解析室で瀬尾俊の死を発見した
     kind: observation
 timeline:
   - id: launch-loss
     at: "19:42"
-    participants: [kariya, mizuki]
-    facts: [launch-lost-1942, kariya-saw-launch-loss]
+    participants: [ kariya, mizuki ]
+    facts: [ launch-lost-1942, kariya-saw-launch-loss ]
+    record: 消失確認メモ
     description: 暴風による甲板設備の異常が起き、小型作業艇が既に失われたことを狩谷と水城が確認する。
     location: 甲板
   - id: launch-note
     at: "19:48"
-    participants: [kariya, mizuki]
-    facts: [launch-note-signed]
+    participants: [ kariya, mizuki ]
+    facts: [ launch-note-signed ]
+    record: 甲板メモ
     description: 作業艇消失を含む甲板異常メモに狩谷と水城が署名する。
     location: 甲板
   - id: seo-call
     at: "19:56"
-    participants: [nonomura]
-    facts: [seo-alive-1956, launch-gone-before-death]
+    participants: [ nonomura ]
+    facts: [ seo-alive-1956, launch-gone-before-death ]
     description: 野々村が瀬尾と船内通話を行い、作業艇消失後にも瀬尾が生存していたことが確認される。
     location: 船内
   - id: kariya-analysis
     at: "20:14"
-    participants: [kariya]
-    facts: [kariya-entered-analysis-2014]
+    participants: [ kariya ]
+    facts: [ kariya-entered-analysis-2014 ]
     description: 狩谷が解析室へ向かう。
     location: 解析室
   - id: seo-death
     at: "20:18"
-    participants: [kariya]
-    facts: [seo-death-2018, kariya-killed-seo]
+    participants: [ kariya ]
+    facts: [ seo-death-2018, kariya-killed-seo ]
     description: 狩谷が解析室で瀬尾を襲い、瀬尾は死亡する。
     location: 解析室
   - id: corridor-sighting
     at: "20:22"
-    participants: [kariya, mizuki]
-    facts: [mizuki-saw-kariya-2022]
+    participants: [ kariya, mizuki ]
+    facts: [ mizuki-saw-kariya-2022 ]
     description: 水城が解析室側の通路から戻る狩谷を目撃する。
-    location: 解析室
+    location: 通路
   - id: discovery
     at: "20:40"
-    participants: [nonomura, kariya, mizuki]
-    facts: [body-found-2040]
+    participants: [ nonomura, kariya, mizuki ]
+    facts: [ body-found-2040 ]
     description: 野々村が解析室で瀬尾の死を発見する。
     location: 解析室
 characters:
   - id: kariya
     name: 狩谷琴音
-    role: suspect
     publicIntroduction: "頭の回転が速く、可能性を広げて話す研究員。"
     personality: 頭の回転が速く、可能性を広げて話す研究員。作業艇の消失を強調し、船内の三人に限定せず外部犯人の可能性を残そうとする。自分の研究上の不正を瀬尾に見つけられていた。
     goals:
       - 消えた作業艇を外部犯人の逃走手段と思わせたい
       - 共同研究データを単独成果として提出しようとしていたことを隠したい
-    knowledge: [kariya-researcher, launch-lost-1942, body-found-2040]
+    knowledge: [ kariya-researcher, launch-lost-1942, body-found-2040 ]
     secrets:
       - fact: kariya-saw-launch-loss
         disclosure: pressured
@@ -168,10 +161,8 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: signed-launch-note
-        about: launch-note-signed
         detail: 19時48分、水城と一緒に作業艇消失のメモへ署名したので、事件より前に艇がなかったことを確実に知っている。
       - id: next-port-report
-        about: seo-report-next-port
         detail: 瀬尾から「次の港に着いたら所属機関へ提出経緯を報告する」と告げられ、研究者として終わると思った。
     relationships:
       - character: mizuki
@@ -182,13 +173,20 @@ characters:
         attitude: 瀬尾の最後の船内通話時刻を正確に覚えているのが厄介
   - id: mizuki
     name: 水城明
-    role: witness
     publicIntroduction: "現場優先の機関担当。"
     personality: 現場優先の機関担当。設備点検を延期した件を隠したいが、作業艇が失われた時刻と狩谷の署名については記録通り話す。
     goals:
       - 設備点検の延期を隠したい
       - 作業艇は事件前に失われたと正確に説明したい
-    knowledge: [mizuki-engineer, launch-lost-1942, kariya-saw-launch-loss, launch-note-signed, mizuki-saw-kariya-2022, body-found-2040]
+    knowledge:
+      [
+        mizuki-engineer,
+        launch-lost-1942,
+        kariya-saw-launch-loss,
+        launch-note-signed,
+        mizuki-saw-kariya-2022,
+        body-found-2040
+      ]
     secrets:
       - fact: mizuki-hid-maintenance-delay
         disclosure: pressured
@@ -199,10 +197,8 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: launch-gone-with-kariya
-        about: kariya-saw-launch-loss
         detail: 作業艇が見当たらないことを狩谷と一緒に確認し、その後二人で異常メモに署名した。
       - id: kariya-corridor
-        about: mizuki-saw-kariya-2022
         detail: 20時22分ごろ、解析室側から戻ってくる狩谷と近い距離ですれ違った。
     relationships:
       - character: kariya
@@ -210,13 +206,12 @@ characters:
         attitude: 作業艇の件を知らないふりをする理由が分からず不信感がある
   - id: nonomura
     name: 野々村岳
-    role: witness
     publicIntroduction: "調査船の通信担当。"
     personality: 正確な通信記録を好む担当者。勤務中の私的通信を知られたくない。19時56分に瀬尾本人と話したことには自信がある。
     goals:
       - 業務外の個人的な通信を隠したい
       - 作業艇消失後も瀬尾が生存していたことを伝えたい
-    knowledge: [nonomura-radio, seo-alive-1956, launch-gone-before-death, body-found-2040]
+    knowledge: [ nonomura-radio, seo-alive-1956, launch-gone-before-death, body-found-2040 ]
     secrets:
       - fact: nonomura-private-message
         disclosure: pressured
@@ -227,7 +222,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: seo-voice-1956
-        about: seo-alive-1956
         detail: 19時56分に瀬尾と研究データの番号を読み合わせたので、その時点で本人が生きていたことは間違いない。
     relationships:
       - character: kariya
@@ -247,14 +241,21 @@ revelations:
         revealCondition: 水城に作業艇が失われた時刻と、その場にいた確認者、異常メモの署名者を尋ねた。
         requires:
           revelations: []
-          evidences: [launch-loss-note]
+          evidences: [ launch-loss-note ]
       - type: character
         id: nonomura
         revealCondition: 野々村に瀬尾と最後に確実に話した時刻を尋ね、作業艇消失より後だったと確認した。
         requires:
           revelations: []
-          evidences: [seo-call-log]
-    relatedFacts: [launch-lost-1942, kariya-saw-launch-loss, launch-note-signed, seo-alive-1956, launch-gone-before-death]
+          evidences: [ seo-call-log ]
+    relatedFacts:
+      [
+        launch-lost-1942,
+        kariya-saw-launch-loss,
+        launch-note-signed,
+        seo-alive-1956,
+        launch-gone-before-death
+      ]
   - id: data-report-motive
     title: 次の寄港後の不正報告
     text: 瀬尾は狩谷が共同研究データを単独成果として提出しようとしていたことを把握し、次の寄港後に所属機関へ報告する予定だった。
@@ -267,50 +268,46 @@ revelations:
         id: kariya
         revealCondition: 狩谷に共同研究データの外部提出と瀬尾が次の寄港後に予定していた報告を追及した。
         requires:
-          revelations: [launch-could-not-be-escape]
-          evidences: [submission-history]
-    relatedFacts: [seo-found-copying, seo-report-next-port]
+          revelations: [ launch-could-not-be-escape ]
+          evidences: [ submission-history ]
+    relatedFacts: [ seo-found-copying, seo-report-next-port ]
 evidences:
   - id: launch-loss-note
     label: 十九時四十八分の甲板異常メモ
     description: 小型作業艇が既に失われたことと、確認者として水城と狩谷の署名が残っている。
     reveal:
-      mode: conversation
       condition: 水城か狩谷に作業艇を最後に確認した時刻と甲板異常メモについて尋ねたら開示する。
     sources:
       - type: character
         id: mizuki
       - type: character
         id: kariya
-    supports: [launch-lost-1942, kariya-saw-launch-loss, launch-note-signed]
-    contradicts: ["lie:kariya-outsider-launch"]
+    supports: [ launch-lost-1942, kariya-saw-launch-loss, launch-note-signed ]
+    contradicts: [ "lie:kariya-outsider-launch" ]
   - id: seo-call-log
     label: 十九時五十六分の船内通話記録
     description: 作業艇消失後の19時56分、野々村が瀬尾本人と研究データの確認をしている。
     reveal:
-      mode: conversation
       condition: 野々村に瀬尾と最後に話した船内通話の内容と時刻を尋ねたら開示する。
     sources:
       - type: character
         id: nonomura
-    supports: [seo-alive-1956, launch-gone-before-death]
-    contradicts: ["lie:kariya-outsider-launch"]
+    supports: [ seo-alive-1956, launch-gone-before-death ]
+    contradicts: [ "lie:kariya-outsider-launch" ]
   - id: analysis-corridor-sighting
     label: 二十時二十二分の通路目撃
     description: 水城は解析室側の通路から戻る狩谷を20時22分ごろに目撃している。
     reveal:
-      mode: conversation
       condition: 水城に20時15分から25分の間に解析室側で誰を見たか尋ねたら開示する。
     sources:
       - type: character
         id: mizuki
-    supports: [mizuki-saw-kariya-2022]
-    contradicts: ["lie:kariya-no-analysis-room"]
+    supports: [ mizuki-saw-kariya-2022 ]
+    contradicts: [ "lie:kariya-no-analysis-room" ]
   - id: submission-history
     label: 共同研究データの提出履歴
     description: 狩谷が共同研究データを単独成果として外部提出しようとし、瀬尾がその経緯を問題視していたことが分かる。
     reveal:
-      mode: conversation
       condition: 狩谷か野々村に瀬尾が直前まで確認していた研究データの提出経緯を尋ねたら開示する。または遺体・現場を調べ、「共同研究データの提出履歴」に関わる資料を確認したら開示する。
     sources:
       - type: character
@@ -319,47 +316,36 @@ evidences:
         id: nonomura
       - type: victim
         id: victim
-    supports: [seo-found-copying, seo-report-next-port]
+    supports: [ seo-found-copying, seo-report-next-port ]
     contradicts: []
   - id: delayed-maintenance
     label: 延期された甲板設備点検
     description: 水城が点検延期を報告していなかったことが分かるが、瀬尾の死とは独立した隠し事である。
     reveal:
-      mode: conversation
       condition: 水城に甲板設備の点検予定と延期について具体的に尋ねたら開示する。
     sources:
       - type: character
         id: mizuki
-    supports: [mizuki-hid-maintenance-delay]
-    contradicts: ["lie:mizuki-maintenance-current"]
+    supports: [ mizuki-hid-maintenance-delay ]
+    contradicts: [ "lie:mizuki-maintenance-current" ]
   - id: private-radio-message
     label: 野々村の私的通信
     description: 野々村が勤務中に個人的な通信をしていたことが分かるが、解析室の事件とは無関係である。
     reveal:
-      mode: conversation
       condition: 野々村に当直中の業務外通信を追及したら開示する。
     sources:
       - type: character
         id: nonomura
-    supports: [nonomura-private-message]
-    contradicts: ["lie:nonomura-work-only"]
+    supports: [ nonomura-private-message ]
+    contradicts: [ "lie:nonomura-work-only" ]
 solution:
   culprit: kariya
   summary: 犯人は狩谷琴音。発見時に小型作業艇がなかったため、事件後に外部犯人が艇で逃げたように見えるが、艇は19時42分に既に失われていた。19時48分の甲板異常メモには狩谷自身の署名があり、狩谷は事件前から作業艇がないことを知っていた。その後19時56分には野々村が瀬尾本人と通話しているため、作業艇消失は瀬尾の死より前である。20時22分には水城が解析室側から戻る狩谷を目撃している。瀬尾は狩谷による共同研究データの不適切な外部提出を次の寄港後に報告する予定だった。狩谷が知っているはずの時系列を隠して外部犯人説を強調したことが重要な矛盾となる。
   method: 事件前から失われていた作業艇を事件後の逃走手段だったように扱い、船内三人以外の犯人が存在する可能性を作ったうえで、自分の解析室への出入りを隠した
   motive: 共同研究データを単独成果として外部提出しようとした件を、瀬尾が次の寄港後に所属機関へ報告する予定だったため
-  requiredFacts: [launch-lost-1942, kariya-saw-launch-loss, launch-note-signed, seo-alive-1956, launch-gone-before-death, mizuki-saw-kariya-2022, seo-report-next-port, kariya-killed-seo]
   secretKeywords:
     - 犯人は狩谷
     - 狩谷が犯人
     - 狩谷が瀬尾を襲
     - 私が瀬尾を襲
     - 作業艇で外部犯人を偽装
-quality:
-  expectedQuestionCount:
-    min: 11
-    max: 22
-  requiredEvidence:
-    min: 3
-  redHerrings: [mizuki-hid-maintenance-delay, nonomura-private-message]
-  notes: 漂流船の歴史的ミステリに見られる「欠けた小舟が人の移動を意味する」という連想を反転。消失物の時刻を確定し、容疑者がその時刻を知っていた点まで追う。

@@ -13,7 +13,7 @@ import {
 import type { Db } from '@/server/db/client'
 import { createDb } from '@/server/db/client'
 import type { Bindings, Env } from '@/server/env'
-import { type AlibiSegment, alibiSegmentsOf } from '@/server/game/alibi'
+import { type AlibiSegment, alibiSegmentsOf, type Clash, clashOf } from '@/server/game/alibi'
 import { buildVictimSheet, type DiscoveredIds } from '@/server/game/examination'
 import { remainingHints } from '@/server/game/hints'
 import { acceptRevealedRevelationIds } from '@/server/game/revelations'
@@ -250,7 +250,7 @@ const loadAlibiSegments = async (
   scenarioId: string,
   discoveredEvidenceIds: string[],
   discoveredRevelationIds: string[],
-): Promise<AlibiSegment[]> => {
+): Promise<{ segments: AlibiSegment[]; clash: Clash | undefined }> => {
   const [truthRows, scenarioRows] = await Promise.all([
     db
       .select({ timelineEvents: scenarioTruths.timelineEvents })
@@ -268,14 +268,14 @@ const loadAlibiSegments = async (
   const end = scenarioRows[0]?.timeEnd
 
   if (events === undefined || events.length === 0 || end === null || end === undefined) {
-    return []
+    return { segments: [], clash: undefined }
   }
 
   const [evidenceRows, revelationRows] = await Promise.all([
     discoveredEvidenceIds.length === 0
       ? Promise.resolve([])
       : db
-          .select({ supports: evidences.supports })
+          .select({ supports: evidences.supports, contradicts: evidences.contradicts })
           .from(evidences)
           .where(
             and(eq(evidences.scenarioId, scenarioId), inArray(evidences.id, discoveredEvidenceIds)),
@@ -297,14 +297,30 @@ const loadAlibiSegments = async (
           ),
   ])
 
-  return alibiSegmentsOf({
-    events,
-    end,
-    clues: {
-      revelations: revelationRows,
-      evidenceSupports: evidenceRows.flatMap((row) => row.supports),
-    },
-  })
+  /*
+    嘘の紐は人物をまたいで平らにする。どの人物の嘘かは印を立てるのに要らない
+    ——欲しいのは「その嘘が言い張っていた時刻」だけなので。
+  */
+  const lieRows = await db
+    .select({ lieRefs: characters.lieRefs })
+    .from(characters)
+    .where(eq(characters.scenarioId, scenarioId))
+
+  return {
+    segments: alibiSegmentsOf({
+      events,
+      end,
+      clues: {
+        revelations: revelationRows,
+        evidenceSupports: evidenceRows.flatMap((row) => row.supports),
+      },
+    }),
+    clash: clashOf({
+      events,
+      lies: lieRows.flatMap((row) => row.lieRefs),
+      contradicts: evidenceRows.flatMap((row) => row.contradicts),
+    }),
+  }
 }
 
 /**
@@ -482,7 +498,7 @@ sessionRoutes.get('/api/sessions/:id', validateSessionId, withEnv, async (c) => 
     snapshot.discoveredEvidenceIds.length === 0
       ? Promise.resolve([])
       : db
-          .select({ id: evidences.id, label: evidences.label })
+          .select({ id: evidences.id, label: evidences.label, description: evidences.description })
           .from(evidences)
           .where(
             and(
@@ -517,7 +533,7 @@ sessionRoutes.get('/api/sessions/:id', validateSessionId, withEnv, async (c) => 
     発見済みは必ず DO の snapshot から取る。discoveries / revelation_discoveries の
     行から数えると、DO への記録は成功して DB の insert が落ちた回でずれる。
   */
-  const alibiSegments = await loadAlibiSegments(
+  const board = await loadAlibiSegments(
     db,
     scenarioId,
     snapshot.discoveredEvidenceIds,
@@ -554,7 +570,8 @@ sessionRoutes.get('/api/sessions/:id', validateSessionId, withEnv, async (c) => 
       category: row.category,
       subject: { type: row.subjectType, id: row.subjectId },
     })),
-    alibiSegments,
+    alibiSegments: board.segments,
+    clash: board.clash,
     turn: turnStateOf(snapshot.questionCount, limits.maxTurns, limits.questionsPerTurn),
   })
 })
@@ -1034,7 +1051,11 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
         judgement.revealedEvidenceIds.length === 0
           ? Promise.resolve([])
           : db
-              .select({ id: evidences.id, label: evidences.label })
+              .select({
+                id: evidences.id,
+                label: evidences.label,
+                description: evidences.description,
+              })
               .from(evidences)
               .where(inArray(evidences.id, judgement.revealedEvidenceIds)),
         revealedRevelationIds.length === 0
@@ -1060,7 +1081,7 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
         リロードで組み直した表と食い違う。表の側は key で見分けるので、
         既に立っている線が送り直されても動き直さない。
       */
-      const alibiSegments = await loadAlibiSegments(
+      const board = await loadAlibiSegments(
         db,
         scenarioId,
         snapshot.discoveredEvidenceIds,
@@ -1080,7 +1101,8 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
           })),
           contradictionPointedOut: judgement.contradictionPointedOut,
           suggestedQuestions: judgement.suggestedQuestions,
-          alibiSegments,
+          alibiSegments: board.segments,
+          clash: board.clash,
           questionCount,
           turn: turnStateOf(questionCount, limits.maxTurns, limits.questionsPerTurn),
         }),

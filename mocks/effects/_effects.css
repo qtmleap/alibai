@@ -124,7 +124,7 @@ body {
 .d-rail .at {
   position: absolute;
   top: 0;
-  transform: translateX(-50%);
+  translate: -50%;
   color: var(--asagi-t);
   font-family: var(--mono);
   font-variant-numeric: tabular-nums;
@@ -144,7 +144,7 @@ body {
 @keyframes at-in {
   from {
     opacity: 0;
-    transform: translate(-50%, 5px);
+    transform: translateY(5px);
   }
 }
 
@@ -265,7 +265,7 @@ body {
 .d-rail .qm {
   position: absolute;
   top: 1px;
-  transform: translateX(-50%);
+  translate: -50%;
   font-size: 13px;
   color: var(--suou-t);
 }

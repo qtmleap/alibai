@@ -25,6 +25,13 @@ export const timelineEventSchema = z.object({
    * という状態を素直に写す。現状は43本すべてが書いている。
    */
   place: z.string().max(60),
+  /** 見取り図の部屋ID。図の無い事件では空。 */
+  room: z.string().default(''),
+  /**
+   * その時刻を留めた記録の名前。「受付」「忘れ傘」。
+   * 目盛りに `19:08　受付` と添う。無ければ時刻だけが立つ。
+   */
+  record: z.string().default(''),
   /** 登場人物のUUID。characters.id と揃えてあるので、そのまま列に対応する。 */
   participants: z.array(z.string().nonempty()),
   /** authoring のローカル fact ID。発見済みの手掛かりと突き合わせる鍵。 */

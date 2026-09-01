@@ -98,6 +98,13 @@ export const scenarios = sqliteTable('scenarios', {
    * だからここに焼く。所見も死因も無いシナリオでは false。
    */
   victimInvestigable: integer('victim_investigable', { mode: 'boolean' }).notNull().default(false),
+  /**
+   * 死亡推定時刻。アリバイ表を横断する刻限の線になる。
+   *
+   * 公開側に置くのは、事件の記録が既に語っている情報だから。伏せると盤面に
+   * 「いつまでに」が引けなくなり、時刻の偽装を核にした事件が読み解けなくなる。
+   */
+  victimEstimatedDeathAt: text('victim_estimated_death_at'),
   authorId: text('author_id'),
   isPublished: integer('is_published', { mode: 'boolean' }).notNull().default(false),
   difficulty: integer('difficulty').notNull().default(3),
@@ -178,6 +185,17 @@ export const characters = sqliteTable(
     secrets: text('secrets').notNull(),
     goals: text('goals').notNull(),
     lies: text('lies').notNull(),
+    /**
+     * 嘘の紐だけを構造のまま持ったもの。
+     *
+     * `lies` はNPCへ渡す散文で、そちらからは id も対象の fact も引けない。
+     * 食い違いの印は「どの嘘が、どの事実について言い張っていたか」を辿るので、
+     * 畳む前の形をここに残す。プロンプトには使わない。
+     */
+    lieRefs: text('lie_refs', { mode: 'json' })
+      .$type<{ id: string; about: string }[]>()
+      .notNull()
+      .default([]),
     memories: text('memories').notNull(),
   },
   (table) => [index('characters_scenario_id_idx').on(table.scenarioId)],
@@ -191,6 +209,12 @@ export const evidences = sqliteTable(
       .notNull()
       .references(() => scenarios.id, { onDelete: 'cascade' }),
     label: text('label').notNull(),
+    /**
+     * 証拠の中身。捜査メモが読む。
+     *
+     * ラベルだけでは「何が分かったのか」が残らず、記録が名前の羅列になる。
+     */
+    description: text('description'),
     /** Judgeがこの証拠の開示を判定するための条件文 */
     revealCondition: text('reveal_condition').notNull(),
     /**
@@ -208,6 +232,13 @@ export const evidences = sqliteTable(
      * ここを持たないと線がほとんど増えない。
      */
     supports: text('supports', { mode: 'json' }).$type<string[]>().notNull().default([]),
+    /**
+     * この証拠が突き崩す嘘（`"lie:<id>"`）。
+     *
+     * 時刻表の食い違いの印がこれを読む。掴んだ証拠がどの嘘を崩したかが分かって初めて、
+     * 盤面のどこが怪しいかを一本の線として指せる。
+     */
+    contradicts: text('contradicts', { mode: 'json' }).$type<string[]>().notNull().default([]),
   },
   (table) => [index('evidences_scenario_id_idx').on(table.scenarioId)],
 )

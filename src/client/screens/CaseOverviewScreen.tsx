@@ -194,7 +194,7 @@ export const CaseOverviewScreen = ({
           : `${chosen.name}に聞き込みをする`
 
   return (
-    <div className="screen-enter mx-auto flex min-h-dvh max-w-md flex-col gap-[17px] bg-sumi px-[18px] py-6 text-kinari lg:grid lg:h-dvh lg:max-w-none lg:grid-cols-[minmax(0,1fr)_628px] lg:grid-rows-[46px_minmax(0,1fr)] lg:gap-0 lg:p-0">
+    <div className="screen-enter mx-auto flex min-h-dvh-safe max-w-md flex-col gap-[17px] bg-sumi px-[18px] py-6 text-kinari lg:grid lg:h-dvh-safe lg:max-w-none lg:grid-cols-[minmax(0,1fr)_628px] lg:grid-rows-[46px_minmax(0,1fr)] lg:gap-0 lg:p-0">
       {/*
         上部バーは薄く、机の面を最大に取る。降りる口はここひとつ。押した瞬間に
         落ちると事故になるので、AlertDialog で必ず一度確かめる。
@@ -250,6 +250,15 @@ export const CaseOverviewScreen = ({
               people={[...people, ...victimColumn]}
               segments={[]}
               span={{ from: scenario.timeWindow.start, to: scenario.timeWindow.end }}
+              /*
+                白紙の表にも刻限だけは引く。「いつまでに殺せたか」は事件の記録が
+                既に語っていて、これから何を埋めるのかを示す唯一の目印になる。
+              */
+              deadline={
+                scenario.victim?.estimatedDeathAt == null
+                  ? undefined
+                  : { at: scenario.victim.estimatedDeathAt, label: '死亡推定' }
+              }
             />
           </div>
 

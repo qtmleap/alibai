@@ -1,12 +1,11 @@
 schemaVersion: 1
 id: avalanche-lodge-phantom-room
 meta:
-  title: 白樺峰に雪崩が落ちた夜
+  title: "白樺峰、明朝まで"
   synopsis: "午後九時四十五分、雪崩で道路を失った白樺峰ホテルの支配人室で、支配人の早瀬隆司が死亡しているのが見つかりました。外部との電話も不通で、事件時刻に館内にいた従業員は三人だけです。"
   category: クローズドサークル
   difficulty: 5
   estimatedMinutes: 15
-  tags: [山荘, 雪崩, 偽の呼び出し, アリバイ]
 victim:
   name: 早瀬隆司
   introduction: 白樺峰ホテル支配人
@@ -49,7 +48,6 @@ facts:
   - id: natsume-knew-renumbering
     statement: 夏目悠は三年前の改装時に客室番号変更の案内を担当しており、二一四号室が存在しないことを知っていた
     kind: truth
-    secret: true
   - id: fake-message-left
     statement: 21時16分ごろ、フロントの伝言台に「二一四号室、暖房停止、至急確認」と書かれた紙が置かれた
     kind: physical
@@ -68,27 +66,21 @@ facts:
   - id: hayase-death-2130
     statement: 21時30分ごろ、早瀬隆司は支配人室で襲われ死亡した
     kind: truth
-    secret: true
   - id: natsume-killed-hayase
     statement: 夏目悠は21時30分ごろ支配人室で早瀬隆司を襲い死亡させた
     kind: truth
-    secret: true
   - id: hayase-audit-next-morning
     statement: 早瀬隆司は翌朝、夜勤時の現金不足について夏目悠へ正式な監査を行う予定だった
     kind: motive
-    secret: true
   - id: natsume-cash-shortage
     statement: 夏目悠は夜勤売上の不足を私的な立替で一時的に隠していた
     kind: motive
-    secret: true
   - id: oda-hid-broken-linen
     statement: 小田真紀は高価なリネンを誤って破損し、交換記録を書き換えていた
     kind: other
-    secret: true
   - id: fujino-took-wine
     statement: 藤野修平は廃棄予定ではない料理用ワインを自宅用に持ち帰ろうとしていた
     kind: other
-    secret: true
   - id: paper-from-night-pad
     statement: 二一四号室の伝言紙は、夏目悠が夜勤日誌に使う個人管理のメモ束と同じ裁断痕を持つ
     kind: physical
@@ -106,6 +98,7 @@ timeline:
     at: "21:16"
     participants: [natsume]
     facts: [fake-message-left, no-214-call, paper-from-night-pad]
+    record: 伝言紙
     description: フロントに二一四号室の設備苦情を装う伝言が置かれる。
     location: フロント
   - id: ask-oda
@@ -141,7 +134,6 @@ timeline:
 characters:
   - id: natsume
     name: 夏目悠
-    role: suspect
     publicIntroduction: "丁寧で機転が利く夜勤責任者。"
     personality: 丁寧で機転が利く夜勤責任者。館内事情には誰より詳しいが、会計の話になると慎重に言葉を選ぶ。早瀬には長年世話になった一方、翌朝の監査を強く恐れていた。
     goals:
@@ -168,10 +160,8 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: renovation-numbering
-        about: natsume-knew-renumbering
         detail: 改装時、二一四号室を廃止する案内を自分で各予約サイトへ登録したので、その番号だけは忘れようがない。
       - id: audit-fear
-        about: hayase-audit-next-morning
         detail: 早瀬に「明日の朝、帳尻を全部見せてもらう」と静かに言われたとき、逃げ道がなくなったと感じた。
     relationships:
       - character: oda
@@ -182,7 +172,6 @@ characters:
         attitude: 深く考えず話す性格なので利用しやすいと思っている
   - id: oda
     name: 小田真紀
-    role: witness
     publicIntroduction: "几帳面で、人の出入りをよく覚えている客室係。"
     personality: 几帳面で、人の出入りをよく覚えている客室係。自分の備品管理ミスを隠しているため、管理記録を調べられることには抵抗がある。
     goals:
@@ -199,7 +188,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: saw-management-corridor
-        about: oda-saw-natsume-office-side
         detail: 客室棟へ行ったはずの夏目が管理廊下から出てきたので、「二一四号室はそっちじゃない」と思った。
     relationships:
       - character: natsume
@@ -207,7 +195,6 @@ characters:
         attitude: 普段は頼れるが、数字の話を避けるところが気になっている
   - id: fujino
     name: 藤野修平
-    role: witness
     publicIntroduction: "気さくで話好きな料理人。"
     personality: 気さくで話好きな料理人。細かな時刻には弱いが、厨房前で誰と話したかはよく覚えている。持ち帰ろうとした料理用ワインの件だけは触れられたくない。
     goals:
@@ -224,7 +211,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: natsume-asked-again
-        about: natsume-asked-fujino
         detail: 夏目は二一四号室が分からないと言ったが、長年いる人がそんな番号を忘れるかな、と少し引っかかった。
     relationships:
       - character: natsume
@@ -272,7 +258,6 @@ evidences:
     label: 改装後の客室番号表
     description: 三年前の改装で二一四号室は廃止され、その案内担当者欄には夏目の名前がある。
     reveal:
-      mode: conversation
       condition: 小田か夏目に二一四号室の改装履歴と、誰が番号変更を担当したか尋ねたら開示する。
     sources:
       - type: character
@@ -285,7 +270,6 @@ evidences:
     label: 館内電話の着信一覧
     description: 二一四号室を名乗る着信はなく、設備苦情は電話ではなく紙の伝言だけで現れている。
     reveal:
-      mode: conversation
       condition: 夏目に設備苦情を誰からどの電話で受けたのか確認するか、小田にフロントの着信記録について尋ねたら開示する。
     sources:
       - type: character
@@ -298,7 +282,6 @@ evidences:
     label: 伝言紙の裁断痕
     description: 二一四号室の伝言紙は、夏目が夜勤日誌で使うメモ束から切り離された紙と一致する。
     reveal:
-      mode: conversation
       condition: 二一四号室の伝言紙を誰が扱えるか、または夏目の夜勤メモについて追及したら開示する。
     sources:
       - type: character
@@ -311,7 +294,6 @@ evidences:
     label: 二十一時二十七分の管理廊下目撃
     description: 小田は、客室棟を探しているはずの夏目が支配人室へ続く管理廊下から出てくるのを見ている。
     reveal:
-      mode: conversation
       condition: 小田に21時20分から35分の間に誰を見たか尋ね、管理廊下での目撃を確認したら開示する。
     sources:
       - type: character
@@ -322,7 +304,6 @@ evidences:
     label: 翌朝の会計監査メモ
     description: 早瀬の予定表には、翌朝最初の業務として夏目の夜勤売上不足を確認する予定が記されている。
     reveal:
-      mode: conversation
       condition: 夏目か小田に早瀬が翌朝予定していた会計確認について尋ねたら開示する。または遺体・現場を調べ、「翌朝の会計監査メモ」に関わる資料を確認したら開示する。
     sources:
       - type: character
@@ -337,7 +318,6 @@ evidences:
     label: 書き換えられたリネン交換記録
     description: 小田が破損品の処理を隠すため、一部の交換記録を書き換えていたことが分かる。事件とは独立した隠し事である。
     reveal:
-      mode: conversation
       condition: 小田に備品管理記録の修正について具体的に尋ねたら開示する。
     sources:
       - type: character
@@ -348,7 +328,6 @@ evidences:
     label: 厨房裏の持ち帰り袋
     description: 藤野が料理用ワインを入れた袋が見つかるが、事件時刻の支配人室とは関係しない。
     reveal:
-      mode: conversation
       condition: 藤野に厨房から私物として持ち出そうとしたものがないか追及したら開示する。
     sources:
       - type: character
@@ -360,18 +339,9 @@ solution:
   summary: 犯人は夏目悠。夏目は三年前の改装案内を担当しており、二一四号室が存在しないことを知っていた。それにもかかわらず、二一四号室の設備苦情という伝言を用意し、小田と藤野の前でわざと場所を尋ねて、自分が客室棟を探し回っている印象を作った。実際には21時27分ごろ小田が支配人室側の管理廊下から出てくる夏目を目撃しており、21時30分ごろ夏目は支配人室で早瀬を襲った。翌朝には夏目が隠していた夜勤売上の不足について監査が予定されていた。電話記録に二一四号室からの着信がなく、伝言紙も夏目の夜勤メモと一致するため、存在しない部屋を探す行動自体が見せるためのアリバイ工作だったと分かる。
   method: 存在しない客室からの苦情を装って館内を探し回る姿を複数人に見せた後、支配人室へ戻って早瀬を襲い、再び人前に出てアリバイを補強した
   motive: 翌朝の会計監査で、夜勤売上の不足を隠していたことが発覚するのを恐れたため
-  requiredFacts: [room-214-removed, natsume-knew-renumbering, no-214-call, oda-saw-natsume-office-side, paper-from-night-pad, hayase-audit-next-morning, natsume-killed-hayase]
   secretKeywords:
     - 犯人は夏目
     - 夏目が犯人
     - 夏目が早瀬を襲
     - 私が早瀬を襲
     - 二一四号室を使ってアリバイ
-quality:
-  expectedQuestionCount:
-    min: 12
-    max: 24
-  requiredEvidence:
-    min: 3
-  redHerrings: [oda-hid-broken-linen, fujino-took-wine]
-  notes: 偽の呼び出しそのものより、「長年勤務する夏目が存在しない部屋を知らないはずがない」という知識の矛盾が主軸。電話記録、伝言紙、管理廊下目撃を重ねて初めて工作と犯行機会が結びつく。

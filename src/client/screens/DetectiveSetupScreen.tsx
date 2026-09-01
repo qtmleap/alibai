@@ -134,7 +134,7 @@ export const DetectiveSetupScreen = ({
   const rosterVisibleOnPhone = draft === undefined
 
   return (
-    <div className="screen-enter mx-auto flex min-h-dvh max-w-md flex-col bg-sumi text-kinari lg:mx-0 lg:grid lg:h-dvh lg:max-w-none lg:grid-cols-[1fr_628px] lg:gap-0 lg:overflow-hidden">
+    <div className="screen-enter mx-auto flex min-h-dvh-safe max-w-md flex-col bg-sumi text-kinari lg:mx-0 lg:grid lg:h-dvh-safe lg:max-w-none lg:grid-cols-[1fr_628px] lg:gap-0 lg:overflow-hidden">
       {/* ---- 左：名簿 ---- */}
       <div
         className={`${rosterVisibleOnPhone ? 'flex' : 'hidden'} min-h-0 flex-1 flex-col px-[18px] pt-[26px] pb-6 lg:flex lg:flex-none lg:overflow-y-auto lg:border-keisen lg:border-r lg:px-0 lg:py-0 lg:pt-[34px] lg:pr-[34px] lg:pb-[26px] lg:pl-[22px]`}

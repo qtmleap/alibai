@@ -50,7 +50,6 @@ characters: []            # 2人以上
 revelations: []           # 省略可
 evidences: []
 solution: {}
-quality: {}               # 省略可
 ```
 
 文章はすべて日本語。ID は英小文字・数字・ハイフンだけにしてください。
@@ -66,7 +65,6 @@ meta:
   category: 館もの                 # 1〜50文字、一覧に出る短いラベル
   difficulty: 2                    # 整数 1〜5
   estimatedMinutes: 10             # 整数 5〜30
-  tags: [和風, 毒殺]               # 省略可
 ```
 
 `title` も公開情報です。**トリック名・中心証拠・アリバイの弱点・時刻のずれ・目撃の誤認など、解法へ直結する語をタイトルに入れてはいけません。** 原則として「施設・土地・時代・天候・事件の場」だけで題を付けます。謎めかせるために決定的な物品や記録を題名へ出すのも避けてください。
@@ -100,14 +98,12 @@ meta:
 facts:
   - id: fukagawa-left-1915
     statement: 19時15分ごろ、深川誠也が電話のため食堂の席を外した
-    kind: observation        # 省略可
-    secret: false            # 省略可、既定 false
+    kind: observation        # 全件に書く（§後述）
 ```
 
 - `statement` は**文脈なしで意味が通る一文**にする。誰の視点でもない三人称で書く。
 - 一つの `statement` に複数の事実を詰め込まない。「席を外し、45分に戻った」は2件に割る。
 - `kind` は `observation` / `physical` / `testimony` / `motive` / `truth` / `other`。
-- `secret: true` はプレイヤーへ直接公開してはいけない事実の印。
 
 **`kind` はアリバイ表の線の種類を決めます。** 出来事を構成する事実に `physical`（物証）か
 `observation`（第三者が見たこと）が一つでも混じれば**実線**（裏付けあり）、`testimony` などだけなら
@@ -126,15 +122,20 @@ facts:
 timeline:
   - id: fukagawa-leaves
     at: "19:15"                        # "HH:mm" で統一する
-    location: 廊下                      # アリバイ表に出る在所
-    participants: [fukagawa, kiryu]    # characters[].id
+    location: 廊下                      # アリバイ表に出る在所。画面に出る文字そのもの
+    room: corridor                     # 見取り図の部屋ID。図のある事件だけ。省略可
+    participants: [fukagawa]           # その時刻に location に居た人
+    witnesses: [kiryu]                 # 離れて見ていた人。線は引かれない。省略可
     facts: [fukagawa-left-1915]        # 1件以上、必須
+    record: 内線記録                    # 時刻を留めた記録の名前。裏付けのある出来事には必ず
     description: 深川が電話のため一時的に席を外す。桐生が廊下でこれを見ている。
 ```
 
 - `at` は `"HH:mm"`。日を跨ぐ事件でない限り ISO 8601 は使わない。**同一シナリオ内で両形式を混ぜてはいけません。**
 - `description` は**結末画面にそのまま並ぶ一文**なので、読み物として書く。省くと `facts` を ` / ` で機械連結したものが出て不格好になります。全イベントに書いてください。
-- 被害者は `characters` に居ないので `participants` には書けません。
+- 被害者は `characters` に居ないので `participants` にも `witnesses` にも書けません。
+- `location` は**画面にそのまま出る文字**です。部屋のIDを書く欄ではありません（それは `room`）。
+- `room` は見取り図がある事件でだけ書けます。図の無い事件で書くと検証で落ちます。
 
 ### timeline はアリバイ表になる
 
@@ -143,13 +144,21 @@ timeline:
 
 - **`participants` が、誰の列に線が引かれるかを決めます。** 空にすると、その出来事は表に出ません。
   **`location` に居た人だけを書いてください。** 関わった人ではありません。
-  「Aが書斎に入る。廊下でBとすれ違う」を一つの出来事にすると、**表の上ではBまで書斎に居たことになります。**
-  居た場所が違うなら、同じ時刻でも**別の出来事に割ってください**（Aは書斎、Bは廊下）。
-  離れた場所から見ていた目撃も同じで、目撃した人の居場所のほうに書きます。
+- **離れて見ていた人は `witnesses` へ。** こちらには線が引かれません。
+  「Aが書斎に入る。廊下でBとすれ違う」を一つの出来事にして両方を `participants` に載せると、
+  **表の上ではBまで書斎に居たことになります。** Bは `witnesses` に置き、
+  B自身がどこに居たかは**別の出来事として書いてください**（Aは書斎、Bは廊下）。
+  同じ人を両方に載せると検証で落ちます。居た場所は一つだけだからです。
 - **`location` が、線に添う在所の文字になります。**「郵便窓口」「裏の路地」のような**短い名詞句**にする。
   列の幅は狭く、長い句は入りません。**8文字を超えないこと。** `description` の文をそのまま入れてはいけません。
-  見取り図のある事件では、代わりに**部屋のID**（`floorPlan.rooms[].id`）を書けます。
-  表には部屋の名前（`label`）が出ます——IDのまま出ると、在所の欄に英字が並びます。
+- **`room`** は見取り図の部屋ID。`location` とは役割が違います。前者は図と結ぶための鍵、
+  後者は画面に出る文字です。図のある事件では両方書いてください。
+- **`record` は、その時刻を留めた記録の名前**です。「受付」「忘れ傘」「通報」。
+  アリバイ表の目盛りに `19:08　受付` の形で添います。**裏付けのある出来事には必ず書いてください。**
+  空にすると目盛りは `19:08` とだけ出て、何がその時刻を留めたのかが画面から読めなくなり、
+  プレイヤーは会話へ戻って探すことになります。
+  ただし**本人が言っただけの時刻には付けないこと**——記録の名前が付くと、証拠があるように見えます。
+  12文字まで。
 - 線の種類（実線か破線か）は `facts` の `kind` から決まります（§5 参照）。
 - 線の終わりは「その人について**次に分かっている**出来事」までです。まだ発見されていない出来事は
   終端に使われないので、知らない時刻が線の長さとして漏れることはありません。最後の一本だけは
@@ -159,7 +168,7 @@ timeline:
   知るほど像が細かくなる——その手応えが、出来事の数から生まれます。
 
 スキーマ上は `location` も `participants` も省略できますが、省略した出来事は表に出ないか、
-在所が空欄の線になります。**新しく書くシナリオでは必ず両方を入れてください。**
+在所が空欄の線になります。**必ず両方を入れてください。**
 
 ---
 
@@ -176,7 +185,9 @@ victim:
   name: 高瀬涼子
   introduction: 老舗旅館「月見荘」女将    # 肩書きひとつぶん、60文字まで
   foundAt: "20:30"                      # 発見時刻。timeline と同じ書き方
-  foundIn: 書斎                          # 発見場所。20文字まで。部屋IDでも可
+  foundIn: 書斎                          # 発見場所。画面に出る文字。20文字まで
+  foundRoom: study                      # 発見場所の部屋ID。図のある事件だけ。省略可
+  estimatedDeathAt: "20:15"             # 死亡推定時刻。発見時刻とは別物
   causeOfDeath: 植物性の毒物による中毒死
   findings:                             # 調べて分かること。1件1文
     - id: single-glass
@@ -191,7 +202,10 @@ victim:
   ——あれは `revelations` の仕事で、ここに混ぜると「遺体を見ただけで動機が分かる」ことになります。
 - 誰がやったかを書かない。見えたものだけを置き、繋ぐのはプレイヤーの仕事です。
 - `findings` も `causeOfDeath` も無ければ、被害者は聞き込みの相手に並びません（調べても何も出ないので）。
-- `foundIn` は `timeline` の `location` と同じ扱いです。見取り図のある事件では部屋のIDを書けます。
+- `foundIn` は `timeline` の `location` と同じ扱いです。画面に出る文字で、部屋IDは `foundRoom` へ。
+- **`estimatedDeathAt` はアリバイ表を横断する刻限の線になります。** 発見時刻（`foundAt`）とは別物です。
+  「いつまでに殺せたか」が盤面に引かれるので、**時刻の偽装を核にする事件では必ず入れてください。**
+  ここが無いと、線が何本増えても「間に合ったのか」を読む基準が画面に現れません。
 - 遺体を調べるのも**質問1回ぶん**を消費します。人に訊くか現場を見るかの配分がそのままゲームになります。
 
 ### `sources: { type: victim }`
@@ -215,7 +229,6 @@ evidences:
 characters:
   - id: fukagawa
     name: 深川誠也
-    role: suspect                      # 省略可
     publicIntroduction: 月見荘の経理を長年任されている税理士。  # プレイヤーへ最初から公開
     personality: 気弱で愛想笑いが多い税理士。追い詰められると目が泳ぐ。  # NPC内部用、非公開
     goals:
@@ -232,7 +245,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: the-night-before
-        about: ryoko-confronted-fukagawa
         detail: 前日の夜に呼び止められたときの、心臓が縮み上がるような感覚をまだ覚えている。
     relationships:
       - character: mizuki              # characters[].id
@@ -280,9 +292,15 @@ personality: 気弱で愛想笑いが多い。横領の話題では動揺し、�
 | `maintain-until-contradicted` | 明確な反証を示されるまでは言い張り、示されたら崩れる |
 | `evasive` | はっきり否定はせず、話をそらしてやり過ごす |
 
+**`about` はアリバイ表の鍵でもあります。** 嘘を崩す証拠（`contradicts` にこの嘘を持つもの）を
+プレイヤーが掴むと、表を横断する「食い違い」の印が一本立ちます。印が立つ時刻を決めているのが
+この `about` で、**`about` に書いた事実が `timeline` のどれかの出来事の `facts` に載っていないと、
+崩す証拠を掴んでも印は最後まで現れません。** 嘘が言い張っている事実は、必ず時刻表の出来事にも
+含めてください。印は一本だけで、複数該当するときはいちばん早い時刻に立ちます。
+
 ### `memories` と `relationships`
 
-`memories` は感情の手触りを与える短い記憶。`detail` だけが人物に渡り、`about` は検証用の紐です。
+`memories` は感情の手触りを与える短い記憶。`detail` がそのまま人物に渡ります。
 
 `relationships` は人物どうしの関係と態度で、`personality` の続きとして渡ります。**被害者は指せません**——
 被害者への感情は `personality` の本文に書いてください。
@@ -297,9 +315,8 @@ personality: 気弱で愛想笑いが多い。横領の話題では動揺し、�
 evidences:
   - id: phone-record
     label: 深川の携帯電話の発着信履歴      # 1〜100文字
-    description: 19時15分から45分の間、外から発信した記録が残っている。   # 省略可
+    description: 19時15分から45分の間、外から発信した記録が残っている。   # 捜査メモに出る
     reveal:
-      mode: conversation
       condition: 深川に19時30分の在室を問い詰め、深川が動揺して言い訳を始めたら開示する。
     sources:
       - { type: character, id: fukagawa }
@@ -309,6 +326,8 @@ evidences:
 ```
 
 - **`reveal.condition` に改行を入れてはいけません。** 判定役のLLMへ1件1行で渡すので、行が割れると証拠が判定不能になります。
+- **`description` は掴んだあとの捜査メモに出ます。** ラベルだけでは「何が分かったのか」が残らず、
+  記録が名前の羅列になります。何が読み取れる物なのかを一文で書いてください。
 - `sources` の `location` は見取り図の部屋 ID。`floorPlan` が `null` なら `location` は使えません。
 - `contradicts` は `"lie:<lies[].id>"` の形式のみ。実在する嘘だけを指せます。自由文は書けません。
 - **`supports` はアリバイ表の鍵でもあります。** この証拠が裏付ける事実が `timeline` のどれかの
@@ -383,24 +402,16 @@ floorPlan:
 
 ---
 
-## 10. `solution` と `quality`
+## 10. `solution`
 
 ```yaml
 solution:
   culprit: mizuki                        # characters[].id
   summary: 犯人は早坂美月。後継者指定が覆る焦りから…
   motive: 後継者指定が覆ることへの焦り     # 省略可
-  requiredFacts:                         # 1件以上
-    - mizuki-poisoned-brandy-1950
   secretKeywords:                        # 1件以上
     - 犯人は美月
     - ブランデーに毒
-
-quality:
-  expectedQuestionCount: { min: 8, max: 20 }   # 省略可、min ≤ max
-  requiredEvidence: { min: 2 }                 # 省略可
-  redHerrings: [fukagawa-embezzled]            # 省略可
-  notes: 主経路は美月の証言と桐生の目撃の食い違い。   # 省略可
 ```
 
 ### `secretKeywords` は最重要
@@ -428,9 +439,9 @@ quality:
 
 **参照が実在すること**
 
-- `knowledge` / `secrets[].fact` / `lies[].about` / `memories[].about` / `timeline[].facts` / `supports` / `relatedFacts` / `requiredFacts` → `facts[].id`
-- `relationships[].character` / `timeline[].participants` / `culprit` / `type: character` のソース → `characters[].id`
-- `type: location` のソースと `subject.type: location` → `floorPlan` の部屋 ID
+- `knowledge` / `secrets[].fact` / `lies[].about` / `timeline[].facts` / `supports` / `relatedFacts` → `facts[].id`
+- `relationships[].character` / `timeline[].participants` / `timeline[].witnesses` / `culprit` / `type: character` のソース → `characters[].id`
+- `type: location` のソースと `subject.type: location`、`timeline[].room`、`victim.foundRoom` → `floorPlan` の部屋 ID
 - `subject.type: event` → `timeline[].id`
 - `requires.evidences` → `evidences[].id`、`requires.revelations` → `revelations[].id`
 - `contradicts` の `lie:` → 実在する `lies[].id`
@@ -447,7 +458,7 @@ quality:
 - `secretKeywords` が公開情報に含まれていない
 - `synopsis` / `briefing` に典型的な解法誘導表現が入っていない
 - `publicIntroduction` に秘密・不正・アリバイやトリックの着眼点を示す表現が入っていない
-- `expectedQuestionCount.min ≤ max`
+- 同じ人物が `participants` と `witnesses` の両方にいない
 - 見取り図が図面として成立している（§9）
 
 ---
@@ -472,6 +483,9 @@ quality:
 - **表が動くかを確かめる。** 手掛かりを一つ掴むごとにアリバイ表へ線が増えるのが、この作品の手応えの中心です。
   `timeline` の各出来事に `participants` と `location` が入っているか、証拠と啓示に `supports` /
   `relatedFacts` が入っているかを見てください。ここが空だと、推理が進んでいるのに画面が何も変わりません。
+  併せて、裏付けのある出来事に `record` が入っているか、`lies[].about` の事実が `timeline` の
+  どれかの出来事にも載っているかを確かめてください。前者が空なら目盛りが裸の時刻になり、
+  後者が繋がっていないと「食い違い」の印が一度も立ちません。
 
 ---
 

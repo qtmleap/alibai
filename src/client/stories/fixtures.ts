@@ -39,6 +39,7 @@ export const SCENARIO: ScenarioDetail = {
     introduction: '青雨堂店主。初版本の商談を抱えていた',
     foundAt: '19:15',
     foundIn: '店の奥',
+    estimatedDeathAt: '18:50',
     investigable: true,
   },
   characters: [
@@ -183,13 +184,18 @@ export const INTERROGATION_SEED: InterrogationSeed = {
     ],
   },
   discoveries: [
-    { id: 'ev-receipt', label: '郵便窓口のレシート（19:08 受付）' },
-    { id: 'ev-umbrella', label: '裏の路地に残された傘' },
+    {
+      id: 'ev-receipt',
+      label: '郵便窓口のレシート（19:08 受付）',
+      description: '小包の控えと同じ番号が打たれている。窓口の機械が刻んだ時刻。',
+    },
+    { id: 'ev-umbrella', label: '裏の路地に残された傘', description: null },
   ],
   revelations: [],
   hint: { mode: 'normal', places: 3, people: 4 },
   // 線は story ごとに違うものを見たいので、種には持たせず画面へ直に渡す。
   alibiSegments: [],
+  clash: undefined,
   questionCount: 3,
   turn: {
     turn: 4,

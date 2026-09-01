@@ -1,12 +1,12 @@
 schemaVersion: 1
 id: ferry-fog-passenger-count
 meta:
-  title: 霧の中を進む「しおかぜ」
-  synopsis: "午後五時二十分、離島航路のフェリー「しおかぜ」の上部ラウンジで、運航会社の監査役・柴田功が死亡しているのが見つかりました。船は濃霧のため減速して航行中で、出航後に乗り降りした者はいません。"
+  title: "霧航船しおかぜ号の謎"
+  synopsis: "午後五時二十分、離島航路のフェリー「しおかぜ」の上部ラウンジで、運航会社の監査役・柴田功が死亡しているのが見つかりました。船は濃霧のため\
+    減速して航行中で、出航後に乗り降りした者はいません。"
   category: 船上ミステリ
   difficulty: 3
   estimatedMinutes: 10
-  tags: [フェリー, 濃霧, 点呼表]
 victim:
   name: 柴田功
   introduction: 離島航路運航会社監査役
@@ -52,41 +52,33 @@ facts:
   - id: kanda-skimmed-sales
     statement: 神田美奈は船内で現金販売した追加券の一部を売上から抜き、帳簿を少なく記録していた
     kind: motive
-    secret: true
   - id: shibata-found-shortage
     statement: 柴田功は事件当日、追加券の控えと帳簿を照合し、神田美奈による売上金の抜き取りを把握した
     kind: motive
-    secret: true
   - id: shibata-warned-kanda
     statement: 16時48分ごろ、柴田功は神田美奈に、到着後すぐ本社へ不正を報告すると告げた
     kind: motive
-    secret: true
   - id: fujiwara-secret-interview
     statement: 16時50分から16時56分まで、藤原奈緒は上部ラウンジで柴田功から会社の安全管理に関する内部資料を見せてもらった
     kind: observation
-    secret: true
   - id: kanda-wrote-count-sheet
     statement: 16時58分ごろ、神田美奈は予約名簿の42人という数字を写して点呼表を作成した
     kind: truth
-    secret: true
   - id: ogiwara-saw-kanda-1703
     statement: 17時03分ごろ、荻原陸は上部ラウンジへ向かう階段で神田美奈とすれ違った
     kind: observation
   - id: kanda-killed-shibata-1706
     statement: 17時06分ごろ、神田美奈は上部ラウンジで柴田功を襲い死亡させた
     kind: truth
-    secret: true
   - id: kanda-returned-lower-1711
     statement: 17時11分ごろ、神田美奈は下部客室へ戻った
     kind: truth
-    secret: true
   - id: count-sheet-says-42
     statement: 神田美奈の点呼表には17時12分の記入時刻と乗客42人という人数が書かれていた
     kind: physical
   - id: ogiwara-let-friend-bridge
     statement: 荻原陸は出航前、知人の乗客を短時間だけ乗員通路へ入れて操舵室前から写真を撮らせていた
     kind: other
-    secret: true
   - id: body-found-1720
     statement: 17時20分、荻原陸が上部ラウンジで柴田功の死を発見した
     kind: observation
@@ -94,61 +86,68 @@ timeline:
   - id: passenger-leaves
     at: "16:35"
     participants: []
-    facts: [passenger-left-before-departure, booked-passengers-42]
+    facts: [ passenger-left-before-departure, booked-passengers-42 ]
+    record: 乗降記録
     description: 予約客の一人が出航前に下船し、実際の乗客は41人になる。
     location: 船内
   - id: shibata-warning
     at: "16:48"
-    participants: [kanda]
-    facts: [kanda-skimmed-sales, shibata-found-shortage, shibata-warned-kanda]
+    participants: [ kanda ]
+    facts: [ kanda-skimmed-sales, shibata-found-shortage, shibata-warned-kanda ]
     description: 柴田が神田の売上金抜き取りを指摘し、到着後の本社報告を告げる。
     location: 船内
   - id: secret-interview
     at: "16:50"
-    participants: [fujiwara]
-    facts: [fujiwara-secret-interview]
+    participants: [ fujiwara ]
+    facts: [ fujiwara-secret-interview ]
     description: 藤原が上部ラウンジで柴田から内部資料を見せてもらう。
     location: 上部ラウンジ
   - id: count-sheet-made
     at: "16:58"
-    participants: [kanda]
-    facts: [kanda-wrote-count-sheet]
+    participants: [ kanda ]
+    facts: [ kanda-wrote-count-sheet ]
     description: 神田が実際の点呼をせず、予約名簿の42人という数字を点呼表へ写す。
     location: 船内
   - id: stair-sighting
     at: "17:03"
-    participants: [kanda, ogiwara]
-    facts: [ogiwara-saw-kanda-1703]
+    participants: [ kanda, ogiwara ]
+    facts: [ ogiwara-saw-kanda-1703 ]
     description: 荻原が上部ラウンジへ向かう階段で神田とすれ違う。
-    location: 上部ラウンジ
+    location: 階段
   - id: shibata-death
     at: "17:06"
-    participants: [kanda]
-    facts: [kanda-killed-shibata-1706]
+    participants: [ kanda ]
+    facts: [ kanda-killed-shibata-1706 ]
     description: 神田が上部ラウンジで柴田を襲い、柴田は死亡する。
     location: 上部ラウンジ
   - id: kanda-returns
     at: "17:11"
-    participants: [kanda]
-    facts: [kanda-returned-lower-1711, count-sheet-says-42]
+    participants: [ kanda ]
+    facts: [ kanda-returned-lower-1711, count-sheet-says-42 ]
+    record: 点呼表
     description: 神田が下部客室へ戻り、17時12分の時刻を点呼表へ記入する。
     location: 下部客室
   - id: discovery
     at: "17:20"
-    participants: [ogiwara, kanda, fujiwara]
-    facts: [body-found-1720]
+    participants: [ ogiwara, kanda, fujiwara ]
+    facts: [ body-found-1720 ]
     description: 荻原が上部ラウンジで柴田の死を発見する。
     location: 上部ラウンジ
 characters:
   - id: kanda
     name: 神田美奈
-    role: suspect
     publicIntroduction: "手際がよく、乗客対応にも慣れた事務長。"
     personality: 手際がよく、乗客対応にも慣れた事務長。数字と帳簿を扱う仕事に自信を持ち、記録さえ整っていれば説明は通ると考えがち。柴田の監査には以前から強い緊張を感じていた。
     goals:
       - 船内売上金の抜き取りを隠したい
       - 16時55分から17時15分まで下部客室で点呼していたと思わせたい
-    knowledge: [kanda-is-purser, booked-passengers-42, count-sheet-says-42, body-found-1720]
+    knowledge:
+      [
+        kanda-is-purser,
+        booked-passengers-42,
+        count-sheet-says-42,
+        body-found-1720
+      ]
     secrets:
       - fact: kanda-skimmed-sales
         disclosure: pressured
@@ -169,7 +168,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: audit-warning
-        about: shibata-warned-kanda
         detail: 柴田に追加券の控えを並べられ「港に着いたら本社へ電話する」と言われたとき、逃げ道がなくなったと思った。
     relationships:
       - character: ogiwara
@@ -177,13 +175,12 @@ characters:
         attitude: 規則に甘いところがあると見ている
   - id: ogiwara
     name: 荻原陸
-    role: witness
     publicIntroduction: "明るく人懐っこい若い甲板員。"
     personality: 明るく人懐っこい若い甲板員。乗客へのサービス精神が強すぎて、出航前に知人を乗員通路へ入れた規則違反を隠したい。船内で見た人の移動はよく覚えている。
     goals:
       - 知人を乗員通路へ入れたことを隠したい
       - 17時03分に神田とすれ違った事実は伝えたい
-    knowledge: [ogiwara-is-deckhand, ogiwara-saw-kanda-1703, body-found-1720]
+    knowledge: [ ogiwara-is-deckhand, ogiwara-saw-kanda-1703, body-found-1720 ]
     secrets:
       - fact: ogiwara-let-friend-bridge
         disclosure: pressured
@@ -194,7 +191,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: stair-meeting
-        about: ogiwara-saw-kanda-1703
         detail: 17時03分ごろ、神田が下から上へ急いで階段を上がってきた。点呼中だと思っていたので少し意外だった。
     relationships:
       - character: kanda
@@ -202,13 +198,12 @@ characters:
         attitude: 厳しいが仕事は正確な人だと思っていた
   - id: fujiwara
     name: 藤原奈緒
-    role: suspect
     publicIntroduction: "粘り強い地方紙記者。"
     personality: 粘り強い地方紙記者。情報源を守る意識が強く、柴田との秘密の面会を簡単には認めない。会社の安全管理問題を追っていたため、監査役との接触自体が取材先へ漏れることを恐れている。
     goals:
       - 柴田から内部資料を受け取ったことを隠したい
       - 取材源を守りたい
-    knowledge: [fujiwara-is-reporter, passenger-left-before-departure, body-found-1720]
+    knowledge: [ fujiwara-is-reporter, passenger-left-before-departure, body-found-1720 ]
     secrets:
       - fact: fujiwara-secret-interview
         disclosure: pressured
@@ -219,7 +214,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: internal-documents
-        about: fujiwara-secret-interview
         detail: 柴田が資料を渡しながら「会社は数字を綺麗に見せすぎている」と小声で言ったことを覚えている。
     relationships: []
 revelations:
@@ -236,14 +230,20 @@ revelations:
         revealCondition: 藤原に出航前に下船した乗客について確認し、点呼表の42人と実乗船41人の差を指摘した。
         requires:
           revelations: []
-          evidences: [boarding-record]
+          evidences: [ boarding-record ]
       - type: character
         id: kanda
         revealCondition: 神田に42人をどのように数えたか問い、出航前に一人下船した記録との矛盾を示した。
         requires:
           revelations: []
-          evidences: [boarding-record]
-    relatedFacts: [booked-passengers-42, passenger-left-before-departure, kanda-wrote-count-sheet, count-sheet-says-42]
+          evidences: [ boarding-record ]
+    relatedFacts:
+      [
+        booked-passengers-42,
+        passenger-left-before-departure,
+        kanda-wrote-count-sheet,
+        count-sheet-says-42
+      ]
   - id: cash-shortage-motive
     title: 監査で見つかった売上金の不足
     text: 柴田は追加券の控えと帳簿の差から、神田が現金売上の一部を抜いていたことを把握し、到着後の本社報告を告げていた。
@@ -256,15 +256,14 @@ revelations:
         id: kanda
         revealCondition: 神田に追加券の売上差額と柴田から到着後に何をすると告げられたかを追及し、不正発覚への恐れが明確になった。
         requires:
-          revelations: [forty-second-passenger]
-          evidences: [ticket-ledger]
-    relatedFacts: [kanda-skimmed-sales, shibata-found-shortage, shibata-warned-kanda]
+          revelations: [ forty-second-passenger ]
+          evidences: [ ticket-ledger ]
+    relatedFacts: [ kanda-skimmed-sales, shibata-found-shortage, shibata-warned-kanda ]
 evidences:
   - id: boarding-record
     label: 出航前の乗降記録
     description: 予約名簿は42人だが、16時35分に一人が下船しており、実際の乗客は41人だった。
     reveal:
-      mode: conversation
       condition: 神田に点呼人数の根拠を尋ねるか、藤原か荻原に出航直前に下船した人がいなかったか確認したら開示する。
     sources:
       - type: character
@@ -273,24 +272,22 @@ evidences:
         id: ogiwara
       - type: character
         id: fujiwara
-    supports: [booked-passengers-42, passenger-left-before-departure]
-    contradicts: ["lie:kanda-passenger-count-alibi"]
+    supports: [ booked-passengers-42, passenger-left-before-departure ]
+    contradicts: [ "lie:kanda-passenger-count-alibi" ]
   - id: stair-sighting
     label: 十七時三分の階段の目撃
     description: 荻原は17時03分ごろ、下部客室ではなく上部ラウンジへ向かう神田とすれ違っている。
     reveal:
-      mode: conversation
       condition: 荻原に17時前後の巡回で誰とどこですれ違ったか尋ねたら開示する。
     sources:
       - type: character
         id: ogiwara
-    supports: [ogiwara-saw-kanda-1703]
-    contradicts: ["lie:kanda-passenger-count-alibi"]
+    supports: [ ogiwara-saw-kanda-1703 ]
+    contradicts: [ "lie:kanda-passenger-count-alibi" ]
   - id: ticket-ledger
     label: 追加券の控えと売上帳簿
     description: 現金で販売された追加券の枚数に対し、帳簿へ記録された売上が継続的に少ない。
     reveal:
-      mode: conversation
       condition: 神田に柴田が監査していた帳簿の内容を尋ねるか、藤原に会社の数字で柴田が問題視していた点を尋ねたら開示する。または遺体・現場を調べ、「追加券の控えと売上帳簿」に関わる資料を確認したら開示する。
     sources:
       - type: character
@@ -299,47 +296,36 @@ evidences:
         id: fujiwara
       - type: victim
         id: victim
-    supports: [kanda-skimmed-sales, shibata-found-shortage, shibata-warned-kanda]
+    supports: [ kanda-skimmed-sales, shibata-found-shortage, shibata-warned-kanda ]
     contradicts: []
   - id: interview-notes
     label: 藤原の取材メモ
     description: 16時50分から柴田と会い、安全管理の内部資料を受け取った記録があるが、16時56分には面会を終えている。
     reveal:
-      mode: conversation
       condition: 藤原に柴田と当日接触していないという説明を問い直し、取材メモの時刻を確認したら開示する。
     sources:
       - type: character
         id: fujiwara
-    supports: [fujiwara-secret-interview]
-    contradicts: ["lie:fujiwara-no-meeting"]
+    supports: [ fujiwara-secret-interview ]
+    contradicts: [ "lie:fujiwara-no-meeting" ]
   - id: crew-corridor-photo
     label: 乗員通路から撮られた出航前の写真
     description: 荻原の知人が乗員専用区域から撮った写真があり、荻原の規則違反は分かるが事件時刻とは無関係である。
     reveal:
-      mode: conversation
       condition: 荻原に出航前の乗員通路への立ち入りについて尋ね、誰も入れていないと否定したら開示する。
     sources:
       - type: character
         id: ogiwara
-    supports: [ogiwara-let-friend-bridge]
-    contradicts: ["lie:ogiwara-no-guest-access"]
+    supports: [ ogiwara-let-friend-bridge ]
+    contradicts: [ "lie:ogiwara-no-guest-access" ]
 solution:
   culprit: kanda
   summary: 犯人は神田美奈。船内追加券の現金売上を抜いていたことを柴田に見つけられ、到着後すぐ本社へ報告すると告げられた。神田は16時58分ごろ、実際に客室を回る代わりに予約名簿の42人という数字を点呼表へ写し、点呼中というアリバイを準備した。しかし予約客の一人は16時35分に下船しており、実乗船者は41人だった。実際に数えたなら42人にはならない。さらに17時03分、荻原は上部ラウンジへ向かう神田を目撃している。神田は17時06分ごろ柴田を襲い、17時11分ごろ下部客室へ戻って点呼表へ時刻を書き込んだ。藤原の秘密取材と荻原の規則違反は独立したミスリードである。
   method: 予約名簿の人数を点呼表へ写して下部客室にいたように装い、その時間に上部ラウンジへ移動して柴田を襲った
   motive: 売上金の抜き取りを監査で見抜かれ、到着後に本社へ報告されることを恐れたため
-  requiredFacts: [passenger-left-before-departure, kanda-skimmed-sales, shibata-warned-kanda, kanda-wrote-count-sheet, ogiwara-saw-kanda-1703, kanda-killed-shibata-1706, count-sheet-says-42]
   secretKeywords:
     - 犯人は神田
     - 神田が犯人
     - 神田が柴田を襲
     - 私が柴田を襲
     - 点呼表を偽造して殺
-quality:
-  expectedQuestionCount:
-    min: 8
-    max: 18
-  requiredEvidence:
-    min: 2
-  redHerrings: [fujiwara-secret-interview, ogiwara-let-friend-bridge]
-  notes: 核心は「人数が合っているから点呼した」という前提を逆転させること。実人数41人と記録42人の差で点呼表そのものを崩し、荻原の階段目撃を第二の独立経路にする。

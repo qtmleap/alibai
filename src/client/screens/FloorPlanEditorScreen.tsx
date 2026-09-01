@@ -60,7 +60,7 @@ export const FloorPlanEditorScreen = () => {
   }
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-5xl flex-col gap-6 bg-sumi px-5 py-6 text-kinari">
+    <div className="mx-auto flex min-h-dvh-safe max-w-5xl flex-col gap-6 bg-sumi px-5 py-6 text-kinari">
       <header className="flex items-baseline justify-between border-b border-keisen pb-3">
         <h1 className="text-xl font-bold">見取り図エディタ</h1>
         <p className="text-xs text-nezumi-dim">制作用。ここでの編集は保存されません</p>

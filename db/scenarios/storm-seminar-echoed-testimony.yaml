@@ -1,12 +1,11 @@
 schemaVersion: 1
 id: storm-seminar-echoed-testimony
 meta:
-  title: 道路封鎖、山中研究会館
+  title: "山中研究会殺人録"
   synopsis: "午後九時四十五分、嵐で道路が閉鎖された山中の研究会館で、主催者・鷺沢修が西側の事務室で死亡しているのが見つかりました。"
   category: クローズドサークル
   difficulty: 5
   estimatedMinutes: 18
-  tags: [研究会, 嵐, 証言, 情報源]
 victim:
   name: 鷺沢修
   introduction: 山中の研究会館の研究会主催者
@@ -46,7 +45,6 @@ facts:
   - id: kuga-claimed-saw-east
     statement: 久我真帆は21時18分ごろ鷺沢修が東資料室へ向かうのを見たと主張した
     kind: testimony
-    secret: true
   - id: naruse-learned-from-kuga
     statement: 成瀬灯が鷺沢修は東資料室にいると思った根拠は、久我真帆からそう聞いたことだった
     kind: testimony
@@ -65,90 +63,95 @@ facts:
   - id: kuga-stole-results
     statement: 久我真帆は鷺沢修の未発表分析結果を自分単独の成果として先に投稿しようとしていた
     kind: motive
-    secret: true
   - id: sagisawa-found-submission
     statement: 鷺沢修は事件当日の夜、久我真帆が未発表結果を無断で投稿準備していることを知った
     kind: motive
-    secret: true
   - id: sagisawa-confronted-kuga
     statement: 20時58分ごろ、鷺沢修は久我真帆に投稿を取り下げるよう求め、応じなければ共同研究から外すと告げた
     kind: motive
-    secret: true
   - id: kuga-killed-sagisawa
     statement: 21時10分ごろ、久我真帆は西側事務室で鷺沢修を襲い死亡させた
     kind: truth
-    secret: true
   - id: kuga-started-rumor
     statement: 21時18分ごろ、久我真帆は成瀬灯に鷺沢修が東資料室へ行ったと嘘を伝えた
     kind: truth
-    secret: true
   - id: naruse-repeated-rumor
     statement: 21時22分ごろ、成瀬灯は白石慧に鷺沢修が東資料室にいると伝えた
     kind: observation
   - id: naruse-secret-embargo
     statement: 成瀬灯は公開前の論文集の内容を知人へ漏らしていた
     kind: other
-    secret: true
   - id: shiraishi-secret-data
     statement: 白石慧は許可なく研究会の参加者データを自分の調査に流用していた
     kind: other
-    secret: true
   - id: body-found-2145
     statement: 21時45分、成瀬灯が西側事務室で鷺沢修の死を発見した
     kind: observation
 timeline:
   - id: submission-confrontation
     at: "20:58"
-    participants: [kuga]
-    facts: [kuga-stole-results, sagisawa-found-submission, sagisawa-confronted-kuga]
+    participants: [ kuga ]
+    facts: [ kuga-stole-results, sagisawa-found-submission, sagisawa-confronted-kuga ]
     description: 鷺沢が久我の無断投稿準備を知り、取り下げと共同研究からの除外を告げる。
     location: 会館内
   - id: sagisawa-death
     at: "21:10"
-    participants: [kuga]
-    facts: [kuga-killed-sagisawa]
+    participants: [ kuga ]
+    facts: [ kuga-killed-sagisawa ]
     description: 久我が西側事務室で鷺沢を襲う。
     location: 西側事務室
   - id: west-corridor-sighting
     at: "21:16"
-    participants: [kuga, shiraishi]
-    facts: [shiraishi-saw-kuga-west]
+    participants: [ kuga, shiraishi ]
+    facts: [ shiraishi-saw-kuga-west ]
     description: 白石が西側事務室へ続く廊下から出てくる久我を見かける。
-    location: 西側事務室
+    location: 西廊下
   - id: rumor-starts
     at: "21:18"
-    participants: [kuga, naruse]
-    facts: [kuga-claimed-saw-east, kuga-started-rumor, no-independent-east-sighting]
+    participants: [ kuga, naruse ]
+    facts: [ kuga-claimed-saw-east, kuga-started-rumor, no-independent-east-sighting ]
     description: 久我が成瀬に「鷺沢は東資料室へ行った」と伝え、存在しない目撃情報の起点を作る。
-    location: 東資料室
+    location: 会館内
   - id: rumor-repeated
     at: "21:22"
-    participants: [naruse, shiraishi]
-    facts: [naruse-learned-from-kuga, naruse-repeated-rumor, shiraishi-learned-from-naruse]
+    participants: [ naruse, shiraishi ]
+    facts:
+      [
+        naruse-learned-from-kuga,
+        naruse-repeated-rumor,
+        shiraishi-learned-from-naruse
+      ]
     description: 成瀬が白石へ同じ話を伝え、一つの情報が複数人の証言へ増殖する。
     location: 会館内
   - id: east-room-still-unused
     at: "21:40"
-    participants: [shiraishi]
-    facts: [east-room-unused]
+    participants: [ shiraishi ]
+    facts: [ east-room-unused ]
+    record: 閲覧卓の位置
     description: 東資料室は片付け時のままで、鷺沢が資料を使った痕跡がない。
     location: 東資料室
   - id: discovery
     at: "21:45"
-    participants: [naruse, kuga, shiraishi]
-    facts: [body-found-2145]
+    participants: [ naruse, kuga, shiraishi ]
+    facts: [ body-found-2145 ]
     description: 成瀬が西側事務室で鷺沢の死を発見する。
     location: 西側事務室
 characters:
   - id: kuga
     name: 久我真帆
-    role: suspect
     publicIntroduction: "自信が強く議論の組み立てが速い研究員。"
     personality: 自信が強く議論の組み立てが速い研究員。自分の証言だけでなく「成瀬も白石も同じ認識だった」と一致の数を強調する。未発表成果の扱いを問われると攻撃的になる。
     goals:
       - 未発表成果を無断投稿しようとしたことを隠したい
       - 東資料室の話を複数人の独立証言に見せたい
-    knowledge: [kuga-researcher, kuga-claimed-saw-east, naruse-learned-from-kuga, shiraishi-learned-from-naruse, body-found-2145]
+    knowledge:
+      [
+        kuga-researcher,
+        kuga-claimed-saw-east,
+        naruse-learned-from-kuga,
+        shiraishi-learned-from-naruse,
+        body-found-2145
+      ]
     secrets:
       - fact: kuga-stole-results
         disclosure: pressured
@@ -171,7 +174,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: repeated-story
-        about: naruse-repeated-rumor
         detail: 自分が成瀬へ一度言えば、研究会の連絡役である成瀬から他の参加者へ自然に話が広がると分かっていた。
     relationships:
       - character: naruse
@@ -182,13 +184,18 @@ characters:
         attitude: 西廊下で見られたことが気になる
   - id: naruse
     name: 成瀬灯
-    role: witness
     publicIntroduction: "情報整理が得意な編集者。"
     personality: 情報整理が得意な編集者。ただし、誰から聞いた情報かを省いて「分かっていること」として話す癖がある。公開前情報の漏洩を隠している。
     goals:
       - 論文集の内容を漏らしたことを隠したい
       - 東資料室の話は自分の目撃ではないと明確にしたい
-    knowledge: [naruse-editor, naruse-learned-from-kuga, naruse-repeated-rumor, body-found-2145]
+    knowledge:
+      [
+        naruse-editor,
+        naruse-learned-from-kuga,
+        naruse-repeated-rumor,
+        body-found-2145
+      ]
     secrets:
       - fact: naruse-secret-embargo
         disclosure: pressured
@@ -199,7 +206,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: heard-from-kuga
-        about: naruse-learned-from-kuga
         detail: 久我から「鷺沢さん、東の資料室へ行ったよ」と聞き、それを確認済みの情報だと思って白石にも伝えた。
     relationships:
       - character: kuga
@@ -210,13 +216,19 @@ characters:
         attitude: 自分から東資料室の話を伝えた相手
   - id: shiraishi
     name: 白石慧
-    role: witness
     publicIntroduction: "研究会に参加していた大学院生。"
     personality: 慎重な大学院生で、人の発言を時刻と一緒に覚えている。参加者データを無断利用した秘密はあるが、21時台の廊下で見た久我については具体的に話せる。
     goals:
       - 参加者データの無断流用を隠したい
       - 久我を西側で見た事実と、東資料室の話を成瀬から聞いただけだという点を伝えたい
-    knowledge: [shiraishi-student, shiraishi-saw-kuga-west, shiraishi-learned-from-naruse, east-room-unused, body-found-2145]
+    knowledge:
+      [
+        shiraishi-student,
+        shiraishi-saw-kuga-west,
+        shiraishi-learned-from-naruse,
+        east-room-unused,
+        body-found-2145
+      ]
     secrets:
       - fact: shiraishi-secret-data
         disclosure: pressured
@@ -227,7 +239,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: west-kuga
-        about: shiraishi-saw-kuga-west
         detail: 九時十六分ごろ、西側の廊下から久我が出てきた。二分ほど後に成瀬から「鷺沢は東にいるらしい」と聞き、変だとは思わなかった。
     relationships:
       - character: kuga
@@ -250,14 +261,20 @@ revelations:
         revealCondition: 成瀬に東資料室の情報を自分で見たのか、誰から聞いたのか順に尋ね、久我が情報源だと確認したら開示する。
         requires:
           revelations: []
-          evidences: [source-chain]
+          evidences: [ source-chain ]
       - type: character
         id: shiraishi
         revealCondition: 白石に東資料室の話を誰から聞いたか尋ね、成瀬経由だったと確認したら開示する。
         requires:
           revelations: []
-          evidences: [source-chain]
-    relatedFacts: [kuga-claimed-saw-east, naruse-learned-from-kuga, shiraishi-learned-from-naruse, no-independent-east-sighting]
+          evidences: [ source-chain ]
+    relatedFacts:
+      [
+        kuga-claimed-saw-east,
+        naruse-learned-from-kuga,
+        shiraishi-learned-from-naruse,
+        no-independent-east-sighting
+      ]
   - id: east-sighting-collapses
     title: 東資料室の目撃は成立しない
     text: 東資料室は片付け時のままで、久我の主張以外に鷺沢が使った痕跡がない。一方、白石は久我を事件直後の西側廊下で見ている。
@@ -270,15 +287,15 @@ revelations:
         id: shiraishi
         revealCondition: 白石に西廊下で久我を見た時刻と東資料室の状態を合わせて尋ねたら開示する。
         requires:
-          revelations: [testimonies-share-one-source]
-          evidences: [west-corridor, unused-east-room]
+          revelations: [ testimonies-share-one-source ]
+          evidences: [ west-corridor, unused-east-room ]
       - type: character
         id: kuga
         revealCondition: 久我に東資料室の具体的な目撃状況を追及し、他の裏付けがないことを示したら開示する。
         requires:
-          revelations: [testimonies-share-one-source]
-          evidences: [unused-east-room]
-    relatedFacts: [shiraishi-saw-kuga-west, east-room-unused, kuga-started-rumor]
+          revelations: [ testimonies-share-one-source ]
+          evidences: [ unused-east-room ]
+    relatedFacts: [ shiraishi-saw-kuga-west, east-room-unused, kuga-started-rumor ]
   - id: stolen-results-motive
     title: 未発表成果の無断投稿
     text: 鷺沢は久我が共同研究の未発表結果を単独成果として投稿しようとしていることを知り、取り下げなければ共同研究から外すと告げていた。
@@ -291,58 +308,59 @@ revelations:
         id: kuga
         revealCondition: 久我に投稿原稿と鷺沢からの取り下げ要求を具体的に示したら開示する。
         requires:
-          revelations: [east-sighting-collapses]
-          evidences: [draft-submission]
+          revelations: [ east-sighting-collapses ]
+          evidences: [ draft-submission ]
       - type: character
         id: naruse
         revealCondition: 成瀬に久我の投稿原稿と鷺沢が問題視していた権利関係を尋ねたら開示する。
         requires:
-          revelations: [east-sighting-collapses]
-          evidences: [draft-submission]
-    relatedFacts: [kuga-stole-results, sagisawa-found-submission, sagisawa-confronted-kuga]
+          revelations: [ east-sighting-collapses ]
+          evidences: [ draft-submission ]
+    relatedFacts: [ kuga-stole-results, sagisawa-found-submission, sagisawa-confronted-kuga ]
 evidences:
   - id: source-chain
     label: 東資料室情報の伝達経路
     description: 成瀬の情報源は久我、白石の情報源は成瀬であり、独立した三つの目撃ではない。
     reveal:
-      mode: conversation
       condition: 成瀬と白石の双方に「自分で見たのか、誰から聞いたのか」を尋ねたら開示する。
     sources:
       - type: character
         id: naruse
       - type: character
         id: shiraishi
-    supports: [naruse-learned-from-kuga, shiraishi-learned-from-naruse, no-independent-east-sighting]
-    contradicts: ["lie:kuga-east-sighting"]
+    supports:
+      [
+        naruse-learned-from-kuga,
+        shiraishi-learned-from-naruse,
+        no-independent-east-sighting
+      ]
+    contradicts: [ "lie:kuga-east-sighting" ]
   - id: west-corridor
     label: 二十一時十六分の西廊下目撃
     description: 白石は事件直後の時刻に、西側事務室へ続く廊下から出てくる久我を見ている。
     reveal:
-      mode: conversation
       condition: 白石に21時10分から20分ごろ西側廊下で誰を見たか尋ねたら開示する。
     sources:
       - type: character
         id: shiraishi
-    supports: [shiraishi-saw-kuga-west]
-    contradicts: ["lie:kuga-east-sighting"]
+    supports: [ shiraishi-saw-kuga-west ]
+    contradicts: [ "lie:kuga-east-sighting" ]
   - id: unused-east-room
     label: 手つかずの東資料室
     description: 東資料室は21時前の片付け状態から机も資料箱も動いておらず、鷺沢がそこで資料を使った形跡がない。
     reveal:
-      mode: conversation
       condition: 白石に東資料室を最後に確認した時の状態を尋ねるか、久我に鷺沢が何をしに行ったのか具体的に質問したら開示する。
     sources:
       - type: character
         id: shiraishi
       - type: character
         id: kuga
-    supports: [east-room-unused]
-    contradicts: ["lie:kuga-east-sighting"]
+    supports: [ east-room-unused ]
+    contradicts: [ "lie:kuga-east-sighting" ]
   - id: draft-submission
     label: 単独名義の投稿原稿
     description: 久我の端末には共同研究の未発表結果を自分単独の成果として投稿する準備が残り、鷺沢からの取り下げ要求も確認できる。
     reveal:
-      mode: conversation
       condition: 久我か成瀬に事件直前の投稿原稿と鷺沢との対立について尋ねたら開示する。または遺体・現場を調べ、「単独名義の投稿原稿」に関わる資料を確認したら開示する。
     sources:
       - type: character
@@ -351,46 +369,35 @@ evidences:
         id: naruse
       - type: victim
         id: victim
-    supports: [kuga-stole-results, sagisawa-found-submission, sagisawa-confronted-kuga]
-    contradicts: ["lie:kuga-no-stolen-results"]
+    supports: [ kuga-stole-results, sagisawa-found-submission, sagisawa-confronted-kuga ]
+    contradicts: [ "lie:kuga-no-stolen-results" ]
   - id: embargo-leak
     label: 公開前論文集の漏洩
     description: 成瀬が公開前の論文集内容を知人へ送っていた記録。東資料室の目撃連鎖とは独立した秘密である。
     reveal:
-      mode: conversation
       condition: 成瀬に公開前資料の共有先を尋ね、漏洩を否定したら開示する。
     sources:
       - type: character
         id: naruse
-    supports: [naruse-secret-embargo]
-    contradicts: ["lie:naruse-no-leak"]
+    supports: [ naruse-secret-embargo ]
+    contradicts: [ "lie:naruse-no-leak" ]
   - id: participant-data-use
     label: 参加者データの無断流用
     description: 白石が研究会の参加者情報を自分の調査に転用していたことが分かるが、主事件とは関係しない。
     reveal:
-      mode: conversation
       condition: 白石に参加者データの利用目的を尋ね、無断利用を否定したら開示する。
     sources:
       - type: character
         id: shiraishi
-    supports: [shiraishi-secret-data]
-    contradicts: ["lie:shiraishi-no-data-use"]
+    supports: [ shiraishi-secret-data ]
+    contradicts: [ "lie:shiraishi-no-data-use" ]
 solution:
   culprit: kuga
   summary: 犯人は久我真帆。共同研究の未発表成果を単独名義で投稿しようとしたことを鷺沢に知られ、取り下げなければ共同研究から外すと告げられた。久我は西側事務室で鷺沢を襲った後、成瀬へ「鷺沢は東資料室へ行った」と嘘を伝えた。成瀬はそれを白石へ伝え、後の聞き取りでは三人とも東資料室という同じ結論を口にしたため、複数の目撃証言があるように見えた。しかし直接の目撃を主張する情報源は久我一人だけだった。東資料室は手つかずで、白石は事件直後に西側廊下から出てくる久我を見ている。証言の一致は、同じ嘘が伝言された結果だった。
   method: 鷺沢を襲った後、自分を起点に「鷺沢は東資料室にいる」という偽情報を流し、伝言で増えた一致証言を犯行時刻と場所の裏付けに見せかけた
   motive: 共同研究の未発表成果を無断で単独投稿しようとしたことが発覚し、投稿撤回と研究からの除外を恐れたため
-  requiredFacts: [kuga-stole-results, sagisawa-confronted-kuga, kuga-killed-sagisawa, shiraishi-saw-kuga-west, kuga-started-rumor, naruse-learned-from-kuga, shiraishi-learned-from-naruse, no-independent-east-sighting, east-room-unused]
   secretKeywords:
     - 犯人は久我
     - 久我が鷺沢を襲
     - 久我が東資料室の嘘を流
     - 三人の証言は同じ情報源
-quality:
-  expectedQuestionCount:
-    min: 12
-    max: 26
-  requiredEvidence:
-    min: 3
-  redHerrings: [naruse-secret-embargo, shiraishi-secret-data]
-  notes: NPC会話との相性を重視した情報源追跡型。証言内容ではなく「誰から知ったか」を掘らないと、一つの嘘が三票に見える。

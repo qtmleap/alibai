@@ -65,7 +65,7 @@ export const BriefingScreen = ({ scenario, onRead }: Props) => {
   )
 
   return (
-    <div className="screen-enter relative flex h-dvh flex-col overflow-hidden bg-sumi text-kinari">
+    <div className="screen-enter relative flex h-dvh-safe flex-col overflow-hidden bg-sumi text-kinari">
       {/*
         器そのものを、この下の段だけ overflow-y-auto で送る。長い記録でも書いている先が
         霞の下へ潜らず、追いきれる。器の外（見出し・霞・読み飛ばし）は送らない。

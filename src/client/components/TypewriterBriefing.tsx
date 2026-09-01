@@ -284,8 +284,11 @@ export const TypewriterBriefing = ({ paragraphs, soundOn, onFinished }: Props) =
         /*
           デスクトップでは下端の中央に読み飛ばしが座るので、その上へ一段よける。
           端末では読み飛ばしが右下にいるため、ぶつからず今の高さのままでよい。
+
+          fixed はビューポート基準で、body に入れたセーフエリアの余白が効かない。
+          ホームバーに潜らないよう、ここだけは自分で足す。
         */
-        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-10 flex flex-col items-center gap-1 pb-5 text-xs text-nezumi-dim lg:pb-14">
+        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-10 flex flex-col items-center gap-1 pb-[calc(env(safe-area-inset-bottom)+1.25rem)] text-xs text-nezumi-dim lg:pb-[calc(env(safe-area-inset-bottom)+3.5rem)]">
           {waitingForNext && <span className="animate-bounce text-nezumi-dim">▼</span>}
 
           {reviewing ? (

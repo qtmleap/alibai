@@ -129,11 +129,11 @@ const MotionCatalogue = () => (
           <span className="absolute top-4 left-[42%] h-[13px] w-0.5 bg-suou" />
           <span className="pin-rise origin-bottom absolute top-4 left-[74%] h-[13px] w-0.5 bg-asagi" />
           {/*
-           * 横中央寄せは transform で書く。Tailwind v4 の -translate-x-1/2 は
-           * 独立した translate プロパティなので、transform を動かす at-in と二重に効いて
-           * 動いているあいだだけ倍ずれる。
+           * 横中央寄せは -translate-x-1/2 で書く。Tailwind v4 のこれは独立した
+           * translate プロパティなので、transform を動かす at-in とは合成される。
+           * 寄せを transform で書くと、動いているあいだだけ上書きされて横へ飛ぶ。
            */}
-          <span className="at at-in absolute top-0 left-[74%] text-[11px] text-asagi-fg [transform:translateX(-50%)]">
+          <span className="at at-in -translate-x-1/2 absolute top-0 left-[74%] text-[11px] text-asagi-fg">
             19:08
           </span>
         </Rail>
@@ -148,7 +148,7 @@ const MotionCatalogue = () => (
           <span className="absolute top-4 left-[22%] h-[13px] w-0.5 bg-asagi" />
           <span className="waver origin-bottom absolute top-4 left-[62%] h-[13px] w-0.5 bg-suou opacity-[0.34]" />
           <span
-            className="at-in absolute top-px left-[62%] text-[13px] text-suou-fg [transform:translateX(-50%)]"
+            className="at-in -translate-x-1/2 absolute top-px left-[62%] text-[13px] text-suou-fg"
             style={delay(260)}
           >
             ？

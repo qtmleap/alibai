@@ -61,6 +61,8 @@ export const scenarioDetailSchema = scenarioSummarySchema.omit({ characterCount:
       introduction: z.string().nonempty(),
       foundAt: z.string().nonempty().nullable(),
       foundIn: z.string().nonempty().nullable(),
+      /** 死亡推定時刻。アリバイ表を横断する刻限の線になる。 */
+      estimatedDeathAt: z.string().nonempty().nullable(),
       /** 遺体を調べられる事件か。false なら聞き込みの相手に並べない。 */
       investigable: z.boolean(),
     })
@@ -94,6 +96,13 @@ export const turnStateSchema = z.object({
 export const discoverySchema = z.object({
   id: z.string().nonempty(),
   label: z.string().nonempty(),
+  /**
+   * 掴んだ証拠の中身。捜査メモが読む。
+   *
+   * 既定を null にしてあるのは、この列より前に焼かれたシナリオ行があるため。
+   * ラベルだけでは「何が分かったのか」が残らず、記録が名前の羅列になる。
+   */
+  description: z.string().nonempty().nullable().default(null),
 })
 
 export const revelationCardSchema = z.object({
@@ -124,6 +133,15 @@ export const alibiSegmentSchema = z.object({
   fix: z.string().nonempty().optional(),
 })
 
+/**
+ * 食い違いの印。掴んだ証拠がある嘘を崩したとき、その嘘が言い張っていた時刻に立つ。
+ * 立つ条件が揃わないうちは来ないので、既定は「無し」。
+ */
+const clashSchema = z
+  .object({ at: z.string().nonempty(), label: z.string().nonempty() })
+  .nullish()
+  .transform((value) => (value === null ? undefined : value))
+
 export const sessionStateSchema = z.object({
   sessionId: z.uuid(),
   scenarioId: z.uuid(),
@@ -141,6 +159,8 @@ export const sessionStateSchema = z.object({
   revelations: z.array(revelationCardSchema),
   /** 既定を空にしてあるのは、この機能より前のサーバが返さないため。 */
   alibiSegments: z.array(alibiSegmentSchema).default([]),
+  /** 供述が噛み合わない区間。表の上に一本だけ立つ印なので、揃うまで来ない。 */
+  clash: clashSchema,
   turn: turnStateSchema,
 })
 
@@ -152,6 +172,7 @@ export const judgementSchema = z.object({
   suggestedQuestions: z.array(z.string().nonempty()),
   /** 増えた分ではなく、その時点で引ける線すべて。表はこれで置き換える。 */
   alibiSegments: z.array(alibiSegmentSchema).default([]),
+  clash: clashSchema,
   questionCount: z.number().int(),
   turn: turnStateSchema,
 })
@@ -293,6 +314,7 @@ export type CreateSessionResponse = z.infer<typeof createSessionResponseSchema>
 export type Discovery = z.infer<typeof discoverySchema>
 export type RevelationCard = z.infer<typeof revelationCardSchema>
 export type AlibiSegmentData = z.infer<typeof alibiSegmentSchema>
+export type Clash = z.infer<typeof clashSchema>
 export type TurnState = z.infer<typeof turnStateSchema>
 export type SessionState = z.infer<typeof sessionStateSchema>
 export type Judgement = z.infer<typeof judgementSchema>

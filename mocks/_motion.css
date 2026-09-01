@@ -92,13 +92,15 @@
 /*
  * 目盛りに添う時刻。
  *
- * translateX(-50%) は目盛りの真上に置くための位置合わせで、動きの一部ではない。
- * キーフレームの側にも書いておかないと、動いているあいだだけ横へずれる。
+ * 動きだけを持ち、位置合わせは持たない。目盛りの真上に置くなら、呼ぶ側が
+ * `translate`（Tailwind の -translate-x-1/2）で寄せる——transform とは別の
+ * プロパティなので合成され、動いているあいだだけ横へずれることがない。
+ * ここに translateX(-50%) を焼くと、真上に置かない縦の表では使えなくなる。
  */
 @keyframes at-in {
   from {
     opacity: 0;
-    transform: translate(-50%, 5px);
+    transform: translateY(5px);
   }
 }
 

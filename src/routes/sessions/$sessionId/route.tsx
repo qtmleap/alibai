@@ -53,6 +53,7 @@ function PlaySession() {
     revelations: state.revelations,
     hint: state.hint,
     alibiSegments: state.alibiSegments,
+    clash: state.clash,
     questionCount: state.questionCount,
     turn: state.turn,
   })

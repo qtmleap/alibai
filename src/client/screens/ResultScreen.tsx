@@ -195,7 +195,7 @@ export const ResultScreen = ({ accuseResult, board, onRetry, onRestart }: Props)
   const deadlineAt: string | undefined = board === undefined ? undefined : board.deadline.at
 
   return (
-    <div className="screen-enter flex min-h-dvh flex-col bg-sumi text-kinari lg:h-dvh lg:overflow-hidden">
+    <div className="screen-enter flex min-h-dvh-safe flex-col bg-sumi text-kinari lg:h-dvh-safe lg:overflow-hidden">
       {/* 上部バーは薄く、机の面を最大に取る。端末では判決そのものが見出しになるので畳む。 */}
       <header className="hidden h-[46px] shrink-0 items-center justify-between gap-5 border-keisen border-b px-[22px] lg:flex">
         <span className="font-mincho text-[14px] tracking-[0.06em]">

@@ -7,6 +7,7 @@ import {
   type RevelationEligibilityContext,
   type RevelationRule,
 } from '@/server/game/revelations'
+import { VICTIM_ID } from '~/db/scenario-definition'
 import { characters, evidences, revelations, scenarios } from '~/db/schema'
 
 /**
@@ -29,7 +30,8 @@ const characterKey = (characterId: string) => `character:v2:${characterId}`
  */
 const judgeRubricKey = (scenarioId: string) => `judge-rubric:v2:${scenarioId}`
 const judgeRevelationsKey = (scenarioId: string) => `judge-revelations:${scenarioId}`
-const hintSubjectsKey = (scenarioId: string) => `hint-subjects:${scenarioId}`
+// 版を付けてある。数える相手の並びが変わっても、1時間の TTL を待たずに切り替わるように。
+const hintSubjectsKey = (scenarioId: string) => `hint-subjects:v2:${scenarioId}`
 const SCENARIO_LIST_KEY = 'scenarios:published'
 
 /**
@@ -281,7 +283,7 @@ export const loadHintSubjects = async (
       .from(evidences)
       .where(eq(evidences.scenarioId, scenarioId)),
     db
-      .select({ floorPlan: scenarios.floorPlan })
+      .select({ floorPlan: scenarios.floorPlan, investigable: scenarios.victimInvestigable })
       .from(scenarios)
       .where(eq(scenarios.id, scenarioId))
       .limit(1),
@@ -312,7 +314,17 @@ export const loadHintSubjects = async (
       plan === undefined || plan.floorPlan === null
         ? []
         : plan.floorPlan.rooms.map((room) => room.id),
-    characterIds: characterRows.map((row) => row.id),
+    /*
+     * 遺体も数える相手として並べる。上で被害者を人物へ畳んでいるので、
+     * ここに載せないと easy の内訳だけ遺体由来の件数が落ちる（総数には入るのに）。
+     *
+     * 調べられない事件では並べない。聞き込みの相手に出てこない相手へ
+     * 「あと0件」と添えるのは、無いものを数えて見せることになる。
+     */
+    characterIds: [
+      ...characterRows.map((row) => row.id),
+      ...(plan?.investigable === true ? [VICTIM_ID] : []),
+    ],
   }
 
   await kv.put(key, JSON.stringify(subjects), { expirationTtl: JUDGE_RUBRIC_TTL_SECONDS })

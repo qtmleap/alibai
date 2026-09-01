@@ -1,12 +1,11 @@
 schemaVersion: 1
 id: deepsea-habitat-batch-signature
 meta:
-  title: 海底居住区アビス3
+  title: "アビス3、浮上不能"
   synopsis: "午前零時二十二分、海底居住実験区「アビス3」の資料室で、主任研究者の篠宮亮が死亡しているのが見つかりました。海上は暴風で、午後十一時四十分に支援船との昇降カプセル接続が解除されて以降、外部との往来はありません。"
   category: クローズドサークル
   difficulty: 5
   estimatedMinutes: 18
-  tags: [海底基地, 荒天, 点検記録, 時刻]
 victim:
   name: 篠宮亮
   introduction: 海底居住実験区「アビス3」主任研究者
@@ -49,15 +48,12 @@ facts:
   - id: sagisawa-falsified-tests
     statement: 鷺沢怜は交換を先送りした生命維持部品を正常として点検記録に記載していた
     kind: motive
-    secret: true
   - id: shinomiya-found-falsification
     statement: 篠宮亮は事件当日、鷺沢怜の点検記録と実際の部品状態が一致しないことに気づいた
     kind: motive
-    secret: true
   - id: shinomiya-planned-report
     statement: 篠宮亮は帰還後に鷺沢怜を当直から外し、点検記録の改ざんを調査委員会へ提出する予定だった
     kind: motive
-    secret: true
   - id: readings-automatic
     statement: 生命維持点検画面の00時00分から00時12分の数値はセンサーから二分おきに自動記録された
     kind: physical
@@ -67,37 +63,30 @@ facts:
   - id: sagisawa-left-control
     statement: 00時01分ごろ、鷺沢怜は制御室を離れた
     kind: truth
-    secret: true
   - id: kohinata-saw-sagisawa
     statement: 00時05分ごろ、小日向茜は資料室へ続く中央通路で鷺沢怜とすれ違った
     kind: observation
   - id: sagisawa-killed-shinomiya
     statement: 00時08分ごろ、鷺沢怜は資料室で篠宮亮を襲い死亡させた
     kind: truth
-    secret: true
   - id: sagisawa-returned-control
     statement: 00時14分ごろ、鷺沢怜は制御室へ戻った
     kind: truth
-    secret: true
   - id: sagisawa-batch-signed
     statement: 00時16分、鷺沢怜は00時00分から00時12分までの七行を一度に選択して担当者署名を付けた
     kind: physical
-    secret: true
   - id: one-signature-transaction
     statement: 00時00分から00時12分までの七つの署名は、同じ確認処理番号で00時16分に一括登録された
     kind: physical
   - id: narumi-hid-sample
     statement: 鳴海俊は共同研究規約に反して希少な地質試料を個人研究用に取り置いていた
     kind: other
-    secret: true
   - id: kohinata-deleted-message
     statement: 小日向茜は自分の通信手順ミスを隠すため、支援船との一件のやり取りを端末上から削除していた
     kind: other
-    secret: true
   - id: toki-bypassed-maintenance
     statement: 土岐誠は点検期限を過ぎた昇降機構を手順外の応急処置で使い続けていた
     kind: other
-    secret: true
   - id: body-found
     statement: 00時22分、鳴海俊が資料室で篠宮亮の死を発見した
     kind: observation
@@ -107,6 +96,7 @@ timeline:
     at: "00:00"
     participants: [sagisawa]
     facts: [readings-automatic, signatures-batchable]
+    record: 点検記録
     description: 生命維持点検画面が二分間隔のセンサー値を自動記録し始める。
     location: 制御室
   - id: sagisawa-leaves
@@ -137,6 +127,7 @@ timeline:
     at: "00:16"
     participants: [sagisawa]
     facts: [sagisawa-batch-signed, one-signature-transaction]
+    record: 署名記録
     description: 鷺沢が00時00分から00時12分までの点検行をまとめて確認し、一括で署名を付ける。
     location: 居住区内
   - id: discovery
@@ -148,7 +139,6 @@ timeline:
 characters:
   - id: sagisawa
     name: 鷺沢怜
-    role: suspect
     publicIntroduction: "生命維持設備を担当する技術者。"
     personality: 数字と手順を盾にする生命維持技術者。異常時でも声を荒らげないが、自分の整備判断を否定されると頑なになる。点検画面に署名が並んでいることを強調する。
     goals:
@@ -181,7 +171,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: committee-threat
-        about: shinomiya-planned-report
         detail: 篠宮から帰還したら当直を外し、記録を委員会に出すと言われたことが頭から離れない。
     relationships:
       - character: toki
@@ -189,7 +178,6 @@ characters:
         attitude: 現場の応急処置に頼りすぎる点は信用していない
   - id: narumi
     name: 鳴海俊
-    role: suspect
     publicIntroduction: "好奇心旺盛で研究成果への執着が強い地質学者。"
     personality: 好奇心旺盛で研究成果への執着が強い地質学者。規約違反の試料取り置きを知られたくないため試料庫の話を避ける。
     goals:
@@ -206,12 +194,10 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: batch-screen
-        about: sagisawa-batch-signed
         detail: 発見前に制御室の前を通ったとき、鷺沢が点検画面で何行もまとめて選択しているように見えた。
     relationships: []
   - id: kohinata
     name: 小日向茜
-    role: witness
     publicIntroduction: "通信担当者。"
     personality: 時刻と通信記録に几帳面な担当者。自分の手順ミスを消したことには後ろめたさがあるが、中央通路で見た人物と時計表示は正確に覚えている。
     goals:
@@ -228,12 +214,10 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: saw-sagisawa
-        about: kohinata-saw-sagisawa
         detail: 00時05分を示す通信卓の時計を確認した直後、資料室側から来た鷺沢と中央通路ですれ違った。
     relationships: []
   - id: toki
     name: 土岐誠
-    role: suspect
     publicIntroduction: "経験則を重んじる機械整備担当。"
     personality: 経験則を重んじる機械整備担当。期限切れ設備への応急処置を隠すが、点検システムの画面仕様は保守教育で知っている。
     goals:
@@ -250,7 +234,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: batch-training
-        about: signatures-batchable
         detail: 忙しい当直向けに複数行をまとめて確認署名できる機能を、以前の保守講習で実演したことがある。
     relationships: []
 revelations:
@@ -297,7 +280,6 @@ evidences:
     label: 点検画面の確認処理番号
     description: 00時00分から00時12分までの七つの署名は同じ処理番号を持ち、00時16分に一度の操作で登録されている。
     reveal:
-      mode: conversation
       condition: 鷺沢、土岐、小日向のいずれかに点検署名が各時刻に個別入力されたのか尋ねたら開示する。
     sources:
       - { type: character, id: sagisawa }
@@ -309,7 +291,6 @@ evidences:
     label: 零時五分の中央通路目撃
     description: 小日向は00時05分ごろ、中央通路で鷺沢とすれ違っている。
     reveal:
-      mode: conversation
       condition: 小日向に00時ごろの通路で誰と会ったか、時刻の根拠も含めて尋ねたら開示する。
     sources:
       - { type: character, id: kohinata }
@@ -319,7 +300,6 @@ evidences:
     label: 部品交換記録と実機番号の不一致
     description: 鷺沢の点検表では交換済みの部品が、実際には古い個体番号のまま残っている。篠宮の調査メモには帰還後の報告予定がある。
     reveal:
-      mode: conversation
       condition: 鷺沢か土岐に篠宮が事件直前に照合していた部品番号と点検表について尋ねたら開示する。または遺体・現場を調べ、「部品交換記録と実機番号の不一致」に関わる資料を確認したら開示する。
     sources:
       - { type: character, id: sagisawa }
@@ -331,7 +311,6 @@ evidences:
     label: 鳴海が隠した地質試料
     description: 共同保管対象の試料が鳴海の個人ケースから見つかるが、資料室の事件とは独立した規約違反である。
     reveal:
-      mode: conversation
       condition: 鳴海に共同試料を個人用に取り置いていないか尋ね、否定を検証したら開示する。
     sources:
       - { type: character, id: narumi }
@@ -341,7 +320,6 @@ evidences:
     label: 小日向の通信記録削除履歴
     description: 小日向の端末から一件の通信記録が削除されているが、事件とは無関係の手順ミスに関するものだった。
     reveal:
-      mode: conversation
       condition: 小日向に通信記録を消していないか確認し、保存履歴を検証したら開示する。
     sources:
       - { type: character, id: kohinata }
@@ -351,7 +329,6 @@ evidences:
     label: 土岐の期限切れ整備票
     description: 土岐が期限切れの昇降機構を応急処置で使っていたことが分かるが、支援船との接続は事件前に解除されている。
     reveal:
-      mode: conversation
       condition: 土岐に昇降機構の点検期限と応急処置について尋ね、説明を検証したら開示する。
     sources:
       - { type: character, id: toki }
@@ -362,18 +339,9 @@ solution:
   summary: 鷺沢は交換を先送りした生命維持部品を正常として記録していたことを篠宮に見抜かれ、帰還後に当直を外され調査委員会へ提出される予定だった。鷺沢は00時01分ごろ制御室を離れ、00時05分には小日向が中央通路で鷺沢を目撃している。資料室で篠宮を襲い、00時14分ごろ制御室へ戻った後、00時16分に00時00分から12分までの七行へ一括で署名した。各行の数値はセンサーが自動記録したもので、署名も同じ確認処理番号で後からまとめて付けられていた。
   method: 自動記録された点検行へ後から一括署名し、それを二分おきに制御室で操作していた証拠に見せかけた
   motive: 点検記録の改ざんが発覚し、帰還後に当直を外されて調査委員会へ報告されることを恐れたため
-  requiredFacts: [sagisawa-falsified-tests, shinomiya-planned-report, readings-automatic, signatures-batchable, sagisawa-left-control, kohinata-saw-sagisawa, sagisawa-killed-shinomiya, sagisawa-batch-signed, one-signature-transaction]
   secretKeywords:
     - 犯人は鷺沢
     - 鷺沢が犯人
     - 鷺沢が篠宮を襲
     - 私が篠宮を襲
     - 一括署名でアリバイを偽装
-quality:
-  expectedQuestionCount:
-    min: 13
-    max: 26
-  requiredEvidence:
-    min: 3
-  redHerrings: [narumi-hid-sample, kohinata-deleted-message, toki-bypassed-maintenance]
-  notes: 点検表の記録時刻と署名操作時刻を分けることが核心。七行の署名を同一処理番号と一括署名仕様で崩し、小日向の独立した時刻付き目撃を重ねる。

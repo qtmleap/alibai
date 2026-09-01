@@ -18,10 +18,19 @@
   var probe = getComputedStyle(document.documentElement)
   var LIT = probe.getPropertyValue('--asagi-t').trim() ? '-t' : '-fg'
 
+  /*
+   * 話を聞く相手と、調べる相手を同じ袋に入れる。遺体も場所も喋らないが、
+   * 手を向ける先としては人物と同じ扱いなので、引く場所を分けると
+   * 画面ごとに「どっちの袋を見るか」の分岐が増える。
+   */
+  var PLACES = C.places === undefined ? [] : C.places
   var CAST_BY_KEY = {}
-  C.cast.concat([C.victim]).forEach((p) => {
+  C.cast.concat([C.victim], PLACES).forEach((p) => {
     CAST_BY_KEY[p.key] = p
   })
+
+  /** 喋らない相手か。訊くのではなく調べることになる。 */
+  var examines = (key) => key === C.victim.key || PLACES.some((p) => p.key === key)
 
   // ---- 時刻 ----
   var toMin = (hhmm) => {
@@ -103,6 +112,8 @@
     { who: 'sena', i: 2 },
     // 遺体の検分もターンを1つ使う。人に訊くか現場を見るかは、同じ財布から出る。
     { who: 'mizuno', i: 0 },
+    { who: 'choba', i: 0 },
+    { who: 'oku', i: 0 },
   ]
 
   /*
@@ -138,8 +149,17 @@
           : n > 0
             ? PLAY[n - 1].who
             : C.cast[0].key,
-      // 次に訊けそうなこと。台本の先読みなので、残りが無ければ空。
-      hints: n < PLAY.length ? [C.script[PLAY[n].who][PLAY[n].i].q, hintAlt(n)] : [],
+      /*
+       * 次に訊けそうなこと。台本の先読みなので、残りが無ければ空。
+       * 最後の一手では先読みが自分自身に当たるので、重なった分は落とす——
+       * 同じ問いが二行並ぶと、選べる道が二つあるように見えてしまう。
+       */
+      hints:
+        n < PLAY.length
+          ? [C.script[PLAY[n].who][PLAY[n].i].q, hintAlt(n)].filter(
+              (q, i, all) => all.indexOf(q) === i,
+            )
+          : [],
     }
   }
 
@@ -364,10 +384,10 @@
         }
         var p = CAST_BY_KEY[t.who]
         /*
-         * 遺体の欄だけ名前を出さず「所見」にする。
-         * 名前を出すと、死んだ人が証言しているように読める。
+         * 遺体と場所の欄は名前を出さず「所見」にする。
+         * 名前を出すと、死んだ人や部屋が証言しているように読める。
          */
-        var label = t.who === C.victim.key ? '所見' : p.name
+        var label = examines(t.who) ? '所見' : p.name
         var body = t.lines
           .map((line, i) => {
             var tail = t.last && i === t.lines.length - 1 ? '<span class="beat">▼</span>' : ''
@@ -617,6 +637,8 @@
   window.Mock = {
     case: C,
     cast: CAST_BY_KEY,
+    places: PLACES,
+    examines: examines,
     lit: LIT,
     params: params,
     num: (k, d) => (params[k] === undefined ? d : Number(params[k])),

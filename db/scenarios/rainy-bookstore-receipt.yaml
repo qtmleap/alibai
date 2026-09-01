@@ -1,12 +1,12 @@
 schemaVersion: 1
 id: rainy-bookstore-receipt
 meta:
-  title: 青雨堂、閉店後の商談
-  synopsis: "午後七時十五分、商店街の古書店「青雨堂」で、店主の水野英治が店の奥で死亡しているのが見つかりました。外は夕方から激しい雨。閉店時刻は午後六時半でしたが、店内には高価な初版本の商談があり、何人かが遅くまで出入りしていました。"
+  title: "青雨堂、雨宿りの客"
+  synopsis: "午後七時十五分、商店街の古書店「青雨堂」で、店主の水野英治が店の奥で死亡しているのが見つかりました。外は夕方から激しい雨。閉店時刻は午後\
+    六時半でしたが、店内には高価な初版本の商談があり、何人かが遅くまで出入りしていました。"
   category: 日常系本格
   difficulty: 2
   estimatedMinutes: 10
-  tags: [古書店, 雨, アリバイ]
 victim:
   name: 水野英治
   introduction: 青雨堂店主
@@ -49,15 +49,12 @@ facts:
   - id: makino-swapped-book
     statement: 牧野千尋は数日前、その初版本を精巧な複製本とすり替え、本物を転売する準備をしていた
     kind: motive
-    secret: true
   - id: mizuno-discovered-swap
     statement: 18時37分ごろ、水野英治は初版本のすり替えに気づき、牧野千尋を問い詰めた
     kind: motive
-    secret: true
   - id: kuroda-secret-offer
     statement: 黒田征司は18時28分ごろ、水野英治に帳簿へ残さない現金取引で初版本を売ってほしいと持ちかけた
     kind: motive
-    secret: true
   - id: kuroda-left-1842
     statement: 18時42分、黒田征司は青雨堂を出たが、雨が強くなったため商店街の軒下でしばらく雨宿りした
     kind: observation
@@ -67,18 +64,15 @@ facts:
   - id: makino-killed-mizuno-1850
     statement: 18時50分ごろ、牧野千尋は店の奥で水野英治を襲い死亡させた
     kind: truth
-    secret: true
   - id: makino-left-1856
     statement: 18時56分ごろ、牧野千尋は発送用の小包を持って青雨堂を出た
     kind: observation
-    secret: true
   - id: post-receipt-1908
     statement: 19時08分、牧野千尋は商店街の郵便窓口で小包を発送した
     kind: physical
   - id: sena-owed-money
     statement: 瀬名真琴は店の改装費として水野英治から借りた百万円を返済できず、返済期限を延ばしてもらっていた
     kind: motive
-    secret: true
   - id: sena-saw-makino-leave
     statement: 18時56分ごろ、瀬名真琴は喫茶店の窓から、小包を持って青雨堂を出る牧野千尋を見た
     kind: observation
@@ -88,66 +82,79 @@ facts:
   - id: genuine-book-in-locker
     statement: すり替えられた本物の初版本は、牧野千尋が利用していた駅の貸しロッカーから後に見つかった
     kind: physical
-    secret: true
 timeline:
   - id: kuroda-offer
     at: "18:28"
-    participants: [kuroda]
-    facts: [kuroda-secret-offer]
+    participants: [ kuroda ]
+    facts: [ kuroda-secret-offer ]
     description: 黒田が水野に、記録へ残さない現金取引を持ちかける。
     location: 店内
   - id: swap-discovered
     at: "18:37"
-    participants: [makino]
-    facts: [mizuno-discovered-swap]
+    participants: [ makino ]
+    facts: [ mizuno-discovered-swap ]
     description: 水野が初版本のすり替えに気づき、牧野を問い詰める。
     location: 店内
   - id: kuroda-leaves
     at: "18:42"
-    participants: [kuroda]
-    facts: [kuroda-left-1842]
+    participants: [ kuroda ]
+    facts: [ kuroda-left-1842 ]
     description: 黒田が店を出るが、激しい雨のため近くの軒下で雨宿りする。
     location: 軒下
   - id: kuroda-sighting
     at: "18:47"
-    participants: [kuroda, makino]
-    facts: [kuroda-saw-makino-1847]
+    participants: [ makino ]
+    witnesses: [ kuroda ]
+    facts: [ kuroda-saw-makino-1847 ]
     description: 黒田が正面ガラス越しに、まだ店内にいる牧野を目撃する。
     location: 店内
+  - id: kuroda-under-eaves
+    at: "18:47"
+    participants: [ kuroda ]
+    facts: [ kuroda-saw-makino-1847 ]
+    description: 黒田は軒下で雨宿りを続け、正面ガラス越しに店内の牧野を見る。
+    location: 軒下
   - id: mizuno-death
     at: "18:50"
-    participants: [makino]
-    facts: [makino-killed-mizuno-1850]
+    participants: [ makino ]
+    facts: [ makino-killed-mizuno-1850 ]
     description: 牧野が店の奥で水野を襲い、水野は死亡する。
     location: 店奥
   - id: makino-departs
     at: "18:56"
-    participants: [makino, sena]
-    facts: [makino-left-1856, sena-saw-makino-leave]
+    participants: [ makino ]
+    witnesses: [ sena ]
+    facts: [ makino-left-1856, sena-saw-makino-leave ]
     description: 牧野が小包を持って店を出るところを、向かいの喫茶店にいた瀬名が見る。
-    location: 店内
+    location: 店先
+  - id: sena-in-cafe
+    at: "18:56"
+    participants: [ sena ]
+    facts: [ sena-saw-makino-leave ]
+    description: 瀬名は向かいの喫茶店から、牧野が青雨堂を出るところを見る。
+    location: 向かいの喫茶
   - id: parcel-posted
     at: "19:08"
-    participants: [makino]
-    facts: [post-receipt-1908]
+    participants: [ makino ]
+    facts: [ post-receipt-1908 ]
+    record: 受付
     description: 牧野が郵便窓口で小包を発送し、時刻入りのレシートを受け取る。
     location: 郵便窓口
   - id: discovery
     at: "19:15"
-    participants: [sena]
-    facts: [body-found-1915]
+    participants: [ sena ]
+    facts: [ body-found-1915 ]
     description: 瀬名が青雨堂を訪ね、店の奥で水野の死を発見する。
     location: 店奥
 characters:
   - id: makino
     name: 牧野千尋
-    role: suspect
     publicIntroduction: "丁寧で几帳面な古書店員。"
     personality: 丁寧で几帳面な古書店員。書誌や発送手順には強いが、金銭の話を向けられると防御的になる。水野には仕事を教わった恩がある一方、給料の低さには不満を抱えていた。
     goals:
       - 初版本のすり替えを隠したい
       - 18時35分以降は郵便局へ向かっていたというアリバイを維持したい
-    knowledge: [makino-is-clerk, rare-book-arrived, post-receipt-1908, body-found-1915]
+    knowledge: [ makino-is-clerk, rare-book-arrived, post-receipt-1908, body-found-1915 ]
     secrets:
       - fact: makino-swapped-book
         disclosure: never
@@ -166,7 +173,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: caught-swap
-        about: mizuno-discovered-swap
         detail: 複製本を手にした水野から「これは本物じゃないな」と静かに言われた瞬間、頭の中が真っ白になった。
     relationships:
       - character: kuroda
@@ -174,13 +180,19 @@ characters:
         attitude: 値切り方が強引で苦手
   - id: kuroda
     name: 黒田征司
-    role: suspect
     publicIntroduction: "希少本の知識を誇る収集家。"
     personality: 希少本の知識を誇る収集家。金で解決できると思いがちで、体面を傷つけられることを嫌う。事件そのものより、裏取引の提案が会社へ知られることを恐れている。
     goals:
       - 帳簿外の現金取引を持ちかけたことを隠したい
       - 事件への関与を疑われないよう、店の奥へ入っていないと強調したい
-    knowledge: [kuroda-is-collector, rare-book-arrived, kuroda-left-1842, kuroda-saw-makino-1847, body-found-1915]
+    knowledge:
+      [
+        kuroda-is-collector,
+        rare-book-arrived,
+        kuroda-left-1842,
+        kuroda-saw-makino-1847,
+        body-found-1915
+      ]
     secrets:
       - fact: kuroda-secret-offer
         disclosure: pressured
@@ -191,7 +203,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: rain-window-sighting
-        about: kuroda-saw-makino-1847
         detail: 雨宿りしながら何気なく店を見たら、牧野がカウンター奥を早足で横切ったのを覚えている。
     relationships:
       - character: makino
@@ -199,13 +210,12 @@ characters:
         attitude: 本を見る目は信用している
   - id: sena
     name: 瀬名真琴
-    role: witness
     publicIntroduction: "気さくな喫茶店主で、商店街の人間関係には詳しい。"
     personality: 気さくな喫茶店主で、商店街の人間関係には詳しい。借金のことだけは強い引け目があり、水野との金銭関係を聞かれると曖昧になる。
     goals:
       - 水野から借金していたことを知られたくない
       - 窓から見た18時56分の出来事は正確に伝えたい
-    knowledge: [sena-runs-cafe, sena-saw-makino-leave, body-found-1915]
+    knowledge: [ sena-runs-cafe, sena-saw-makino-leave, body-found-1915 ]
     secrets:
       - fact: sena-owed-money
         disclosure: pressured
@@ -216,7 +226,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: parcel-in-rain
-        about: sena-saw-makino-leave
         detail: 雨の向こうで、牧野が小包を胸に抱えて店から飛び出していく姿が妙に印象に残っている。
     relationships: []
 revelations:
@@ -233,8 +242,8 @@ revelations:
         revealCondition: 牧野に郵便局へ着いた時刻とレシートが示す時刻の違いを具体的に確認した。
         requires:
           revelations: []
-          evidences: [postal-receipt]
-    relatedFacts: [post-receipt-1908, makino-left-1856]
+          evidences: [ postal-receipt ]
+    relatedFacts: [ post-receipt-1908, makino-left-1856 ]
   - id: swap-motive
     title: 初版本のすり替え
     text: 牧野は初版本を複製本とすり替えており、水野は事件直前にその不正を見抜いていた。
@@ -247,48 +256,44 @@ revelations:
         id: makino
         revealCondition: 牧野に初版本の真贋と水野に問い詰められた理由を追及し、すり替えの存在が明確になった。
         requires:
-          revelations: [post-receipt-is-not-alibi]
-          evidences: [forged-book]
-    relatedFacts: [makino-swapped-book, mizuno-discovered-swap, genuine-book-in-locker]
+          revelations: [ post-receipt-is-not-alibi ]
+          evidences: [ forged-book ]
+    relatedFacts: [ makino-swapped-book, mizuno-discovered-swap, genuine-book-in-locker ]
 evidences:
   - id: postal-receipt
     label: 郵便窓口の十九時八分のレシート
     description: 小包の受付時刻は19時08分。18時台に牧野が窓口にいたことを示す記録はない。
     reveal:
-      mode: conversation
       condition: 牧野に発送時刻や郵便局で待っていた時間を詳しく尋ね、アリバイの根拠としてレシートを示したら開示する。
     sources:
       - type: character
         id: makino
-    supports: [post-receipt-1908]
+    supports: [ post-receipt-1908 ]
     contradicts: []
   - id: window-sighting
     label: 雨宿り中の黒田の目撃
     description: 黒田は18時47分ごろ、青雨堂の正面ガラス越しに牧野が店内にいるのを見ている。
     reveal:
-      mode: conversation
       condition: 黒田に店を出た後どこで雨宿りし、店内が見えたかを尋ね、18時47分の牧野の姿を話したら開示する。
     sources:
       - type: character
         id: kuroda
-    supports: [kuroda-saw-makino-1847]
-    contradicts: ["lie:makino-post-office-alibi"]
+    supports: [ kuroda-saw-makino-1847 ]
+    contradicts: [ "lie:makino-post-office-alibi" ]
   - id: cafe-sighting
     label: 十八時五十六分の喫茶店からの目撃
     description: 瀬名は18時56分ごろ、小包を持って青雨堂から出る牧野を見ている。
     reveal:
-      mode: conversation
       condition: 瀬名に青雨堂の出入口を見ていた時間帯と、店から出た人物について尋ねたら開示する。
     sources:
       - type: character
         id: sena
-    supports: [sena-saw-makino-leave, makino-left-1856]
-    contradicts: ["lie:makino-post-office-alibi"]
+    supports: [ sena-saw-makino-leave, makino-left-1856 ]
+    contradicts: [ "lie:makino-post-office-alibi" ]
   - id: forged-book
     label: 店頭に残った複製本
     description: 初版本として保管されていた本は精巧な複製で、在庫と発送を扱う者ならすり替えの機会があった。
     reveal:
-      mode: conversation
       condition: 牧野か黒田に事件当日の高価な初版本について詳しく尋ね、真贋に疑問が出たら開示する。または遺体・現場を調べ、「店頭に残った複製本」に関わる資料を確認したら開示する。
     sources:
       - type: character
@@ -297,47 +302,36 @@ evidences:
         id: kuroda
       - type: victim
         id: victim
-    supports: [makino-swapped-book, rare-book-arrived]
+    supports: [ makino-swapped-book, rare-book-arrived ]
     contradicts: []
   - id: secret-deal-note
     label: 黒田の現金取引メモ
     description: 黒田が帳簿外の現金取引を提案した金額のメモが残るが、事件時刻の行動とは結びつかない。
     reveal:
-      mode: conversation
       condition: 黒田に水野との商談条件を繰り返し確認し、通常の購入相談ではなかった可能性を追及したら開示する。
     sources:
       - type: character
         id: kuroda
-    supports: [kuroda-secret-offer]
-    contradicts: ["lie:kuroda-no-secret-deal"]
+    supports: [ kuroda-secret-offer ]
+    contradicts: [ "lie:kuroda-no-secret-deal" ]
   - id: debt-ledger
     label: 瀬名への貸付記録
     description: 水野が瀬名へ百万円を貸していた記録。返済は遅れているが、強い取り立てをしていた形跡はない。
     reveal:
-      mode: conversation
       condition: 瀬名に水野との金銭関係を尋ね、貸し借りを否定したため記録を確認したら開示する。
     sources:
       - type: character
         id: sena
-    supports: [sena-owed-money]
-    contradicts: ["lie:sena-no-debt"]
+    supports: [ sena-owed-money ]
+    contradicts: [ "lie:sena-no-debt" ]
 solution:
   culprit: makino
   summary: 犯人は牧野千尋。高額な初版本を複製本とすり替えて本物を転売しようとしていたが、18時37分ごろ水野に見抜かれた。牧野は18時50分ごろ店の奥で水野を襲い、18時56分に発送用の小包を持って店を出た。その後19時08分に郵便窓口で発送し、このレシートを「18時35分から郵便局にいた」証拠のように見せた。しかし黒田は18時47分に店内の牧野を見ており、瀬名も18時56分に店を出る牧野を目撃している。二つの独立した目撃が牧野のアリバイと衝突する。黒田の裏取引提案と瀬名の借金は疑わしいが、殺害時刻の矛盾には繋がらない。
   method: 閉店後の店内で水野を襲い、殺害後に小包を発送して郵便局の時刻をアリバイへ利用した
   motive: 初版本のすり替えが発覚し、警察と業界へ知られることを恐れたため
-  requiredFacts: [makino-swapped-book, mizuno-discovered-swap, kuroda-saw-makino-1847, makino-killed-mizuno-1850, makino-left-1856, sena-saw-makino-leave, post-receipt-1908]
   secretKeywords:
     - 犯人は牧野
     - 牧野が犯人
     - 牧野が水野を襲
     - 私が水野を襲
     - すり替え発覚で殺
-quality:
-  expectedQuestionCount:
-    min: 8
-    max: 18
-  requiredEvidence:
-    min: 2
-  redHerrings: [kuroda-secret-offer, sena-owed-money]
-  notes: レシートを時刻の点の証拠として扱わせ、そこから「待っていた時間」まで勝手に拡張しないことが核心。黒田と瀬名の別方向の目撃を用意し、どちらか一人への質問を逃しても牧野の嘘へ到達できる。

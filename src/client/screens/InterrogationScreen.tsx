@@ -7,6 +7,7 @@ import { NewFactBand } from '@/client/components/NewFactBand'
 import { TurnAnnounce } from '@/client/components/TurnAnnounce'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/client/components/ui/dialog'
 import type { ChatTurn, UseInterrogation } from '@/client/hooks/useInterrogation'
+import { useLitFix } from '@/client/hooks/useLitFix'
 import { usePacedReveal } from '@/client/hooks/usePacedReveal'
 import { fetchSessionState } from '@/client/lib/api'
 import { formatSeconds } from '@/client/lib/format'
@@ -62,6 +63,28 @@ const roleOf = (introduction: string): string => {
   const head = introduction.split('。')[0]
 
   return head === undefined ? introduction : head
+}
+
+/**
+ * 遺体の列の肩書。
+ *
+ * 調べられない事件では、件数を数える相手にもなっていないので「被害者」で据え置く。
+ * 数えられるのに出さないと、人にだけ残り件数が出て遺体だけ黙っていることになる。
+ */
+const victimRoleOf = (
+  investigable: boolean,
+  examining: boolean,
+  remaining: number | undefined,
+): string => {
+  if (!investigable) {
+    return '被害者'
+  }
+
+  if (examining) {
+    return '検分中'
+  }
+
+  return remaining === undefined ? '被害者' : `あと ${remaining}`
 }
 
 const turnsOf = (conversations: Record<string, ChatTurn[]>, characterId: string): ChatTurn[] => {
@@ -374,6 +397,8 @@ export const InterrogationScreen = ({
   const seenFacts = useRef({ discoveries: discoveries.length, revelations: revelations.length })
   const [newFact, setNewFact] = useState<{ key: number; text: string } | undefined>(undefined)
   const [noteOpen, setNoteOpen] = useState(false)
+  // 掴んだ手掛かりの中身。帯の一行では名前しか出せないので、開いて読む。
+  const [foundOpen, setFoundOpen] = useState(false)
   // 見取り図は常時出さない。会話の領域を削るほうが痛いので、見たいときだけ開く。
   const [mapOpen, setMapOpen] = useState(false)
   /*
@@ -382,6 +407,9 @@ export const InterrogationScreen = ({
    */
   const enteredTurn = useRef(turn === undefined ? undefined : turn.turn)
   const logRef = useRef<HTMLDivElement>(null)
+
+  /** 会話がいま指している目盛り。直前に増えた一本を、次が来るまで太らせる。 */
+  const litFix = useLitFix(alibi.segments)
 
   /** これまでに流れ込んだ字数。返答が一文字伸びるたびに増える。 */
   const logLength = Object.values(conversations).reduce(
@@ -548,8 +576,15 @@ export const InterrogationScreen = ({
           {
             key: VICTIM_ID,
             name: scenario.victim.name,
-            role:
-              scenario.victim.investigable && activeCharacterId === VICTIM_ID ? '検分中' : '被害者',
+            /*
+             * 遺体の肩書きも、人物と同じ順で入れ替える（検分中 → 残り件数 → 被害者）。
+             * ここだけ「被害者」で固定すると、easy で人にだけ件数が出て遺体には出ない。
+             */
+            role: victimRoleOf(
+              scenario.victim.investigable,
+              activeCharacterId === VICTIM_ID,
+              remainingFrom(VICTIM_ID),
+            ),
             hue: hueOf(scenario.characters.length),
             // 調べられない事件では、この列だけ押せる形にしない。
             pickable: scenario.victim.investigable,
@@ -616,7 +651,14 @@ export const InterrogationScreen = ({
       )}
       {hintSummary === undefined ? null : <span className="shrink-0">{hintSummary}</span>}
       {discoveries.length === 0 ? null : (
-        <span className="truncate">{discoveries.map((found) => found.label).join('、')}</span>
+        // 名前を連ねるだけでは何が分かったのか残らない。押すと中身が読める。
+        <button
+          type="button"
+          onClick={() => setFoundOpen(true)}
+          className="truncate hover:text-nezumi"
+        >
+          {discoveries.map((found) => found.label).join('、')}
+        </button>
       )}
     </div>
   )
@@ -656,7 +698,19 @@ export const InterrogationScreen = ({
   return (
     // 記録を読み終えて、その場に入る敷居。強く動かすのは全画面を通してここ一度だけで、
     // 他の動きは合図に徹する。他の画面は screen-enter（1.03倍）のまま。
-    <div className="dive flex h-dvh flex-col overflow-hidden bg-sumi text-[13px] text-kinari leading-[1.75] lg:text-[14px] lg:leading-[1.8]">
+    <div className="dive flex h-dvh-safe flex-col overflow-hidden bg-sumi text-[13px] text-kinari leading-[1.75] lg:text-[14px] lg:leading-[1.8]">
+      {/*
+        墨の覆いが晴れる。dive と対で八「入り込む」を作る——寄りが戻るのと同時に
+        地の墨が引いて、記録を読んでいた場所からこの場へ入る。
+
+        器に relative を足さず fixed で浮かせる。足すと、いま自前の relative を
+        持たない子の位置の基準がここへ移る。覆いは操作を塞がない。
+      */}
+      <span
+        aria-hidden="true"
+        className="unveil pointer-events-none fixed inset-0 z-50 bg-sumi opacity-0"
+      />
+
       {/* 上部バーは題字と計器だけ。机の面をできるだけ広く残す。 */}
       <header className="shrink-0 border-keisen border-b px-3 py-2.5 lg:h-[46px] lg:px-[22px] lg:py-0">
         <div className="flex items-center justify-between gap-2 text-[10.5px] text-nezumi-dim lg:h-full lg:gap-5 lg:text-[12px]">
@@ -735,6 +789,7 @@ export const InterrogationScreen = ({
               */
                 onPick={setActiveCharacterId}
                 clash={alibi.clash}
+                litFix={litFix}
               />
             </div>
           )}
@@ -1004,6 +1059,30 @@ export const InterrogationScreen = ({
           </DialogContent>
         </Dialog>
       )}
+
+      {/*
+        掴んだ手掛かり。帯の一行には名前しか並べられないので、中身はここで読む。
+        箱は作らず罫線で区切る。詳細の無い証拠は名前だけが残る。
+      */}
+      <Dialog open={foundOpen} onOpenChange={setFoundOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>掴んだ手掛かり</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col border-keisen border-t">
+            {discoveries.map((found) => (
+              <div key={found.id} className="flex flex-col gap-1 border-keisen border-b py-2.5">
+                <span className="text-[12.5px] text-kinari leading-[1.7]">{found.label}</span>
+                {found.description === null ? null : (
+                  <span className="text-[11.5px] text-nezumi leading-[1.8]">
+                    {found.description}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

@@ -35,6 +35,8 @@ export type ScenarioDetail = {
     introduction: string
     foundAt: string | null
     foundIn: string | null
+    /** 死亡推定時刻。アリバイ表を横断する刻限の線になる。 */
+    estimatedDeathAt: string | null
     investigable: boolean
   } | null
   /** 既定値を埋めたあとの形。列そのものの型（入力側）ではない。 */
@@ -108,6 +110,7 @@ export const findScenarioDetail = async (
       victimFoundAt: scenarios.victimFoundAt,
       victimFoundIn: scenarios.victimFoundIn,
       victimInvestigable: scenarios.victimInvestigable,
+      victimEstimatedDeathAt: scenarios.victimEstimatedDeathAt,
       difficulty: scenarios.difficulty,
       estimatedMinutes: scenarios.estimatedMinutes,
     })
@@ -166,6 +169,7 @@ export const findScenarioDetail = async (
             introduction: scenario.victimIntroduction,
             foundAt: scenario.victimFoundAt,
             foundIn: scenario.victimFoundIn,
+            estimatedDeathAt: scenario.victimEstimatedDeathAt,
             investigable: scenario.victimInvestigable,
           },
     characters: characterRows,

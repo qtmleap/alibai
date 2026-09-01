@@ -184,7 +184,8 @@ const compileDefinition = (
           }）`,
       ),
     ),
-    // about は検証と追跡のための紐であって、読ませる情報ではない。detail だけ出す。
+    // 散文にすると id と対象が消えるので、紐だけ別に残す。読ませる情報ではない。
+    lieRefs: character.lies.map((lie) => ({ id: lie.id, about: lie.about })),
     memories: bullets(character.memories.map((memory) => memory.detail)),
   }))
 
@@ -192,11 +193,15 @@ const compileDefinition = (
     id: evidenceUuid(evidence.id),
     scenarioId,
     label: evidence.label,
+    // 捜査メモが読む。掴んだ証拠の中身が分からないと、記録がラベルの羅列になる。
+    description: evidence.description === undefined ? null : evidence.description,
     revealCondition: evidence.reveal.condition,
     sources: evidence.sources.map(mapEvidenceSource),
     // 時刻表が読む。証拠は revelation より頻繁に見つかるので、
     // これを落とすと発見しても線がほとんど増えない。
     supports: evidence.supports,
+    // 食い違いの印が読む。どの嘘を崩したかが分かって初めて、盤面の一点を指せる。
+    contradicts: evidence.contradicts,
   }))
 
   const compiledRevelations = definition.revelations.map((revelation) => ({
@@ -242,28 +247,11 @@ const compileDefinition = (
     揃えられない書式（ここに来る時点でスキーマは通っている）は落とす——
     軸に置けない線を持っていても、描く段で困るだけ。
 
-    在所は authoring の location から取る。ただしそのままは写せない——
-    見取り図のある事件では、あそこには部屋のID（floorPlan.rooms[].id）が入っている。
-    IDのまま焼くと、表の在所に「study」と英字が並ぶ。引けるなら部屋の名前へ直し、
-    引けなければ場所の名前が直接書かれているものとして扱う。
-    空でも線は引ける（時刻は分かっている）ので、無ければ空のままでよい。
+    在所（location）は画面にそのまま出る文字で、部屋との紐付けは room が別に持つ。
+    以前は location が両方を兼ねていて、部屋IDのまま焼くと表に「study」と英字が並んだ。
+    どれも空を許すのは、書かれていない事件を落とさないため。在所が空でも線は引ける
+    （時刻は分かっている）。
   */
-  const roomLabels = new Map(
-    definition.floorPlan === null
-      ? []
-      : definition.floorPlan.rooms.map((room) => [room.id, room.label]),
-  )
-
-  const placeOf = (location: string | undefined): string => {
-    if (location === undefined) {
-      return ''
-    }
-
-    const label = roomLabels.get(location)
-
-    return label === undefined ? location : label
-  }
-
   const timelineEvents = definition.timeline.flatMap((event) => {
     const minutes = minutesOf(event.at)
 
@@ -275,7 +263,9 @@ const compileDefinition = (
       {
         id: event.id,
         at: formatClock(minutes),
-        place: placeOf(event.location),
+        place: event.location === undefined ? '' : event.location,
+        room: event.room === undefined ? '' : event.room,
+        record: event.record === undefined ? '' : event.record,
         participants: event.participants.map(characterUuid),
         facts: event.facts,
         kind: kindOfEvent(event.facts.map((id) => factKinds.get(id))),
@@ -314,9 +304,11 @@ const compileDefinition = (
       victimName: victim === undefined ? null : victim.name,
       victimIntroduction: victim === undefined ? null : victim.introduction,
       victimFoundAt: victim === undefined || victim.foundAt === undefined ? null : victim.foundAt,
-      // 発見場所も timeline の location と同じ扱い。部屋IDで書かれていれば部屋の名前へ直す。
-      victimFoundIn:
-        victim === undefined || victim.foundIn === undefined ? null : placeOf(victim.foundIn),
+      victimFoundIn: victim === undefined || victim.foundIn === undefined ? null : victim.foundIn,
+      victimEstimatedDeathAt:
+        victim === undefined || victim.estimatedDeathAt === undefined
+          ? null
+          : victim.estimatedDeathAt,
       victimInvestigable: investigable,
       isPublished: options.isPublished,
       difficulty: definition.meta.difficulty,

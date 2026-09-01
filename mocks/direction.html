@@ -337,12 +337,13 @@
   .d-rail { position: relative; height: 42px; }
   .d-rail .line { position: absolute; left: 0; right: 0; top: 28px; height: 1px; background: var(--keisen); }
   .d-rail .pin { position: absolute; top: 16px; width: 2px; height: 13px; transform-origin: 50% 100%; }
-  .d-rail .at { position: absolute; top: 0; transform: translateX(-50%); color: var(--asagi-t);
+  .d-rail .at { position: absolute; top: 0; translate: -50%; color: var(--asagi-t);
     font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: 11px; }
   .play .d-rail .pin.fresh { animation: pin-rise 420ms cubic-bezier(.2,.9,.3,1) both; }
   .play .d-rail .at { animation: at-in 360ms 150ms ease-out both; }
   @keyframes pin-rise { from { transform: scaleY(0); } }
-  @keyframes at-in { from { opacity: 0; transform: translate(-50%, 5px); } }
+  /* 寄せは translate 側（合成されるので動作中に横へ飛ばない）。動きは transform だけ。 */
+  @keyframes at-in { from { opacity: 0; transform: translateY(5px); } }
 
   /* 二 発話が続く */
   .d-turn { display: flex; flex-direction: column; gap: 5px; padding-left: 10px; border-left: 1px solid var(--asagi); }
@@ -376,7 +377,7 @@
 
   /* 疑問 — 立ちきらない目盛り */
   .d-rail .pin.hollow { opacity: 0.34; }
-  .d-rail .qm { position: absolute; top: 1px; transform: translateX(-50%); font-size: 13px; color: var(--suou-t); }
+  .d-rail .qm { position: absolute; top: 1px; translate: -50%; font-size: 13px; color: var(--suou-t); }
   .play .doubt .pin.wobble { animation: waver 900ms ease-in-out both; }
   .play .doubt .qm { animation: at-in 360ms 260ms ease-out both; }
   @keyframes waver { 0% { transform: scaleY(0); } 45% { transform: scaleY(1.18); } 72% { transform: scaleY(0.88); } }

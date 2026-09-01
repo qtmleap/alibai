@@ -284,10 +284,12 @@ export const AlibiChart = ({
                       </span>
                     )}
                     {s.fix === undefined || truth !== undefined ? null : (
-                      // 時刻は帯より遅れて出す。先に線が立ち、それから時刻が添う。
+                      // 時刻は帯より遅れて出す。先に線が立ち、それから時刻が添う（一 目盛りが立つ）。
+                      // 太らせた一本では、帯が右へ広がったぶん札も 2px 送る。
                       <span
-                        className="line-in absolute top-[15px] left-[11px] w-[111px] font-mono text-[10.5px] leading-[1.5] tabular-nums"
-                        style={{ animationDelay: '150ms' }}
+                        className={`at-in absolute top-[15px] w-[111px] font-mono text-[10.5px] leading-[1.5] tabular-nums ${
+                          s.fix === litFix ? 'left-[13px]' : 'left-[11px]'
+                        }`}
                       >
                         {s.fix}
                       </span>

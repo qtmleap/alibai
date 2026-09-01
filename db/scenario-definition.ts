@@ -19,7 +19,6 @@ export const scenarioMetaSchema = z.object({
   category: nonemptyTextSchema.max(50),
   difficulty: z.int().min(1).max(5),
   estimatedMinutes: z.int().min(5).max(30),
-  tags: z.array(nonemptyTextSchema.max(50)).default([]),
 })
 
 /**
@@ -61,8 +60,15 @@ export const scenarioVictimSchema = z.object({
    */
   /** 発見時刻。`HH:mm` で、timeline と同じ書き方。 */
   foundAt: timelineAtSchema.optional(),
-  /** 発見場所。アリバイ表の在所と同じく、列に収まる短い名詞句。 */
+  /** 発見場所。画面にそのまま出る文字。部屋IDは `foundRoom` のほうへ。 */
   foundIn: nonemptyTextSchema.max(20).optional(),
+  /** 発見場所の部屋ID。見取り図のある事件でだけ書ける。 */
+  foundRoom: localIdSchema.optional(),
+  /**
+   * 死亡推定時刻。発見時刻（`foundAt`）とは別物で、アリバイ表を横断する刻限の線になる。
+   * 時刻の偽装を核にする事件では、ここが盤面の中心になる。
+   */
+  estimatedDeathAt: timelineAtSchema.optional(),
   causeOfDeath: nonemptyTextSchema.max(100).optional(),
   findings: z.array(scenarioVictimFindingSchema).default([]),
 })
@@ -71,15 +77,36 @@ export const scenarioFactSchema = z.object({
   id: localIdSchema,
   statement: nonemptyTextSchema,
   kind: z.enum(['observation', 'physical', 'testimony', 'motive', 'truth', 'other']).optional(),
-  secret: z.boolean().default(false),
 })
 
 export const scenarioTimelineEventSchema = z.object({
   id: localIdSchema,
   at: timelineAtSchema,
-  location: nonemptyTextSchema.optional(),
+  /**
+   * 在所。**画面にそのまま出る文字**なので、短い名詞句で書く。
+   * 見取り図と結びつけたいときは、部屋IDを `room` のほうへ書く。
+   */
+  location: nonemptyTextSchema.max(20).optional(),
+  /** 見取り図の部屋ID。図のある事件でだけ書ける。 */
+  room: localIdSchema.optional(),
+  /**
+   * その時刻に **`location` に居た人**。関わった人ではない。
+   * ここに載せた人の列に、アリバイ表の線が引かれる。
+   */
   participants: z.array(localIdSchema).default([]),
+  /**
+   * 離れた場所から見ていた人。線は引かれない。
+   *
+   * 「AがBを目撃する」を一つの出来事にまとめると、盤面ではBまでその場所に立つ。
+   * 見ていた側はここへ置き、その人自身の居場所は別の出来事として書く。
+   */
+  witnesses: z.array(localIdSchema).default([]),
   facts: z.array(localIdSchema).min(1),
+  /**
+   * その時刻を留めた記録の名前。「受付」「忘れ傘」「通報」。
+   * アリバイ表の目盛りに `19:08　受付` の形で添う。裏付けのある出来事にだけ書く。
+   */
+  record: nonemptyTextSchema.max(12).optional(),
   description: nonemptyTextSchema.optional(),
 })
 
@@ -97,7 +124,6 @@ export const scenarioLieSchema = z.object({
 
 export const scenarioMemorySchema = z.object({
   id: localIdSchema,
-  about: localIdSchema,
   detail: nonemptyTextSchema,
 })
 
@@ -110,7 +136,6 @@ export const scenarioRelationshipSchema = z.object({
 export const scenarioCharacterSchema = z.object({
   id: localIdSchema,
   name: nonemptyTextSchema.max(100),
-  role: nonemptyTextSchema.max(50).optional(),
   publicIntroduction: nonemptyTextSchema.max(300),
   personality: nonemptyTextSchema,
   goals: z.array(nonemptyTextSchema),
@@ -171,10 +196,7 @@ export const scenarioEvidenceSchema = z.object({
   id: localIdSchema,
   label: nonemptyTextSchema.max(100),
   description: nonemptyTextSchema.optional(),
-  reveal: z.object({
-    mode: z.enum(['conversation']).default('conversation'),
-    condition: nonemptyTextSchema,
-  }),
+  reveal: z.object({ condition: nonemptyTextSchema }),
   /**
    * 空でも通す。場所にも人物にも紐づかない証拠は、残り件数の内訳には出ないが
    * 総数には数えられる。
@@ -194,24 +216,7 @@ export const scenarioSolutionSchema = z.object({
    */
   method: nonemptyTextSchema,
   motive: nonemptyTextSchema,
-  requiredFacts: z.array(localIdSchema).min(1),
   secretKeywords: z.array(nonemptyTextSchema).min(1),
-})
-
-export const scenarioQualitySchema = z.object({
-  expectedQuestionCount: z
-    .object({
-      min: z.int().min(0),
-      max: z.int().min(0),
-    })
-    .optional(),
-  requiredEvidence: z
-    .object({
-      min: z.int().min(0),
-    })
-    .optional(),
-  redHerrings: z.array(localIdSchema).default([]),
-  notes: nonemptyTextSchema.optional(),
 })
 
 const duplicateIndexes = (ids: string[]): number[] => {
@@ -262,7 +267,6 @@ export const scenarioDefinitionShapeSchema = z.object({
   revelations: z.array(scenarioRevelationSchema).default([]),
   evidences: z.array(scenarioEvidenceSchema),
   solution: scenarioSolutionSchema,
-  quality: scenarioQualitySchema.default({ redHerrings: [] }),
 })
 
 export const ScenarioDefinitionSchema = scenarioDefinitionShapeSchema.superRefine(
@@ -427,16 +431,6 @@ export const ScenarioDefinitionSchema = scenarioDefinitionShapeSchema.superRefin
         })
       }
 
-      character.memories.forEach((memory, memoryIndex) => {
-        if (!factIds.has(memory.about)) {
-          ctx.addIssue({
-            code: 'custom',
-            path: ['characters', characterIndex, 'memories', memoryIndex, 'about'],
-            message: `存在しない fact「${memory.about}」を参照しています。`,
-          })
-        }
-      })
-
       character.relationships.forEach((relationship, relationshipIndex) => {
         if (!characterIds.has(relationship.character)) {
           ctx.addIssue({
@@ -459,6 +453,36 @@ export const ScenarioDefinitionSchema = scenarioDefinitionShapeSchema.superRefin
         }
       })
 
+      event.witnesses.forEach((characterId, witnessIndex) => {
+        if (!characterIds.has(characterId)) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['timeline', eventIndex, 'witnesses', witnessIndex],
+            message: `存在しない character「${characterId}」を参照しています。`,
+          })
+        }
+
+        /*
+          同じ人を両方に載せると、その人はその場に居たのか離れて見ていたのか決まらない。
+          決まらないまま線を引くと、盤面に「居なかった場所に立っている人」が現れる。
+        */
+        if (event.participants.includes(characterId)) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['timeline', eventIndex, 'witnesses', witnessIndex],
+            message: `「${characterId}」が participants と witnesses の両方にいます。居た場所はどちらか一方です。`,
+          })
+        }
+      })
+
+      if (event.room !== undefined && !locationIds.has(event.room)) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['timeline', eventIndex, 'room'],
+          message: `存在しない部屋「${event.room}」を参照しています。`,
+        })
+      }
+
       event.facts.forEach((factId, factIndex) => {
         if (!factIds.has(factId)) {
           ctx.addIssue({
@@ -469,6 +493,14 @@ export const ScenarioDefinitionSchema = scenarioDefinitionShapeSchema.superRefin
         }
       })
     })
+
+    if (scenario.victim?.foundRoom !== undefined && !locationIds.has(scenario.victim.foundRoom)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['victim', 'foundRoom'],
+        message: `存在しない部屋「${scenario.victim.foundRoom}」を参照しています。`,
+      })
+    }
 
     const hasClockTime = scenario.timeline.some((event) => CLOCK_TIME_RE.test(event.at))
     const hasIsoDateTime = scenario.timeline.some((event) => ISO_DATETIME_RE.test(event.at))
@@ -650,21 +682,10 @@ export const ScenarioDefinitionSchema = scenarioDefinitionShapeSchema.superRefin
       })
     }
 
-    scenario.solution.requiredFacts.forEach((factId, factIndex) => {
-      if (!factIds.has(factId)) {
-        ctx.addIssue({
-          code: 'custom',
-          path: ['solution', 'requiredFacts', factIndex],
-          message: `存在しない fact「${factId}」を参照しています。`,
-        })
-      }
-    })
-
     const publicText = [
       scenario.meta.title,
       scenario.meta.synopsis,
       scenario.meta.category,
-      ...scenario.meta.tags,
       scenario.briefing,
       ...scenario.characters.map((character) => character.publicIntroduction),
     ]
@@ -680,15 +701,6 @@ export const ScenarioDefinitionSchema = scenarioDefinitionShapeSchema.superRefin
         })
       }
     })
-
-    const expectedQuestions = scenario.quality.expectedQuestionCount
-    if (expectedQuestions !== undefined && expectedQuestions.min > expectedQuestions.max) {
-      ctx.addIssue({
-        code: 'custom',
-        path: ['quality', 'expectedQuestionCount'],
-        message: 'expectedQuestionCount.min は max 以下でなければなりません。',
-      })
-    }
   },
 )
 

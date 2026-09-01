@@ -163,7 +163,7 @@ export const AccusationScreen = ({
 
   return (
     // 地の字送りは端末と机で違う。行の高さを一箇所で決めて、あとは継がせる。
-    <div className="screen-enter flex min-h-dvh flex-col bg-sumi text-[13px] text-kinari leading-[1.75] lg:h-dvh lg:overflow-hidden lg:text-[14px] lg:leading-[1.8]">
+    <div className="screen-enter flex min-h-dvh-safe flex-col bg-sumi text-[13px] text-kinari leading-[1.75] lg:h-dvh-safe lg:overflow-hidden lg:text-[14px] lg:leading-[1.8]">
       {/* 上部バーは薄く、机の面を最大に取る。ここに出るのは戻り口と残りターンだけ。 */}
       <header className="flex shrink-0 items-center justify-between gap-5 px-[18px] pt-[22px] lg:h-[46px] lg:border-keisen lg:border-b lg:px-[22px] lg:pt-0">
         <button

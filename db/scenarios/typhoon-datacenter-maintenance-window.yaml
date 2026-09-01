@@ -1,12 +1,12 @@
 schemaVersion: 1
 id: typhoon-datacenter-maintenance-window
 meta:
-  title: 冠水する湾岸データセンター
-  synopsis: "午後十時十五分、湾岸データセンターの予備部品庫で、運用責任者の真田啓介が死亡しているのが見つかりました。台風による冠水で周辺道路は封鎖され、午後九時半以降に建物へ出入りした者はいません。"
+  title: "湾岸データセンター、異常なし"
+  synopsis: "午後十時十五分、湾岸データセンターの予備部品庫で、運用責任者の真田啓介が死亡しているのが見つかりました。台風による冠水で周辺道路は封鎖さ\
+    れ、午後九時半以降に建物へ出入りした者はいません。"
   category: クローズドサークル
   difficulty: 5
   estimatedMinutes: 15
-  tags: [データセンター, 台風, ログ, アリバイ]
 victim:
   name: 真田啓介
   introduction: 湾岸データセンター運用責任者
@@ -49,26 +49,21 @@ facts:
   - id: kuze-invoice-fraud
     statement: 久世秋穂は交換していない機器を交換済みとして処理し、保守費を水増ししていた
     kind: motive
-    secret: true
   - id: sanada-found-fraud
     statement: 真田啓介は事件当日、久世秋穂の保守費水増しに気づいた
     kind: motive
-    secret: true
   - id: sanada-planned-report
     statement: 真田啓介は翌朝、久世秋穂の不正を本社監査へ報告する予定だった
     kind: motive
-    secret: true
   - id: kuze-created-scheduled-job
     statement: 21時52分、久世秋穂は22時00分から三分間隔で復旧処理を自動実行する予約ジョブを作成した
     kind: physical
-    secret: true
   - id: scheduled-jobs-ran
     statement: 22時00分、22時03分、22時06分に、予約ジョブが人の操作なしで復旧処理を実行した
     kind: physical
   - id: kuze-left-noc
     statement: 21時58分ごろ、久世秋穂は監視室を離れた
     kind: truth
-    secret: true
   - id: makabe-saw-kuze
     statement: 22時01分ごろ、真壁徹は予備部品庫へ向かう東側廊下で久世秋穂を見た
     kind: observation
@@ -78,23 +73,18 @@ facts:
   - id: kuze-killed-sanada
     statement: 22時04分ごろ、久世秋穂は予備部品庫で真田啓介を襲い死亡させた
     kind: truth
-    secret: true
   - id: kuze-returned-noc
     statement: 22時08分ごろ、久世秋穂は監視室へ戻った
     kind: truth
-    secret: true
   - id: koda-copied-config
     statement: 甲田修は契約外の顧客設定ファイルを私物端末へ複製していた
     kind: other
-    secret: true
   - id: hatano-suppressed-alarm
     statement: 波多野結は無断で一系統の温度警報を一時停止していた
     kind: other
-    secret: true
   - id: makabe-dozed
     statement: 真壁徹は21時50分から21時59分ごろまで監視席で居眠りしていた
     kind: other
-    secret: true
   - id: body-found
     statement: 22時15分、波多野結が予備部品庫で真田啓介の死を発見した
     kind: observation
@@ -102,62 +92,64 @@ facts:
 timeline:
   - id: schedule-created
     at: "21:52"
-    participants: [kuze]
-    facts: [kuze-created-scheduled-job]
+    participants: [ kuze ]
+    facts: [ kuze-created-scheduled-job ]
+    record: 登録履歴
     description: 久世が三分間隔で復旧処理を実行する予約ジョブを監視端末に登録する。
     location: 監視室
   - id: door-propped
     at: "21:55"
-    participants: [hatano]
-    facts: [parts-door-propped]
+    participants: [ hatano ]
+    facts: [ parts-door-propped ]
+    record: 搬入用ラッチ
     description: 搬入のため予備部品庫の扉が半開きに固定される。
     location: 予備部品庫
   - id: kuze-leaves
     at: "21:58"
-    participants: [kuze]
-    facts: [kuze-left-noc]
+    participants: [ kuze ]
+    facts: [ kuze-left-noc ]
     description: 久世が予約ジョブを残して監視室を離れる。
     location: 監視室
   - id: scheduled-execution
     at: "22:00"
     participants: []
-    facts: [scheduled-jobs-ran]
+    facts: [ scheduled-jobs-ran ]
+    record: 実行ログ
     description: 監視端末で予約された復旧処理が自動実行され始める。
     location: 監視室
   - id: corridor-sighting
     at: "22:01"
-    participants: [kuze, makabe]
-    facts: [makabe-saw-kuze]
+    participants: [ kuze, makabe ]
+    facts: [ makabe-saw-kuze ]
     description: 真壁が東側廊下で久世を目撃する。
     location: 東側廊下
   - id: sanada-death
     at: "22:04"
-    participants: [kuze]
-    facts: [kuze-killed-sanada]
+    participants: [ kuze ]
+    facts: [ kuze-killed-sanada ]
     description: 久世が予備部品庫で真田を襲い、真田は死亡する。
     location: 予備部品庫
   - id: kuze-return
     at: "22:08"
-    participants: [kuze]
-    facts: [kuze-returned-noc]
+    participants: [ kuze ]
+    facts: [ kuze-returned-noc ]
     description: 久世が監視室へ戻る。
     location: 監視室
   - id: discovery
     at: "22:15"
-    participants: [hatano, kuze, koda, makabe]
-    facts: [body-found]
+    participants: [ hatano, kuze, koda, makabe ]
+    facts: [ body-found ]
     description: 波多野が予備部品庫で真田の死を発見する。
     location: 予備部品庫
 characters:
   - id: kuze
     name: 久世秋穂
-    role: suspect
     publicIntroduction: "データセンターのシステム技術者。"
     personality: 冷静で手順を重んじるシステム技術者。ログを強い根拠として話す一方、自分の不正を追及されると急に言葉数が減る。
     goals:
       - 保守費の水増しを隠したい
       - 端末の実行記録を自分の在席証明として通したい
-    knowledge: [kuze-system-engineer, scheduled-jobs-ran, body-found]
+    knowledge: [ kuze-system-engineer, scheduled-jobs-ran, body-found ]
     secrets:
       - fact: kuze-invoice-fraud
         disclosure: pressured
@@ -184,7 +176,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: audit-threat
-        about: sanada-planned-report
         detail: 真田から翌朝に監査へ全部出すと告げられ、積み上げたものが崩れる感覚がした。
     relationships:
       - character: hatano
@@ -192,13 +183,12 @@ characters:
         attitude: 規則より現場判断を優先するところを危ういと思っている
   - id: koda
     name: 甲田修
-    role: suspect
     publicIntroduction: "口が達者な外部技術者。"
     personality: 口が達者な外部技術者。契約外の設定ファイルを持ち出していたため、自分の作業内容を細かく話したがらない。
     goals:
       - 顧客設定ファイルの無断複製を隠したい
       - 予約ジョブの存在については必要なら正確に話す
-    knowledge: [koda-network-vendor, scheduled-jobs-ran, body-found]
+    knowledge: [ koda-network-vendor, scheduled-jobs-ran, body-found ]
     secrets:
       - fact: koda-copied-config
         disclosure: pressured
@@ -209,18 +199,16 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: scheduler-screen
-        about: kuze-created-scheduled-job
         detail: 21時50分すぎに監視室を通ったとき、久世の画面に予約ジョブの設定欄が開いていた。
     relationships: []
   - id: hatano
     name: 波多野結
-    role: suspect
     publicIntroduction: "現場優先で判断の速い設備技術者。"
     personality: 現場優先で判断の速い設備技術者。警報を勝手に止めたことには後ろめたさがあるが、部品庫の扉の状態はよく覚えている。
     goals:
       - 温度警報を無断停止したことを隠したい
       - 部品庫の扉が開いていた事情は正確に話す
-    knowledge: [hatano-electrician, parts-door-propped, body-found]
+    knowledge: [ hatano-electrician, parts-door-propped, body-found ]
     secrets:
       - fact: hatano-suppressed-alarm
         disclosure: pressured
@@ -231,18 +219,16 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: propped-door
-        about: parts-door-propped
         detail: 大型部品を何度も運ぶので、21時55分ごろ自分で部品庫の扉を半開きに固定した。
     relationships: []
   - id: makabe
     name: 真壁徹
-    role: witness
     publicIntroduction: "データセンターの警備員。"
     personality: 規則に厳しい警備員。長時間勤務で居眠りしたことを隠したいが、廊下ですれ違った人物の記憶には自信がある。
     goals:
       - 監視席で居眠りしたことを隠したい
       - 22時01分ごろの久世の目撃は正確に話す
-    knowledge: [makabe-security, makabe-saw-kuze, body-found]
+    knowledge: [ makabe-security, makabe-saw-kuze, body-found ]
     secrets:
       - fact: makabe-dozed
         disclosure: pressured
@@ -253,7 +239,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: corridor-kuze
-        about: makabe-saw-kuze
         detail: 22時01分ごろ、監視室にいるはずの久世が部品庫方向へ歩いていたので時刻表示を二度見した。
     relationships: []
 revelations:
@@ -268,14 +253,14 @@ revelations:
         revealCondition: 甲田に復旧処理の実行方法を尋ね、予約ジョブの存在を確認した。
         requires:
           revelations: []
-          evidences: [scheduled-job-log]
+          evidences: [ scheduled-job-log ]
       - type: character
         id: kuze
         revealCondition: 久世に三分間隔の実行記録と予約機能を突きつけ、手動操作だという説明を崩した。
         requires:
           revelations: []
-          evidences: [scheduled-job-log]
-    relatedFacts: [kuze-created-scheduled-job, scheduled-jobs-ran, kuze-left-noc]
+          evidences: [ scheduled-job-log ]
+    relatedFacts: [ kuze-created-scheduled-job, scheduled-jobs-ran, kuze-left-noc ]
   - id: audit-motive
     title: 翌朝の監査報告
     text: 真田は久世の保守費水増しを突き止め、翌朝に本社監査へ報告する予定だった。
@@ -287,105 +272,89 @@ revelations:
         revealCondition: 波多野に真田が照合していた交換部品の数量を尋ね、水増し疑惑と監査予定へ話をつなげた。
         requires:
           revelations: []
-          evidences: [invoice-difference]
+          evidences: [ invoice-difference ]
       - type: character
         id: kuze
         revealCondition: 久世に真田が確認していた保守費と翌朝の予定を追及し、監査への恐れを明確にした。
         requires:
-          revelations: [execution-log-not-presence]
-          evidences: [invoice-difference]
-    relatedFacts: [kuze-invoice-fraud, sanada-found-fraud, sanada-planned-report]
+          revelations: [ execution-log-not-presence ]
+          evidences: [ invoice-difference ]
+    relatedFacts: [ kuze-invoice-fraud, sanada-found-fraud, sanada-planned-report ]
 evidences:
   - id: scheduled-job-log
     label: 復旧処理の予約ジョブ履歴
     description: 21時52分に作成されたジョブが22時00分、03分、06分に自動で処理を実行している。
     reveal:
-      mode: conversation
       condition: 久世か甲田に22時台の復旧処理が手動だったか、三分間隔の理由も含めて尋ねたら開示する。
     sources:
       - { type: character, id: kuze }
       - { type: character, id: koda }
-    supports: [kuze-created-scheduled-job, scheduled-jobs-ran]
-    contradicts: ["lie:kuze-noc-alibi", "lie:kuze-no-scheduler"]
+    supports: [ kuze-created-scheduled-job, scheduled-jobs-ran ]
+    contradicts: [ "lie:kuze-noc-alibi", "lie:kuze-no-scheduler" ]
   - id: corridor-sighting
     label: 二十二時一分の東側廊下目撃
     description: 真壁は22時01分ごろ、予備部品庫方向へ歩く久世を見ている。
     reveal:
-      mode: conversation
       condition: 真壁に22時前後の廊下で見た人物を尋ねたら開示する。
     sources:
       - { type: character, id: makabe }
-    supports: [makabe-saw-kuze]
-    contradicts: ["lie:kuze-noc-alibi"]
+    supports: [ makabe-saw-kuze ]
+    contradicts: [ "lie:kuze-noc-alibi" ]
   - id: door-latch
     label: 予備部品庫の搬入用ラッチ
     description: 搬入作業のため扉が半開きに固定され、カード認証なしでも押して入れる状態だった。
     reveal:
-      mode: conversation
       condition: 波多野に部品搬入時の扉の扱いを尋ねたら開示する。
     sources:
       - { type: character, id: hatano }
-    supports: [parts-door-propped]
+    supports: [ parts-door-propped ]
     contradicts: []
   - id: invoice-difference
     label: 交換部品の請求書と在庫表
     description: 請求上は交換済みの機器が在庫に残り、久世の処理した保守費だけ数量が一致しない。真田の監査メモもある。
     reveal:
-      mode: conversation
       condition: 久世か波多野に真田が事件直前に照合していた保守費と在庫について尋ねたら開示する。または遺体・現場を調べ、「交換部品の請求書と在庫表」に関わる資料を確認したら開示する。
     sources:
       - { type: character, id: kuze }
       - { type: character, id: hatano }
       - { type: victim, id: victim }
-    supports: [kuze-invoice-fraud, sanada-found-fraud, sanada-planned-report]
+    supports: [ kuze-invoice-fraud, sanada-found-fraud, sanada-planned-report ]
     contradicts: []
   - id: koda-copy-history
     label: 甲田の設定ファイル複製履歴
     description: 顧客設定が甲田の私物端末へ複製されているが、部品庫の事件とは独立している。
     reveal:
-      mode: conversation
       condition: 甲田に契約外の設定ファイルを複製していないか尋ね、否定を検証したら開示する。
     sources:
       - { type: character, id: koda }
-    supports: [koda-copied-config]
-    contradicts: ["lie:koda-no-copy"]
+    supports: [ koda-copied-config ]
+    contradicts: [ "lie:koda-no-copy" ]
   - id: alarm-stop-log
     label: 波多野の温度警報停止履歴
     description: 波多野が一系統の温度警報を無断停止していたことが分かるが、事件とは別件である。
     reveal:
-      mode: conversation
       condition: 波多野に警報を勝手に止めていないか尋ね、否定を検証したら開示する。
     sources:
       - { type: character, id: hatano }
-    supports: [hatano-suppressed-alarm]
-    contradicts: ["lie:hatano-no-alarm-stop"]
+    supports: [ hatano-suppressed-alarm ]
+    contradicts: [ "lie:hatano-no-alarm-stop" ]
   - id: security-idle
     label: 真壁の監視端末操作空白
     description: 21時50分から21時59分まで監視端末に操作がなく、真壁が居眠りしていたことが分かる。
     reveal:
-      mode: conversation
       condition: 真壁に居眠りしていないか尋ね、監視端末の操作履歴を確認したら開示する。
     sources:
       - { type: character, id: makabe }
-    supports: [makabe-dozed]
-    contradicts: ["lie:makabe-no-doze"]
+    supports: [ makabe-dozed ]
+    contradicts: [ "lie:makabe-no-doze" ]
 solution:
   culprit: kuze
   summary: 久世は保守費の水増しを真田に見抜かれ、翌朝に本社監査へ報告される予定だった。久世は三分間隔の予約ジョブを仕込み、端末の実行記録を在席証明に見せかけて監視室を離れた。22時01分には真壁が東側廊下で久世を目撃している。搬入のため半開きだった予備部品庫へ入り、真田を襲った後に監視室へ戻った。
   method: 予約ジョブの自動実行記録を在席証明に見せかけ、カード認証なしで入れる時間帯の部品庫へ移動した
   motive: 保守費の水増しが発覚し、翌朝の監査報告で職と信用を失うことを恐れたため
-  requiredFacts: [kuze-invoice-fraud, sanada-planned-report, kuze-created-scheduled-job, scheduled-jobs-ran, kuze-left-noc, makabe-saw-kuze, parts-door-propped, kuze-killed-sanada]
   secretKeywords:
     - 犯人は久世
     - 久世が犯人
     - 久世が真田を襲
     - 私が真田を襲
     - 予約ジョブでアリバイを偽装
-quality:
-  expectedQuestionCount:
-    min: 12
-    max: 24
-  requiredEvidence:
-    min: 3
-  redHerrings: [koda-copied-config, hatano-suppressed-alarm, makabe-dozed]
-  notes: 実行ログを在席から切り離し、カード認証記録も半開きの扉によって決定打ではないと崩す二段構え。真壁の独立した目撃を合わせて久世へ収束させる。
