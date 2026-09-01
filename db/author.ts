@@ -86,30 +86,36 @@ export const authoringWarnings = (definition: ScenarioDefinition): string[] => {
   /*
     アリバイ表を横断する「食い違い」の印が、一度でも立てるか。
 
-    印は src/server/game/alibi.ts の clashOf が決めていて、条件が二つ重なる。
-    証拠がその嘘を崩していること（contradicts）と、崩れた嘘の about が
-    timeline のどれかの出来事の facts に載っていること。後者が繋がっていないと、
-    矛盾を掴んだのに表が何も言わない事件ができあがる。
+    印は src/server/game/alibi.ts の clashOf が決めていて、条件が三つ重なる。
+    証拠がその嘘を崩していること（contradicts）、崩れた嘘の about が timeline の
+    どれかの出来事の facts に載っていること、そして**崩した証拠に嘘の主とは別の
+    人物の出所（sources の type: character）があること**。印は線を二本の柱の
+    あいだに架けるので、崩した側が誰か分からなければ架ける先が無い。
+    どれか一つでも欠けると、矛盾を掴んだのに表が何も言わない事件ができあがる。
 
     嘘ごとには求めない——動機や身元の嘘は時刻表に載らないのが普通で、
     そこまで縛ると時刻と関係のない嘘が書けなくなる。事件を通して一本あればよい。
   */
   const timelineFacts = new Set(definition.timeline.flatMap((event) => event.facts))
-  const brokenLieIds = new Set(
-    definition.evidences
-      .flatMap((evidence) => evidence.contradicts)
-      .filter((reference) => reference.startsWith('lie:'))
-      .map((reference) => reference.slice(4)),
+  const hasClash = definition.characters.some((character) =>
+    character.lies.some(
+      (lie) =>
+        timelineFacts.has(lie.about) &&
+        definition.evidences.some(
+          (evidence) =>
+            evidence.contradicts.includes(`lie:${lie.id}`) &&
+            evidence.sources.some(
+              (source) => source.type === 'character' && source.id !== character.id,
+            ),
+        ),
+    ),
   )
-  const hasClash = definition.characters
-    .flatMap((character) => character.lies)
-    .some((lie) => brokenLieIds.has(lie.id) && timelineFacts.has(lie.about))
 
   return hasClash
     ? missingRecords
     : [
         ...missingRecords,
-        '証拠で崩せる嘘のうち、about が timeline の出来事の facts に載っているものが一つもありません。このままではアリバイ表に「食い違い」の印が一度も立ちません。嘘が言い張っている事実を、時刻表の出来事にも含めてください。',
+        '証拠で崩せる嘘のうち「about が timeline の出来事の facts に載っていて、崩す証拠に嘘の主とは別の人物の出所がある」ものが一つもありません。このままではアリバイ表に「食い違い」の印が一度も立ちません。嘘が言い張っている事実を時刻表の出来事に含め、その嘘を崩す証拠に別の人物の出所（sources の type: character）を持たせてください。',
       ]
 }
 
