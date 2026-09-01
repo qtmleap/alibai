@@ -23,7 +23,11 @@ const SCENARIO_LIST_TTL_SECONDS = 60
 const JUDGE_RUBRIC_TTL_SECONDS = 3600
 
 const characterKey = (characterId: string) => `character:v2:${characterId}`
-const judgeRubricKey = (scenarioId: string) => `judge-rubric:${scenarioId}`
+/*
+ * 版を付けてある。ルーブリックは1時間キャッシュされるので、版が無いと
+ * 指示を直しても最大1時間は古い文面のまま判定が走る（デプロイ直後が一番危ない）。
+ */
+const judgeRubricKey = (scenarioId: string) => `judge-rubric:v2:${scenarioId}`
 const judgeRevelationsKey = (scenarioId: string) => `judge-revelations:${scenarioId}`
 const hintSubjectsKey = (scenarioId: string) => `hint-subjects:${scenarioId}`
 const SCENARIO_LIST_KEY = 'scenarios:published'
@@ -186,7 +190,14 @@ export const loadJudgeRubric = async (
 - revealedRevelationIds: ユーザーメッセージ末尾の「今回判定可能なRevelation」に列挙された候補のうち、今回の会話で条件を満たしたIDだけを列挙する。候補外のIDを推測してはいけない。満たしていなければ空配列。
 - contradictionPointedOut: 探偵が過去の発言との矛盾を指摘できていたら true。
 - npcLied: NPCの返答が、その場しのぎの嘘や誤誘導を含んでいたら true。
-- suggestedQuestions: 会話の流れから次に指定するとよい話題を最大3件、プレイヤーが探偵へ渡す短い指示の形で提案する。
+- suggestedQuestions: 次に気になることを最大3件。**プレイヤーの頭に浮かぶ短い疑問の形**で書く。
+  「グラスの中身はなんだろう」「あの三十分は何をしていたのか」くらいの温度でよい。
+  誰に訊くかは書かなくてよい——それを決めるのがプレイヤーの仕事である。
+  「〜を尋ねてください」のような指示文にしない。
+  **プレイヤーがまだ知らないことを、知っている前提で書いてはいけない。** 材料にしてよいのは、
+  いま読んだやり取りに実際に出てきた言葉だけである。会話に出ていない物・人・時刻・手口を持ち出さない。
+  **下に並ぶ開示条件を言い換えて出してはいけない。** あれは答えの側で、そのまま渡せば探すという遊びが消える。
+  何が出てくるかを匂わせず、引っかかりだけを言葉にする。
 
 証拠の開示条件は以下の通り。与えられているのはIDと条件文だけで、それ以外の情報（真相・犯人など）は渡されていない。条件に明確に合致しない証拠は開示したと判定しないこと。
 
