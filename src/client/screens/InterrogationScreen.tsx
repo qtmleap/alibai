@@ -715,20 +715,28 @@ export const InterrogationScreen = ({
             )}
           </div>
 
+          {/*
+            表は1分10pxの実寸で描く（AlibiChart の PX_PER_MIN）。事件の幅が長いほど背が伸び、
+            二時間近い事件では画面に収まらない。縮めると目盛りの間隔が事件ごとに変わって
+            「同じ長さの線＝同じ長さの時間」が崩れるので、縮めずにここで送る。
+            凡例と資料への入口は送らない——下端に据えておきたいものなので、枠の外に置く。
+          */}
           {timeWindow === null ? null : (
-            <AlibiChart
-              people={people}
-              segments={alibi.segments}
-              span={{ from: timeWindow.start, to: timeWindow.end }}
-              deadline={alibi.deadline}
-              activeKey={activeCharacterId}
-              /*
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <AlibiChart
+                people={people}
+                segments={alibi.segments}
+                span={{ from: timeWindow.start, to: timeWindow.end }}
+                deadline={alibi.deadline}
+                activeKey={activeCharacterId}
+                /*
                 列見出しから相手を替える。名前の隣の小さな並びだけだと、
                 表の上に相手が居るのに押せず、切り替えの口が見つからない。
               */
-              onPick={setActiveCharacterId}
-              clash={alibi.clash}
-            />
+                onPick={setActiveCharacterId}
+                clash={alibi.clash}
+              />
+            </div>
           )}
 
           <div className="mt-4 flex items-center gap-5 text-[10.5px] text-nezumi-dim leading-[1.4]">

@@ -244,11 +244,14 @@ export const CaseOverviewScreen = ({
             </span>
           </div>
 
-          <AlibiChart
-            people={[...people, ...victimColumn]}
-            segments={[]}
-            span={{ from: scenario.timeWindow.start, to: scenario.timeWindow.end }}
-          />
+          {/* 事件の幅が長いと表は画面より背が高くなる。縮めずにここで送る（聞き込みと同じ）。 */}
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <AlibiChart
+              people={[...people, ...victimColumn]}
+              segments={[]}
+              span={{ from: scenario.timeWindow.start, to: scenario.timeWindow.end }}
+            />
+          </div>
 
           {/*
             線の意味は表のそばに置く。色は顔料に使い切っているので、

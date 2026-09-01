@@ -234,13 +234,16 @@ export const ResultScreen = ({ accuseResult, board, onRetry, onRestart }: Props)
               解決したときだけ、申告と実際を重ねて見せる。迷宮入りで実線を引くと、
               そこに真相がまるごと描かれてしまう——伏せているのは文章だけではない。
             */}
-            <AlibiChart
-              people={headingOf(board.people, truth.culpritCharacterId, solved)}
-              segments={board.segments}
-              span={board.span}
-              deadline={board.deadline}
-              truth={solved ? board.truth : undefined}
-            />
+            {/* 事件の幅が長いと表は画面より背が高くなる。縮めずにここで送る（聞き込みと同じ）。 */}
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <AlibiChart
+                people={headingOf(board.people, truth.culpritCharacterId, solved)}
+                segments={board.segments}
+                span={board.span}
+                deadline={board.deadline}
+                truth={solved ? board.truth : undefined}
+              />
+            </div>
 
             {solved ? (
               <Legend

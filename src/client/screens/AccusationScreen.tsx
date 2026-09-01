@@ -199,12 +199,15 @@ export const AccusationScreen = ({
               </span>
             </div>
 
-            <AlibiChart
-              people={people}
-              segments={segments}
-              span={{ from: timeWindow.start, to: timeWindow.end }}
-              deadline={deadline}
-            />
+            {/* 事件の幅が長いと表は画面より背が高くなる。縮めずにここで送る（聞き込みと同じ）。 */}
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <AlibiChart
+                people={people}
+                segments={segments}
+                span={{ from: timeWindow.start, to: timeWindow.end }}
+                deadline={deadline}
+              />
+            </div>
 
             {/* 線の意味はここで一度だけ言う。表の中に註を足すと、供述より註が目立つ。 */}
             <div className="mt-4 flex items-center gap-5 text-[10.5px] text-nezumi-dim leading-[1.4]">
