@@ -67,7 +67,7 @@
     <script>
       ;(function () {
         var C = Mock.case
-        var st = Mock.play(Mock.num('turn', 4))
+        var st = Mock.play(Mock.num('turn', 4), Mock.str('who', undefined))
         var me = Mock.cast[st.current]
 
         document.getElementById('count').innerHTML =

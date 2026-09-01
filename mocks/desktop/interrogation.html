@@ -76,7 +76,7 @@
       ;(function () {
         var C = Mock.case
         // 一枚だけ開いて撮ったときに白紙にならないよう、既定を中盤に置く。
-        var st = Mock.play(Mock.num('turn', 4))
+        var st = Mock.play(Mock.num('turn', 4), Mock.str('who', undefined))
         var me = Mock.cast[st.current]
         // 遺体を調べているあいだ。喋る相手ではないので、文言も肩書も変わる。
         var examining = st.current === C.victim.key

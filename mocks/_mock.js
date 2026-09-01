@@ -105,7 +105,15 @@
     { who: 'mizuno', i: 0 },
   ]
 
-  var play = (turn) => {
+  /*
+   * turn は台本の何手目か。who は支度から渡された相手で、あれば優先する。
+   * 「〇〇を調べる」と書いてある口から入って別の相手が開くと、選んだ意味が無い。
+   *
+   * 相手を探すために play を何度も呼ぶ画面があるので（端末の切り替え）、
+   * 上書きは呼び出し側が明示したときだけにする。ハッシュをここで読むと、
+   * その探索まで巻き添えで同じ相手を返すようになる。
+   */
+  var play = (turn, who) => {
     var n = Math.max(0, Math.min(PLAY.length, turn))
     var segs = []
     var log = []
@@ -124,7 +132,12 @@
       segments: segs,
       log: log,
       clash: clash,
-      current: n > 0 ? PLAY[n - 1].who : C.cast[0].key,
+      current:
+        who !== undefined && CAST_BY_KEY[who] !== undefined
+          ? who
+          : n > 0
+            ? PLAY[n - 1].who
+            : C.cast[0].key,
       // 次に訊けそうなこと。台本の先読みなので、残りが無ければ空。
       hints: n < PLAY.length ? [C.script[PLAY[n].who][PLAY[n].i].q, hintAlt(n)] : [],
     }
