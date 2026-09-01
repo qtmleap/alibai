@@ -382,10 +382,21 @@
   .play .doubt .qm { animation: at-in 360ms 260ms ease-out both; }
   @keyframes waver { 0% { transform: scaleY(0); } 45% { transform: scaleY(1.18); } 72% { transform: scaleY(0.88); } }
 
-  /* ひらめき — 離れた二本が繋がる */
-  .d-rail .link { position: absolute; top: 11px; height: 1px; background: var(--kinari); transform-origin: 0 50%; }
+  /* ひらめき — 噛み合わない二本のあいだに線が架かる。縦組みで描く（目盛りが横棒になる形）。 */
+  /* 実物の列は 140px 間隔。幅いっぱいに広げると線だけが長い十字に見え、表の比率から離れる。 */
+  .d-cols { position: relative; height: 100%; width: 320px; margin: 0 auto; }
+  .d-cols .col { position: absolute; top: 8px; bottom: 8px; width: 3px; }
+  .d-cols .col.upper { bottom: 50%; }
+  .d-cols .col.lower { top: 50%; width: 0; border-left: 1px dashed currentColor; opacity: .45; }
+  .d-cols .col.claim { width: 0; border-left: 1px dashed currentColor; opacity: .55; }
+  .d-cols .link { position: absolute; top: 50%; height: 0; border-top: 1px dashed var(--nezumi-dim); opacity: .8; transform-origin: 0 50%; }
+  /* 端は外の枠が浮き、中の棒が伸びる。一要素に animation は一つしか持てない。 */
+  .d-cols .cpin { position: absolute; top: 50%; margin-left: -5.5px; }
+  .d-cols .cpin i { display: block; width: 11px; height: 1px; background: currentColor; }
   .play .spark .link { animation: draw 520ms 180ms cubic-bezier(.2,.9,.3,1) both; }
-  .play .spark .pin { animation: pin-lift 620ms 180ms ease-out both; }
+  /* 線を引き終わる 700ms（draw の 180ms 遅れ＋520ms）を待ってから、端を置いて伸ばす。 */
+  .play .spark .cpin { animation: line-in 360ms 700ms ease-out both; }
+  .play .spark .cpin i { animation: pin-lift-x 620ms 700ms ease-out both; }
   @keyframes pin-lift { 55% { transform: scaleY(1.5); } }
   /* 横向きの片割れ。目盛りは時刻の軸に垂直に立つので、軸が縦に流れる
      アリバイ表では目盛りが横の短い棒になり、伸びる向きもこちらへ直交する。 */
@@ -446,7 +457,7 @@
   @media (prefers-reduced-motion: reduce) {
     .play .d-rail .pin.fresh, .play .d-rail .at, .play .d-turn .l,
     .play .d-hint .fold, .play .d-rows .r, .play .doubt .pin.wobble, .play .doubt .qm,
-    .play .spark .link, .play .spark .pin, .play .d-over .band,
+    .play .spark .link, .play .spark .cpin, .play .spark .cpin i, .play .d-over .band,
     .play .d-crawl .inner, .play .d-type span,
     .play .d-dive .inner, .play .d-dive .veil { animation: none; }
   }
@@ -953,16 +964,19 @@
       <div class="motion">
         <div class="mhead"><span class="mnm">三　ひらめき</span><button class="replay" type="button">もう一度</button></div>
         <div class="stage">
-          <div class="d-rail spark">
-            <span class="line"></span>
-            <span class="link" style="left:26%; width:42%"></span>
-            <span class="pin" style="left:26%; background:var(--asagi)"></span>
-            <span class="pin" style="left:68%; background:var(--fuji)"></span>
+          <div class="d-cols spark">
+            <span class="col upper" style="left:22%; background:var(--asagi)"></span>
+            <span class="col lower" style="left:22%; color:var(--asagi-t)"></span>
+            <span class="col claim" style="left:72%; color:var(--suou-t)"></span>
+            <span class="link" style="left:22%; width:50%"></span>
+            <span class="cpin" style="left:22%; color:var(--asagi-t)"><i></i></span>
+            <span class="cpin" style="left:72%; color:var(--suou-t)"><i></i></span>
           </div>
         </div>
-        <p class="mwhy">離れた二つの証言が噛み合った瞬間。二本のあいだに線が引かれ、それぞれの目盛りが一度だけ伸びます。光らせず、繋ぐ。
-        目盛りは時刻の軸に垂直に立つので、伸びる向きは軸の向きで決まります。横に流れるこのレールでは縦（<span class="t">pin-lift</span>）、
-        時刻が縦に流れるアリバイ表では横（<span class="t">pin-lift-x</span>）。伸ばすのは短い目盛りのほうで、在所そのものの帯ではありません。</p>
+        <p class="mwhy">離れた二つの証言が噛み合わないと分かった瞬間。二本の柱のあいだに線が引かれ、引き終わってから両端の目盛りが一度だけ伸びます。光らせず、繋ぐ。
+        目盛りは時刻の軸に垂直に立つので、伸びる向きは軸の向きで決まります。時刻が縦に流れるこの表では横（<span class="t">pin-lift-x</span>）、
+        横に流れるレールでは縦（<span class="t">pin-lift</span>）。伸ばすのは短い目盛りのほうで、在所そのものの帯ではありません
+        ——帯は在所の長さを持つので、四十分の区間なら四百px を超えます。</p>
       </div>
 
       <div class="motion">
