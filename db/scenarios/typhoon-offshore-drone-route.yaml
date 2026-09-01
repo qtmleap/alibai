@@ -96,7 +96,7 @@ timeline:
     at: "00:57"
     participants: [hiiragi]
     facts: [drone-repeat-route-capable, hiiragi-loaded-auto-route]
-    record: 飛行履歴
+    record: 飛行ログ
     description: 柊木が十八分間の反復点検ルートをドローンへ読み込ませる。
     location: 屋上
   - id: drone-launch
