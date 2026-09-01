@@ -136,9 +136,16 @@ export const alibiSegmentSchema = z.object({
 /**
  * 食い違いの印。掴んだ証拠がある嘘を崩したとき、その嘘が言い張っていた時刻に立つ。
  * 立つ条件が揃わないうちは来ないので、既定は「無し」。
+ *
+ * `between` は噛み合わない二人。線はこの二列のあいだに架かるので、
+ * 二人揃わないと印は描けない——だから長さ2で受ける。
  */
 const clashSchema = z
-  .object({ at: z.string().nonempty(), label: z.string().nonempty() })
+  .object({
+    at: z.string().nonempty(),
+    label: z.string().nonempty(),
+    between: z.tuple([z.string().nonempty(), z.string().nonempty()]),
+  })
   .nullish()
   .transform((value) => (value === null ? undefined : value))
 

@@ -27,12 +27,24 @@ export type RevealedClues = {
 export type LieRef = {
   id: string
   about: string
+  /** 嘘をついている人物。印の片方の端になる列。 */
+  who: string
+}
+
+/** 印を立てるのに要るぶんの証拠。 */
+export type BreakingEvidence = {
+  /** 崩している嘘。`"lie:xxx"` の形。 */
+  contradicts: string[]
+  /** どこから／誰から得たか。人物の出所が、印のもう片方の端になる。 */
+  sources: { type: string; id: string }[]
 }
 
 /** 供述が噛み合わない一点。表を横断して一本だけ立つ。 */
 export type Clash = {
   at: string
   label: string
+  /** 噛み合わない二人。線はこの二列のあいだに架かり、両端の目盛りが一度だけ伸びる。 */
+  between: [string, string]
 }
 
 const MINUTES = /^(\d{2}):(\d{2})$/
@@ -159,28 +171,74 @@ const LIE_PREFIX = 'lie:'
  * 掴んでいない出来事の時刻でも印は立つ。そこを伏せると、まさに時刻が争点の事件で
  * 印が最後まで現れない。証拠そのものが「その時刻はおかしい」と言っているのだから、
  * 指してよい一点だと見る。
+ *
+ * 噛み合わない**二人**も併せて返す。嘘の主と、その嘘を崩した証拠の出所の別人。
+ * 二人が要るのは、線を二本の柱のあいだに架けるため——どちらの言い分とどちらの言い分が
+ * 噛み合っていないのかは、線の位置でしか言えない。
+ *
+ * 二人目を出来事の参加者から採らないのは、崩す側がそこに居るとは限らないため。
+ * 「Aが郵便局に居たと言い張り、向かいの店主Bがそれを見ていない」——Bの証言はAの
+ * 出来事の参加者欄には出てこない。証拠の出所を辿るのが、崩した側への正しい道。
  */
 export const clashOf = (params: {
   events: TimelineEvent[]
   /** 事件に登場する嘘。人物をまたいで平らにして渡す。 */
   lies: LieRef[]
-  /** 発見済み証拠の `contradicts` を平らにしたもの。`"lie:xxx"` の形。 */
-  contradicts: string[]
+  /** 発見済みの証拠。崩している嘘と、その出所。 */
+  evidences: BreakingEvidence[]
 }): Clash | undefined => {
-  const brokenLieIds = new Set(
-    params.contradicts
-      .filter((entry) => entry.startsWith(LIE_PREFIX))
-      .map((entry) => entry.slice(LIE_PREFIX.length)),
-  )
+  /*
+    崩れた嘘ごとに、崩した証拠の出所（人物）を集める。場所や遺体から出た証拠は
+    表に列を持たないので、ここでは人物の出所だけを見る。
+  */
+  const breakers = new Map<string, string[]>()
 
-  const disputedFacts = new Set(
-    params.lies.filter((lie) => brokenLieIds.has(lie.id)).map((lie) => lie.about),
-  )
+  for (const evidence of params.evidences) {
+    const from = evidence.sources
+      .filter((source) => source.type === 'character')
+      .map((source) => source.id)
 
-  const at = params.events
-    .filter((event) => event.facts.some((fact) => disputedFacts.has(fact)))
-    .map((event) => event.at)
-    .toSorted((left, right) => minutesOf(left) - minutesOf(right))[0]
+    for (const reference of evidence.contradicts) {
+      if (!reference.startsWith(LIE_PREFIX)) {
+        continue
+      }
 
-  return at === undefined ? undefined : { at, label: '食い違い' }
+      const lieId = reference.slice(LIE_PREFIX.length)
+      const known = breakers.get(lieId)
+
+      breakers.set(lieId, known === undefined ? from : [...known, ...from])
+    }
+  }
+
+  /*
+    時刻と二人は同じ嘘から取る。別々に選ぶと、Aの嘘が言い張る時刻にBとCの線が
+    架かる——誰も言っていないことを盤面が言い出す。
+  */
+  const candidates: { at: string; between: [string, string] }[] = params.lies.flatMap((lie) => {
+    const brokenBy = breakers.get(lie.id)
+
+    if (brokenBy === undefined) {
+      return []
+    }
+
+    // 自分で自分の嘘を崩す証拠は端にならない。線の幅が消えて、印が一本の柱に潰れる。
+    const other = brokenBy.find((who) => who !== lie.who)
+
+    if (other === undefined) {
+      return []
+    }
+
+    const at = params.events
+      .filter((event) => event.facts.includes(lie.about))
+      .map((event) => event.at)
+      .toSorted((left, right) => minutesOf(left) - minutesOf(right))[0]
+
+    return at === undefined ? [] : [{ at, between: [lie.who, other] }]
+  })
+
+  const earliest = candidates.toSorted((left, right) => minutesOf(left.at) - minutesOf(right.at))[0]
+
+  return earliest === undefined
+    ? undefined
+    : { at: earliest.at, label: '食い違い', between: earliest.between }
 }

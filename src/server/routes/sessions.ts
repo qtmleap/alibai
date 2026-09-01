@@ -275,7 +275,11 @@ const loadAlibiSegments = async (
     discoveredEvidenceIds.length === 0
       ? Promise.resolve([])
       : db
-          .select({ supports: evidences.supports, contradicts: evidences.contradicts })
+          .select({
+            supports: evidences.supports,
+            contradicts: evidences.contradicts,
+            sources: evidences.sources,
+          })
           .from(evidences)
           .where(
             and(eq(evidences.scenarioId, scenarioId), inArray(evidences.id, discoveredEvidenceIds)),
@@ -298,11 +302,11 @@ const loadAlibiSegments = async (
   ])
 
   /*
-    嘘の紐は人物をまたいで平らにする。どの人物の嘘かは印を立てるのに要らない
-    ——欲しいのは「その嘘が言い張っていた時刻」だけなので。
+    嘘の紐は人物をまたいで平らにするが、誰の嘘かは持たせたまま運ぶ。
+    印は時刻だけでなく「噛み合わない二人」も指すので、嘘の主が片方の端になる。
   */
   const lieRows = await db
-    .select({ lieRefs: characters.lieRefs })
+    .select({ id: characters.id, lieRefs: characters.lieRefs })
     .from(characters)
     .where(eq(characters.scenarioId, scenarioId))
 
@@ -317,8 +321,8 @@ const loadAlibiSegments = async (
     }),
     clash: clashOf({
       events,
-      lies: lieRows.flatMap((row) => row.lieRefs),
-      contradicts: evidenceRows.flatMap((row) => row.contradicts),
+      lies: lieRows.flatMap((row) => row.lieRefs.map((lie) => ({ ...lie, who: row.id }))),
+      evidences: evidenceRows,
     }),
   }
 }

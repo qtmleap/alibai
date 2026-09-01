@@ -144,7 +144,7 @@ const Harness = ({
   seed: InterrogationSeed
   detectiveName: string | null
   segments: AlibiSegment[]
-  clash?: { at: string; label: string }
+  clash?: { at: string; label: string; between: [string, string] }
 }) => {
   const interrogation = useInterrogation(seed)
 
@@ -205,7 +205,7 @@ const Growing = () => {
         detectiveName="灰かぶりの探偵"
         segments={SEGMENTS_LAST.slice(0, count)}
         // 食い違いは線が出そろってから引く。途中で引くと、繋ぐ先がまだ無い。
-        clash={done ? { at: '18:36', label: '食い違い' } : undefined}
+        clash={done ? { at: '18:36', label: '食い違い', between: [MAKINO.id, SENA.id] } : undefined}
       />
     </>
   )
@@ -242,7 +242,7 @@ export const LastTurn: Story = {
       seed={LAST_TURN_SEED}
       detectiveName="灰かぶりの探偵"
       segments={SEGMENTS_LAST}
-      clash={{ at: '18:36', label: '食い違い' }}
+      clash={{ at: '18:36', label: '食い違い', between: [MAKINO.id, SENA.id] }}
     />
   ),
 }

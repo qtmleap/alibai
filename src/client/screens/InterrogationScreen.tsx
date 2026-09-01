@@ -25,8 +25,8 @@ import { VICTIM_ID } from '~/db/scenario-definition'
 type Alibi = {
   segments: AlibiSegment[]
   deadline?: { at: string; label: string }
-  /** 供述が噛み合わない区間。表の上でひとつだけ立つ印なので、揃うまで渡さない。 */
-  clash?: { at: string; label: string }
+  /** 供述が噛み合わない区間。`between` は噛み合わない二人で、線はその二列に架かる。 */
+  clash?: { at: string; label: string; between: [string, string] }
 }
 
 type Props = {

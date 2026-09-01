@@ -134,25 +134,38 @@ describe('alibiSegmentsOf', () => {
   食い違いの印。証拠が嘘を突き崩したとき、その嘘が言い張っていた時刻に立つ。
 */
 describe('clashOf', () => {
+  const SENA = 'sena-uuid'
+
   const LIES: LieRef[] = [
-    { id: 'makino-left-early', about: 'store-open' },
-    { id: 'kuroda-went-home', about: 'kuroda-visited' },
+    { id: 'makino-left-early', about: 'store-open', who: MAKINO },
+    { id: 'kuroda-went-home', about: 'kuroda-visited', who: KURODA },
   ]
 
-  const clashWith = (contradicts: string[]) => clashOf({ events: EVENTS, lies: LIES, contradicts })
+  /** 瀬名から得た証拠。人物の出所があるので、印のもう片方の端になれる。 */
+  const fromSena = (contradicts: string[]) => [
+    { contradicts, sources: [{ type: 'character', id: SENA }] },
+  ]
+
+  const clashWith = (contradicts: string[]) =>
+    clashOf({ events: EVENTS, lies: LIES, evidences: fromSena(contradicts) })
 
   test('崩された嘘が無ければ、印は立たない', () => {
     expect(clashWith([])).toBeUndefined()
   })
 
   test('証拠が嘘を突き崩すと、その嘘が言い張っていた時刻に立つ', () => {
-    expect(clashWith(['lie:kuroda-went-home'])).toEqual({ at: '18:41', label: '食い違い' })
+    expect(clashWith(['lie:kuroda-went-home'])).toEqual({
+      at: '18:41',
+      label: '食い違い',
+      between: [KURODA, SENA],
+    })
   })
 
   test('複数崩れても、印はいちばん早い時刻の一つだけ', () => {
     expect(clashWith(['lie:kuroda-went-home', 'lie:makino-left-early'])).toEqual({
       at: '18:20',
       label: '食い違い',
+      between: [MAKINO, SENA],
     })
   })
 
@@ -166,8 +179,56 @@ describe('clashOf', () => {
   })
 
   test('嘘が指す事実がどの出来事にも無ければ、時刻が決まらないので立たない', () => {
-    const orphan: LieRef[] = [{ id: 'orphan', about: 'fact-without-event' }]
+    const orphan: LieRef[] = [{ id: 'orphan', about: 'fact-without-event', who: MAKINO }]
 
-    expect(clashOf({ events: EVENTS, lies: orphan, contradicts: ['lie:orphan'] })).toBeUndefined()
+    expect(
+      clashOf({ events: EVENTS, lies: orphan, evidences: fromSena(['lie:orphan']) }),
+    ).toBeUndefined()
+  })
+
+  /*
+    崩した側が誰か分からなければ、線を架ける先が無い。場所や遺体から出た証拠は
+    表に列を持たないので、ここでは端になれない。
+  */
+  test('人物の出所を持たない証拠だけでは、印は立たない', () => {
+    expect(
+      clashOf({
+        events: EVENTS,
+        lies: LIES,
+        evidences: [
+          { contradicts: ['lie:kuroda-went-home'], sources: [{ type: 'location', id: 'store' }] },
+        ],
+      }),
+    ).toBeUndefined()
+  })
+
+  /* 自分の嘘を自分で崩す証拠は端にならない。線の幅が消えて、印が一本の柱に潰れる。 */
+  test('崩した出所が嘘の主と同じなら、二人にならないので立たない', () => {
+    expect(
+      clashOf({
+        events: EVENTS,
+        lies: LIES,
+        evidences: [
+          { contradicts: ['lie:kuroda-went-home'], sources: [{ type: 'character', id: KURODA }] },
+        ],
+      }),
+    ).toBeUndefined()
+  })
+
+  /*
+    時刻と二人は同じ嘘から取る。別々に選ぶと、牧野の嘘が言い張る時刻に
+    黒田と瀬名の線が架かる——誰も言っていないことを盤面が言い出す。
+  */
+  test('印の時刻と二人は、同じ嘘から出る', () => {
+    const clash = clashOf({
+      events: EVENTS,
+      lies: LIES,
+      evidences: [
+        { contradicts: ['lie:makino-left-early'], sources: [{ type: 'character', id: SENA }] },
+        { contradicts: ['lie:kuroda-went-home'], sources: [{ type: 'character', id: MAKINO }] },
+      ],
+    })
+
+    expect(clash).toEqual({ at: '18:20', label: '食い違い', between: [MAKINO, SENA] })
   })
 })

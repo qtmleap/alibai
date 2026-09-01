@@ -32,8 +32,13 @@ type Props = {
   deadline?: { at: string; label: string }
   /** いま聞き込んでいる相手。その列だけ地をわずかに起こす。 */
   activeKey?: string
-  /** 供述が噛み合わない区間。表の上でひとつだけ立つ印なので、揃うまで渡さない。 */
-  clash?: { at: string; label: string }
+  /**
+   * 供述が噛み合わない区間。表の上でひとつだけ立つ印なので、揃うまで渡さない。
+   *
+   * `between` は噛み合わない二人（`people[].key`）。線はこの二列のあいだに架かり、
+   * 両端の目盛りが一度だけ伸びる。どちらが先でもよく、表の並び順に直してから描く。
+   */
+  clash?: { at: string; label: string; between: [string, string] }
   /**
    * 会話でいま指している時刻の `fix`。その目盛りだけ太らせて、
    * 話に出ている時刻と表の上の一本を対にする。
@@ -74,6 +79,9 @@ const format = (minutes: number): string =>
 const PX_PER_MIN = 10
 const GUTTER = 46
 
+/** 列のなかの帯の芯。帯の left:17px と width:3px から出る。食い違いの線と目盛りはここに合わせる。 */
+const BAR_MID = 18.5
+
 /**
  * 噛み合わない区間の線を引き終わる時刻（`draw` の 180ms 遅れ＋520ms）。
  * 両端の丸と札はこれを待ってから置く。線と同時に出すと、
@@ -107,6 +115,40 @@ export const AlibiChart = ({
   const height = length * PX_PER_MIN
   const ticks = Array.from({ length: Math.floor(length / 10) + 1 }, (_, i) => i * 10)
   const columns = `${GUTTER}px repeat(${people.length}, minmax(0, 1fr))`
+
+  /*
+    列の実寸は CSS しか知らない（1fr の分け前なので）。px を焼かず calc で書き、
+    人数が変わっても線が列に付いていくようにする。
+  */
+  const columnWidth = `((100% - ${GUTTER}px) / ${people.length})`
+  const leftOfColumn = (column: number) =>
+    `calc(${GUTTER}px + ${columnWidth} * ${column} + ${BAR_MID}px)`
+  const clashTop = clash === undefined ? 0 : (toMinutes(clash.at) - from) * PX_PER_MIN
+
+  /*
+    食い違いの線が架かる二列。表の並び順に直すので、left が必ず左になる。
+    片方でも表に列を持たない相手なら描かない——片端しかない線は、何も繋いでいない。
+  */
+  const clashEnds = (() => {
+    if (clash === undefined) {
+      return undefined
+    }
+
+    const [first, second] = clash.between
+    const one = people.find((person) => person.key === first)
+    const other = people.find((person) => person.key === second)
+
+    if (one === undefined || other === undefined) {
+      return undefined
+    }
+
+    const oneEnd = { column: people.indexOf(one), person: one }
+    const otherEnd = { column: people.indexOf(other), person: other }
+
+    return oneEnd.column <= otherEnd.column
+      ? { left: oneEnd, right: otherEnd }
+      : { left: otherEnd, right: oneEnd }
+  })()
 
   return (
     <div className="flex min-h-0 flex-col">
@@ -317,33 +359,56 @@ export const AlibiChart = ({
           </span>
         )}
 
-        {clash === undefined ? null : (
-          // 離れた二つの供述が噛み合わないと分かった瞬間（三 ひらめき）。
-          // 線が左から引かれ、引き終わってから両端の丸と札が置かれる。光らせず、繋ぐ。
-          <span
-            className="draw absolute origin-left border-t border-dashed border-t-nezumi-dim opacity-80"
-            style={{
-              left: `${GUTTER + 17}px`,
-              width: '217px',
-              top: `${(toMinutes(clash.at) - from) * PX_PER_MIN}px`,
-            }}
-          >
-            {/* 両端の丸。どこからどこまでが噛み合っていないのかを、線だけでなく端でも示す。 */}
+        {clash === undefined || clashEnds === undefined ? null : (
+          <>
+            {/*
+              離れた二つの供述が噛み合わないと分かった瞬間（三 ひらめき）。
+              線が左から引かれ、引き終わってから札が置かれる。光らせず、繋ぐ。
+
+              幅は列の実寸から出す。px を焼き込むと、人数や列幅が変わったときに
+              線だけが元の場所へ取り残される。
+            */}
             <span
-              className="line-in absolute top-[-3px] -left-[3px] size-[5px] rounded-full border border-nezumi bg-sumi"
-              style={{ animationDelay: CLASH_SETTLED_MS }}
-            />
-            <span
-              className="line-in absolute top-[-3px] -right-[3px] size-[5px] rounded-full border border-nezumi bg-sumi"
-              style={{ animationDelay: CLASH_SETTLED_MS }}
-            />
-            <span
-              className="line-in absolute top-[-19px] right-0 bg-sumi px-[4px] text-[10.5px] tracking-[0.1em] text-nezumi"
-              style={{ animationDelay: CLASH_SETTLED_MS }}
+              className="draw absolute origin-left border-t border-dashed border-t-nezumi-dim opacity-80"
+              style={{
+                left: leftOfColumn(clashEnds.left.column),
+                width: `calc(${columnWidth} * ${clashEnds.right.column - clashEnds.left.column})`,
+                top: `${clashTop}px`,
+              }}
             >
-              {clash.label}
+              <span
+                className="line-in absolute top-[-19px] right-0 bg-sumi px-[4px] text-[10.5px] tracking-[0.1em] text-nezumi"
+                style={{ animationDelay: CLASH_SETTLED_MS }}
+              >
+                {clash.label}
+              </span>
             </span>
-          </span>
+
+            {/*
+              線の両端に立つ目盛り。どちらの言い分とどちらの言い分が噛み合っていないのかを、
+              線の位置だけでなく端でも示す。顔料は各人のまま——画面が先に誰かを疑わない。
+
+              線の子にしない。親は draw で scaleX(0) から伸びるので、中に入れると
+              引いているあいだ目盛りまで一緒に潰れて走って見える。
+            */}
+            {[clashEnds.left, clashEnds.right].map((end) => (
+              <span
+                key={end.person.key}
+                className={`line-in absolute ${HUE[end.person.hue].text}`}
+                style={{
+                  left: `calc(${leftOfColumn(end.column)} - 5.5px)`,
+                  top: `${clashTop}px`,
+                  animationDelay: CLASH_SETTLED_MS,
+                }}
+              >
+                {/* 伸びるのは目盛りであって帯ではない。縦の表では目盛りが横向きなので pin-lift-x。 */}
+                <span
+                  className="pin-lift-x block h-px w-[11px] bg-current"
+                  style={{ animationDelay: CLASH_SETTLED_MS }}
+                />
+              </span>
+            ))}
+          </>
         )}
       </div>
     </div>
