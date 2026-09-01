@@ -242,16 +242,46 @@
       '</span></span></span>'
 
     /*
-     * 食い違い。牧野の申告と瀬名の証言が噛み合わない区間に一本だけ立てる。
+     * 食い違い。噛み合わない二人の列のあいだに一本だけ架ける。
      * 表の上でひとつだけの印なので、条件が揃うまで出さない。
+     *
+     * 誰と誰かと何時かは C.clash が持つ。ここが出すのは「何列目と何列目か」だけで、
+     * px は CSS の側（--gut-w / --col-n / --bar-mid）が列の実寸から出す——
+     * 幅を焼き込むと、人数や列幅が変わったときに線だけが元の場所に残る。
+     *
+     * 両端の目盛りは線の子にしない。親は draw で scaleX(0) から伸びるので、
+     * 中に入れると引いているあいだ目盛りまで一緒に潰れて走って見える。
      */
     if (opts.clash) {
-      const top = (toMin('18:36') - SPAN.from) * PX_PER_MIN
+      const cols = C.cast.concat([C.victim])
+      const ends = C.clash.between.map((key) => ({
+        col: cols.findIndex((p) => p.key === key),
+        hue: CAST_BY_KEY[key].hue,
+      }))
+      const ct = (toMin(C.clash.at) - SPAN.from) * PX_PER_MIN
       html +=
         '<span class="clash" style="top:' +
-        top +
-        'px; left:63px; width:217px" data-mock-id="ALI_INT_14">' +
-        '<i style="left:-3px"></i><i style="right:-3px"></i><span>食い違い</span></span>'
+        ct +
+        'px; --clash-a:' +
+        ends[0].col +
+        '; --clash-b:' +
+        ends[1].col +
+        '" data-mock-id="ALI_INT_14"><span>' +
+        esc(C.clash.label) +
+        '</span></span>' +
+        ends
+          .map(
+            (e) =>
+              '<i class="cpin" style="top:' +
+              ct +
+              'px; --clash-col:' +
+              e.col +
+              '; color:var(--' +
+              e.hue +
+              LIT +
+              ')"></i>',
+          )
+          .join('')
     }
     return html
   }

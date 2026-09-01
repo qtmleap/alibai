@@ -207,10 +207,18 @@ select {
   letter-spacing: 0.1em;
 }
 
-/* 見出しの列と表の列は同じ定義を使う。ずれると表が表でなくなる。 */
+/* 見出しの列と表の列は同じ定義を使う。ずれると表が表でなくなる。
+ *
+ * 格子の寸法は変数でも持つ。列に属さない印（食い違いの線と目盛り）が
+ * 列の位置を calc で出すため。grid-template-columns と一緒に置いておかないと、
+ * 片方だけ直したときに線がひとりでにずれる。
+ * --bar-mid は列のなかの帯の芯。下の .bar の left:17px と width:3px から出る。 */
 .cols {
+  --gut-w: 46px;
+  --col-n: 4;
+  --bar-mid: 18.5px;
   display: grid;
-  grid-template-columns: 46px repeat(4, 1fr);
+  grid-template-columns: var(--gut-w) repeat(4, 1fr);
 }
 
 .chart-head {
@@ -391,9 +399,15 @@ select {
   color: var(--nezumi-dim);
 }
 
-/* 食い違い。表の上でひとつだけ立つ印。 */
+/* 食い違い。表の上でひとつだけ立つ印。
+ *
+ * 架ける先は列の番号で受け取る（--clash-a / --clash-b）。左端は a 列の帯の芯、
+ * 幅は二列ぶんの間隔——実際に噛み合わない二本のあいだに架かる。
+ * 線そのものは顔料を持たない。光らせず、繋ぐだけなので。 */
 .clash {
   position: absolute;
+  left: calc(var(--gut-w) + (100% - var(--gut-w)) / var(--col-n) * var(--clash-a) + var(--bar-mid));
+  width: calc((100% - var(--gut-w)) / var(--col-n) * (var(--clash-b) - var(--clash-a)));
   height: 1px;
   border-top: 1px dashed var(--nezumi-dim);
   opacity: 0.8;
@@ -408,14 +422,29 @@ select {
   background: var(--sumi);
   padding: 0 4px;
 }
-.clash i {
+/*
+ * 線の両端に立つ目盛り。
+ *
+ * 縦組みの表では時刻が縦に流れるので、軸に垂直な目盛りは横の短い棒になる——
+ * .bar.solid::before と同じ寸法（11×1px、帯の芯を中心に）で揃える。
+ * 顔料はそれぞれの人のもの。誰と誰が噛み合わないのかを、線ではなく端が言う。
+ *
+ * 線の子にはしない。親は draw で scaleX(0) から伸びるので、中に置くと
+ * 引いているあいだ目盛りまで一緒に潰れる。だから位置は自前で出す。
+ */
+.cpin {
   position: absolute;
-  top: -3px;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  border: 1px solid var(--nezumi);
-  background: var(--sumi);
+  left: calc(
+    var(--gut-w) +
+    (100% - var(--gut-w)) /
+    var(--col-n) *
+    var(--clash-col) +
+    var(--bar-mid)
+  );
+  margin-left: -5.5px;
+  width: 11px;
+  height: 1px;
+  background: currentColor;
 }
 
 .legend {

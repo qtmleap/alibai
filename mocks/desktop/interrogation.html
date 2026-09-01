@@ -141,18 +141,26 @@
         })
 
         /*
-         * 三 ひらめき。噛み合わない区間へ線が左から引かれる。
-         * 両端の丸と札は引き終わり（180ms 待って 520ms）を待ってから置く。
-         * 線が伸びきる前に端の印だけが宙に浮くのを避けるため。
+         * 三 ひらめき。噛み合わない二人の列のあいだへ、線が左から引かれる。
+         *
+         * 引き終わって（180ms 待って 520ms）から、両端の目盛りが一度だけ伸びる。
+         * 縦組みの表は時刻が縦に流れるので、目盛りは横の短い棒——伸びる向きも横になる。
+         * 伸ばすのは目盛りだけで、在所そのものの帯には触らない。
+         * 札も同じ 700ms まで待つ。線が伸びきる前に端の字だけが宙に浮くのを避けるため。
          */
         var clash = document.querySelector('#chart .clash')
         if (clash) {
           clash.classList.add('draw', 'origin-left')
-          Array.prototype.forEach.call(clash.children, function (mark) {
-            mark.classList.add('line-in')
-            mark.style.animationDelay = '700ms'
-          })
+          var note = clash.querySelector('span')
+          if (note) {
+            note.classList.add('line-in')
+            note.style.animationDelay = '700ms'
+          }
         }
+        Array.prototype.forEach.call(document.querySelectorAll('#chart .cpin'), function (pin) {
+          pin.classList.add('pin-lift-x')
+          pin.style.animationDelay = '700ms'
+        })
 
         /*
          * 五 発話が続く。いま届いた返答だけ、一文ずつ置いていく。間は 0.8 秒。
