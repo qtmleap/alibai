@@ -306,7 +306,9 @@ const compileDefinition = (
       victimName: victim === undefined ? null : victim.name,
       victimIntroduction: victim === undefined ? null : victim.introduction,
       victimFoundAt: victim === undefined || victim.foundAt === undefined ? null : victim.foundAt,
-      victimFoundIn: victim === undefined || victim.foundIn === undefined ? null : victim.foundIn,
+      // 発見場所も timeline の location と同じ扱い。部屋IDで書かれていれば部屋の名前へ直す。
+      victimFoundIn:
+        victim === undefined || victim.foundIn === undefined ? null : placeOf(victim.foundIn),
       victimInvestigable: investigable,
       isPublished: options.isPublished,
       difficulty: definition.meta.difficulty,

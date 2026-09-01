@@ -173,7 +173,7 @@ victim:
   name: 高瀬涼子
   introduction: 老舗旅館「月見荘」女将    # 肩書きひとつぶん、60文字まで
   foundAt: "20:30"                      # 発見時刻。timeline と同じ書き方
-  foundIn: 書斎                          # 発見場所。20文字まで
+  foundIn: 書斎                          # 発見場所。20文字まで。部屋IDでも可
   causeOfDeath: 植物性の毒物による中毒死
   findings:                             # 調べて分かること。1件1文
     - id: single-glass
@@ -188,6 +188,7 @@ victim:
   ——あれは `revelations` の仕事で、ここに混ぜると「遺体を見ただけで動機が分かる」ことになります。
 - 誰がやったかを書かない。見えたものだけを置き、繋ぐのはプレイヤーの仕事です。
 - `findings` も `causeOfDeath` も無ければ、被害者は聞き込みの相手に並びません（調べても何も出ないので）。
+- `foundIn` は `timeline` の `location` と同じ扱いです。見取り図のある事件では部屋のIDを書けます。
 - 遺体を調べるのも**質問1回ぶん**を消費します。人に訊くか現場を見るかの配分がそのままゲームになります。
 
 ### `sources: { type: victim }`
@@ -430,6 +431,8 @@ quality:
 - `subject.type: event` → `timeline[].id`
 - `requires.evidences` → `evidences[].id`、`requires.revelations` → `revelations[].id`
 - `contradicts` の `lie:` → 実在する `lies[].id`
+- `victim.findings[].requires` → `evidences[].id` / `revelations[].id`
+- `type: victim` のソース → その事件に `victim` があること（`id` は `victim` 固定）
 
 **ID が重複しないこと** — `facts` / `timeline` / `characters` / `evidences` / `revelations`、および全人物を通した `lies`、人物内の `memories`。
 
