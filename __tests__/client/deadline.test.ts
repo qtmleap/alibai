@@ -11,6 +11,7 @@ const VICTIM = {
   introduction: '青雨堂店主',
   foundAt: '19:10',
   foundIn: '店の奥',
+  hasEstimatedDeathAt: true,
   investigable: true,
 }
 
@@ -20,6 +21,18 @@ describe('deadlineOf', () => {
       foundAt: '19:10',
       label: '死亡推定',
       death: { kind: 'unknown' },
+    })
+  })
+
+  /*
+   * 「まだ見つけていない」と「最初から無い」は別のこと。点線と ? は「ここに探すものがある」
+   * という誘いなので、死亡推定時刻を持たない事件に出すと、無いものを探させることになる。
+   */
+  test('死亡推定時刻を持たない事件では、印そのものを出さない', () => {
+    expect(deadlineOf({ ...VICTIM, hasEstimatedDeathAt: false }, null)).toEqual({
+      foundAt: '19:10',
+      label: '死亡推定',
+      death: undefined,
     })
   })
 

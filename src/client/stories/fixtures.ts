@@ -39,6 +39,8 @@ export const SCENARIO: ScenarioDetail = {
     introduction: '青雨堂店主。初版本の商談を抱えていた',
     foundAt: '19:15',
     foundIn: '店の奥',
+    // 死亡推定時刻を持つ事件。掴むまでは盤面が点線と ? で囲う。
+    hasEstimatedDeathAt: true,
     investigable: true,
   },
   /*
