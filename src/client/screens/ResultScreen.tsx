@@ -303,7 +303,15 @@ export const ResultScreen = ({ accuseResult, board, onRetry, onRestart }: Props)
                 people={headingOf(board.people, truth.culpritCharacterId, solved)}
                 segments={board.segments}
                 span={board.span}
-                deadline={board.deadline}
+                /*
+                  結果は答え合わせが済んだ後なので、刻限は一本の実線に落ちる。
+                  窓（まだ分かっていない幅）はここには残らない——残っていたら、
+                  それは答え合わせが終わっていないということ。
+                */
+                deadline={{
+                  label: board.deadline.label,
+                  death: { kind: 'fixed', at: board.deadline.at },
+                }}
                 truth={solved ? board.truth : undefined}
               />
 

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { useEffect, useState } from 'react'
-import type { AlibiSegment } from '@/client/components/AlibiChart'
+import type { AlibiSegment, Deadline } from '@/client/components/AlibiChart'
 import {
   type ChatTurn,
   type InterrogationSeed,
@@ -38,14 +38,18 @@ if (MAKINO === undefined || KURODA === undefined || SENA === undefined) {
  */
 const PLACES: InvestigablePlace[] = [
   {
-    id: 'e9b41c07-2d58-4a36-9f10-6c3b7a5d8e21',
+    id: 'choba',
     name: '帳場',
+    shortName: '帳場',
     introduction: '青雨堂の一階。レジと帳面',
+    situation: '閉店の片づけが、途中で止まっている',
   },
   {
-    id: 'a2f70d13-8c64-4e59-b7a1-05d9e6f34c82',
+    id: 'oku',
     name: '奥の間',
+    shortName: '奥の間',
     introduction: '帳場の裏。倒れていた場所',
+    situation: '書架のあいだに、灯りがひとつだけ点いている',
   },
 ]
 
@@ -61,8 +65,11 @@ if (CHOBA === undefined) {
  * いまのAPIは時刻付きの在所を返さないので、story が持つ。
  * 中身は mocks/_case.js の台本と同じ——別の事件を並べると、差の出所が
  * 意匠なのかデータなのか分からなくなる。
+ *
+ * 刻限は遺体発見だけが出ていて、死亡推定はまだ「不明」。この台本では誰も
+ * 遺体を検分していないので、盤面もそこを知らない（#death=unknown と同じ状態）。
  */
-const DEADLINE = { at: '18:50', label: '死亡推定' }
+const DEADLINE: Deadline = { foundAt: '19:10', label: '死亡推定', death: { kind: 'unknown' } }
 
 /** 4ターン目まで訊いたところで開いている線。 */
 const SEGMENTS_MID: AlibiSegment[] = [

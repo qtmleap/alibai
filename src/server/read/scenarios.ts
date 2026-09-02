@@ -2,6 +2,7 @@ import { and, eq } from 'drizzle-orm'
 import { loadPublishedScenarios, type PublishedScenario } from '@/server/cache/scenario'
 import type { Db } from '@/server/db/client'
 import { type FloorPlan, parseFloorPlan } from '~/db/floor-plan'
+import { type InvestigablePlace, parseInvestigablePlaces } from '~/db/place'
 import { characters, scenarios } from '~/db/schema'
 
 /**
@@ -39,6 +40,14 @@ export type ScenarioDetail = {
     estimatedDeathAt: string | null
     investigable: boolean
   } | null
+  /**
+   * 調べられる場所。喋らないので characters には並ばないが、選ぶ一手は人物と同じ。
+   *
+   * ここに出るのは調べる前から見せてよいものだけ（名前・短縮名・紹介・佇まい）。
+   * 所見は真相側にあり、調べて初めて出る——遺体の `investigable` と同じ考え方で、
+   * そもそも所見を持たない場所はシナリオに書けないので、載っている場所は必ず調べられる。
+   */
+  places: InvestigablePlace[]
   /** 既定値を埋めたあとの形。列そのものの型（入力側）ではない。 */
   floorPlan: FloorPlan | null
   difficulty: number
@@ -101,6 +110,7 @@ export const findScenarioDetail = async (
       // そもそもプレイヤーが読むのはシナリオを選んだ後で十分。
       briefing: scenarios.briefing,
       floorPlan: scenarios.floorPlan,
+      places: scenarios.places,
       // 時刻軸の両端。コンパイル時に timeline から焼いた値で、真相そのものは含まない
       // （db/time-window.ts）。ここで scenario_truths を引かずに済むのはそのため。
       timeStart: scenarios.timeStart,
@@ -154,6 +164,12 @@ export const findScenarioDetail = async (
     ...scenario,
     // 読み替えられない図面は、図なしとして返す。ここで投げると事件そのものが開けなくなる。
     floorPlan: floorPlan === undefined ? null : floorPlan,
+    /*
+      場所も図面と同じ扱いで読み替える。JSON 列なので、この列より前に焼かれた行や
+      形の変わった行が入り得る。読めないものは場所なしとして返す
+      （SSR の loader は zod を通らずこの戻り値をそのまま描画へ渡す）。
+    */
+    places: parseInvestigablePlaces(scenario.places),
     // 片端しか無い行は軸を引けない。両方揃ったときだけ幅として渡す。
     timeWindow:
       scenario.timeStart === null || scenario.timeEnd === null

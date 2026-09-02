@@ -5,6 +5,7 @@ import { Button } from '@/client/components/ui/button'
 import { Textarea } from '@/client/components/ui/textarea'
 import type { UseInterrogation } from '@/client/hooks/useInterrogation'
 import { describeError, submitAccusation } from '@/client/lib/api'
+import { deadlineOf, examinedBody } from '@/client/lib/deadline'
 import type { AccuseResult, ScenarioDetail } from '@/client/lib/schemas'
 import { playSe } from '@/client/lib/sound'
 
@@ -49,11 +50,14 @@ type Props = {
   scenario: ScenarioDetail
   /** 進行中のセッション。画面が使うのはIDだけ。 */
   sessionId: string
-  /** 残りターンを上部バーに出すためだけに持ち込む。 */
+  /** 残りターンを上部バーに出すため、そして遺体を検分したかを見るために持ち込む。 */
   interrogation: UseInterrogation
   /**
-   * 聞き終えた供述と、被害者の刻限。まだサーバから降ってこないので、
+   * 聞き終えた供述と、端末の帯に立てる刻限。まだサーバから降ってこないので、
    * 渡せる呼び出し側からだけ受ける。無ければ表は白紙のまま出る。
+   *
+   * 机の表の刻限はここから取らない。あちらは遺体発見と死亡推定の二段に分かれていて、
+   * 開示の規則も持つので、scenario から引く（client/lib/deadline.ts）。
    */
   alibi?: { segments: AlibiSegment[]; deadline: { at: string; label: string } }
   onResult: (result: AccuseResult) => void
@@ -208,7 +212,12 @@ export const AccusationScreen = ({
                 people={people}
                 segments={segments}
                 span={{ from: timeWindow.start, to: timeWindow.end }}
-                deadline={deadline}
+                /*
+                  刻限は聞き込みの盤面と同じ規則で引く。告発は答え合わせの前なので、
+                  遺体を検分していなければ死亡推定はまだ「不明」のまま。
+                  下の帯（端末）だけは一本線のままで、そちらは alibi が持つ値を使う。
+                */
+                deadline={deadlineOf(scenario.victim, examinedBody(interrogation.conversations))}
               />
             </div>
 

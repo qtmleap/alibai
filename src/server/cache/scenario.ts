@@ -7,6 +7,7 @@ import {
   type RevelationEligibilityContext,
   type RevelationRule,
 } from '@/server/game/revelations'
+import { parseInvestigablePlaces } from '~/db/place'
 import { VICTIM_ID } from '~/db/scenario-definition'
 import { characters, evidences, revelations, scenarios } from '~/db/schema'
 
@@ -283,7 +284,11 @@ export const loadHintSubjects = async (
       .from(evidences)
       .where(eq(evidences.scenarioId, scenarioId)),
     db
-      .select({ floorPlan: scenarios.floorPlan, investigable: scenarios.victimInvestigable })
+      .select({
+        floorPlan: scenarios.floorPlan,
+        investigable: scenarios.victimInvestigable,
+        places: scenarios.places,
+      })
       .from(scenarios)
       .where(eq(scenarios.id, scenarioId))
       .limit(1),
@@ -310,10 +315,21 @@ export const loadHintSubjects = async (
       ...revelationRows.map((row) => ({ id: row.id, sources: row.sources.map(asHintSource) })),
       ...evidenceRows.map((row) => ({ id: row.id, sources: row.sources.map(asHintSource) })),
     ],
-    roomIds:
-      plan === undefined || plan.floorPlan === null
-        ? []
-        : plan.floorPlan.rooms.map((room) => room.id),
+    /*
+     * 場所として数える相手。見取り図の部屋と、調べられる場所。
+     *
+     * 図の無い事件でも場所は置けるので、部屋だけを並べると、そこへ紐づいた証拠が
+     * easy の内訳から丸ごと落ちる（総数には入るのに）。同じ ID を持つ部屋と場所は
+     * 同じ場所なので、重ねずに一つだけ並べる。
+     */
+    roomIds: [
+      ...new Set([
+        ...(plan === undefined || plan.floorPlan === null
+          ? []
+          : plan.floorPlan.rooms.map((room) => room.id)),
+        ...parseInvestigablePlaces(plan?.places).map((place) => place.id),
+      ]),
+    ],
     /*
      * 遺体も数える相手として並べる。上で被害者を人物へ畳んでいるので、
      * ここに載せないと easy の内訳だけ遺体由来の件数が落ちる（総数には入るのに）。

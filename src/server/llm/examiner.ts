@@ -6,7 +6,6 @@ import {
   streamText,
 } from 'ai'
 import type { Env } from '@/server/env'
-import { EXAMINATION_INTENT_RULES } from '@/server/game/rules'
 import { buildDetectiveBlock, buildDetectiveSelfBlock } from '@/server/llm/detective'
 import type { TopicExchange } from '@/server/llm/interviewer'
 import { cacheHint, type LlmChoice, resolveModel } from '@/server/llm/provider'
@@ -26,10 +25,15 @@ export type ExaminationFocusResult = {
  * 聞き込みの `generateQuestion` と同じ位置に立つが、別の関数にしてある。
  * あちらは「目の前の人物へ質問を投げる」ための役で、そのまま使うと
  * 「涼子さん、〜はありますか？」と死者に話しかけることになる。
+ *
+ * 遺体と場所で共通。違うのは決まりの文面だけなので、それは呼び出し側が渡す
+ * （`EXAMINATION_INTENT_RULES` / `PLACE_EXAMINATION_INTENT_RULES`）。
  */
 export const composeExaminationFocus = async (params: {
   env: Env
   choice: LlmChoice
+  /** 何を調べに行くかの決まり。相手が遺体か場所かで文面が変わる。 */
+  intentRules: string
   detective: Detective | undefined
   /** プレイヤーが指定した調べどころ。 */
   topic: string
@@ -41,8 +45,8 @@ export const composeExaminationFocus = async (params: {
     model: resolveModel(params.env, params.choice),
     system:
       params.detective === undefined
-        ? EXAMINATION_INTENT_RULES
-        : `${EXAMINATION_INTENT_RULES}\n\n${buildDetectiveSelfBlock(params.detective)}`,
+        ? params.intentRules
+        : `${params.intentRules}\n\n${buildDetectiveSelfBlock(params.detective)}`,
     messages: [
       {
         role: 'user',
@@ -67,12 +71,15 @@ export const composeExaminationFocus = async (params: {
 export type ExaminationContext = {
   env: Env
   choice: LlmChoice
-  /** 検分の語り口の決まり（`EXAMINATION_RULES`）。会話中変わらないので先頭に置く。 */
+  /**
+   * 検分の語り口の決まり。会話中変わらないので先頭に置く。
+   * 遺体なら `EXAMINATION_RULES`、場所なら `PLACE_EXAMINATION_RULES`。
+   */
   examinationRules: string
-  /** 被害者の検分シート。いま見せてよい所見だけが入っている。 */
-  victimSheet: string
+  /** 検分シート。いま見せてよい所見だけが入っている。 */
+  sheet: string
   detective: Detective | undefined
-  /** 遺体についてのこれまでの検分。他の人物との会話は混ぜない。 */
+  /** その相手についてのこれまでの検分。他の相手との会話は混ぜない。 */
   history: ModelMessage[]
   /** 探偵が何を調べようとしているか。 */
   utterance: string
@@ -82,20 +89,20 @@ const buildDetectiveMessages = (detective: Detective | undefined): ModelMessage[
   detective === undefined ? [] : [{ role: 'system', content: buildDetectiveBlock(detective) }]
 
 /**
- * 遺体と現場の検分を書き起こす。
+ * 検分を書き起こす。遺体でも場所でも、渡すものが変わるだけで作りは同じ。
  *
  * 作りは `streamNpcReply` と同じ（プレフィックスを二段に分けてキャッシュを効かせる）。
  * 違うのは相手が喋らないことだけで、渡すのが人物像ではなく所見のシートになる。
  *
  * ここは**言い換えだけをさせる経路**で、所見そのものはシナリオが決めている。
  * モデルに与えていない所見は出力にも現れない、という保証をシートの側で作っておくこと
- * （`buildVictimSheet` が前提を満たさない所見を落とす）。
+ * （`buildVictimSheet` / `buildPlaceSheet` が前提を満たさない所見を落とす）。
  */
 export const streamExamination = ({
   env,
   choice,
   examinationRules,
-  victimSheet,
+  sheet,
   detective,
   history,
   utterance,
@@ -112,7 +119,7 @@ export const streamExamination = ({
       },
       {
         role: 'system',
-        content: victimSheet,
+        content: sheet,
         providerOptions: cacheHint(choice),
       },
       ...buildDetectiveMessages(detective),

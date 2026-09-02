@@ -1,5 +1,10 @@
 import { describe, expect, test } from 'bun:test'
-import { buildVictimSheet, type VictimRecord } from '@/server/game/examination'
+import {
+  buildPlaceSheet,
+  buildVictimSheet,
+  type PlaceRecord,
+  type VictimRecord,
+} from '@/server/game/examination'
 import { availableFindings, type VictimFinding } from '~/db/victim-finding'
 
 const finding = (
@@ -113,5 +118,87 @@ describe('buildVictimSheet', () => {
 
     expect(sheet).not.toContain('発見時刻')
     expect(sheet).not.toContain('発見場所')
+  })
+})
+
+const place = (overrides: Partial<PlaceRecord>): PlaceRecord => ({
+  name: '帳場',
+  introduction: '青雨堂の一階。レジと帳面',
+  situation: '閉店の片づけが、途中で止まっている',
+  briefing: '——事件の記録を読み上げます。',
+  findings: [],
+  ...overrides,
+})
+
+describe('buildPlaceSheet', () => {
+  test('所見が無ければ組まない', () => {
+    /*
+      佇まいの一行だけを渡すと、モデルはそこから所見を作りはじめる。
+      一行の情景描写は、埋めるための余白として十分に広い。
+    */
+    expect(buildPlaceSheet(place({}), NOTHING)).toBeUndefined()
+  })
+
+  test('所見と佇まいを並べて組む', () => {
+    const sheet = buildPlaceSheet(
+      place({ findings: [finding('a', '帳面は18時44分で止まっている。')] }),
+      NOTHING,
+    )
+
+    expect(sheet).toContain('帳場')
+    expect(sheet).toContain('閉店の片づけが、途中で止まっている')
+    expect(sheet).toContain('18時44分')
+  })
+
+  test('遺体の見出しを持ち込まない', () => {
+    // 倒れている人を見るのと、片づけの途中の帳場を見るのは別の行為である。
+    const sheet = buildPlaceSheet(place({ findings: [finding('a', '帳面。')] }), NOTHING)
+
+    expect(sheet).not.toContain('死因')
+    expect(sheet).not.toContain('被害者')
+    expect(sheet).not.toContain('遺体')
+  })
+
+  test('伏せた所見は本文に現れない', () => {
+    const sheet = buildPlaceSheet(
+      place({
+        findings: [
+          finding('a', '帳面は18時44分で止まっている。'),
+          finding('b', '棚に隙間がある。', { revelations: [], evidences: ['forged-book'] }),
+        ],
+      }),
+      NOTHING,
+    )
+
+    expect(sheet).toContain('18時44分')
+    expect(sheet).not.toContain('隙間')
+  })
+
+  test('伏せた所見があること自体も漏らさない', () => {
+    const sheet = buildPlaceSheet(
+      place({
+        findings: [
+          finding('a', '帳面は18時44分で止まっている。'),
+          finding('b', '棚に隙間がある。', { revelations: [], evidences: ['forged-book'] }),
+        ],
+      }),
+      NOTHING,
+    )
+
+    expect(sheet).not.toContain('forged-book')
+    expect(sheet).not.toMatch(/非公開|伏せ|まだ見せ/)
+  })
+
+  test('前提を満たせば所見が増える', () => {
+    const sheet = buildPlaceSheet(
+      place({
+        findings: [
+          finding('b', '棚に隙間がある。', { revelations: [], evidences: ['forged-book'] }),
+        ],
+      }),
+      { evidenceIds: ['forged-book'], revelationIds: [] },
+    )
+
+    expect(sheet).toContain('隙間')
   })
 })

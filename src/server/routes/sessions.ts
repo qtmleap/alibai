@@ -14,10 +14,16 @@ import type { Db } from '@/server/db/client'
 import { createDb } from '@/server/db/client'
 import type { Bindings, Env } from '@/server/env'
 import { type AlibiSegment, alibiSegmentsOf, type Clash, clashOf } from '@/server/game/alibi'
-import { buildVictimSheet, type DiscoveredIds } from '@/server/game/examination'
+import { buildPlaceSheet, buildVictimSheet, type DiscoveredIds } from '@/server/game/examination'
 import { remainingHints } from '@/server/game/hints'
-import { acceptRevealedRevelationIds } from '@/server/game/revelations'
-import { EXAMINATION_RULES, GAME_RULES } from '@/server/game/rules'
+import { acceptRevealedRevelationIds, type RevelationSourceType } from '@/server/game/revelations'
+import {
+  EXAMINATION_INTENT_RULES,
+  EXAMINATION_RULES,
+  GAME_RULES,
+  PLACE_EXAMINATION_INTENT_RULES,
+  PLACE_EXAMINATION_RULES,
+} from '@/server/game/rules'
 import { scoreSession } from '@/server/game/scoring'
 import { streamNpcReply } from '@/server/llm/actor'
 import { gradeDeduction } from '@/server/llm/deduction'
@@ -42,7 +48,8 @@ import {
 import { type Detective, detectiveSchema } from '~/db/detective'
 import { type GameMode, gameModeOf, gameModeSchema } from '~/db/game-mode'
 import { llmOverridesSchema } from '~/db/llm-catalog'
-import { VICTIM_ID } from '~/db/scenario-definition'
+import { findingsOfPlace, parseInvestigablePlaces } from '~/db/place'
+import { placeIdSchema, VICTIM_ID } from '~/db/scenario-definition'
 import {
   characters,
   type DeductionRecord,
@@ -152,8 +159,17 @@ const loadTruth = async (db: Db, scenarioId: string): Promise<Truth | undefined>
   }
 }
 
-/** 話題を投げる相手。人物でも遺体でも、この形まで均せば以降は同じ扱いでいい。 */
-type Subject = { name: string; sheet: string }
+/**
+ * 話題を投げる相手。人物でも遺体でも場所でも、この形まで均せば以降は同じ扱いでいい。
+ *
+ * `kind` だけは残す。均しきってしまうと、語り口の決まりをどれにするか
+ * （人に訊くのか、亡骸を見るのか、部屋を歩くのか）と、Judge へ渡す出どころの型が決められない。
+ */
+type Subject = { kind: 'character' | 'victim' | 'place'; name: string; sheet: string }
+
+/** Judge が読む出どころの型。場所は見取り図の部屋と同じ `location` に乗る。 */
+const sourceTypeOf = (kind: Subject['kind']): RevelationSourceType =>
+  kind === 'place' ? 'location' : kind
 
 const loadCharacterSubject = async (
   kv: KVNamespace,
@@ -173,7 +189,9 @@ const loadCharacterSubject = async (
 
   const row = rows[0]
 
-  return sheet === undefined || row === undefined ? undefined : { name: row.name, sheet }
+  return sheet === undefined || row === undefined
+    ? undefined
+    : { kind: 'character', name: row.name, sheet }
 }
 
 /**
@@ -234,7 +252,62 @@ const loadVictimSubject = async (
     discovered,
   )
 
-  return sheet === undefined ? undefined : { name: scenarioRow.name, sheet }
+  return sheet === undefined ? undefined : { kind: 'victim', name: scenarioRow.name, sheet }
+}
+
+/**
+ * 場所の検分シート。
+ *
+ * 遺体と同じ理由でキャッシュに置けない（見せてよい所見が発見状況で変わる）。
+ * 二つの列に分かれているのも遺体と同じで、公開側から場所そのもの、真相側から所見を引く。
+ *
+ * 実在しない場所を指されたときも undefined。呼び出し側は「調べるものが無い」として断る
+ * ——場所の一覧は支度の画面が既に渡しているので、外れた ID は普通は来ない。
+ */
+const loadPlaceSubject = async (
+  db: Db,
+  scenarioId: string,
+  placeId: string,
+  discovered: DiscoveredIds,
+): Promise<Subject | undefined> => {
+  const [scenarioRows, truthRows] = await Promise.all([
+    db
+      .select({ places: scenarios.places, briefing: scenarios.briefing })
+      .from(scenarios)
+      .where(eq(scenarios.id, scenarioId))
+      .limit(1),
+    db
+      .select({ placeFindings: scenarioTruths.placeFindings })
+      .from(scenarioTruths)
+      .where(eq(scenarioTruths.scenarioId, scenarioId))
+      .limit(1),
+  ])
+
+  const scenarioRow = scenarioRows[0]
+  const truthRow = truthRows[0]
+
+  if (scenarioRow === undefined || truthRow === undefined) {
+    return undefined
+  }
+
+  const place = parseInvestigablePlaces(scenarioRow.places).find((entry) => entry.id === placeId)
+
+  if (place === undefined) {
+    return undefined
+  }
+
+  const sheet = buildPlaceSheet(
+    {
+      name: place.name,
+      introduction: place.introduction,
+      situation: place.situation,
+      briefing: scenarioRow.briefing,
+      findings: findingsOfPlace(truthRow.placeFindings, placeId),
+    },
+    discovered,
+  )
+
+  return sheet === undefined ? undefined : { kind: 'place', name: place.name, sheet }
 }
 
 /**
@@ -586,8 +659,12 @@ const askSchema = z.object({
   /**
    * 話題を投げる相手。登場人物は uuid だが、遺体だけは決め打ちの `victim`
    * （採番する先が一人しか居ない）。ここを uuid で縛ると検分そのものが通らない。
+   *
+   * 調べられる場所も同じ口へ来る。あちらは作者が書いたローカルID（`choba` など）で、
+   * uuid とも `victim` とも重ならない形にスキーマ側で縛ってある
+   * （`placeIdSchema`）。三者が形で見分けられるので、どれを指したのかは常に決まる。
    */
-  characterId: z.union([z.uuid(), z.literal(VICTIM_ID)]),
+  characterId: z.union([z.uuid(), z.literal(VICTIM_ID), placeIdSchema]),
   /**
    * プレイヤーが指定する話題。「アリバイについて」「被害者との関係を」のような指示で、
    * 実際にNPCへ投げる質問は探偵役のモデルがここから組み立てる。
@@ -733,11 +810,15 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
   const scenarioId = meta.scenarioId
 
   /*
-    遺体の検分は、相手が喋らないぶんだけ経路が違う。
+    検分（遺体・場所）は、相手が喋らないぶんだけ経路が違う。
     分かれるのは「渡すシート」と「往復するかどうか」の二点だけで、
     ターンの消費・記録・判定はそのあと合流する。
+
+    ここで uuid かどうかだけを見て決めているのは、この判断がレート上限の消費量
+    （1リクエストが走らせるモデル呼び出しの数）に要るため。相手を DB から引く前に
+    数え始める必要がある。人物の ID は必ず uuid なので、そうでないものは喋らない側。
   */
-  const examining = askInput.characterId === VICTIM_ID
+  const examining = !z.uuid().safeParse(askInput.characterId).success
 
   // 進行中のセッションはDOが正典。ターンを使い切っていたらここで断る。
   // クライアント側の残り回数表示だけに任せると、リクエストを直接投げれば
@@ -790,10 +871,15 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
     session.getDetective(),
     loadSecretKeywords(db, scenarioId),
     examining
-      ? loadVictimSubject(db, scenarioId, {
-          evidenceIds: before.discoveredEvidenceIds,
-          revelationIds: before.discoveredRevelationIds,
-        })
+      ? askInput.characterId === VICTIM_ID
+        ? loadVictimSubject(db, scenarioId, {
+            evidenceIds: before.discoveredEvidenceIds,
+            revelationIds: before.discoveredRevelationIds,
+          })
+        : loadPlaceSubject(db, scenarioId, askInput.characterId, {
+            evidenceIds: before.discoveredEvidenceIds,
+            revelationIds: before.discoveredRevelationIds,
+          })
       : loadCharacterSubject(c.env.SCENARIO_CACHE, db, askInput.characterId),
   ])
 
@@ -802,6 +888,14 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
     // 空のシートを渡すとモデルが埋めようとして所見を作りはじめるので、断るほうを選ぶ。
     return c.json({ error: examining ? 'nothing to examine' : 'character not found' }, 404)
   }
+
+  /*
+    語り口の決まりは相手で変える。倒れている人を見るのと、片づけの途中の帳場を見るのは
+    別の行為で、亡骸を前にした筆致のまま部屋を書かせると、何も起きていない棚が意味ありげに濁る。
+  */
+  const examinationRules = subject.kind === 'place' ? PLACE_EXAMINATION_RULES : EXAMINATION_RULES
+  const intentRules =
+    subject.kind === 'place' ? PLACE_EXAMINATION_INTENT_RULES : EXAMINATION_INTENT_RULES
 
   return streamSSE(c, async (stream) => {
     const collected: {
@@ -834,6 +928,7 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
         const focus = await composeExaminationFocus({
           env,
           choice: choices.actor,
+          intentRules,
           detective,
           topic: askInput.topic,
           exchanges: collected.exchanges,
@@ -901,8 +996,8 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
         ? streamExamination({
             env,
             choice: choices.actor,
-            examinationRules: EXAMINATION_RULES,
-            victimSheet: subject.sheet,
+            examinationRules,
+            sheet: subject.sheet,
             detective,
             history,
             utterance: interviewer.question,
@@ -1003,7 +1098,7 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
         何を指示したのかが後から辿れない。
 
         検分だけは messages に残さない。あの列は characters への外部キーを持っていて、
-        被害者は characters に居ないため入らない。読み返しに使うのは DO の側なので
+        被害者も場所も characters に居ないため入らない。読み返しに使うのは DO の側なので
         （履歴の復元も判定もそちらを見る）、プレイには影響しない。
         あの表は後から分析するための控えなので、そこだけ欠けることになる。
       */
@@ -1045,7 +1140,8 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
       const [rubric, revelationCandidates] = await Promise.all([
         loadJudgeRubric(c.env.SCENARIO_CACHE, db, scenarioId),
         loadEligibleRevelationCandidates(c.env.SCENARIO_CACHE, db, scenarioId, {
-          source: { type: examining ? 'victim' : 'character', id: askInput.characterId },
+          // 場所は `location`。作者が `type: location` で書いた出どころと同じ道に乗る。
+          source: { type: sourceTypeOf(subject.kind), id: askInput.characterId },
           discoveredEvidenceIds: current.discoveredEvidenceIds,
           discoveredRevelationIds: current.discoveredRevelationIds,
         }),
@@ -1403,16 +1499,21 @@ sessionRoutes.get('/api/sessions/:id/history', validateSessionId, async (c) => {
   const scenarioId = meta.scenarioId
 
   // DOは自分がどのNPCを抱えているかを知らない（キーで分けているだけ）ので、
-  // 登場人物の一覧はDB側から渡す。
-  const characterRows = await db
-    .select({ id: characters.id })
-    .from(characters)
-    .where(eq(characters.scenarioId, scenarioId))
+  // 登場人物の一覧はDB側から渡す。調べられる場所も同じ入れ物にキーで積まれているので、
+  // ここで一緒に引いておく。
+  const [characterRows, scenarioRows] = await Promise.all([
+    db.select({ id: characters.id }).from(characters).where(eq(characters.scenarioId, scenarioId)),
+    db.select({ places: scenarios.places }).from(scenarios).where(eq(scenarios.id, scenarioId)),
+  ])
 
   const session = c.env.PLAY_SESSION.get(c.env.PLAY_SESSION.idFromName(sessionId))
-  // 遺体の検分も同じ入れ物に積まれている。ここへ加えないと、リロードした瞬間に
+  // 遺体と場所の検分も同じ入れ物に積まれている。ここへ加えないと、リロードした瞬間に
   // 検分の記録だけが画面から消える。持っていないセッションでは空で返るだけ。
-  const histories = await session.getHistories([...characterRows.map((row) => row.id), VICTIM_ID])
+  const histories = await session.getHistories([
+    ...characterRows.map((row) => row.id),
+    VICTIM_ID,
+    ...parseInvestigablePlaces(scenarioRows[0]?.places).map((place) => place.id),
+  ])
 
   return c.json({ sessionId, histories })
 })

@@ -3,6 +3,7 @@ import { detectiveSchema } from '~/db/detective'
 import { floorPlanSchema } from '~/db/floor-plan'
 import { gameModeSchema, hintSchema } from '~/db/game-mode'
 import { llmProviderSchema, settableLlmRoleSchema } from '~/db/llm-catalog'
+import { investigablePlaceSchema } from '~/db/place'
 import { VICTIM_ID } from '~/db/scenario-definition'
 
 /**
@@ -67,24 +68,27 @@ export const scenarioDetailSchema = scenarioSummarySchema.omit({ characterCount:
       investigable: z.boolean(),
     })
     .nullable(),
+  /**
+   * 調べられる場所。
+   *
+   * 喋らないので characters には並ばないが、選ぶという一手は人物と同じで、同じ画面で調べる。
+   * 既定を空にしてあるのは、場所を持たない事件と、この項目より前のサーバが
+   * 返してこない応答の両方を落とさないため。
+   */
+  places: z.array(investigablePlaceSchema).default([]),
   characters: z.array(characterSchema),
 })
 
 /**
- * 調べられる場所。
+ * 調べられる場所。形と検証の正典は db/place.ts にあり、ここでは読み込むだけ
+ * （見取り図や難易度モードと同じ扱い）。
  *
- * 喋らないので聞き込みの相手ではないが、選ぶという一手は人物と同じで、同じ画面で調べる。
- * 顔料を持たせないのは、色の付いた相手は答え、灰のままの相手は答えない、という区別を
- * 盤面の色だけで付けるため。
- *
- * まだAPIが返さないので zod の schema は持たない——支度と聞き込みが同じ形を見るための型だけ。
- * `scenarioDetailSchema` に載った時点で、ここは z.infer に置き換わる。
+ * 顔料を持たないのは、色の付いた相手は答え、灰のままの相手は答えない、という区別を
+ * 盤面の色だけで付けるため。アリバイ表にも列を持たない——場所は動かない。
  */
-export type InvestigablePlace = {
-  id: string
-  name: string
-  introduction: string
-}
+export type { investigablePlaceSchema }
+
+export type InvestigablePlace = z.infer<typeof investigablePlaceSchema>
 
 /**
  * プレイヤーが演じる探偵。名乗らずに始めることもできる。

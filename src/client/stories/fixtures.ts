@@ -42,6 +42,26 @@ export const SCENARIO: ScenarioDetail = {
     estimatedDeathAt: '18:50',
     investigable: true,
   },
+  /*
+    調べられる場所。人物と違って ID は uuid ではなく、作者が書いたローカルID
+    （見取り図の部屋IDと同じ扱い）。ask にはこの文字列をそのまま相手として送る。
+  */
+  places: [
+    {
+      id: 'choba',
+      name: '帳場',
+      shortName: '帳場',
+      introduction: '青雨堂の一階。レジと帳面',
+      situation: '閉店の片づけが、途中で止まっている',
+    },
+    {
+      id: 'oku',
+      name: '奥の間',
+      shortName: '奥の間',
+      introduction: '帳場の裏。倒れていた場所',
+      situation: '書架のあいだに、灯りがひとつだけ点いている',
+    },
+  ],
   characters: [
     { id: MAKINO, name: '牧野千尋', publicIntroduction: '店員。書誌と発送手順には強い' },
     { id: KURODA, name: '黒田征司', publicIntroduction: '収集家。初版本の商談に来ていた' },
