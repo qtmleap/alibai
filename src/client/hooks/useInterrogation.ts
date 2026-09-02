@@ -1,7 +1,14 @@
 import { useState } from 'react'
 import { askTopic, describeError } from '@/client/lib/api'
 import { mergeById } from '@/client/lib/merge-by-id'
-import type { Discovery, Hint, RevelationCard, TurnState } from '@/client/lib/schemas'
+import type {
+  AlibiSegmentData,
+  Clash,
+  Discovery,
+  Hint,
+  RevelationCard,
+  TurnState,
+} from '@/client/lib/schemas'
 import { advanceTurn } from '@/shared/turns'
 
 export type ChatTurn = {
@@ -36,6 +43,10 @@ export type InterrogationSeed = {
   revelations: RevelationCard[]
   /** 未発見のものの残り件数。難易度が許した粒度までしか入っていない。 */
   hint: Hint
+  /** 時刻表に引ける線。掴んだ手掛かりから引ける分だけがサーバから届く。 */
+  alibiSegments: AlibiSegmentData[]
+  /** 供述が噛み合わない区間。揃うまでは無い。 */
+  clash: Clash | undefined
   questionCount: number
   turn: TurnState | undefined
 }
@@ -58,6 +69,12 @@ export const useInterrogation = (seed: InterrogationSeed) => {
    * 定期取得したセッション状態で丸ごと差し替える。
    */
   const [hint, setHint] = useState<Hint>(seed.hint)
+  /**
+   * 時刻表の線。判定のたびに「その時点で引ける全件」が届くので、足さずに置き換える。
+   * こちらで積むと、サーバが引き直した結果（線の終わりが縮むなど）を取りこぼす。
+   */
+  const [alibiSegments, setAlibiSegments] = useState<AlibiSegmentData[]>(seed.alibiSegments)
+  const [clash, setClash] = useState<Clash | undefined>(seed.clash)
   const [questionCount, setQuestionCount] = useState(seed.questionCount)
   /**
    * ターンの進行。正典はサーバ側（DOの質問回数から導かれる）で、
@@ -141,6 +158,8 @@ export const useInterrogation = (seed: InterrogationSeed) => {
             ...prev,
             [params.characterId]: judgement.suggestedQuestions,
           }))
+          setAlibiSegments(judgement.alibiSegments)
+          setClash(judgement.clash)
           setQuestionCount(judgement.questionCount)
           setTurn(judgement.turn)
         },
@@ -161,6 +180,9 @@ export const useInterrogation = (seed: InterrogationSeed) => {
     revelations,
     hint,
     setHint,
+    alibiSegments,
+    setAlibiSegments,
+    clash,
     questionCount,
     askingCharacterId,
     error,

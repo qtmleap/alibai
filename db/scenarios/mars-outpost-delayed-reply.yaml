@@ -1,15 +1,22 @@
 schemaVersion: 1
 id: mars-outpost-delayed-reply
 meta:
-  title: 火星基地、砂嵐の夜
+  title: "火星基地に雨は降らない"
   synopsis: "2147年、火星エリュシオン観測基地。大規模な砂嵐で地表車両も通信中継ドローンも停止するなか、主任研究員エレナ・ヴァルガが解析室で死亡しました。"
   category: SFクローズドサークル
   difficulty: 5
   estimatedMinutes: 15
-  tags: [2147年, 火星, 通信遅延, 基地]
 victim:
   name: エレナ・ヴァルガ
   introduction: 火星エリュシオン観測基地主任研究員
+  foundAt: 21:50
+  foundIn: 解析室
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: エレナ・ヴァルガは解析室で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「調達予算の監査ファイル」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -47,34 +54,27 @@ facts:
   - id: noah-budget-fraud
     statement: ノア・チェンは観測機器の調達予算を別用途へ流用していた
     kind: motive
-    secret: true
   - id: elena-found-fraud
     statement: エレナ・ヴァルガは事件当日、ノアによる予算流用を発見した
     kind: motive
-    secret: true
   - id: elena-would-report
     statement: 21時25分、エレナはノアに翌朝の定時通信で地球本部へ不正を報告すると告げた
     kind: motive
-    secret: true
   - id: luis-saw-noah-corridor
     statement: 21時33分ごろ、ルイス・オルテガは解析室へ続く連絡廊下でノア・チェンを見た
     kind: observation
   - id: noah-killed-elena
     statement: 21時36分ごろ、ノア・チェンは解析室でエレナを襲い死亡させた
     kind: truth
-    secret: true
   - id: noah-played-arrival-tone
     statement: 21時38分、ノア・チェンは地球から届いた返信を自分がその場で会話していた証拠として利用した
     kind: truth
-    secret: true
   - id: amira-private-channel
     statement: アミラ・サイードは規則に反して家族との私的通信へ基地帯域を使っていた
     kind: other
-    secret: true
   - id: luis-unlogged-part
     statement: ルイス・オルテガは予備部品を正式な在庫登録なしで交換していた
     kind: other
-    secret: true
   - id: body-found-2150
     statement: 21時50分、アミラ・サイードが解析室でエレナの死を発見した
     kind: observation
@@ -84,35 +84,41 @@ timeline:
     participants: [noah, amira]
     facts: [noah-sent-question-2118]
     description: ノアが地球管制へ観測予算について質問を送る。
+    location: 基地内
   - id: fraud-confrontation
     at: "21:25"
     participants: [noah]
     facts: [noah-budget-fraud, elena-found-fraud, elena-would-report]
     description: エレナが予算流用をノアへ突きつけ、翌朝に地球本部へ報告すると告げる。
+    location: 基地内
   - id: corridor-sighting
     at: "21:33"
     participants: [noah, luis]
     facts: [luis-saw-noah-corridor]
     description: ルイスが解析室へ続く連絡廊下でノアを見かける。
+    location: 連絡廊下
   - id: elena-death
     at: "21:36"
     participants: [noah]
     facts: [noah-killed-elena]
     description: ノアが解析室でエレナを襲う。
+    location: 解析室
   - id: delayed-reply
     at: "21:38"
     participants: [noah, amira]
     facts: [earth-reply-arrived-2138, noah-played-arrival-tone, earth-mars-delay]
+    record: 通信記録
     description: 21時18分の質問への返答が地球から到着し、ノアはそれを事件時刻の会話記録として扱わせる。
+    location: 基地内
   - id: discovery
     at: "21:50"
     participants: [noah, amira, luis]
     facts: [body-found-2150]
     description: アミラが解析室でエレナの死を発見する。
+    location: 解析室
 characters:
   - id: noah
     name: ノア・チェン
-    role: suspect
     publicIntroduction: "火星基地の副主任。"
     personality: 冷静で数字に強い副主任。地球からの返信が21時38分に届いたことを強調し、それを自分が通信室にいた証明として扱わせようとする。予算の細部には神経質。
     goals:
@@ -141,7 +147,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: noah-report-threat
-        about: elena-would-report
         detail: エレナに「朝の窓で本部へ全部送る」と言われた瞬間、地球へ届けば取り返せないと感じた。
     relationships:
       - character: amira
@@ -152,7 +157,6 @@ characters:
         attitude: 廊下で自分を見た可能性があり避けたい
   - id: amira
     name: アミラ・サイード
-    role: witness
     publicIntroduction: "火星基地の通信士。"
     personality: 理屈を重んじる通信士。送受信時刻と会話の因果関係を厳密に区別する。私的通信の帯域利用は隠したい。
     goals:
@@ -169,7 +173,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: amira-packet-chain
-        about: earth-reply-arrived-2138
         detail: 21時38分のパケットには、21時18分に送った質問の識別番号がそのまま返っていた。
     relationships:
       - character: noah
@@ -180,7 +183,6 @@ characters:
         attitude: 機械は雑に扱うが人の動きはよく見ていると思っている
   - id: luis
     name: ルイス・オルテガ
-    role: suspect
     publicIntroduction: "現場主義の整備主任。"
     personality: 現場主義の整備主任。規定より稼働を優先して無登録部品を使うことがある。通信には疎いが、廊下で見たノアについては自信がある。
     goals:
@@ -197,7 +199,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: luis-noah-corridor
-        about: luis-saw-noah-corridor
         detail: 解析室へ工具を取りに向かったとき、逆方向から来るノアとすれ違った。
     relationships:
       - character: noah
@@ -238,7 +239,6 @@ evidences:
     label: 惑星間通信のスレッド記録
     description: 21時38分の返信パケットには21時18分送信の質問IDが紐づき、約20分前の問いへの返答だと分かる。
     reveal:
-      mode: conversation
       condition: アミラかノアに21時38分の返信がどの質問への返答だったか具体的に尋ねたら開示する。
     sources:
       - { type: character, id: amira }
@@ -249,7 +249,6 @@ evidences:
     label: 21時33分の整備メモ
     description: ルイスの整備端末に21時33分の位置メモがあり、その場所で解析室側から来たノアとすれ違ったと記録されている。
     reveal:
-      mode: conversation
       condition: ルイスに21時30分台の作業場所と誰を見たか尋ねたら開示する。
     sources:
       - { type: character, id: luis }
@@ -259,18 +258,17 @@ evidences:
     label: 調達予算の監査ファイル
     description: ノア管理の予算だけ用途が合わず、エレナが翌朝の地球送信用フォルダへ証拠をまとめている。
     reveal:
-      mode: conversation
-      condition: ノアかアミラにエレナが翌朝送ろうとしていた監査資料について尋ねたら開示する。
+      condition: ノアかアミラにエレナが翌朝送ろうとしていた監査資料について尋ねたら開示する。または遺体・現場を調べ、「調達予算の監査ファイル」に関わる資料を確認したら開示する。
     sources:
       - { type: character, id: noah }
       - { type: character, id: amira }
+      - { type: victim, id: victim }
     supports: [noah-budget-fraud, elena-found-fraud, elena-would-report]
     contradicts: ["lie:noah-no-fraud"]
   - id: private-bandwidth-log
     label: 私用通信の帯域ログ
     description: アミラの私用通信が見つかるが、解析室の事件とは独立している。
     reveal:
-      mode: conversation
       condition: アミラに業務外の通信帯域利用を追及したら開示する。
     sources:
       - { type: character, id: amira }
@@ -281,14 +279,8 @@ solution:
   summary: 犯人はノア・チェン。予算流用をエレナに見抜かれ、翌朝地球本部へ報告されるのを恐れた。ノアは21時18分に地球へ質問を送った後、返信を待つ約20分の間に通信室を離れ、21時36分ごろ解析室でエレナを襲った。21時38分に地球から返答が届くと、それを「その時刻に地球と会話していた」証拠として利用した。しかし返信は21時18分の質問へのもので、受信時にノアが端末前にいる必要はない。さらに21時33分にはルイスが解析室側でノアを目撃している。
   method: 惑星間通信の受信時刻を現在進行の会話時刻に見せかけ、返信待ちの時間帯の行動を隠した
   motive: 予算流用が地球本部へ報告されるのを防ぐため
-  requiredFacts: [earth-mars-delay, noah-sent-question-2118, earth-reply-arrived-2138, noah-budget-fraud, elena-would-report, luis-saw-noah-corridor, noah-killed-elena, noah-played-arrival-tone]
   secretKeywords:
     - 犯人はノア
     - ノアがエレナを襲
     - 返信をアリバイに
     - 私がエレナを襲
-quality:
-  expectedQuestionCount: { min: 10, max: 22 }
-  requiredEvidence: { min: 3 }
-  redHerrings: [amira-private-channel, luis-unlogged-part]
-  notes: 受信パケットが存在することと、その瞬間に通信相手が端末前にいたことを分離する。通信遅延と廊下目撃の二段でアリバイを崩す。

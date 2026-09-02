@@ -122,7 +122,7 @@ export const Interrogating: Story = {
     span,
     deadline,
     activeKey: 'sena',
-    clash: { at: '18:36', label: '食い違い' },
+    clash: { at: '18:36', label: '食い違い', between: ['makino', 'sena'] },
     litFix: '19:08　受付',
     onPick: () => {},
   },

@@ -1,16 +1,19 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+import { useEffect, useState } from 'react'
 import type { AlibiSegment } from '@/client/components/AlibiChart'
 import {
   type ChatTurn,
   type InterrogationSeed,
   useInterrogation,
 } from '@/client/hooks/useInterrogation'
+import type { InvestigablePlace } from '@/client/lib/schemas'
 import { InterrogationScreen } from '@/client/screens/InterrogationScreen'
 import {
   INTERROGATION_SEED,
   INTERROGATION_SEED_LAST_TURN,
   SCENARIO,
 } from '@/client/stories/fixtures'
+import { VICTIM_ID } from '~/db/scenario-definition'
 
 /**
  * ALI_INT — 聞き込み。
@@ -27,6 +30,29 @@ const SENA = SCENARIO.characters[2]
 
 if (MAKINO === undefined || KURODA === undefined || SENA === undefined) {
   throw new Error('聞き込みの story は三人そろっている前提で組んである。')
+}
+
+/**
+ * 調べられる場所。scenario にはまだ載らないので、支度の story と同じものをここにも置く。
+ * id も揃えてある——支度で選んだ相手をそのまま聞き込みへ渡す道を、後から確かめられる。
+ */
+const PLACES: InvestigablePlace[] = [
+  {
+    id: 'e9b41c07-2d58-4a36-9f10-6c3b7a5d8e21',
+    name: '帳場',
+    introduction: '青雨堂の一階。レジと帳面',
+  },
+  {
+    id: 'a2f70d13-8c64-4e59-b7a1-05d9e6f34c82',
+    name: '奥の間',
+    introduction: '帳場の裏。倒れていた場所',
+  },
+]
+
+const CHOBA = PLACES[0]
+
+if (CHOBA === undefined) {
+  throw new Error('場所の story は帳場から始める前提で組んである。')
 }
 
 /**
@@ -84,6 +110,24 @@ const SEGMENTS_LAST: AlibiSegment[] = [
   { who: SENA.id, from: '19:12', to: '19:20', kind: 'solid', place: '青雨堂', fix: '19:12　通報' },
 ]
 
+/**
+ * 帳場を調べ終えたところ。人の証言では出てこなかった一本が、所見から立つ。
+ *
+ * 立つ列は牧野。部屋そのものの列は無いので、場所を調べて分かったことは
+ * 「誰がどこにいたか」として人の列に入る。
+ */
+const SEGMENTS_PLACE: AlibiSegment[] = [
+  ...SEGMENTS_LAST,
+  {
+    who: MAKINO.id,
+    from: '18:40',
+    to: '18:44',
+    kind: 'solid',
+    place: '帳場',
+    fix: '18:44　最後の記帳',
+  },
+]
+
 const ASKED_AT = 1_756_000_000_000
 
 /** 一往復ぶん。話題・探偵の質問・返答は同じ時刻を共有して、一本の時系列に塊のまま並ぶ。 */
@@ -134,6 +178,44 @@ const LAST_TURN_SEED: InterrogationSeed = {
   },
 }
 
+/**
+ * 十四手目。遺体を検分したあと、帳場へ回ったところ。
+ *
+ * 喋らない相手は二人続く。ログの名前はどちらも「所見」で、縦罫は遺体が芥子、
+ * 帳場が灰——色の付いた相手は答え、灰のままの相手は答えない。
+ */
+const PLACE_SEED: InterrogationSeed = {
+  ...LAST_TURN_SEED,
+  conversations: {
+    ...LAST_TURN_SEED.conversations,
+    [VICTIM_ID]: exchange(
+      13,
+      '死因',
+      '水野さんの死因はなんだろうか、確かめてみよう。',
+      '争った跡は無い。着衣も髪も乱れていない。後頭部に、固いものが当たったような打撲がひとつ。倒れた先は帳場の奥だ。',
+    ),
+    [CHOBA.id]: exchange(
+      14,
+      '帳場の帳面',
+      '帳場の帳面を見てみよう。',
+      '閉店の締めが途中で止まっている。合計の欄が空のままだ。最後の記帳は六時四十四分。牧野の字で書かれている。',
+    ),
+  },
+  questionCount: 13,
+  /*
+   * 場所を調べるのも一手を使う。人に訊くか現場を見るかは同じ財布から出るので、
+   * 台本の十五手ぶんをそのまま持たせる。
+   */
+  turn: {
+    turn: 14,
+    maxTurns: 15,
+    askedInTurn: 0,
+    questionsPerTurn: 1,
+    remainingInTurn: 1,
+    exhausted: false,
+  },
+}
+
 const Harness = ({
   seed,
   detectiveName,
@@ -143,13 +225,18 @@ const Harness = ({
   seed: InterrogationSeed
   detectiveName: string | null
   segments: AlibiSegment[]
-  clash?: { at: string; label: string }
+  clash?: { at: string; label: string; between: [string, string] }
 }) => {
   const interrogation = useInterrogation(seed)
 
   return (
     <InterrogationScreen
       scenario={SCENARIO}
+      /*
+        場所はどの story にも通す。この事件では最初から調べられるので、
+        端末の切り替えには相手が誰であろうと並ぶ。
+      */
+      places={PLACES}
       sessionId={SESSION}
       detectiveName={detectiveName}
       interrogation={interrogation}
@@ -157,6 +244,56 @@ const Harness = ({
       onAccuse={() => undefined}
       onLeave={() => undefined}
     />
+  )
+}
+
+/** 線が一本増えるまでの間。立ち上がり（0.42秒）を見届けてから次が来る速さ。 */
+const SEGMENT_INTERVAL_MS = 1200
+
+/**
+ * 線が一本ずつ増えていくところ。
+ *
+ * 聞き込みが進むと表がどう動くかを見るための story で、実際の進行とは繋がっていない
+ * （サーバはまだ時刻付きの在所を返さない）。増えた線だけが一度動く、という
+ * AlibiChart の作りをここで確かめる。
+ */
+const Growing = () => {
+  const [count, setCount] = useState(0)
+  const [take, setTake] = useState(0)
+
+  useEffect(() => {
+    if (count >= SEGMENTS_LAST.length) {
+      return
+    }
+
+    const timer = setTimeout(() => setCount(count + 1), SEGMENT_INTERVAL_MS)
+
+    return () => clearTimeout(timer)
+  }, [count])
+
+  const done = count >= SEGMENTS_LAST.length
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => {
+          setCount(0)
+          setTake(take + 1)
+        }}
+        className="fixed top-3 right-3 z-50 border border-keisen bg-sumi px-[9px] py-[3px] text-[10px] tracking-[0.16em] text-nezumi-dim hover:border-nezumi-dim hover:text-kinari"
+      >
+        もう一度（{count} / {SEGMENTS_LAST.length}）
+      </button>
+      <Harness
+        key={take}
+        seed={LAST_TURN_SEED}
+        detectiveName="灰かぶりの探偵"
+        segments={SEGMENTS_LAST.slice(0, count)}
+        // 食い違いは線が出そろってから引く。途中で引くと、繋ぐ先がまだ無い。
+        clash={done ? { at: '18:36', label: '食い違い', between: [MAKINO.id, SENA.id] } : undefined}
+      />
+    </>
   )
 }
 
@@ -191,7 +328,27 @@ export const LastTurn: Story = {
       seed={LAST_TURN_SEED}
       detectiveName="灰かぶりの探偵"
       segments={SEGMENTS_LAST}
-      clash={{ at: '18:36', label: '食い違い' }}
+      clash={{ at: '18:36', label: '食い違い', between: [MAKINO.id, SENA.id] }}
     />
   ),
 }
+
+/**
+ * 場所を調べているところ。帳場へ向かっているので、訊くのではなく調べる文言になる。
+ *
+ * 表に帳場の列は無い。列見出しはどれも光らないまま、所見から立った一本だけが
+ * 牧野の列に増える。
+ */
+export const 場所を調べる: Story = {
+  render: () => (
+    <Harness
+      seed={PLACE_SEED}
+      detectiveName="灰かぶりの探偵"
+      segments={SEGMENTS_PLACE}
+      clash={{ at: '18:36', label: '食い違い', between: [MAKINO.id, SENA.id] }}
+    />
+  ),
+}
+
+/** 線が増えていくところ。裏の取れた線は伸び上がり、申告だけの線は揺れて淡く残る。 */
+export const 時刻表が埋まる: Story = { render: () => <Growing /> }

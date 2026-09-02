@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>セーフエリアの確認</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500&family=Roboto+Mono:wght@400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /*
+        モックではなく、実装を見るための道具。
+        中身は本物のアプリ（同じ dev サーバ）を iframe で開いたもので、
+        そこへ iOS 相当のインセットを注入して、文字が潜らないかを見る。
+
+        デスクトップの Chromium は env(safe-area-inset-*) を偽装できない。
+        なので「同じ計算式を px で書き直したもの」を流し込んでいる——
+        本物の env() が返す値の代わりに、実機の実測値を手で与えている、という位置づけ。
+        最終確認は実機の PWA で。
+      */
+      :root {
+        --sumi: #141317;
+        --sumi-2: #1a1820;
+        --keisen: #302c39;
+        --kinari: #e9e4d9;
+        --nezumi: #8e8896;
+        --nezumi-dim: #625d6c;
+        --shu: #d2452e;
+        --gothic: "Zen Kaku Gothic New", "Hiragino Sans", "Noto Sans JP", sans-serif;
+        --mincho: "Shippori Mincho B1", "Hiragino Mincho ProN", serif;
+        --mono: "Roboto Mono", ui-monospace, monospace;
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0; padding: 22px 24px 60px; background: var(--sumi); color: var(--kinari);
+        font-family: var(--gothic); font-size: 13px; -webkit-font-smoothing: antialiased;
+      }
+
+      h1 { margin: 0 0 6px; font-family: var(--mincho); font-size: 17px; font-weight: 500; letter-spacing: 0.04em; }
+      p.lead { margin: 0 0 18px; max-width: 62ch; color: var(--nezumi); font-size: 12px; line-height: 1.85; }
+      code { font-family: var(--mono); font-size: 11px; color: var(--kinari); }
+
+      /* ---- 操作。箱にはせず、上下の罫線で挟むだけ ---- */
+      .bar {
+        display: flex; flex-wrap: wrap; align-items: center; gap: 18px;
+        border-top: 1px solid var(--keisen); border-bottom: 1px solid var(--keisen);
+        padding: 10px 0; margin-bottom: 22px;
+      }
+      .bar label { display: flex; align-items: center; gap: 7px; color: var(--nezumi); font-size: 12px; }
+      .bar .val { color: var(--kinari); font-family: var(--mono); font-size: 11px; }
+      button {
+        height: 28px; padding: 0 13px; border: 1px solid var(--keisen);
+        background: transparent; color: var(--kinari); font-family: var(--gothic); font-size: 12px; cursor: pointer;
+      }
+      button[aria-pressed="true"] { border-color: var(--nezumi); color: var(--kinari); }
+      button:not([aria-pressed="true"]) { color: var(--nezumi-dim); }
+
+      /* ---- 端末の並び ---- */
+      .grid { display: flex; flex-wrap: wrap; gap: 30px 26px; }
+      figure { margin: 0; }
+      figcaption {
+        display: flex; justify-content: space-between; gap: 12px;
+        border-bottom: 1px solid var(--keisen); padding-bottom: 5px; margin-bottom: 9px;
+        color: var(--nezumi); font-size: 11px; letter-spacing: 0.04em;
+      }
+      figcaption .path { font-family: var(--mono); font-size: 10px; color: var(--nezumi-dim); }
+
+      .device { position: relative; width: var(--w); height: var(--h); border: 1px solid var(--keisen); }
+      .device iframe { display: block; width: 100%; height: 100%; border: 0; }
+
+      /*
+        インセットの帯。朱を薄く敷いて「ここは時計とホームバーが乗る」と示す。
+        文字がこの中に入っていたら負け、という読み方をする。
+      */
+      .band { position: absolute; pointer-events: none; background: rgb(210 69 46 / 0.16); }
+      .band::after {
+        content: attr(data-px); position: absolute; right: 4px; bottom: 2px;
+        font-family: var(--mono); font-size: 9px; color: var(--shu);
+      }
+      .band.top { top: 0; left: 0; right: 0; height: var(--it); }
+      .band.bottom { bottom: 0; left: 0; right: 0; height: var(--ib); }
+      .band.left { top: 0; bottom: 0; left: 0; width: var(--il); }
+      .band.right { top: 0; bottom: 0; right: 0; width: var(--ir); }
+      .off .band { display: none; }
+
+      .note { margin-top: 30px; border-top: 1px solid var(--keisen); padding-top: 12px; max-width: 70ch;
+              color: var(--nezumi-dim); font-size: 11px; line-height: 1.9; }
+    </style>
+  </head>
+  <body>
+    <h1>セーフエリアの確認</h1>
+    <p class="lead">
+      本物のアプリ（この dev サーバ）を iframe で開き、iOS 相当のインセットを流し込んでいます。
+      朱の帯が時計とホームバーの居場所。背景の墨は帯の下まで届いたままが正しい姿——隠すのは文字だけです。
+    </p>
+    <p class="lead">
+      見方は画面の種類で違います。<strong>固定</strong>の画面（記録・導入・聞き込み）は端まで出しきるので、
+      帯の中に文字が入っていたら負け。<strong>スクロール</strong>の画面は、送っている途中の文字が帯を通り過ぎるのは正常で、
+      見るのは<strong>先頭と末尾</strong>——最初の一行が上の帯より下から始まり、いちばん下まで送った末尾が下の帯より上で止まること。
+    </p>
+
+    <div class="bar">
+      <button id="toggle" aria-pressed="true">インセットを入れる</button>
+      <label>向き
+        <button class="orient" data-orient="portrait" aria-pressed="true">縦</button>
+        <button class="orient" data-orient="landscape" aria-pressed="false">横</button>
+      </label>
+      <span class="val" id="readout"></span>
+    </div>
+
+    <div class="grid" id="grid"></div>
+
+    <p class="note">
+      デスクトップの Chromium では <code>env(safe-area-inset-*)</code> を偽装できないため、
+      ここでは同じ計算式を px で書き直したものを iframe に注入しています。
+      実装が読むのはあくまで <code>env()</code> なので、最終確認は実機の PWA（ホーム画面から起動）で。
+    </p>
+
+    <script type="module">
+      // 種データの事件。db/seed.sql の id と揃えてある。
+      const SCENARIO = '1d021de5-4dae-5101-842e-bd6c9ec4b433'
+
+      const SCREENS = [
+        { name: '事件を選ぶ', path: '/', kind: 'スクロール' },
+        { name: '設定', path: '/settings', kind: 'スクロール' },
+        { name: '事件の記録', path: `/scenarios/${SCENARIO}`, kind: '固定' },
+        { name: '導入', path: `/scenarios/${SCENARIO}/briefing`, kind: '固定（overflow-hidden）' },
+      ]
+
+      // iPhone 14 Pro の実測値。横向きは左右にノッチ、下は細いバー。
+      const INSETS = {
+        portrait: { w: 390, h: 844, top: 59, right: 0, bottom: 34, left: 0 },
+        landscape: { w: 844, h: 390, top: 0, right: 59, bottom: 21, left: 59 },
+      }
+
+      let orient = 'portrait'
+      let on = true
+
+      const grid = document.getElementById('grid')
+      const readout = document.getElementById('readout')
+
+      const styleFor = ({ top, right, bottom, left }) => `
+        body {
+          padding-top: ${top}px; padding-right: ${right}px;
+          padding-bottom: ${bottom}px; padding-left: ${left}px;
+        }
+        .h-dvh-safe { height: calc(100dvh - ${top}px - ${bottom}px); }
+        .min-h-dvh-safe { min-height: calc(100dvh - ${top}px - ${bottom}px); }
+        /* fixed はビューポート基準なので、実装側も自前で足している。その分を再現する。 */
+        .pb-\\[calc\\(env\\(safe-area-inset-bottom\\)\\+1\\.25rem\\)\\] { padding-bottom: calc(${bottom}px + 1.25rem); }
+        .lg\\:pb-\\[calc\\(env\\(safe-area-inset-bottom\\)\\+3\\.5rem\\)\\] { padding-bottom: calc(${bottom}px + 3.5rem); }
+      `
+
+      const ID = 'safe-area-sim'
+
+      /** iframe の中へ注入し直す。読み込み直後と、切り替えのたびに呼ぶ。 */
+      const inject = (frame) => {
+        const doc = frame.contentDocument
+        if (doc === null) {
+          return
+        }
+        doc.getElementById(ID)?.remove()
+        if (!on) {
+          return
+        }
+        const style = doc.createElement('style')
+        style.id = ID
+        style.textContent = styleFor(INSETS[orient])
+        doc.head.append(style)
+      }
+
+      const injectAll = () => {
+        for (const frame of grid.querySelectorAll('iframe')) {
+          inject(frame)
+        }
+      }
+
+      const render = () => {
+        const inset = INSETS[orient]
+        grid.style.setProperty('--w', `${inset.w}px`)
+        grid.style.setProperty('--h', `${inset.h}px`)
+        readout.textContent = `${orient === 'portrait' ? '390×844' : '844×390'} / top ${inset.top} right ${inset.right} bottom ${inset.bottom} left ${inset.left}`
+
+        grid.innerHTML = SCREENS.map(
+          (screen) => `
+            <figure>
+              <figcaption><span>${screen.name}・${screen.kind}</span><span class="path">${screen.path}</span></figcaption>
+              <div class="device ${on ? '' : 'off'}"
+                   style="--w:${inset.w}px; --h:${inset.h}px; --it:${inset.top}px; --ir:${inset.right}px; --ib:${inset.bottom}px; --il:${inset.left}px">
+                <iframe src="${screen.path}" title="${screen.name}"></iframe>
+                <div class="band top" data-px="${inset.top}"></div>
+                <div class="band bottom" data-px="${inset.bottom}"></div>
+                <div class="band left" data-px="${inset.left}"></div>
+                <div class="band right" data-px="${inset.right}"></div>
+              </div>
+            </figure>`,
+        ).join('')
+
+        for (const frame of grid.querySelectorAll('iframe')) {
+          frame.addEventListener('load', () => inject(frame))
+        }
+      }
+
+      document.getElementById('toggle').addEventListener('click', (event) => {
+        on = !on
+        event.currentTarget.setAttribute('aria-pressed', String(on))
+        event.currentTarget.textContent = on ? 'インセットを入れる' : 'インセットを外す'
+        for (const device of grid.querySelectorAll('.device')) {
+          device.classList.toggle('off', !on)
+        }
+        injectAll()
+      })
+
+      for (const button of document.querySelectorAll('.orient')) {
+        button.addEventListener('click', () => {
+          orient = button.dataset.orient
+          for (const other of document.querySelectorAll('.orient')) {
+            other.setAttribute('aria-pressed', String(other === button))
+          }
+          render()
+        })
+      }
+
+      render()
+    </script>
+  </body>
+</html>

@@ -1,15 +1,22 @@
 schemaVersion: 1
 id: landslide-clock-museum-eleven-minutes
 meta:
-  title: 崩落の時計博物館、閉館後の夜
+  title: "時計博物館に朝は遠い"
   synopsis: "午後八時四十二分、山間の私設時計博物館の修復室で、学芸員長の倉橋宗一が死亡しているのが見つかりました。午後七時すぎの土砂崩れで唯一の山道は通行不能となり、館内には倉橋を含め五人しか残っていませんでした。"
   category: クローズドサークル
   difficulty: 5
   estimatedMinutes: 18
-  tags: [時計博物館, 崩落, 時刻錯誤, 最後の目撃]
 victim:
   name: 倉橋宗一
   introduction: 私設時計博物館学芸員長
+  foundAt: 20:42
+  foundIn: 修復室
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 倉橋宗一は修復室で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「倉橋の来歴照合メモ」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -41,15 +48,12 @@ facts:
   - id: shiba-faked-provenance
     statement: 志波沙月は修復実績を上げるため、由来が不確かな時計を著名工房の作品として展示記録に登録していた
     kind: motive
-    secret: true
   - id: kurahashi-found-provenance-fraud
     statement: 倉橋宗一は事件当日、志波沙月が展示時計の来歴を偽っていたことに気づいた
     kind: motive
-    secret: true
   - id: kurahashi-planned-withdrawal
     statement: 倉橋宗一は翌朝、問題の時計を展示から外し、志波沙月の記録改ざんを理事会へ報告する予定だった
     kind: motive
-    secret: true
   - id: master-clock-fast-eleven
     statement: 事件当夜、中央ホールの親時計は正しい時刻より十一分進んでいた
     kind: physical
@@ -68,30 +72,24 @@ facts:
   - id: shiba-left-west-corridor
     statement: 20時22分ごろ、志波沙月は西回廊を離れて修復室側へ向かった
     kind: truth
-    secret: true
   - id: asakura-saw-shiba-2024
     statement: 20時24分ごろ、朝倉真紀は修復室へ続く北廊下で志波沙月を見た
     kind: observation
   - id: shiba-killed-kurahashi
     statement: 20時28分ごろ、志波沙月は修復室で倉橋宗一を襲い死亡させた
     kind: truth
-    secret: true
   - id: shiba-returned-gallery
     statement: 20時34分ごろ、志波沙月は展示準備室へ戻った
     kind: truth
-    secret: true
   - id: hoshina-sold-catalog-images
     statement: 保科悠人は未公開収蔵品の写真を許可なく外部の収集家へ送っていた
     kind: other
-    secret: true
   - id: asakura-hid-cash-error
     statement: 朝倉真紀は当日の売上金の不足を自分の集計ミスだと知りながら報告を先延ばしにしていた
     kind: other
-    secret: true
   - id: kido-caused-clock-offset
     statement: 城戸篤は夕方の同期試験で親時計の補正値を誤り、十一分進んだ状態のまま復旧完了とした
     kind: other
-    secret: true
   - id: body-found-2042
     statement: 20時42分、保科悠人が修復室で倉橋宗一の死を発見した
     kind: observation
@@ -101,47 +99,56 @@ timeline:
     at: "19:36"
     participants: [kido]
     facts: [master-clock-fast-eleven, gallery-clocks-follow-master, kido-caused-clock-offset]
+    record: 同期試験票
     description: 同期試験後、親時計と展示時計が正しい時刻より十一分進んだ状態で残る。
+    location: 館内
   - id: false-half-past-chime
     at: "20:19"
     participants: [shiba, asakura, hoshina]
     facts: [half-past-chime-actual-2019, security-clock-accurate]
+    record: 防災端末記録
     description: 館内時計が20時30分を示し、大時計が半時の鐘を鳴らす。実際の時刻は20時19分だった。
+    location: 館内
   - id: shiba-kurahashi-talk
     at: "20:20"
     participants: [shiba]
     facts: [shiba-spoke-kurahashi-2020]
     description: 志波が西回廊で倉橋と短く話す。
+    location: 西回廊
   - id: shiba-leaves-west
     at: "20:22"
     participants: [shiba]
     facts: [shiba-left-west-corridor]
     description: 志波が西回廊を離れ、修復室側へ向かう。
+    location: 西回廊
   - id: asakura-sighting
     at: "20:24"
     participants: [shiba, asakura]
     facts: [asakura-saw-shiba-2024]
     description: 朝倉が北廊下で志波を目撃する。
+    location: 北廊下
   - id: kurahashi-death
     at: "20:28"
     participants: [shiba]
     facts: [shiba-killed-kurahashi]
     description: 志波が修復室で倉橋を襲い、倉橋は死亡する。
+    location: 修復室
   - id: shiba-return
     at: "20:34"
     participants: [shiba]
     facts: [shiba-returned-gallery]
     description: 志波が展示準備室へ戻る。
+    location: 展示準備室
   - id: discovery
     at: "20:42"
     participants: [hoshina, shiba, asakura, kido]
     facts: [body-found-2042]
     description: 保科が修復室で倉橋の死を発見する。
+    location: 修復室
 
 characters:
   - id: shiba
     name: 志波沙月
-    role: suspect
     publicIntroduction: "古時計の修復技師。"
     personality: 古時計への知識と誇りが強い修復技師。細部をよく覚えているように話すが、時刻については館内の鐘を意図的に基準にする。倉橋に記録改ざんを見抜かれたことを隠したい。
     goals:
@@ -172,7 +179,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: board-report-threat
-        about: kurahashi-planned-withdrawal
         detail: 倉橋に「明日、時計を展示から外して理事会にも記録を出す」と言われ、修復技師としての評価が終わると思った。
     relationships:
       - character: kido
@@ -183,7 +189,6 @@ characters:
         attitude: 収蔵品を軽く扱うところが嫌い
   - id: asakura
     name: 朝倉真紀
-    role: witness
     publicIntroduction: "事務処理に強い受付責任者。"
     personality: 事務処理に強い受付責任者。売上金の集計ミスを隠したいので閉館後の帳簿作業を曖昧にするが、人とすれ違った順番はよく覚えている。時刻は大時計の鐘を信用していた。
     goals:
@@ -200,7 +205,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: five-minutes-after-bell
-        about: asakura-saw-shiba-2024
         detail: 半時の鐘が鳴ってから五分ほど後、北廊下で修復室の方から来る志波を見た。館内時計では20時35分近くだと思っていた。
     relationships:
       - character: kido
@@ -208,7 +212,6 @@ characters:
         attitude: 夕方から時計の同期試験でもたついていたのを覚えている
   - id: hoshina
     name: 保科悠人
-    role: suspect
     publicIntroduction: "研究熱心だが承認欲求の強い若手学芸員。"
     personality: 研究熱心だが承認欲求の強い若手学芸員。未公開写真を外部へ送ったことが露見するのを恐れ、収蔵庫周辺の行動を隠す。倉橋とは展示方針で衝突していた。
     goals:
@@ -225,7 +228,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: master-clock-looked-odd
-        about: master-clock-fast-eleven
         detail: 20時台に自分の腕時計と中央ホールの時計を見比べ、館内時計の方がかなり進んでいる気がしたが、作業中で深く考えなかった。
     relationships:
       - character: shiba
@@ -233,7 +235,6 @@ characters:
         attitude: 技術は尊敬しているが、作品の価値を自分の手柄として語りすぎると思っている
   - id: kido
     name: 城戸篤
-    role: suspect
     publicIntroduction: "時計博物館の設備技術者。"
     personality: 機器の仕組みを平易に説明できる設備技術者。夕方の同期試験ミスを隠したいので最初は時計の精度に問題はなかったと言い張るが、防災端末と親時計が別系統であることは知っている。
     goals:
@@ -250,7 +251,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: offset-screen
-        about: master-clock-fast-eleven
         detail: 同期試験の最後に補正値を一桁見間違えたかもしれないと気づいたが、崩落対応で呼ばれて確認を後回しにした。
     relationships: []
 
@@ -318,7 +318,6 @@ evidences:
     label: 親時計と防災端末の時刻差
     description: 防災端末が20時19分を記録した瞬間の監視画像で、中央ホールの親時計は20時30分を示している。両系統には十一分の差がある。
     reveal:
-      mode: conversation
       condition: 城戸か保科に館内時計の精度と、防災端末など別系統の時計との比較を尋ねたら開示する。
     sources:
       - { type: character, id: kido }
@@ -329,7 +328,6 @@ evidences:
     label: 半時の鐘から五分後の志波
     description: 朝倉は半時の鐘から約五分後、修復室へ続く北廊下で志波を見ている。鐘の実時刻を補正すると20時24分ごろになる。
     reveal:
-      mode: conversation
       condition: 朝倉に志波を見た時刻を時計の数字ではなく、鐘からの経過時間も含めて尋ねたら開示する。
     sources:
       - { type: character, id: asakura }
@@ -339,18 +337,17 @@ evidences:
     label: 倉橋の来歴照合メモ
     description: 志波が登録した著名工房の来歴と原資料が一致せず、倉橋が翌朝の展示撤去と理事会報告を予定していたことが分かる。
     reveal:
-      mode: conversation
-      condition: 志波か保科に倉橋が事件直前に調べていた展示時計の来歴について尋ね、登録内容の不一致を追及したら開示する。
+      condition: 志波か保科に倉橋が事件直前に調べていた展示時計の来歴について尋ね、登録内容の不一致を追及したら開示する。または遺体・現場を調べ、「倉橋の来歴照合メモ」に関わる資料を確認したら開示する。
     sources:
       - { type: character, id: shiba }
       - { type: character, id: hoshina }
+      - { type: victim, id: victim }
     supports: [shiba-faked-provenance, kurahashi-found-provenance-fraud, kurahashi-planned-withdrawal]
     contradicts: []
   - id: hoshina-image-history
     label: 保科の画像送信履歴
     description: 未公開収蔵品の画像が保科の端末から外部へ送られていたことが分かるが、修復室の事件とは独立している。
     reveal:
-      mode: conversation
       condition: 保科に未公開画像を外部へ送っていないか尋ね、否定を続けたら開示する。
     sources:
       - { type: character, id: hoshina }
@@ -360,7 +357,6 @@ evidences:
     label: 朝倉の売上金再集計表
     description: 売上金不足は朝倉自身の二重計上によるものと分かるが、倉橋の死亡とは関係がない。
     reveal:
-      mode: conversation
       condition: 朝倉に売上金不足の原因を尋ね、集計ミスではないという説明を検証したら開示する。
     sources:
       - { type: character, id: asakura }
@@ -370,7 +366,6 @@ evidences:
     label: 城戸の同期試験作業票
     description: 親時計の補正値を誤った可能性を示す途中メモが残っており、城戸が時刻ずれを把握しながら確認を後回しにしたことが分かる。
     reveal:
-      mode: conversation
       condition: 城戸に夕方の同期試験で補正値を誤っていないか尋ね、作業票と説明を照合したら開示する。
     sources:
       - { type: character, id: kido }
@@ -382,18 +377,9 @@ solution:
   summary: 犯人は志波沙月。展示時計の来歴を偽ったことを倉橋に見抜かれ、翌朝に展示を外され理事会へ報告される予定だった。館内の親時計は十一分進んでおり、20時30分の鐘が鳴った実時刻は20時19分だった。志波が倉橋と話したのはその直後の20時20分ごろで、志波の「20時31分ごろにも倉橋は生きていた」という説明は十一分ずれている。志波は20時22分ごろ西回廊を離れ、20時24分には朝倉が修復室側の北廊下で志波を目撃している。20時28分ごろ倉橋を襲った後、20時34分ごろ展示準備室へ戻った。館内時計の表示を正しい時刻だと思い込むと、最後の目撃が十一分後ろへずれて犯行時間そのものを誤る仕掛けだった。
   method: 十一分進んだ館内時計と時報を基準に最後の目撃時刻を遅く見せ、実際にはその後の空白時間に修復室へ移動して倉橋を襲った
   motive: 展示時計の来歴改ざんが発覚し、翌朝の展示撤去と理事会報告で修復技師としての信用を失うことを恐れたため
-  requiredFacts: [shiba-faked-provenance, kurahashi-planned-withdrawal, master-clock-fast-eleven, security-clock-accurate, half-past-chime-actual-2019, shiba-spoke-kurahashi-2020, shiba-left-west-corridor, asakura-saw-shiba-2024, shiba-killed-kurahashi]
   secretKeywords:
     - 犯人は志波
     - 志波が犯人
     - 志波が倉橋を襲
     - 私が倉橋を襲
     - 十一分ずれで犯行時刻を偽装
-quality:
-  expectedQuestionCount:
-    min: 14
-    max: 28
-  requiredEvidence:
-    min: 3
-  redHerrings: [hoshina-sold-catalog-images, asakura-hid-cash-error, kido-caused-clock-offset]
-  notes: 数字の時刻を直接聞くだけでは全員が同じ誤った時計を参照するため混乱する。鐘からの相対時間と別系統の防災端末を組み合わせて十一分を補正し、志波の最後の目撃と朝倉の目撃を実時刻へ戻すのが主経路。

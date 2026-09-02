@@ -1,15 +1,22 @@
 schemaVersion: 1
 id: flood-archive-self-locking-vault
 meta:
-  title: 高潮の文書館、閉館後の夜
+  title: "水は紙より先に来る"
   synopsis: "午後九時四十分、海辺歴史文書館の希少資料庫で、館長の今泉孝臣が死亡しているのが見つかりました。高潮で防潮扉が閉じ、午後八時半以降に館外へ出入りした者はいません。"
   category: クローズドサークル
   difficulty: 5
   estimatedMinutes: 18
-  tags: [文書館, 高潮, 密室, 自動施錠]
 victim:
   name: 今泉孝臣
   introduction: 海辺歴史文書館館長
+  foundAt: 21:40
+  foundIn: 資料庫
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 今泉孝臣は資料庫で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「修復処置記録と資料状態の不一致」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -41,15 +48,12 @@ facts:
   - id: yagami-forged-restoration-record
     statement: 八神琴子は修復失敗を隠すため、一部の処置記録と作業日を改ざんしていた
     kind: motive
-    secret: true
   - id: imaizumi-found-forgery
     statement: 今泉孝臣は事件当日、八神琴子の処置記録と資料の実状態が一致しないことを発見した
     kind: motive
-    secret: true
   - id: imaizumi-planned-review
     statement: 今泉孝臣は翌朝、八神琴子を重要資料の修復から外し、外部委員へ処置記録を提出する予定だった
     kind: motive
-    secret: true
   - id: vault-key-only-opens
     statement: 希少資料庫の鍵は廊下側から扉を開けるために必要だが、扉を閉めて施錠するためには必要ない
     kind: physical
@@ -65,7 +69,6 @@ facts:
   - id: yagami-entered-vault-2114
     statement: 21時14分ごろ、八神琴子は開いたままの希少資料庫へ入った
     kind: truth
-    secret: true
   - id: kuga-saw-yagami-2114
     statement: 21時14分ごろ、久我遼は希少資料庫へ入る八神琴子を見た
     kind: observation
@@ -75,11 +78,9 @@ facts:
   - id: yagami-killed-imaizumi
     statement: 21時20分ごろ、八神琴子は希少資料庫で今泉孝臣を襲い死亡させた
     kind: truth
-    secret: true
   - id: yagami-left-vault-2122
     statement: 21時22分ごろ、八神琴子は希少資料庫から廊下へ出て扉を閉めた
     kind: truth
-    secret: true
   - id: vault-closed-2122
     statement: 21時22分、希少資料庫の扉が閉じ、自動施錠された
     kind: physical
@@ -89,15 +90,12 @@ facts:
   - id: kuga-tore-document
     statement: 久我遼は整理中に資料の一部を傷めたことを報告せず、修復待ち箱へ紛れ込ませていた
     kind: other
-    secret: true
   - id: tozuka-disabled-camera
     statement: 戸塚誠は私用の読書を隠すため、閲覧室の監視カメラを一時的に停止していた
     kind: other
-    secret: true
   - id: majima-hid-photo-swap
     statement: 真島香苗は鑑定の誤りを隠すため、提出予定の来歴写真を別の撮影データへ差し替えていた
     kind: other
-    secret: true
   - id: body-found-2140
     statement: 21時40分、戸塚誠が予備開錠手順で希少資料庫を開け、今泉孝臣の死を発見した
     kind: observation
@@ -107,37 +105,52 @@ timeline:
     at: "21:09"
     participants: []
     facts: [vault-key-only-opens, vault-self-locks, vault-open-2109, vault-stayed-open]
+    record: 扉記録
     description: 今泉が鍵で希少資料庫を開け、資料搬入のため扉を開いたままにする。
+    location: 希少資料庫
   - id: yagami-enters
     at: "21:14"
-    participants: [yagami, kuga]
+    participants: [yagami]
+    witnesses: [kuga]
     facts: [yagami-entered-vault-2114, kuga-saw-yagami-2114]
     description: 八神が開いたままの資料庫へ入り、久我がその姿を目撃する。
+    location: 資料庫
+  - id: kuga-vault-front
+    at: "21:14"
+    participants: [kuga]
+    facts: [kuga-saw-yagami-2114]
+    description: 久我が資料庫前から、八神が開放中の資料庫へ入るのを目撃する。
+    location: 資料庫前
   - id: imaizumi-enters
     at: "21:17"
     participants: []
     facts: [imaizumi-entered-vault-2117]
     description: 今泉が資料箱を持って資料庫へ入り、開錠鍵をポケットへ戻す。
+    location: 資料庫
   - id: imaizumi-death
     at: "21:20"
     participants: [yagami]
     facts: [yagami-killed-imaizumi]
     description: 八神が希少資料庫で今泉を襲い、今泉は死亡する。
+    location: 希少資料庫
   - id: yagami-exits
     at: "21:22"
     participants: [yagami]
     facts: [yagami-left-vault-2122, vault-closed-2122]
+    record: 扉記録
     description: 八神が資料庫から出て扉を閉め、自動施錠させる。
+    location: 資料庫
   - id: discovery
     at: "21:40"
     participants: [tozuka, yagami, kuga, majima]
     facts: [key-found-on-imaizumi, body-found-2140]
+    record: 予備開錠記録
     description: 戸塚が予備開錠手順で資料庫を開け、今泉の死とポケットの鍵を確認する。
+    location: 資料庫
 
 characters:
   - id: yagami
     name: 八神琴子
-    role: suspect
     publicIntroduction: "手仕事への誇りが高く、修復結果を批判されることに強く反発する修復士。"
     personality: 手仕事への誇りが高く、修復結果を批判されることに強く反発する修復士。鍵が今泉のポケットにあったことを何度も強調し、資料庫へ入れるはずがないという印象を作ろうとする。
     goals:
@@ -169,7 +182,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: review-threat
-        about: imaizumi-planned-review
         detail: 今泉から「明朝から重要資料には触れさせない。外部委員にも記録を出す」と言われ、自分の技術そのものを否定されたように感じた。
     relationships:
       - character: kuga
@@ -180,7 +192,6 @@ characters:
         attitude: 修復の判断へ口を出してくるので苦手
   - id: kuga
     name: 久我遼
-    role: witness
     publicIntroduction: "細かな動線を覚えている学芸員。"
     personality: 細かな動線を覚えている学芸員。資料を傷めたことを隠したいが、21時14分ごろ八神が開いた資料庫へ入った場面ははっきり見ている。
     goals:
@@ -197,12 +208,10 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: yagami-open-door
-        about: kuga-saw-yagami-2114
         detail: 21時14分ごろ、資料庫の扉が搬入で開きっぱなしになっていて、八神が鍵を使わずそのまま中へ入るのを見た。
     relationships: []
   - id: tozuka
     name: 戸塚誠
-    role: witness
     publicIntroduction: "文書館の警備担当。"
     personality: 規則には詳しい警備担当。閲覧室のカメラ停止を隠したいが、希少資料庫の扉が閉まるだけで自動施錠される仕様は日常業務として知っている。
     goals:
@@ -219,12 +228,10 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: self-locking-door
-        about: vault-self-locks
         detail: 希少資料庫は開ける時だけ通常鍵が必要で、出た人が扉を引けばラッチが掛かって自動施錠される。鍵を差して閉める操作はない。
     relationships: []
   - id: majima
     name: 真島香苗
-    role: suspect
     publicIntroduction: "自信家の外部鑑定人。"
     personality: 自信家の外部鑑定人。来歴写真の差し替えを隠したいので今泉との鑑定上の衝突を小さく見せるが、21時台前半は別の資料室で作業していた。
     goals:
@@ -241,7 +248,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: door-open-long
-        about: vault-stayed-open
         detail: 21時10分すぎに廊下を通ったとき、希少資料庫の扉が資料搬入のため長く開けたままになっていたのを見た。
     relationships: []
 
@@ -309,7 +315,6 @@ evidences:
     label: 希少資料庫の自動施錠仕様
     description: 廊下側から開ける時だけ館長鍵が必要で、外へ出て扉を閉めるとラッチが自動で掛かる。施錠操作に鍵は不要である。
     reveal:
-      mode: conversation
       condition: 八神か戸塚に資料庫の鍵が開錠と施錠のどちらに必要なのか具体的に尋ねたら開示する。
     sources:
       - { type: character, id: yagami }
@@ -320,7 +325,6 @@ evidences:
     label: 二十一時九分から二十二分の扉記録
     description: 資料庫の扉は21時09分に開き、21時22分に閉じるまで十三分間連続して開いていた。途中の再開錠は必要なかった。
     reveal:
-      mode: conversation
       condition: 戸塚か真島に資料搬入中の扉の状態とセンサー記録について尋ねたら開示する。
     sources:
       - { type: character, id: tozuka }
@@ -331,7 +335,6 @@ evidences:
     label: 二十一時十四分の八神入室目撃
     description: 久我は21時14分ごろ、搬入のため開いたままの資料庫へ八神が鍵を使わず入るのを見ている。
     reveal:
-      mode: conversation
       condition: 久我に21時10分から20分ごろ資料庫前で見た人物を尋ねたら開示する。
     sources:
       - { type: character, id: kuga }
@@ -341,18 +344,17 @@ evidences:
     label: 修復処置記録と資料状態の不一致
     description: 八神の処置記録では完了したはずの工程が資料の実状態と合わず、今泉が翌朝の担当変更と外部委員提出を記している。
     reveal:
-      mode: conversation
-      condition: 八神か久我に今泉が事件直前に調べていた修復記録について尋ね、実資料との不一致を追及したら開示する。
+      condition: 八神か久我に今泉が事件直前に調べていた修復記録について尋ね、実資料との不一致を追及したら開示する。または遺体・現場を調べ、「修復処置記録と資料状態の不一致」に関わる資料を確認したら開示する。
     sources:
       - { type: character, id: yagami }
       - { type: character, id: kuga }
+      - { type: victim, id: victim }
     supports: [yagami-forged-restoration-record, imaizumi-found-forgery, imaizumi-planned-review]
     contradicts: []
   - id: kuga-damaged-document
     label: 久我が隠した損傷資料
     description: 傷めた資料が久我の整理箱から見つかるが、希少資料庫の事件とは独立した不始末である。
     reveal:
-      mode: conversation
       condition: 久我に整理中の資料を傷めて隠していないか尋ね、否定を続けたら開示する。
     sources:
       - { type: character, id: kuga }
@@ -362,7 +364,6 @@ evidences:
     label: 戸塚の閲覧室カメラ停止記録
     description: 戸塚が私用の読書を隠すため閲覧室カメラを一時停止していたことが分かるが、希少資料庫とは別区画である。
     reveal:
-      mode: conversation
       condition: 戸塚に監視カメラを私的な理由で止めていないか尋ね、停止履歴を検証したら開示する。
     sources:
       - { type: character, id: tozuka }
@@ -372,7 +373,6 @@ evidences:
     label: 真島の来歴写真差し替え履歴
     description: 真島が鑑定の誤りを隠すため提出写真を差し替えていたことが分かるが、今泉の死亡とは別件である。
     reveal:
-      mode: conversation
       condition: 真島に来歴写真を差し替えていないか尋ね、提出データの履歴を検証したら開示する。
     sources:
       - { type: character, id: majima }
@@ -384,18 +384,9 @@ solution:
   summary: 犯人は八神琴子。修復失敗を隠すため処置記録を改ざんしていたことを今泉に見抜かれ、翌朝から重要資料の修復を外され外部委員へ記録を出される予定だった。21時09分、今泉が搬入のため希少資料庫を開け、扉は21時22分まで開いたままだった。八神は21時14分ごろ、その開いた扉から鍵を使わず資料庫へ入り、久我が目撃している。21時17分ごろ今泉も入り、鍵を自分のポケットへ戻した。八神は21時20分ごろ今泉を襲い、21時22分に廊下へ出て扉を閉めた。資料庫は閉めるだけで自動施錠されるため、開錠鍵を持っていなくても外から密室状況を作れた。鍵が今泉のポケットに残っていたことは、誰も出なかった証明ではない。
   method: 搬入中に開いたままの資料庫へ鍵なしで入り、退出時は扉を閉めるだけで自動施錠される仕組みを利用して、鍵が被害者のポケットに残る密室状況を作った
   motive: 修復処置記録の改ざんが発覚し、翌朝から重要資料の担当を外され外部委員へ報告されることを恐れたため
-  requiredFacts: [yagami-forged-restoration-record, imaizumi-planned-review, vault-key-only-opens, vault-self-locks, vault-open-2109, vault-stayed-open, yagami-entered-vault-2114, kuga-saw-yagami-2114, yagami-killed-imaizumi, yagami-left-vault-2122, key-found-on-imaizumi]
   secretKeywords:
     - 犯人は八神
     - 八神が犯人
     - 八神が今泉を襲
     - 私が今泉を襲
     - 自動施錠で密室を作
-quality:
-  expectedQuestionCount:
-    min: 14
-    max: 28
-  requiredEvidence:
-    min: 3
-  redHerrings: [kuga-tore-document, tozuka-disabled-camera, majima-hid-photo-swap]
-  notes: 『唯一の鍵が被害者のポケット』という強い密室記号を、開錠と施錠の非対称性で崩す。さらに扉が十三分間開放されていた記録と久我の入室目撃を組み合わせ、単なる仕様上の可能性ではなく八神の実際の侵入へ収束させる。

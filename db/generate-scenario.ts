@@ -97,6 +97,11 @@ if (!result.ok) {
   throw new Error(`${MAX_ATTEMPTS}回試しましたが、検証を通る定義が得られませんでした。`)
 }
 
+// 差し戻しきれずに残った指摘。落とすほどではないので、手で直せるよう名指ししておく。
+for (const warning of result.warnings) {
+  console.log(`  警告: ${warning}`)
+}
+
 /*
   ファイル名はモデルが決めた id をそのまま使う。検証を通った後なので
   ^[a-z0-9][a-z0-9-]{2,63}$ に収まっており、パスとして解釈される文字は入らない。

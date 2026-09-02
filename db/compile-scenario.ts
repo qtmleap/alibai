@@ -6,7 +6,8 @@ import {
   type ScenarioRevelationSource,
 } from './scenario-definition'
 import type { characters, evidences, revelations, scenarios, scenarioTruths } from './schema'
-import { timeWindowOf } from './time-window'
+import { formatClock, minutesOf, timeWindowOf } from './time-window'
+import { kindOfEvent } from './timeline-event'
 
 /**
  * Authoring 用のシナリオ定義を、実行時テーブルの行へ分解する。
@@ -27,7 +28,8 @@ type RevelationRow = typeof revelations.$inferInsert
 type TruthRow = typeof scenarioTruths.$inferInsert
 
 export type CompiledScenario = {
-  scenario: ScenarioRow
+  /** id は必ず決まっている（採番するか、呼び出し側が渡すか）。焼き直しの消去にこれを使う。 */
+  scenario: ScenarioRow & { id: string }
   characters: CharacterRow[]
   evidences: EvidenceRow[]
   revelations: RevelationRow[]
@@ -42,6 +44,13 @@ export type CompileScenarioOptions = {
   isPublished: boolean
   /** uuid の採番。テストから決定的な採番を差し込めるように注入で受け取る。 */
   newId: () => string
+  /**
+   * シナリオ行のID。省略すると採番する。
+   *
+   * seed が渡してくる。あちらは焼き直しのたびに同じIDを作り、そのIDで古い行を消してから
+   * 入れ直す——題名で消していた頃は、題名を変えた回の行が消えずに二重に残った。
+   */
+  scenarioId?: string
 }
 
 /**
@@ -77,7 +86,7 @@ const compileDefinition = (
   definition: ScenarioDefinition,
   options: CompileScenarioOptions,
 ): CompiledScenario => {
-  const scenarioId = options.newId()
+  const scenarioId = options.scenarioId === undefined ? options.newId() : options.scenarioId
 
   const characterIds = new Map(
     definition.characters.map((character) => [character.id, options.newId()]),
@@ -93,6 +102,7 @@ const compileDefinition = (
     definition.characters.map((character) => [character.id, character.name]),
   )
   const factStatements = new Map(definition.facts.map((fact) => [fact.id, fact.statement]))
+  const factKinds = new Map(definition.facts.map((fact) => [fact.id, fact.kind]))
 
   /**
    * ローカルIDの引き当て。
@@ -174,7 +184,8 @@ const compileDefinition = (
           }）`,
       ),
     ),
-    // about は検証と追跡のための紐であって、読ませる情報ではない。detail だけ出す。
+    // 散文にすると id と対象が消えるので、紐だけ別に残す。読ませる情報ではない。
+    lieRefs: character.lies.map((lie) => ({ id: lie.id, about: lie.about })),
     memories: bullets(character.memories.map((memory) => memory.detail)),
   }))
 
@@ -182,8 +193,15 @@ const compileDefinition = (
     id: evidenceUuid(evidence.id),
     scenarioId,
     label: evidence.label,
+    // 捜査メモが読む。掴んだ証拠の中身が分からないと、記録がラベルの羅列になる。
+    description: evidence.description === undefined ? null : evidence.description,
     revealCondition: evidence.reveal.condition,
     sources: evidence.sources.map(mapEvidenceSource),
+    // 時刻表が読む。証拠は revelation より頻繁に見つかるので、
+    // これを落とすと発見しても線がほとんど増えない。
+    supports: evidence.supports,
+    // 食い違いの印が読む。どの嘘を崩したかが分かって初めて、盤面の一点を指せる。
+    contradicts: evidence.contradicts,
   }))
 
   const compiledRevelations = definition.revelations.map((revelation) => ({
@@ -221,12 +239,57 @@ const compileDefinition = (
   }))
 
   /*
+    同じ出来事を、時刻表が読める構造のまま別列へ。読み物（上の timeline）と
+    盤面は求めるものが違うので、片方を潰してもう片方に使わせない。
+
+    `at` をここで HH:mm へ揃えるのは、authoring が ISO 8601 も許しているため。
+    時刻表は分単位でしか読まないので、読む側ごとに書式を判定させる理由が無い。
+    揃えられない書式（ここに来る時点でスキーマは通っている）は落とす——
+    軸に置けない線を持っていても、描く段で困るだけ。
+
+    在所（location）は画面にそのまま出る文字で、部屋との紐付けは room が別に持つ。
+    以前は location が両方を兼ねていて、部屋IDのまま焼くと表に「study」と英字が並んだ。
+    どれも空を許すのは、書かれていない事件を落とさないため。在所が空でも線は引ける
+    （時刻は分かっている）。
+  */
+  const timelineEvents = definition.timeline.flatMap((event) => {
+    const minutes = minutesOf(event.at)
+
+    if (minutes === undefined) {
+      return []
+    }
+
+    return [
+      {
+        id: event.id,
+        at: formatClock(minutes),
+        place: event.location === undefined ? '' : event.location,
+        room: event.room === undefined ? '' : event.room,
+        record: event.record === undefined ? '' : event.record,
+        participants: event.participants.map(characterUuid),
+        facts: event.facts,
+        kind: kindOfEvent(event.facts.map((id) => factKinds.get(id))),
+      },
+    ]
+  })
+
+  /*
     時刻軸の両端。timeline から外枠だけを取り出して scenarios 側へ焼く。
     真相のテーブルに入れないのは、これがプレイ開始前に見せてよい情報だから
     ——事件の記録が「午後六時半から七時十五分まで」と語っているのと同じ幅で、
     ここで隠しても意味が無い。中身（何が起きたか）は truth 側に残す。
   */
   const window = timeWindowOf(definition.timeline)
+
+  const victim = definition.victim
+
+  /*
+    遺体を調べられる事件かどうかを、ここで公開側へ焼いておく。
+    所見も死因も無いなら調べても何も出ないので、聞き込みの相手に並べない。
+    画面はこの一つだけを見れば決められる——真相のテーブルを覗きに行かずに済む。
+  */
+  const investigable =
+    victim !== undefined && (victim.findings.length > 0 || victim.causeOfDeath !== undefined)
 
   return {
     scenario: {
@@ -238,8 +301,15 @@ const compileDefinition = (
       category: definition.meta.category,
       timeStart: window === undefined ? null : window.start,
       timeEnd: window === undefined ? null : window.end,
-      victimName: definition.victim === undefined ? null : definition.victim.name,
-      victimIntroduction: definition.victim === undefined ? null : definition.victim.introduction,
+      victimName: victim === undefined ? null : victim.name,
+      victimIntroduction: victim === undefined ? null : victim.introduction,
+      victimFoundAt: victim === undefined || victim.foundAt === undefined ? null : victim.foundAt,
+      victimFoundIn: victim === undefined || victim.foundIn === undefined ? null : victim.foundIn,
+      victimEstimatedDeathAt:
+        victim === undefined || victim.estimatedDeathAt === undefined
+          ? null
+          : victim.estimatedDeathAt,
+      victimInvestigable: investigable,
       isPublished: options.isPublished,
       difficulty: definition.meta.difficulty,
       estimatedMinutes: definition.meta.estimatedMinutes,
@@ -254,6 +324,25 @@ const compileDefinition = (
       method: definition.solution.method,
       motive: definition.solution.motive,
       timeline,
+      timelineEvents,
+      victimCauseOfDeath:
+        victim === undefined || victim.causeOfDeath === undefined ? null : victim.causeOfDeath,
+      /*
+        所見の解禁前提も採番する。DO が持っている発見済みのIDは uuid なので、
+        authoring のローカルIDのまま焼くと、前提が永久に満たされない所見になる。
+        （所見自身の id は他から参照されないので、そのまま残す。）
+      */
+      victimFindings:
+        victim === undefined
+          ? []
+          : victim.findings.map((finding) => ({
+              id: finding.id,
+              statement: finding.statement,
+              requires: {
+                revelations: finding.requires.revelations.map(revelationUuid),
+                evidences: finding.requires.evidences.map(evidenceUuid),
+              },
+            })),
       secretKeywords: definition.solution.secretKeywords,
     },
   }

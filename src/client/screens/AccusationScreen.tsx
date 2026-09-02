@@ -163,7 +163,7 @@ export const AccusationScreen = ({
 
   return (
     // 地の字送りは端末と机で違う。行の高さを一箇所で決めて、あとは継がせる。
-    <div className="screen-enter flex min-h-dvh flex-col bg-sumi text-[13px] text-kinari leading-[1.75] lg:h-dvh lg:overflow-hidden lg:text-[14px] lg:leading-[1.8]">
+    <div className="screen-enter flex min-h-dvh-safe flex-col bg-sumi text-[13px] text-kinari leading-[1.75] lg:h-dvh-safe lg:overflow-hidden lg:text-[14px] lg:leading-[1.8]">
       {/* 上部バーは薄く、机の面を最大に取る。ここに出るのは戻り口と残りターンだけ。 */}
       <header className="flex shrink-0 items-center justify-between gap-5 px-[18px] pt-[22px] lg:h-[46px] lg:border-keisen lg:border-b lg:px-[22px] lg:pt-0">
         <button
@@ -199,15 +199,25 @@ export const AccusationScreen = ({
               </span>
             </div>
 
-            <AlibiChart
-              people={people}
-              segments={segments}
-              span={{ from: timeWindow.start, to: timeWindow.end }}
-              deadline={deadline}
-            />
+            {/*
+              事件の幅が長いと表は画面より背が高くなる。縮めずにここで送る（聞き込みと同じ）。
+              伸ばしはしない——余りを食わせると、下の註が表から離れて床に貼りつく。
+            */}
+            <div className="min-h-0 overflow-y-auto pb-[9px]">
+              <AlibiChart
+                people={people}
+                segments={segments}
+                span={{ from: timeWindow.start, to: timeWindow.end }}
+                deadline={deadline}
+              />
+            </div>
 
-            {/* 線の意味はここで一度だけ言う。表の中に註を足すと、供述より註が目立つ。 */}
-            <div className="mt-4 flex items-center gap-5 text-[10.5px] text-nezumi-dim leading-[1.4]">
+            {/*
+              線の意味はここで一度だけ言う。表の中に註を足すと、供述より註が目立つ。
+              表の下端から註までは 16px。うち 9px は上の送り箱が内へ持っている
+              ——最後の時刻は罫線に載るので、字の下半分が表の枠から出る。
+            */}
+            <div className="mt-[7px] flex items-center gap-5 text-[10.5px] text-nezumi-dim leading-[1.4]">
               <span className="inline-flex items-center gap-[6px]">
                 <span aria-hidden="true" className="h-[3px] w-[14px] bg-nezumi" />
                 <span className="text-nezumi">実線</span>　裏付けあり

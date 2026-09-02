@@ -17,6 +17,8 @@
   --kinari: #e9e4d9;
   --nezumi: #8e8896;
   --nezumi-dim: #625d6c;
+  /* 場所は人物の色を持たない。他の色と同じ口から引けるよう、明るい側だけ揃えておく。 */
+  --nezumi-fg: #aaa4b2;
 
   --asagi: #5e8b8c;
   --asagi-fg: #8ab5b5;
@@ -315,6 +317,15 @@ textarea {
 .face.on {
   box-shadow: 0 0 0 1.5px currentColor;
 }
+/*
+  場所の印。人の丸に対して角を立て、塗らずに罫線で囲う。
+  名簿では人と場所が同じ列に並ぶので、色を抜いただけでは「暗い人物」に見える。
+  塗った四角にすると今度は箱になるので、線だけで区画を示す。
+*/
+.face.pl {
+  border-radius: 2px;
+  border: 1px solid var(--keisen);
+}
 .int-head {
   padding: 10px 12px;
 }
@@ -335,6 +346,23 @@ textarea {
   font-size: 14px;
   font-weight: 500;
   margin-top: 4px;
+}
+/*
+  相手を替える口。名前と同じ行の右端へ小さく並べる。
+  端末には表の列見出しが無いので、切り替えられる場所はここだけになる。
+*/
+.int-head .row2 {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.int-head .row2 .swap {
+  display: flex;
+  flex: none;
+  gap: 10px;
+  font-size: 10.5px;
+  color: var(--nezumi-dim);
 }
 .int-head .pers {
   font-size: 10.5px;
@@ -385,6 +413,8 @@ textarea {
 
 /* 最新の発話を下端に置く。交互とは限らないので、上は溢れるに任せる。 */
 .log {
+  /* 新事実の帯を会話へ被せるための基準。位置取りだけで、並びは変わらない。 */
+  position: relative;
   flex: 1;
   overflow: hidden;
   padding: 12px;
@@ -392,6 +422,54 @@ textarea {
   flex-direction: column;
   justify-content: flex-end;
   gap: 15px;
+}
+
+/*
+ * 新事実の帯。聞き込みのあいだ記録は画面上にないので、増えたことは被せて知らせる。
+ * 箱は作らず、二本の罫線と薄い覆いだけ。操作を塞がないので pointer-events は殺す。
+ */
+.newfact {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 9px 12px;
+  border-top: 1px solid var(--asagi);
+  border-bottom: 1px solid var(--asagi);
+  /*
+    透かさない。端末は幅が狭く帯が会話の行を丸ごと覆うので、わずかでも透けると
+    後ろの字が帯の字と重なって、どちらも読めなくなる。
+  */
+  background: var(--sumi);
+  pointer-events: none;
+}
+.newfact .k {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.24em;
+  color: var(--asagi-fg);
+}
+.newfact .v {
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/*
+ * 訊けそうなことの開閉。高さそのものを動かすので、中身は grid の行に入れる。
+ * 透かせるだけだと、下の入力欄が動かないまま文字だけ現れて飛んで見える。
+ */
+.hint .fold {
+  display: grid;
+  grid-template-rows: 1fr;
+}
+.hint .fold .inner {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 /* 発話の塊。同じ人が続けて喋るあいだ、名前は一度きりしか出さない。
@@ -437,6 +515,10 @@ textarea {
   display: flex;
   flex-direction: column;
   border-top: 1px solid var(--keisen);
+}
+/* 台本を使い切ったら畳みごと下ろす。display を持つので hidden だけでは消えない。 */
+.hint[hidden] {
+  display: none;
 }
 .hint .head {
   display: flex;

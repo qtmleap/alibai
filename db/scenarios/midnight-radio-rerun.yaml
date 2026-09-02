@@ -1,15 +1,24 @@
 schemaVersion: 1
 id: midnight-radio-rerun
 meta:
-  title: ラジオ局レイライン、深夜の事件
-  synopsis: "午前零時十二分、FMラジオ局「レイライン」の第二収録ブースで、人気パーソナリティの大門修一が死亡しているのが見つかりました。局内に残っていたのは、番組プロデューサーの美濃部沙耶、音響技師の久世直人、スポンサー会社の担当者・夏目亮介の三人です。"
+  title: "零時放送レイライン"
+  synopsis: "午前零時十二分、FMラジオ局「レイライン」の第二収録ブースで、人気パーソナリティの大門修一が死亡しているのが見つかりました。局内に残って\
+    いたのは、番組プロデューサーの美濃部沙耶、音響技師の久世直人、スポンサー会社の担当者・夏目亮介の三人です。"
   category: 放送局ミステリ
   difficulty: 3
   estimatedMinutes: 10
-  tags: [ラジオ, 時刻トリック, 偽装アリバイ]
 victim:
   name: 大門修一
   introduction: FMラジオ局「レイライン」パーソナリティ
+  foundAt: 00:12
+  foundIn: 第2ブース
+  estimatedDeathAt: "23:48"
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 大門修一は第2ブースで倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「大門が保存したスポンサー報告の比較メモ」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -38,37 +47,30 @@ facts:
   - id: opening-recorded-2320
     statement: 23時20分、大門修一は午前零時に流す番組冒頭約五分間を事前収録した
     kind: truth
-    secret: true
   - id: minobe-falsified-reports
     statement: 美濃部沙耶はスポンサー向けの放送実績報告を水増しし、制作費の一部を別用途へ流用していた
     kind: motive
-    secret: true
   - id: daimon-confronted-minobe
     statement: 大門修一はその夜、美濃部沙耶の不正を知り、翌朝局長へ報告すると告げていた
     kind: motive
-    secret: true
   - id: natsume-secret-meeting
     statement: 23時38分から23時43分まで、夏目亮介は大門修一と第二収録ブースでスポンサー契約を巡って口論した
     kind: observation
-    secret: true
   - id: natsume-left-2343
     statement: 23時43分、夏目亮介は第二収録ブースを出て一階ロビーへ向かった
     kind: observation
   - id: minobe-entered-2346
     statement: 23時46分、美濃部沙耶は第二収録ブースへ入った
     kind: truth
-    secret: true
   - id: daimon-died-2348
     statement: 23時48分ごろ、大門修一は第二収録ブース内で美濃部沙耶に襲われ死亡した
     kind: truth
-    secret: true
   - id: kuze-saw-minobe-2350
     statement: 23時50分ごろ、久世直人は第二収録ブース側の廊下から戻ってくる美濃部沙耶を見た
     kind: observation
   - id: minobe-queued-recording
     statement: 23時53分、美濃部沙耶は23時20分に録音された大門修一の音声を午前零時の自動送出枠へ登録した
     kind: truth
-    secret: true
   - id: recorded-opening-aired
     statement: 午前零時、大門修一の事前収録された声が自動送出され、番組冒頭として放送された
     kind: physical
@@ -78,67 +80,80 @@ facts:
   - id: kuze-deleted-demo
     statement: 久世直人は勤務中に私用で録音した音源を隠すため、事件直前に一件のテストデータを削除していた
     kind: other
-    secret: true
   - id: natsume-offered-side-payment
     statement: 夏目亮介は番組継続を有利にするため、大門修一へ個人的な謝礼を持ちかけて拒絶されていた
     kind: motive
-    secret: true
 timeline:
   - id: opening-recording
     at: "23:20"
-    participants: [minobe, kuze]
-    facts: [opening-recorded-2320]
+    participants: [ minobe, kuze ]
+    facts: [ opening-recorded-2320 ]
     description: 大門が午前零時に流す番組冒頭を事前収録する。
+    location: 局内
   - id: natsume-meets-daimon
     at: "23:38"
-    participants: [natsume]
-    facts: [natsume-secret-meeting]
+    participants: [ natsume ]
+    facts: [ natsume-secret-meeting ]
     description: 夏目が第二収録ブースで大門とスポンサー契約を巡って口論する。
+    location: 第2ブース
   - id: natsume-leaves
     at: "23:43"
-    participants: [natsume]
-    facts: [natsume-left-2343]
+    participants: [ natsume ]
+    facts: [ natsume-left-2343 ]
     description: 夏目が大門のもとを離れ、一階ロビーへ向かう。
+    location: ロビー
   - id: minobe-enters
     at: "23:46"
-    participants: [minobe]
-    facts: [minobe-entered-2346]
+    participants: [ minobe ]
+    facts: [ minobe-entered-2346 ]
     description: 美濃部が第二収録ブースへ入る。
+    location: 第2ブース
   - id: daimon-death
     at: "23:48"
-    participants: [minobe]
-    facts: [daimon-died-2348]
+    participants: [ minobe ]
+    facts: [ daimon-died-2348 ]
     description: 美濃部が大門を襲い、大門はブース内で死亡する。
+    location: ブース
   - id: minobe-returns
     at: "23:50"
-    participants: [minobe, kuze]
-    facts: [kuze-saw-minobe-2350]
+    participants: [ minobe, kuze ]
+    facts: [ kuze-saw-minobe-2350 ]
     description: 久世が第二収録ブース側の廊下から戻る美濃部を目撃する。
+    location: 廊下
   - id: recording-queued
     at: "23:53"
-    participants: [minobe]
-    facts: [minobe-queued-recording]
+    participants: [ minobe ]
+    facts: [ minobe-queued-recording ]
     description: 美濃部が事前収録音声を午前零時の自動送出枠へ登録する。
+    location: 送出室
   - id: opening-airs
     at: "00:00"
-    participants: [kuze, minobe, natsume]
-    facts: [recorded-opening-aired]
+    participants: [ kuze, minobe, natsume ]
+    facts: [ recorded-opening-aired ]
+    record: 自動送出ログ
     description: 事前収録された大門の声が番組冒頭として放送される。
+    location: 局内
   - id: discovery
     at: "00:12"
-    participants: [kuze, minobe, natsume]
-    facts: [body-found-0012]
+    participants: [ kuze, minobe, natsume ]
+    facts: [ body-found-0012 ]
     description: 久世が第二収録ブースで大門の死を発見する。
+    location: 第2ブース
 characters:
   - id: minobe
     name: 美濃部沙耶
-    role: suspect
     publicIntroduction: "判断が速く、番組進行の乱れを何より嫌うプロデューサー。"
     personality: 判断が速く、番組進行の乱れを何より嫌うプロデューサー。普段は冷静だが、制作費や報告書の話になると妙に説明が細かくなる。大門とは長年組んできた。
     goals:
       - 放送実績報告の不正を隠し通したい
       - 午前零時まで大門が生きていたと思わせたい
-    knowledge: [minobe-is-producer, opening-recorded-2320, recorded-opening-aired, body-found-0012]
+    knowledge:
+      [
+        minobe-is-producer,
+        opening-recorded-2320,
+        recorded-opening-aired,
+        body-found-0012
+      ]
     secrets:
       - fact: minobe-falsified-reports
         disclosure: pressured
@@ -157,7 +172,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: daimon-warning
-        about: daimon-confronted-minobe
         detail: 大門に「明日の朝、全部局長に話す」と低い声で告げられた瞬間を鮮明に覚えている。
     relationships:
       - character: kuze
@@ -165,13 +179,19 @@ characters:
         attitude: 技術は信用しているが、私用録音の癖には苛立っている
   - id: kuze
     name: 久世直人
-    role: witness
     publicIntroduction: "ラジオ局の音響技師。"
     personality: 機材の話になると饒舌だが、人間関係には深入りしたがらない音響技師。自分の小さな規則違反を大事にされるのを恐れている。
     goals:
       - 私用録音をしていたことを隠したい
       - 見たことだけは正確に伝えたい
-    knowledge: [kuze-is-engineer, opening-recorded-2320, kuze-saw-minobe-2350, recorded-opening-aired, body-found-0012]
+    knowledge:
+      [
+        kuze-is-engineer,
+        opening-recorded-2320,
+        kuze-saw-minobe-2350,
+        recorded-opening-aired,
+        body-found-0012
+      ]
     secrets:
       - fact: kuze-deleted-demo
         disclosure: pressured
@@ -182,7 +202,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: hallway-glance
-        about: kuze-saw-minobe-2350
         detail: 23時50分ごろ、廊下の角から戻ってきた美濃部と目が合い、珍しく彼女が驚いた顔をしたのを覚えている。
     relationships:
       - character: minobe
@@ -190,13 +209,18 @@ characters:
         attitude: 仕事はできる人だと思っている
   - id: natsume
     name: 夏目亮介
-    role: suspect
     publicIntroduction: "愛想のよい営業担当だが、契約の話になると押しが強い。"
     personality: 愛想のよい営業担当だが、契約の話になると押しが強い。会社に知られたくない交渉を抱えており、自分が大門と揉めていた事実を必死に軽く見せようとする。
     goals:
       - 大門へ個人的な謝礼を持ちかけたことを隠したい
       - 23時台に大門と口論した事実を伏せたい
-    knowledge: [natsume-is-sponsor, natsume-left-2343, recorded-opening-aired, body-found-0012]
+    knowledge:
+      [
+        natsume-is-sponsor,
+        natsume-left-2343,
+        recorded-opening-aired,
+        body-found-0012
+      ]
     secrets:
       - fact: natsume-secret-meeting
         disclosure: pressured
@@ -209,7 +233,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: rejected-offer
-        about: natsume-offered-side-payment
         detail: 謝礼の話を出した途端、大門に「そういう仕事はしない」と切り捨てられた悔しさが残っている。
     relationships: []
 revelations:
@@ -226,8 +249,8 @@ revelations:
         revealCondition: 久世に午前零時の放送が本当に生だったのか、送出設備の記録を含めて確認した。
         requires:
           revelations: []
-          evidences: [automation-log]
-    relatedFacts: [opening-recorded-2320, recorded-opening-aired]
+          evidences: [ automation-log ]
+    relatedFacts: [ opening-recorded-2320, recorded-opening-aired ]
   - id: minobe-under-pressure
     title: 翌朝に露見するはずだった不正
     text: 大門は美濃部の放送実績報告の水増しを知り、翌朝局長へ報告すると告げていた。
@@ -240,86 +263,74 @@ revelations:
         id: minobe
         revealCondition: 美濃部にスポンサー報告と大門との直前の会話を追及し、翌朝の報告を恐れていたことが明確になった。
         requires:
-          revelations: [recorded-not-live]
-          evidences: [report-draft]
-    relatedFacts: [minobe-falsified-reports, daimon-confronted-minobe]
+          revelations: [ recorded-not-live ]
+          evidences: [ report-draft ]
+    relatedFacts: [ minobe-falsified-reports, daimon-confronted-minobe ]
 evidences:
   - id: automation-log
     label: 自動送出システムの実行ログ
     description: 午前零時の冒頭素材は23時53分に登録され、時刻指定で自動再生された記録が残る。
     reveal:
-      mode: conversation
       condition: 久世に午前零時の音声が生放送か録音かを尋ねるか、美濃部の「生だった」という説明の技術的根拠を確認したら開示する。
     sources:
       - type: character
         id: kuze
       - type: character
         id: minobe
-    supports: [minobe-queued-recording, recorded-opening-aired]
-    contradicts: ["lie:minobe-live-alibi"]
+    supports: [ minobe-queued-recording, recorded-opening-aired ]
+    contradicts: [ "lie:minobe-live-alibi" ]
   - id: corridor-sighting
     label: 23時50分の廊下の目撃
     description: 久世は第二収録ブース側から戻ってくる美濃部を23時50分ごろ目撃している。
     reveal:
-      mode: conversation
       condition: 久世に23時45分から23時55分ごろ廊下で誰を見たか尋ね、美濃部を見たという証言が出たら開示する。
     sources:
       - type: character
         id: kuze
-    supports: [kuze-saw-minobe-2350]
-    contradicts: ["lie:minobe-live-alibi"]
+    supports: [ kuze-saw-minobe-2350 ]
+    contradicts: [ "lie:minobe-live-alibi" ]
   - id: lobby-camera
     label: 一階ロビーの入退室映像
     description: 夏目が23時43分にロビーへ戻ったことが確認できるが、それ以前の数分間はロビーにいない。
     reveal:
-      mode: conversation
       condition: 夏目の23時台の行動を具体的に確認し、ずっとロビーにいたという説明を検証しようとしたら開示する。
     sources:
       - type: character
         id: natsume
-    supports: [natsume-secret-meeting, natsume-left-2343]
-    contradicts: ["lie:natsume-left-early"]
+    supports: [ natsume-secret-meeting, natsume-left-2343 ]
+    contradicts: [ "lie:natsume-left-early" ]
   - id: report-draft
     label: 大門が保存したスポンサー報告の比較メモ
     description: 公式報告と実際の放送枠に差があり、美濃部の報告水増しを大門が確認していたことが分かる。
     reveal:
-      mode: conversation
-      condition: 美濃部に制作費やスポンサー報告の不一致について尋ねるか、夏目に大門が最近スポンサー実績を調べていなかったか尋ねたら開示する。
+      condition: 美濃部に制作費やスポンサー報告の不一致について尋ねるか、夏目に大門が最近スポンサー実績を調べていなかったか尋ねたら開示する。または遺体・現場を調べ、「大門が保存したスポンサー報告の比較メモ」に関わる資料を確認したら開示する。
     sources:
       - type: character
         id: minobe
       - type: character
         id: natsume
-    supports: [minobe-falsified-reports, daimon-confronted-minobe]
+      - type: victim
+        id: victim
+    supports: [ minobe-falsified-reports, daimon-confronted-minobe ]
     contradicts: []
   - id: deleted-demo-log
     label: 削除された私用テスト音源の履歴
     description: 久世が事件前に私用録音を削除していたことだけが分かり、殺害時刻とは結びつかない。
     reveal:
-      mode: conversation
       condition: 久世に送出ログや削除履歴を細かく確認し、事件前に消したデータがないか追及したら開示する。
     sources:
       - type: character
         id: kuze
-    supports: [kuze-deleted-demo]
-    contradicts: ["lie:kuze-no-deletion"]
+    supports: [ kuze-deleted-demo ]
+    contradicts: [ "lie:kuze-no-deletion" ]
 solution:
   culprit: minobe
   summary: 犯人は美濃部沙耶。スポンサー向け報告の水増しを大門に知られ、翌朝局長へ報告されることを恐れた美濃部は、夏目が去った後の23時46分に第二収録ブースへ入り、23時48分ごろ大門を襲った。その後23時20分に録音済みだった大門の冒頭音声を23時53分に自動送出へ登録し、午前零時まで大門が生きていたように見せかけた。自動送出ログは「午前零時は生放送だった」という美濃部の説明を崩し、久世の23時50分の目撃は「23時40分以降ブースへ行っていない」という主張と矛盾する。夏目の秘密の面会と久世の私用録音は、それぞれ独立した隠し事にすぎない。
   method: 第二収録ブースで大門を襲い、死亡後に事前収録音声を自動送出して生存時刻を偽装した
   motive: 放送実績報告の不正が翌朝露見することへの恐れ
-  requiredFacts: [opening-recorded-2320, minobe-falsified-reports, daimon-confronted-minobe, minobe-entered-2346, daimon-died-2348, minobe-queued-recording, kuze-saw-minobe-2350]
   secretKeywords:
     - 犯人は美濃部
     - 美濃部が犯人
     - 美濃部が大門を襲
     - 私が大門を襲
     - 録音で死亡時刻を偽装
-quality:
-  expectedQuestionCount:
-    min: 8
-    max: 18
-  requiredEvidence:
-    min: 2
-  redHerrings: [natsume-secret-meeting, natsume-offered-side-payment, kuze-deleted-demo]
-  notes: 主経路は自動送出ログで午前零時の声をアリバイから外し、久世の23時50分の目撃と美濃部の不在主張を衝突させること。夏目と久世にも明確な嘘を持たせ、秘密の有無だけで犯人を判別できないようにする。

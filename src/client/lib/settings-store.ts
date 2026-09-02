@@ -44,9 +44,14 @@ const STORAGE_KEY = 'alibai:settings'
  */
 export const DEFAULT_SETTINGS: Settings = {
   llm: {},
+  /*
+   * limits には llm のような「未選択」が無く、常にリクエストへ載る。
+   * つまりここの数値がサーバの既定（env の MAX_TURNS など）を必ず上書きするので、
+   * 片方だけ動かしても効かない。変えるときは両方を揃える。
+   */
   limits: {
-    maxTurns: 5,
-    questionsPerTurn: 1,
+    maxTurns: 15,
+    questionsPerTurn: 2,
     exchangesPerTopic: EXCHANGES_PER_TOPIC,
   },
 }

@@ -11,6 +11,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./_phone.css" />
+    <link rel="stylesheet" href="../_motion.css" />
     <link rel="stylesheet" href="../_mock.css" />
     <style>
       .int-head a { text-decoration: none; color: inherit; }
@@ -30,14 +31,18 @@
     </style>
   </head>
   <body>
-    <div class="phone" data-mock-id="ALI_INT_01">
+    <!-- 八 入り込む。記録を読み終えて、その場に入る敷居。強く動かすのはここだけ。 -->
+    <div class="phone dive" data-mock-id="ALI_INT_01">
       <div class="int-head hair" data-mock-id="ALI_INT_02">
         <div class="row1">
           <a class="ttl" href="./case-overview.html">←　概要に戻る</a>
           <span style="flex: none" id="count"></span>
           <a class="acc" href="./accusation.html" data-mock-id="ALI_INT_03">告発</a>
         </div>
-        <div class="nm" id="who" data-mock-id="ALI_INT_05"></div>
+        <div class="row2">
+          <div class="nm" id="who" data-mock-id="ALI_INT_05"></div>
+          <nav class="swap" id="swap" aria-label="話す相手"></nav>
+        </div>
         <div class="pers" id="pers"></div>
       </div>
 
@@ -45,14 +50,14 @@
 
       <div class="log" id="log" data-mock-id="ALI_INT_06">
         <div class="hint" id="hint" data-mock-id="ALI_INT_08">
-          <span class="head">訊けそうなこと<span>▲</span></span>
+          <span class="head" id="hintHead"></span>
         </div>
       </div>
 
       <div class="int-foot" style="border-top: 1px solid var(--keisen)">
         <div class="askbar">
-          <span class="box" data-mock-id="ALI_INT_10">何について訊く？</span>
-          <span class="btn" data-mock-id="ALI_INT_11">訊く</span>
+          <span class="box" id="ask" data-mock-id="ALI_INT_10">何について訊く？</span>
+          <span class="btn" id="askBtn" data-mock-id="ALI_INT_11">訊く</span>
         </div>
       </div>
     </div>
@@ -62,7 +67,7 @@
     <script>
       ;(function () {
         var C = Mock.case
-        var st = Mock.play(Mock.num('turn', 4))
+        var st = Mock.play(Mock.num('turn', 4), Mock.str('who', undefined))
         var me = Mock.cast[st.current]
 
         document.getElementById('count').innerHTML =
@@ -73,22 +78,131 @@
           Mock.clock(st.turn) +
           '</span>'
 
+        /*
+          遺体か現場を調べているあいだ。相手は喋らないので、訊くのではなく見ることになる。
+          文言だけが変わり、組みは人物のときと同じにしておく——
+          同じ場所で同じ一手を使うので、別の画面に見せる理由がない。
+        */
+        var examining = Mock.examines(st.current)
+        var isPlace = examining && st.current !== C.victim.key
+
         document.getElementById('who').textContent = me.name
         document.getElementById('who').style.color = 'var(--' + me.hue + Mock.lit + ')'
-        document.getElementById('pers').textContent = me.persona
+        // 喋らない相手の一行は、人物像ではなく今そこがどうなっているかを書く。
+        document.getElementById('pers').textContent = isPlace
+          ? '現場・' + me.blurb
+          : examining
+            ? '被害者・' + me.blurb
+            : me.persona
 
-        document.getElementById('rail').innerHTML = Mock.rail({ segments: st.segments })
+        document.getElementById('ask').textContent = examining ? '何を調べる？' : '何について訊く？'
+        document.getElementById('askBtn').textContent = examining ? '調べる' : '訊く'
+        document.getElementById('hintHead').innerHTML =
+          (examining ? '調べられそうなこと' : '訊けそうなこと') + '<span>▲</span>'
+
+        /*
+          相手を替える口。遺体を調べられる事件では被害者も、場所があれば場所も並ぶ。
+          調べられない事件では並べない——押せるのに何も出ない相手を出さない。
+
+          このモックは台本の何手目かで画面を作るので、行き先はターン番号で指す。
+          その相手が最後に出てくる手へ跳ばす（who= を渡しても読む側が居ない）。
+        */
+        var lastTurnOf = function (key) {
+          var found = 0
+          for (var t = 1; t <= C.turns; t++) {
+            if (Mock.play(t).current === key) found = t
+          }
+          return found
+        }
+
+        document.getElementById('swap').innerHTML = C.cast
+          .concat(C.victim.investigable ? [C.victim] : [], Mock.places)
+          .filter(function (p) {
+            return p.key !== st.current
+          })
+          .map(function (p) {
+            var to = lastTurnOf(p.key)
+            return to === 0
+              ? ''
+              : '<a href="#turn=' + to + '" data-turn="' + to + '">' + Mock.esc(p.short) + '</a>'
+          })
+          .join('')
+
+        // ハッシュを書き換えるだけでは描き直されない。この台の他の画面と同じく読み込み直す。
+        Array.prototype.forEach.call(document.querySelectorAll('#swap a'), function (el) {
+          el.addEventListener('click', function (e) {
+            e.preventDefault()
+            location.hash = 'turn=' + el.dataset.turn
+            location.reload()
+          })
+        })
+
+        var rail = document.getElementById('rail')
+        rail.innerHTML = Mock.rail({ segments: st.segments })
+
+        /*
+          一 目盛りが立つ／二 疑問。
+          裏付けの取れた印は軸から伸び上がり、申告だけの印は行き過ぎて戻り、淡いまま残る。
+          印は中に字を持たないので、拡大をそのまま当ててよい。
+        */
+        Array.prototype.forEach.call(rail.querySelectorAll('.pin'), function (pin, i) {
+          pin.classList.add(pin.classList.contains('hollow') ? 'waver' : 'pin-rise', 'origin-bottom')
+          pin.style.animationDelay = 90 * i + 'ms'
+        })
+
+        // 最後に裏付けが取れた一本。印が立ち終わってから添う。
+        var now = rail.querySelector('.now')
+        if (now) {
+          now.classList.add('pin-rise', 'origin-bottom')
+          now.style.animationDelay = 90 * st.segments.length + 'ms'
+        }
 
         // 訊けそうなことはログの末尾に畳んである。会話はその上に積む。
         var hint = document.getElementById('hint')
-        document.getElementById('log').insertAdjacentHTML('afterbegin', Mock.log(st.log.slice(-8)))
+        // 台本を使い切ったら見出しごと下ろす。中身の無い畳みは、開くものがあるように見える。
+        hint.hidden = st.hints.length === 0
+        var log = document.getElementById('log')
+        log.insertAdjacentHTML('afterbegin', Mock.log(st.log.slice(-8)))
+
+        /*
+          九 選択肢が開く。畳んであるものが開くので、高さそのものを動かす。
+          grid の行を 0fr から起こすため、質問はひとつの器に入れてから包む。
+        */
         hint.insertAdjacentHTML(
           'beforeend',
-          st.hints
-            .map(function (q) {
-              return '<span class="q" data-mock-id="ALI_INT_09">' + Mock.esc(q) + '</span>'
-            })
-            .join(''),
+          '<span class="fold fold-open"><span class="inner">' +
+            st.hints
+              .map(function (q) {
+                return '<span class="q" data-mock-id="ALI_INT_09">' + Mock.esc(q) + '</span>'
+              })
+              .join('') +
+            '</span></span>',
+        )
+
+        /*
+          五 発話が続く。一文ずつ置いていく。間は 0.8 秒——読み終わる前に次が来ると急かされる。
+          直近の三行だけを動かす。前から積まれている行まで動かすと、
+          画面を開くたびに会話全体が湧き上がって見え、どれが新しいのか分からなくなる。
+        */
+        var lines = Array.prototype.slice.call(log.querySelectorAll('.turn .txt')).slice(-3)
+        lines.forEach(function (line, i) {
+          line.classList.add('line-in')
+          line.style.animationDelay = 800 * i + 'ms'
+        })
+
+        /*
+          四 新事実発見。増えたのは事実であって手柄ではないので、祝わない。
+          実装では 2.6 秒で引くが、モックは静止画としても見るので出したままにする
+          （引くところは mocks/effects/band.html で見る）。
+        */
+        log.insertAdjacentHTML(
+          'beforeend',
+          '<span class="newfact line-in" style="animation-delay: 2400ms" data-mock-id="ALI_INT_12">' +
+            '<span class="k">新事実</span>' +
+            '<span class="v">' +
+            (isPlace ? me.fact : '牧野は午後六時三十五分に店を出たと述べた') +
+            '</span>' +
+            '</span>',
         )
 
         Mock.ready()

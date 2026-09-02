@@ -11,6 +11,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./_phone.css" />
+    <link rel="stylesheet" href="../_motion.css" />
     <link rel="stylesheet" href="../_mock.css" />
     <style>
       /* 読み飛ばしは端末の下端へ落とす。本文に重ねると、最後の一行の上に字が乗る。 */
@@ -26,7 +27,7 @@
     </style>
   </head>
   <body>
-    <div class="phone" data-mock-id="ALI_BRF_01">
+    <div class="phone screen-enter" data-mock-id="ALI_BRF_01">
       <div class="pad p-brief">
         <div class="label" id="no" data-mock-id="ALI_BRF_02"></div>
         <div class="crawl" id="crawl" style="margin-top: 26px" data-mock-id="ALI_BRF_03"></div>
@@ -41,15 +42,31 @@
       ;(function () {
         var C = Mock.case
         document.getElementById('no').textContent = '記録　' + C.no
-        Mock.readOut(
-          document.getElementById('crawl'),
-          C.brief
-            .map(function (p) {
-              return '<p>' + p + '</p>'
-            })
-            .join(''),
-          { scroller: document.querySelector('.p-brief') },
-        )
+
+        var crawl = document.getElementById('crawl')
+        var body = C.brief
+          .map(function (p) {
+            return '<p>' + p + '</p>'
+          })
+          .join('')
+
+        /*
+          記録の見せ方は二通り。既定は 六 タイプ送りで、読む速さをプレイヤーが握る。
+          #brief=crawl にすると 七 記録のせり上げ——全文が下から流れる、映画の導入。
+          実装も同じ二択を設定で切り替える（src/client/lib/briefing-mode.ts）。
+        */
+        if (Mock.params.brief === 'crawl') {
+          crawl.innerHTML = body
+          crawl.classList.add('briefing-crawl')
+          /*
+            尺は実装だと本文の長さから決まる。ここは静止画としても見る枚なので、
+            流れ切って空の画面が残らないよう、長めに取って途中で写るようにしてある。
+          */
+          crawl.style.animationDuration = '60s'
+        } else {
+          Mock.readOut(crawl, body, { scroller: document.querySelector('.p-brief') })
+        }
+
         Mock.ready()
       })()
     </script>

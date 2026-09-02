@@ -19,6 +19,8 @@
   --kinari: #e9e4d9;
   --nezumi: #8e8896;
   --nezumi-dim: #625d6c;
+  /* 場所は人物の色を持たない。他の色と同じ口から引けるよう、明るい側だけ揃えておく。 */
+  --nezumi-t: #aaa4b2;
 
   --asagi: #5e8b8c;
   --asagi-t: #8ab5b5;
@@ -96,6 +98,42 @@ select {
   height: 100%;
   display: grid;
   grid-template-rows: 46px 1fr;
+  /* 入り（八）の覆いを重ねる先。位置を作るだけで、格子の組みは動かない。 */
+  position: relative;
+}
+/*
+ * 八 入り込む。墨の中から浮かび上がる一枚。
+ * 引き終わりは opacity 0 なので、静止した姿には何も残らない。操作は塞がない。
+ */
+.desk > .enter-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background: var(--sumi);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/*
+ * 四 新事実発見。増えたことを帯で被せて知らせる。
+ * 箱は作らず、二本の罫線と薄い覆いだけ。祝わない——増えたのは事実であって手柄ではない。
+ */
+.newfact {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 9px 0;
+  border-top: 1px solid var(--asagi);
+  border-bottom: 1px solid var(--asagi);
+}
+.newfact .k {
+  font-size: 9.5px;
+  letter-spacing: 0.24em;
+  color: var(--asagi-t);
+}
+.newfact .v {
+  font-size: 12.5px;
+  line-height: 1.6;
 }
 .desk > .top {
   display: flex;
@@ -171,10 +209,18 @@ select {
   letter-spacing: 0.1em;
 }
 
-/* 見出しの列と表の列は同じ定義を使う。ずれると表が表でなくなる。 */
+/* 見出しの列と表の列は同じ定義を使う。ずれると表が表でなくなる。
+ *
+ * 格子の寸法は変数でも持つ。列に属さない印（食い違いの線と目盛り）が
+ * 列の位置を calc で出すため。grid-template-columns と一緒に置いておかないと、
+ * 片方だけ直したときに線がひとりでにずれる。
+ * --bar-mid は列のなかの帯の芯。下の .bar の left:17px と width:3px から出る。 */
 .cols {
+  --gut-w: 46px;
+  --col-n: 4;
+  --bar-mid: 18.5px;
   display: grid;
-  grid-template-columns: 46px repeat(4, 1fr);
+  grid-template-columns: var(--gut-w) repeat(4, 1fr);
 }
 
 .chart-head {
@@ -256,6 +302,24 @@ select {
   background: none !important;
   border-left: 1px dashed currentColor;
 }
+/*
+ * 線を動かす画面だけ、塗りを内側の帯（.fill）へ移す。
+ * 帯は上端から伸びるので、字を含む .bar ごと動かすと在所と時刻が縦に潰れる。
+ *
+ * 帯を挟むかどうかは画面ごと（挟むのは聞き込みだけ）。挟まない画面でも
+ * 同じ見た目になるよう、素の .bar 側の指定はそのまま残し、
+ * 帯があるときにだけ持ち場を明け渡す。
+ */
+.bar > .fill {
+  position: absolute;
+  inset: 0;
+}
+.bar.claim:has(> .fill) {
+  border-left: 0;
+}
+.bar.claim > .fill {
+  border-left: 1px dashed currentColor;
+}
 /* はみ出させると隣の列の記述と混ざって、どちらの人の話か分からなくなる。
    折り返してでも列の中に留める。
    幅は max-width ではなく実寸で持たせる——親の .bar は 3px しかなく、
@@ -285,7 +349,8 @@ select {
   color: currentColor;
 }
 /* 裏付けの取れた端だけ、目盛りを立てる。 */
-.bar.solid::before {
+.bar.solid::before,
+.bar.solid > .fill::before {
   content: "";
   position: absolute;
   left: -4px;
@@ -294,12 +359,17 @@ select {
   height: 1px;
   background: currentColor;
 }
+/* 帯があるときは、目盛りも帯に付けて線と一緒に立ち上がらせる。二重に出さない。 */
+.bar.solid:has(> .fill)::before {
+  content: none;
+}
 /* 会話のなかでいま指している時刻と対になっている目盛り。 */
 .bar.solid.on {
   left: 16px;
   width: 5px;
 }
-.bar.solid.on::before {
+.bar.solid.on::before,
+.bar.solid.on > .fill::before {
   left: -5px;
   width: 15px;
   height: 2px;
@@ -331,9 +401,15 @@ select {
   color: var(--nezumi-dim);
 }
 
-/* 食い違い。表の上でひとつだけ立つ印。 */
+/* 食い違い。表の上でひとつだけ立つ印。
+ *
+ * 架ける先は列の番号で受け取る（--clash-a / --clash-b）。左端は a 列の帯の芯、
+ * 幅は二列ぶんの間隔——実際に噛み合わない二本のあいだに架かる。
+ * 線そのものは顔料を持たない。光らせず、繋ぐだけなので。 */
 .clash {
   position: absolute;
+  left: calc(var(--gut-w) + (100% - var(--gut-w)) / var(--col-n) * var(--clash-a) + var(--bar-mid));
+  width: calc((100% - var(--gut-w)) / var(--col-n) * (var(--clash-b) - var(--clash-a)));
   height: 1px;
   border-top: 1px dashed var(--nezumi-dim);
   opacity: 0.8;
@@ -348,14 +424,29 @@ select {
   background: var(--sumi);
   padding: 0 4px;
 }
-.clash i {
+/*
+ * 線の両端に立つ目盛り。
+ *
+ * 縦組みの表では時刻が縦に流れるので、軸に垂直な目盛りは横の短い棒になる——
+ * .bar.solid::before と同じ寸法（11×1px、帯の芯を中心に）で揃える。
+ * 顔料はそれぞれの人のもの。誰と誰が噛み合わないのかを、線ではなく端が言う。
+ *
+ * 線の子にはしない。親は draw で scaleX(0) から伸びるので、中に置くと
+ * 引いているあいだ目盛りまで一緒に潰れる。だから位置は自前で出す。
+ */
+.cpin {
   position: absolute;
-  top: -3px;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  border: 1px solid var(--nezumi);
-  background: var(--sumi);
+  left: calc(
+    var(--gut-w) +
+    (100% - var(--gut-w)) /
+    var(--col-n) *
+    var(--clash-col) +
+    var(--bar-mid)
+  );
+  margin-left: -5.5px;
+  width: 11px;
+  height: 1px;
+  background: currentColor;
 }
 
 .legend {
@@ -520,6 +611,16 @@ select {
 .cast .face.on {
   box-shadow: 0 0 0 1.5px currentColor;
 }
+/*
+  場所の印。人の丸に対して角を立て、塗らずに罫線で囲う。
+  名簿では人と場所が同じ組みで並ぶので、色を抜いただけでは「暗い人物」に見える。
+  塗った四角にすると今度は箱になるので、線だけで区画を示す。
+*/
+.cast .face.pl {
+  border-radius: 2px;
+  border: 1px solid var(--keisen);
+  background: none;
+}
 .cast .col2 {
   display: flex;
   flex-direction: column;
@@ -659,6 +760,20 @@ select {
   padding: 9px 0;
   font-size: 12px;
   color: var(--nezumi-dim);
+}
+/*
+ * 畳んであるものが開く（九）。高さそのものを動かすので、行の寸法を持つ grid に包む。
+ * .hint は縦の flex なので、中は改めて縦に積み直す——包まないと候補が一行に繋がる。
+ */
+.hint .fold {
+  display: grid;
+  grid-template-rows: 1fr;
+}
+.hint .fold-inner {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
 }
 .hint .q {
   padding: 9px 0;
@@ -859,6 +974,22 @@ select {
   font-size: 17px;
   line-height: 2.6;
   letter-spacing: 0.05em;
+}
+/*
+ * せり上げ（#brief=crawl）。器を送るのではなく本文そのものを流すので、
+ * 台は動かさず、本文を浮かせて絶対位置に置く。
+ * 送りと違って読む速さをこちらが決めてしまうため、既定にはしない。
+ */
+.brief.crawling .stage {
+  padding: 0;
+  overflow: hidden;
+  position: relative;
+}
+.brief.crawling .crawl {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
 }
 .brief .crawl p {
   margin: 0 0 30px;

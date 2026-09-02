@@ -13,12 +13,15 @@ import {
 import type { Db } from '@/server/db/client'
 import { createDb } from '@/server/db/client'
 import type { Bindings, Env } from '@/server/env'
+import { type AlibiSegment, alibiSegmentsOf, type Clash, clashOf } from '@/server/game/alibi'
+import { buildVictimSheet, type DiscoveredIds } from '@/server/game/examination'
 import { remainingHints } from '@/server/game/hints'
 import { acceptRevealedRevelationIds } from '@/server/game/revelations'
-import { GAME_RULES } from '@/server/game/rules'
+import { EXAMINATION_RULES, GAME_RULES } from '@/server/game/rules'
 import { scoreSession } from '@/server/game/scoring'
 import { streamNpcReply } from '@/server/llm/actor'
 import { gradeDeduction } from '@/server/llm/deduction'
+import { composeExaminationFocus, streamExamination } from '@/server/llm/examiner'
 import { createFilterState, FALLBACK_REPLY, feedChunk, finalizeFilter } from '@/server/llm/filter'
 import { generateQuestion, type TopicExchange } from '@/server/llm/interviewer'
 import { judgeTurn } from '@/server/llm/judge'
@@ -27,6 +30,7 @@ import { toUsageRow } from '@/server/llm/usage'
 import { withEnv } from '@/server/middleware/env'
 import {
   clampLimits,
+  EXAMINATION_MODEL_CALLS,
   EXCHANGES_PER_TOPIC,
   modelCallsPerTopic,
   type SessionLimits,
@@ -37,6 +41,7 @@ import {
 import { type Detective, detectiveSchema } from '~/db/detective'
 import { type GameMode, gameModeOf, gameModeSchema } from '~/db/game-mode'
 import { llmOverridesSchema } from '~/db/llm-catalog'
+import { VICTIM_ID } from '~/db/scenario-definition'
 import {
   characters,
   type DeductionRecord,
@@ -143,6 +148,182 @@ const loadTruth = async (db: Db, scenarioId: string): Promise<Truth | undefined>
     method: truthRow.method,
     motive: truthRow.motive,
     timeline: truthRow.timeline,
+  }
+}
+
+/** 話題を投げる相手。人物でも遺体でも、この形まで均せば以降は同じ扱いでいい。 */
+type Subject = { name: string; sheet: string }
+
+const loadCharacterSubject = async (
+  kv: KVNamespace,
+  db: Db,
+  characterId: string,
+): Promise<Subject | undefined> => {
+  const [sheet, rows] = await Promise.all([
+    loadCharacterSheet(kv, db, characterId),
+    // 探偵に渡してよいのは名前だけ。キャラクターシートは訊かれる側の持ち物なので、
+    // 質問を組み立てる側には見せない（`@/server/llm/interviewer`）。
+    db
+      .select({ name: characters.name })
+      .from(characters)
+      .where(eq(characters.id, characterId))
+      .limit(1),
+  ])
+
+  const row = rows[0]
+
+  return sheet === undefined || row === undefined ? undefined : { name: row.name, sheet }
+}
+
+/**
+ * 遺体の検分シート。
+ *
+ * 人物と違ってキャッシュに置けない。見せてよい所見が発見状況で変わるので、
+ * 焼いた瞬間の姿を使い回すと、まだ満たしていない前提の所見まで出てしまう。
+ */
+const loadVictimSubject = async (
+  db: Db,
+  scenarioId: string,
+  discovered: DiscoveredIds,
+): Promise<Subject | undefined> => {
+  const [scenarioRows, truthRows] = await Promise.all([
+    db
+      .select({
+        name: scenarios.victimName,
+        introduction: scenarios.victimIntroduction,
+        briefing: scenarios.briefing,
+        foundAt: scenarios.victimFoundAt,
+        foundIn: scenarios.victimFoundIn,
+      })
+      .from(scenarios)
+      .where(eq(scenarios.id, scenarioId))
+      .limit(1),
+    db
+      .select({
+        causeOfDeath: scenarioTruths.victimCauseOfDeath,
+        findings: scenarioTruths.victimFindings,
+      })
+      .from(scenarioTruths)
+      .where(eq(scenarioTruths.scenarioId, scenarioId))
+      .limit(1),
+  ])
+
+  const scenarioRow = scenarioRows[0]
+  const truthRow = truthRows[0]
+
+  if (
+    scenarioRow === undefined ||
+    truthRow === undefined ||
+    scenarioRow.name === null ||
+    scenarioRow.introduction === null
+  ) {
+    return undefined
+  }
+
+  const sheet = buildVictimSheet(
+    {
+      name: scenarioRow.name,
+      introduction: scenarioRow.introduction,
+      briefing: scenarioRow.briefing,
+      foundAt: scenarioRow.foundAt,
+      foundIn: scenarioRow.foundIn,
+      causeOfDeath: truthRow.causeOfDeath,
+      findings: truthRow.findings,
+    },
+    discovered,
+  )
+
+  return sheet === undefined ? undefined : { name: scenarioRow.name, sheet }
+}
+
+/**
+ * 時刻表に引ける線を、発見済みの手掛かりから組み立てる。
+ *
+ * 真相そのもの（timeline_events）は読むが、返すのはプレイヤーが辿り着いた分だけ。
+ * 絞り込みは alibiSegmentsOf に閉じているので、ここは材料を揃えるだけにする。
+ *
+ * 時刻軸の右端が無いシナリオでは何も返さない。端が無いと線の終わりを決められず、
+ * 描いても軸の外へ流れる。
+ */
+const loadAlibiSegments = async (
+  db: Db,
+  scenarioId: string,
+  discoveredEvidenceIds: string[],
+  discoveredRevelationIds: string[],
+): Promise<{ segments: AlibiSegment[]; clash: Clash | undefined }> => {
+  const [truthRows, scenarioRows] = await Promise.all([
+    db
+      .select({ timelineEvents: scenarioTruths.timelineEvents })
+      .from(scenarioTruths)
+      .where(eq(scenarioTruths.scenarioId, scenarioId))
+      .limit(1),
+    db
+      .select({ timeEnd: scenarios.timeEnd })
+      .from(scenarios)
+      .where(eq(scenarios.id, scenarioId))
+      .limit(1),
+  ])
+
+  const events = truthRows[0]?.timelineEvents
+  const end = scenarioRows[0]?.timeEnd
+
+  if (events === undefined || events.length === 0 || end === null || end === undefined) {
+    return { segments: [], clash: undefined }
+  }
+
+  const [evidenceRows, revelationRows] = await Promise.all([
+    discoveredEvidenceIds.length === 0
+      ? Promise.resolve([])
+      : db
+          .select({
+            supports: evidences.supports,
+            contradicts: evidences.contradicts,
+            sources: evidences.sources,
+          })
+          .from(evidences)
+          .where(
+            and(eq(evidences.scenarioId, scenarioId), inArray(evidences.id, discoveredEvidenceIds)),
+          ),
+    discoveredRevelationIds.length === 0
+      ? Promise.resolve([])
+      : db
+          .select({
+            subjectType: revelations.subjectType,
+            subjectId: revelations.subjectId,
+            relatedFacts: revelations.relatedFacts,
+          })
+          .from(revelations)
+          .where(
+            and(
+              eq(revelations.scenarioId, scenarioId),
+              inArray(revelations.id, discoveredRevelationIds),
+            ),
+          ),
+  ])
+
+  /*
+    嘘の紐は人物をまたいで平らにするが、誰の嘘かは持たせたまま運ぶ。
+    印は時刻だけでなく「噛み合わない二人」も指すので、嘘の主が片方の端になる。
+  */
+  const lieRows = await db
+    .select({ id: characters.id, lieRefs: characters.lieRefs })
+    .from(characters)
+    .where(eq(characters.scenarioId, scenarioId))
+
+  return {
+    segments: alibiSegmentsOf({
+      events,
+      end,
+      clues: {
+        revelations: revelationRows,
+        evidenceSupports: evidenceRows.flatMap((row) => row.supports),
+      },
+    }),
+    clash: clashOf({
+      events,
+      lies: lieRows.flatMap((row) => row.lieRefs.map((lie) => ({ ...lie, who: row.id }))),
+      evidences: evidenceRows,
+    }),
   }
 }
 
@@ -321,7 +502,7 @@ sessionRoutes.get('/api/sessions/:id', validateSessionId, withEnv, async (c) => 
     snapshot.discoveredEvidenceIds.length === 0
       ? Promise.resolve([])
       : db
-          .select({ id: evidences.id, label: evidences.label })
+          .select({ id: evidences.id, label: evidences.label, description: evidences.description })
           .from(evidences)
           .where(
             and(
@@ -356,6 +537,13 @@ sessionRoutes.get('/api/sessions/:id', validateSessionId, withEnv, async (c) => 
     発見済みは必ず DO の snapshot から取る。discoveries / revelation_discoveries の
     行から数えると、DO への記録は成功して DB の insert が落ちた回でずれる。
   */
+  const board = await loadAlibiSegments(
+    db,
+    scenarioId,
+    snapshot.discoveredEvidenceIds,
+    snapshot.discoveredRevelationIds,
+  )
+
   const subjects = await loadHintSubjects(c.env.SCENARIO_CACHE, db, scenarioId)
   const hint = remainingHints({
     mode: meta.mode,
@@ -386,13 +574,19 @@ sessionRoutes.get('/api/sessions/:id', validateSessionId, withEnv, async (c) => 
       category: row.category,
       subject: { type: row.subjectType, id: row.subjectId },
     })),
+    alibiSegments: board.segments,
+    clash: board.clash,
     turn: turnStateOf(snapshot.questionCount, limits.maxTurns, limits.questionsPerTurn),
   })
 })
 
 const askSchema = z.object({
   sessionId: z.uuid(),
-  characterId: z.uuid(),
+  /**
+   * 話題を投げる相手。登場人物は uuid だが、遺体だけは決め打ちの `victim`
+   * （採番する先が一人しか居ない）。ここを uuid で縛ると検分そのものが通らない。
+   */
+  characterId: z.union([z.uuid(), z.literal(VICTIM_ID)]),
   /**
    * プレイヤーが指定する話題。「アリバイについて」「被害者との関係を」のような指示で、
    * 実際にNPCへ投げる質問は探偵役のモデルがここから組み立てる。
@@ -537,6 +731,13 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
 
   const scenarioId = meta.scenarioId
 
+  /*
+    遺体の検分は、相手が喋らないぶんだけ経路が違う。
+    分かれるのは「渡すシート」と「往復するかどうか」の二点だけで、
+    ターンの消費・記録・判定はそのあと合流する。
+  */
+  const examining = askInput.characterId === VICTIM_ID
+
   // 進行中のセッションはDOが正典。ターンを使い切っていたらここで断る。
   // クライアント側の残り回数表示だけに任せると、リクエストを直接投げれば
   // 何回でも聞けてしまい、制限が演出にしかならない。
@@ -570,7 +771,7 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
   const verdict = await limiter.consume(
     env.RATE_LIMIT_MAX_CALLS,
     env.RATE_LIMIT_WINDOW_SECONDS,
-    modelCallsPerTopic(limits.exchangesPerTopic),
+    examining ? EXAMINATION_MODEL_CALLS : modelCallsPerTopic(limits.exchangesPerTopic),
   )
 
   if (!verdict.allowed) {
@@ -581,34 +782,25 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
     return c.json({ error: 'no turns left', turn: turnsBefore }, 409)
   }
 
-  const characterSheet = await loadCharacterSheet(c.env.SCENARIO_CACHE, db, askInput.characterId)
-
-  if (characterSheet === undefined) {
-    return c.json({ error: 'character not found' }, 404)
-  }
-
-  // 履歴・探偵・秘匿キーワード・名前は互いに独立なので直列に待つ理由がない。
-  // 履歴はこのNPCとの分だけで、他NPCの会話は混ざらない。
-  const [history, detective, secretKeywords, characterRows] = await Promise.all([
+  // 履歴・探偵・秘匿キーワード・相手は互いに独立なので直列に待つ理由がない。
+  // 履歴はこの相手との分だけで、他の相手との会話は混ざらない。
+  const [history, detective, secretKeywords, subject] = await Promise.all([
     session.getHistory(askInput.characterId),
     session.getDetective(),
     loadSecretKeywords(db, scenarioId),
-    // 探偵に渡してよいのは名前だけ。キャラクターシートは訊かれる側の持ち物なので、
-    // 質問を組み立てる側には見せない（`@/server/llm/interviewer`）。
-    db
-      .select({ name: characters.name })
-      .from(characters)
-      .where(eq(characters.id, askInput.characterId))
-      .limit(1),
+    examining
+      ? loadVictimSubject(db, scenarioId, {
+          evidenceIds: before.discoveredEvidenceIds,
+          revelationIds: before.discoveredRevelationIds,
+        })
+      : loadCharacterSubject(c.env.SCENARIO_CACHE, db, askInput.characterId),
   ])
 
-  const characterRow = characterRows[0]
-
-  if (characterRow === undefined) {
-    return c.json({ error: 'character not found' }, 404)
+  if (subject === undefined) {
+    // 検分の場合、見せられる所見が一つも無いときもここへ来る。
+    // 空のシートを渡すとモデルが埋めようとして所見を作りはじめるので、断るほうを選ぶ。
+    return c.json({ error: examining ? 'nothing to examine' : 'character not found' }, 404)
   }
-
-  const characterName = characterRow.name
 
   return streamSSE(c, async (stream) => {
     const collected: {
@@ -617,18 +809,36 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
       blocked: boolean
     } = { exchanges: [], usages: [], blocked: false }
 
-    // 往復の上限はセッションに固定された値。ここが1つの話題のコストを決める。
-    const rounds = Array.from({ length: limits.exchangesPerTopic }, (_value, index) => index)
+    /*
+      往復の上限はセッションに固定された値。ここが1つの話題のコストを決める。
+      検分だけは1回きり——相手が喋らないので、答えを受けて掘り下げる相手が居ない。
+    */
+    const rounds = Array.from(
+      { length: examining ? 1 : limits.exchangesPerTopic },
+      (_value, index) => index,
+    )
 
     for (const _round of rounds) {
-      const interviewer = await generateQuestion({
-        env,
-        choice: choices.actor,
-        detective,
-        characterName,
-        topic: askInput.topic,
-        exchanges: collected.exchanges,
-      })
+      /*
+        探偵の一手。聞き込みなら相手への質問、検分なら「何を確かめるか」の独り言。
+        検分でも質問を作らせると「涼子さん、〜はありますか？」と死者に話しかける画になる。
+      */
+      const interviewer = examining
+        ? await composeExaminationFocus({
+            env,
+            choice: choices.actor,
+            detective,
+            topic: askInput.topic,
+            exchanges: collected.exchanges,
+          }).then((result) => ({ ...result, question: result.focus }))
+        : await generateQuestion({
+            env,
+            choice: choices.actor,
+            detective,
+            characterName: subject.name,
+            topic: askInput.topic,
+            exchanges: collected.exchanges,
+          })
 
       collected.usages.push(
         toUsageRow({
@@ -650,23 +860,33 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
 
       await stream.writeSSE({ event: 'question', data: interviewer.question })
 
-      const result = streamNpcReply({
-        env,
-        choice: choices.actor,
-        gameRules: GAME_RULES,
-        characterSheet,
-        detective,
-        // この話題でここまでに交わしたぶんも履歴に足す。DOへ書くのは話題が
-        // 終わってからなので、途中の往復はここで持ち回るしかない。
-        history: [
-          ...history,
-          ...collected.exchanges.flatMap((exchange): ModelMessage[] => [
-            { role: 'user', content: exchange.question },
-            { role: 'assistant', content: exchange.answer },
-          ]),
-        ],
-        utterance: interviewer.question,
-      })
+      const result = examining
+        ? streamExamination({
+            env,
+            choice: choices.actor,
+            examinationRules: EXAMINATION_RULES,
+            victimSheet: subject.sheet,
+            detective,
+            history,
+            utterance: interviewer.question,
+          })
+        : streamNpcReply({
+            env,
+            choice: choices.actor,
+            gameRules: GAME_RULES,
+            characterSheet: subject.sheet,
+            detective,
+            // この話題でここまでに交わしたぶんも履歴に足す。DOへ書くのは話題が
+            // 終わってからなので、途中の往復はここで持ち回るしかない。
+            history: [
+              ...history,
+              ...collected.exchanges.flatMap((exchange): ModelMessage[] => [
+                { role: 'user', content: exchange.question },
+                { role: 'assistant', content: exchange.answer },
+              ]),
+            ],
+            utterance: interviewer.question,
+          })
 
       const streamed = await streamFilteredReply(stream, result.textStream, secretKeywords)
 
@@ -732,34 +952,43 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
         collected.exchanges,
       )
 
-      // 会話ログとコストは別のテーブルへ、同時に書く。ここは Judge の手前なので、
-      // 直列にすると往復ぶんだけ判定の開始が遅れる。
-      //
-      // 話題そのものも1行として残す。探偵の質問だけを並べると、プレイヤーが
-      // 何を指示したのかが後から辿れない。
+      /*
+        会話ログとコストは別のテーブルへ、同時に書く。ここは Judge の手前なので、
+        直列にすると往復ぶんだけ判定の開始が遅れる。
+
+        話題そのものも1行として残す。探偵の質問だけを並べると、プレイヤーが
+        何を指示したのかが後から辿れない。
+
+        検分だけは messages に残さない。あの列は characters への外部キーを持っていて、
+        被害者は characters に居ないため入らない。読み返しに使うのは DO の側なので
+        （履歴の復元も判定もそちらを見る）、プレイには影響しない。
+        あの表は後から分析するための控えなので、そこだけ欠けることになる。
+      */
       await Promise.all([
-        db.insert(messages).values([
-          {
-            sessionId,
-            characterId: askInput.characterId,
-            role: 'topic',
-            content: askInput.topic,
-          },
-          ...collected.exchanges.flatMap((exchange) => [
-            {
-              sessionId,
-              characterId: askInput.characterId,
-              role: 'user',
-              content: exchange.question,
-            },
-            {
-              sessionId,
-              characterId: askInput.characterId,
-              role: 'assistant',
-              content: exchange.answer,
-            },
-          ]),
-        ]),
+        examining
+          ? Promise.resolve()
+          : db.insert(messages).values([
+              {
+                sessionId,
+                characterId: askInput.characterId,
+                role: 'topic',
+                content: askInput.topic,
+              },
+              ...collected.exchanges.flatMap((exchange) => [
+                {
+                  sessionId,
+                  characterId: askInput.characterId,
+                  role: 'user',
+                  content: exchange.question,
+                },
+                {
+                  sessionId,
+                  characterId: askInput.characterId,
+                  role: 'assistant',
+                  content: exchange.answer,
+                },
+              ]),
+            ]),
         db.insert(llmUsages).values(collected.usages),
       ])
     } catch (error) {
@@ -773,7 +1002,7 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
       const [rubric, revelationCandidates] = await Promise.all([
         loadJudgeRubric(c.env.SCENARIO_CACHE, db, scenarioId),
         loadEligibleRevelationCandidates(c.env.SCENARIO_CACHE, db, scenarioId, {
-          source: { type: 'character', id: askInput.characterId },
+          source: { type: examining ? 'victim' : 'character', id: askInput.characterId },
           discoveredEvidenceIds: current.discoveredEvidenceIds,
           discoveredRevelationIds: current.discoveredRevelationIds,
         }),
@@ -826,7 +1055,11 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
         judgement.revealedEvidenceIds.length === 0
           ? Promise.resolve([])
           : db
-              .select({ id: evidences.id, label: evidences.label })
+              .select({
+                id: evidences.id,
+                label: evidences.label,
+                description: evidences.description,
+              })
               .from(evidences)
               .where(inArray(evidences.id, judgement.revealedEvidenceIds)),
         revealedRevelationIds.length === 0
@@ -847,6 +1080,18 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
       const questionCount =
         persisted.questionCount === undefined ? snapshot.questionCount : persisted.questionCount
 
+      /*
+        線は毎回まとめて返す。増えた分だけを送ると、受け取る側が積み上げを持つことになり、
+        リロードで組み直した表と食い違う。表の側は key で見分けるので、
+        既に立っている線が送り直されても動き直さない。
+      */
+      const board = await loadAlibiSegments(
+        db,
+        scenarioId,
+        snapshot.discoveredEvidenceIds,
+        snapshot.discoveredRevelationIds,
+      )
+
       await stream.writeSSE({
         event: 'judgement',
         data: JSON.stringify({
@@ -860,6 +1105,8 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
           })),
           contradictionPointedOut: judgement.contradictionPointedOut,
           suggestedQuestions: judgement.suggestedQuestions,
+          alibiSegments: board.segments,
+          clash: board.clash,
           questionCount,
           turn: turnStateOf(questionCount, limits.maxTurns, limits.questionsPerTurn),
         }),
@@ -1111,7 +1358,9 @@ sessionRoutes.get('/api/sessions/:id/history', validateSessionId, async (c) => {
     .where(eq(characters.scenarioId, scenarioId))
 
   const session = c.env.PLAY_SESSION.get(c.env.PLAY_SESSION.idFromName(sessionId))
-  const histories = await session.getHistories(characterRows.map((row) => row.id))
+  // 遺体の検分も同じ入れ物に積まれている。ここへ加えないと、リロードした瞬間に
+  // 検分の記録だけが画面から消える。持っていないセッションでは空で返るだけ。
+  const histories = await session.getHistories([...characterRows.map((row) => row.id), VICTIM_ID])
 
   return c.json({ sessionId, histories })
 })

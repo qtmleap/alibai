@@ -18,10 +18,19 @@
   var probe = getComputedStyle(document.documentElement)
   var LIT = probe.getPropertyValue('--asagi-t').trim() ? '-t' : '-fg'
 
+  /*
+   * 話を聞く相手と、調べる相手を同じ袋に入れる。遺体も場所も喋らないが、
+   * 手を向ける先としては人物と同じ扱いなので、引く場所を分けると
+   * 画面ごとに「どっちの袋を見るか」の分岐が増える。
+   */
+  var PLACES = C.places === undefined ? [] : C.places
   var CAST_BY_KEY = {}
-  C.cast.concat([C.victim]).forEach((p) => {
+  C.cast.concat([C.victim], PLACES).forEach((p) => {
     CAST_BY_KEY[p.key] = p
   })
+
+  /** 喋らない相手か。訊くのではなく調べることになる。 */
+  var examines = (key) => key === C.victim.key || PLACES.some((p) => p.key === key)
 
   // ---- 時刻 ----
   var toMin = (hhmm) => {
@@ -101,9 +110,21 @@
     { who: 'makino', i: 4 },
     { who: 'kuroda', i: 3 },
     { who: 'sena', i: 2 },
+    // 遺体の検分もターンを1つ使う。人に訊くか現場を見るかは、同じ財布から出る。
+    { who: 'mizuno', i: 0 },
+    { who: 'choba', i: 0 },
+    { who: 'oku', i: 0 },
   ]
 
-  var play = (turn) => {
+  /*
+   * turn は台本の何手目か。who は支度から渡された相手で、あれば優先する。
+   * 「〇〇を調べる」と書いてある口から入って別の相手が開くと、選んだ意味が無い。
+   *
+   * 相手を探すために play を何度も呼ぶ画面があるので（端末の切り替え）、
+   * 上書きは呼び出し側が明示したときだけにする。ハッシュをここで読むと、
+   * その探索まで巻き添えで同じ相手を返すようになる。
+   */
+  var play = (turn, who) => {
     var n = Math.max(0, Math.min(PLAY.length, turn))
     var segs = []
     var log = []
@@ -122,9 +143,23 @@
       segments: segs,
       log: log,
       clash: clash,
-      current: n > 0 ? PLAY[n - 1].who : C.cast[0].key,
-      // 次に訊けそうなこと。台本の先読みなので、残りが無ければ空。
-      hints: n < PLAY.length ? [C.script[PLAY[n].who][PLAY[n].i].q, hintAlt(n)] : [],
+      current:
+        who !== undefined && CAST_BY_KEY[who] !== undefined
+          ? who
+          : n > 0
+            ? PLAY[n - 1].who
+            : C.cast[0].key,
+      /*
+       * 次に訊けそうなこと。台本の先読みなので、残りが無ければ空。
+       * 最後の一手では先読みが自分自身に当たるので、重なった分は落とす——
+       * 同じ問いが二行並ぶと、選べる道が二つあるように見えてしまう。
+       */
+      hints:
+        n < PLAY.length
+          ? [C.script[PLAY[n].who][PLAY[n].i].q, hintAlt(n)].filter(
+              (q, i, all) => all.indexOf(q) === i,
+            )
+          : [],
     }
   }
 
@@ -207,16 +242,46 @@
       '</span></span></span>'
 
     /*
-     * 食い違い。牧野の申告と瀬名の証言が噛み合わない区間に一本だけ立てる。
+     * 食い違い。噛み合わない二人の列のあいだに一本だけ架ける。
      * 表の上でひとつだけの印なので、条件が揃うまで出さない。
+     *
+     * 誰と誰かと何時かは C.clash が持つ。ここが出すのは「何列目と何列目か」だけで、
+     * px は CSS の側（--gut-w / --col-n / --bar-mid）が列の実寸から出す——
+     * 幅を焼き込むと、人数や列幅が変わったときに線だけが元の場所に残る。
+     *
+     * 両端の目盛りは線の子にしない。親は draw で scaleX(0) から伸びるので、
+     * 中に入れると引いているあいだ目盛りまで一緒に潰れて走って見える。
      */
     if (opts.clash) {
-      const top = (toMin('18:36') - SPAN.from) * PX_PER_MIN
+      const cols = C.cast.concat([C.victim])
+      const ends = C.clash.between.map((key) => ({
+        col: cols.findIndex((p) => p.key === key),
+        hue: CAST_BY_KEY[key].hue,
+      }))
+      const ct = (toMin(C.clash.at) - SPAN.from) * PX_PER_MIN
       html +=
         '<span class="clash" style="top:' +
-        top +
-        'px; left:63px; width:217px" data-mock-id="ALI_INT_14">' +
-        '<i style="left:-3px"></i><i style="right:-3px"></i><span>食い違い</span></span>'
+        ct +
+        'px; --clash-a:' +
+        ends[0].col +
+        '; --clash-b:' +
+        ends[1].col +
+        '" data-mock-id="ALI_INT_14"><span>' +
+        esc(C.clash.label) +
+        '</span></span>' +
+        ends
+          .map(
+            (e) =>
+              '<i class="cpin" style="top:' +
+              ct +
+              'px; --clash-col:' +
+              e.col +
+              '; color:var(--' +
+              e.hue +
+              LIT +
+              ')"></i>',
+          )
+          .join('')
     }
     return html
   }
@@ -348,6 +413,11 @@
           )
         }
         var p = CAST_BY_KEY[t.who]
+        /*
+         * 遺体と場所の欄は名前を出さず「所見」にする。
+         * 名前を出すと、死んだ人や部屋が証言しているように読める。
+         */
+        var label = examines(t.who) ? '所見' : p.name
         var body = t.lines
           .map((line, i) => {
             var tail = t.last && i === t.lines.length - 1 ? '<span class="beat">▼</span>' : ''
@@ -362,7 +432,7 @@
           p.hue +
           LIT +
           ')">' +
-          esc(p.name) +
+          esc(label) +
           '</span>' +
           body +
           '</div>'
@@ -597,6 +667,8 @@
   window.Mock = {
     case: C,
     cast: CAST_BY_KEY,
+    places: PLACES,
+    examines: examines,
     lit: LIT,
     params: params,
     num: (k, d) => (params[k] === undefined ? d : Number(params[k])),

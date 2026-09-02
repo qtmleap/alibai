@@ -1,15 +1,22 @@
 schemaVersion: 1
 id: gallery-blue-frame
 meta:
-  title: 青環美術館、内覧会の夜
+  title: "内覧会のあと、絵は黙る"
   synopsis: "午後六時五十五分、市立青環美術館の収蔵庫前で、主任学芸員の鳥羽薫が死亡しているのが見つかりました。その夜は翌日から始まる企画展の内覧会で、一般客が帰った後も数人の関係者が館内に残っていました。"
   category: 美術館ミステリ
   difficulty: 3
   estimatedMinutes: 10
-  tags: [美術館, 贋作, 記録]
 victim:
   name: 鳥羽薫
   introduction: 市立青環美術館主任学芸員
+  foundAt: 18:55
+  foundIn: 収蔵庫前
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 鳥羽薫は収蔵庫前で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「鳥羽の額装検査メモ」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -38,105 +45,106 @@ facts:
   - id: sakaki-made-forgery
     statement: 榊玲は数か月前、修復を任された作品の一枚を精巧な贋作と入れ替え、本物を外部へ流そうとしていた
     kind: motive
-    secret: true
   - id: toba-found-forgery
     statement: 鳥羽薫は事件当日の18時25分ごろ、額装と絵具層の違いから作品のすり替えに気づいた
     kind: motive
-    secret: true
   - id: toba-confronted-sakaki
     statement: 18時29分ごろ、鳥羽薫は榊玲に贋作の件を問いただし、翌朝館長と警察へ報告すると告げた
     kind: motive
-    secret: true
   - id: mido-offered-bribe
     statement: 18時32分ごろ、御堂和也は別作品の評価額を高く見せるため、鳥羽薫へ謝礼を持ちかけて拒否された
     kind: motive
-    secret: true
   - id: uv-test-started
     statement: 18時35分、榊玲は修復室の紫外線検査装置を起動した
     kind: physical
   - id: uv-lamp-off-1837
     statement: 18時37分から18時51分まで、修復室の紫外線検査装置は電源が切れていた
     kind: physical
-    secret: true
   - id: sakaki-left-restoration
     statement: 18時38分ごろ、榊玲は修復室を離れて収蔵庫側へ向かった
     kind: truth
-    secret: true
   - id: enomoto-saw-sakaki-1844
     statement: 18時44分ごろ、榎本駿は収蔵庫前の通路で榊玲を見た
     kind: observation
   - id: sakaki-killed-toba-1846
     statement: 18時46分ごろ、榊玲は収蔵庫前で鳥羽薫を襲い死亡させた
     kind: truth
-    secret: true
   - id: sakaki-returned-1850
     statement: 18時50分ごろ、榊玲は修復室へ戻った
     kind: truth
-    secret: true
   - id: uv-test-resumed
     statement: 18時51分、修復室の紫外線検査装置が再び起動した
     kind: physical
   - id: enomoto-dozed
     statement: 榎本駿は18時35分から18時42分ごろまで警備控室で短時間居眠りしていた
     kind: other
-    secret: true
   - id: body-found-1855
     statement: 18時55分、御堂和也が収蔵庫前で鳥羽薫の死を発見した
     kind: observation
   - id: genuine-painting-hidden
     statement: すり替えられた本物の絵画は、榊玲が契約していた外部保管庫から後に見つかった
     kind: physical
-    secret: true
 timeline:
   - id: forgery-discovered
     at: "18:25"
-    participants: [sakaki]
+    participants: []
     facts: [toba-found-forgery]
     description: 鳥羽が作品のすり替えに気づく。
+    location: 美術館内
   - id: sakaki-confronted
     at: "18:29"
     participants: [sakaki]
     facts: [toba-confronted-sakaki]
     description: 鳥羽が榊へ贋作の件を問いただし、翌朝の報告を告げる。
+    location: 美術館内
   - id: mido-bribe
     at: "18:32"
     participants: [mido]
     facts: [mido-offered-bribe]
     description: 御堂が作品評価を巡る謝礼を鳥羽へ持ちかけ、拒否される。
+    location: 美術館内
   - id: uv-test-start
     at: "18:35"
     participants: [sakaki]
     facts: [uv-test-started]
+    record: 装置電源履歴
     description: 榊が修復室で紫外線検査装置を起動する。
+    location: 修復室
   - id: sakaki-leaves
     at: "18:38"
     participants: [sakaki]
     facts: [uv-lamp-off-1837, sakaki-left-restoration]
+    record: 装置電源履歴
     description: 装置の電源が切れた後、榊が修復室を離れて収蔵庫側へ向かう。
+    location: 修復室
   - id: enomoto-sighting
     at: "18:44"
     participants: [sakaki, enomoto]
     facts: [enomoto-saw-sakaki-1844]
     description: 榎本が収蔵庫前の通路で榊を目撃する。
+    location: 収蔵庫前
   - id: toba-death
     at: "18:46"
     participants: [sakaki]
     facts: [sakaki-killed-toba-1846]
     description: 榊が収蔵庫前で鳥羽を襲い、鳥羽は死亡する。
+    location: 収蔵庫前
   - id: sakaki-returns
     at: "18:50"
     participants: [sakaki]
     facts: [sakaki-returned-1850, uv-test-resumed]
+    record: 装置電源履歴
     description: 榊が修復室へ戻り、ほどなく紫外線検査を再開する。
+    location: 修復室
   - id: discovery
     at: "18:55"
     participants: [mido, sakaki, enomoto]
     facts: [body-found-1855]
     description: 御堂が収蔵庫前で鳥羽の死を発見する。
+    location: 収蔵庫前
 characters:
   - id: sakaki
     name: 榊玲
-    role: suspect
     publicIntroduction: "物静かで職人気質の修復士。"
     personality: 物静かで職人気質の修復士。作品の状態については細部まで説明するが、自分の判断を疑われることを極端に嫌う。鳥羽には技術を評価されていた一方、管理の厳しさを窮屈に感じていた。
     goals:
@@ -165,7 +173,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: forgery-confrontation
-        about: toba-confronted-sakaki
         detail: 鳥羽が額縁を机に置き「明日の朝、館長にも警察にも話す」と言ったとき、手が冷たくなったのを覚えている。
     relationships:
       - character: enomoto
@@ -173,7 +180,6 @@ characters:
         attitude: 警備の目は細かいので少し苦手
   - id: mido
     name: 御堂和也
-    role: suspect
     publicIntroduction: "洗練された物腰の画商。"
     personality: 洗練された物腰の画商。作品の価値と人間関係を同じように交渉材料として見る癖がある。鳥羽に不適切な提案を拒絶されたため、その面会自体を消したがっている。
     goals:
@@ -190,12 +196,10 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: rejected-bribe
-        about: mido-offered-bribe
         detail: 鳥羽に封筒を押し返され「作品の値段はあなたが決めるものじゃない」と言われた屈辱を覚えている。
     relationships: []
   - id: enomoto
     name: 榎本駿
-    role: witness
     publicIntroduction: "口数の少ない警備員。"
     personality: 口数の少ない警備員。巡回経路と時刻はよく覚えているが、短時間居眠りしたことを処分の対象にされるのを恐れている。見た人物を必要以上に断定しない慎重さがある。
     goals:
@@ -212,7 +216,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: blue-frame-corridor
-        about: enomoto-saw-sakaki-1844
         detail: 収蔵庫前で、青い保護枠を抱えた榊とすれ違った。修復室にいるはずだと思っていたので時刻まで覚えている。
     relationships:
       - character: sakaki
@@ -254,7 +257,6 @@ evidences:
     label: 紫外線検査装置の電源履歴
     description: 装置は18時35分に起動したが、18時37分から18時51分まで停止している。
     reveal:
-      mode: conversation
       condition: 榊に検査を続けていた時間帯を尋ねるか、榎本に修復室の機器ログを確認できないか尋ねたら開示する。
     sources:
       - type: character
@@ -267,7 +269,6 @@ evidences:
     label: 十八時四十四分の収蔵庫前の目撃
     description: 榎本は18時44分ごろ、収蔵庫前の通路で榊を見ている。
     reveal:
-      mode: conversation
       condition: 榎本に18時40分台の巡回で誰とすれ違ったか尋ね、榊の姿を見たと答えたら開示する。
     sources:
       - type: character
@@ -278,20 +279,20 @@ evidences:
     label: 鳥羽の額装検査メモ
     description: 展示予定作品の額装と絵具層が過去の記録と一致せず、鳥羽が「原画ではない可能性」と書き残している。
     reveal:
-      mode: conversation
-      condition: 榊か御堂に鳥羽が事件前に作品の真贋を調べていなかったか尋ね、額装の違いへ話が及んだら開示する。
+      condition: 榊か御堂に鳥羽が事件前に作品の真贋を調べていなかったか尋ね、額装の違いへ話が及んだら開示する。または遺体・現場を調べ、「鳥羽の額装検査メモ」に関わる資料を確認したら開示する。
     sources:
       - type: character
         id: sakaki
       - type: character
         id: mido
+      - type: victim
+        id: victim
     supports: [toba-found-forgery, sakaki-made-forgery]
     contradicts: []
   - id: mido-envelope
     label: 御堂の謝礼額を書いたメモ
     description: 御堂が鳥羽へ提示した謝礼額のメモ。拒否されたことは分かるが、事件時刻の行動とは結びつかない。
     reveal:
-      mode: conversation
       condition: 御堂に鳥羽との会話内容を問い、金銭の話を否定したため商談資料を確認したら開示する。
     sources:
       - type: character
@@ -302,7 +303,6 @@ evidences:
     label: 警備控室端末の無操作記録
     description: 18時35分から18時42分ごろまで榎本の端末操作がなく、本人も短時間の居眠りを認めるが、18時44分の目撃とは両立する。
     reveal:
-      mode: conversation
       condition: 榎本に巡回が途切れた時間がないか確認し、端末操作の空白を示したら開示する。
     sources:
       - type: character
@@ -314,18 +314,9 @@ solution:
   summary: 犯人は榊玲。作品のすり替えを鳥羽に見抜かれ、翌朝館長と警察へ報告すると告げられた。榊は18時35分に紫外線検査を始めたが、18時37分に装置を止めて修復室を離れた。18時44分には榎本が収蔵庫前で榊を見ており、18時46分ごろ鳥羽を襲った後、18時50分ごろ修復室へ戻って18時51分に検査装置を再起動した。「ずっと検査をしていた」という榊のアリバイは機器の電源履歴と榎本の目撃の二方向から崩れる。御堂の不適切な謝礼提案と榎本の居眠りは、事件と切り離された秘密である。
   method: 紫外線検査装置を一度停止して修復室を離れ、収蔵庫前で鳥羽を襲った後に戻って検査を再開し、連続作業に見せかけた
   motive: 絵画のすり替えと本物の持ち出しが翌朝発覚し、職業上の立場を失うことを恐れたため
-  requiredFacts: [sakaki-made-forgery, toba-confronted-sakaki, uv-lamp-off-1837, sakaki-left-restoration, enomoto-saw-sakaki-1844, sakaki-killed-toba-1846, sakaki-returned-1850]
   secretKeywords:
     - 犯人は榊
     - 榊が犯人
     - 榊が鳥羽を襲
     - 私が鳥羽を襲
     - 贋作発覚で殺
-quality:
-  expectedQuestionCount:
-    min: 8
-    max: 18
-  requiredEvidence:
-    min: 2
-  redHerrings: [mido-offered-bribe, enomoto-dozed]
-  notes: 主経路は装置の停止記録と榎本の目撃で榊の「連続検査」アリバイを崩すこと。御堂と榎本の嘘も証拠で崩れるが、どちらも殺害時刻へは繋げない。

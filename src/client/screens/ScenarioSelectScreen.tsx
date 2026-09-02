@@ -82,7 +82,7 @@ export const ScenarioSelectScreen = ({
   }
 
   return (
-    <div className="screen-enter mx-auto flex min-h-dvh max-w-md flex-col bg-sumi px-5 text-kinari lg:max-w-[1240px] lg:px-10 lg:pb-[90px]">
+    <div className="screen-enter mx-auto flex min-h-dvh-safe max-w-md flex-col bg-sumi px-5 text-kinari lg:max-w-[1240px] lg:px-10 lg:pb-[90px]">
       {/*
         件数と設定は同じ行に置く。行をもう一本増やさない。
         件数は総数を出す——ページ内の件数に置き換えると、全部でいくつあるのかを知る

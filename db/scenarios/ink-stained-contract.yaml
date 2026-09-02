@@ -1,15 +1,22 @@
 schemaVersion: 1
 id: ink-stained-contract
 meta:
-  title: 青燈社、深夜の編集部
+  title: "原稿は人を殺さない"
   synopsis: "午後九時、出版社「青燈社」の編集部で、編集長の石橋礼司が個室内で死亡しているのが見つかりました。夜遅くまで残っていたのは、著作権エージェントの川瀬梨奈、編集者の藤本圭、作家の志堂透の三人です。"
   category: 出版社ミステリ
   difficulty: 3
   estimatedMinutes: 10
-  tags: [出版社, 契約書, 時刻]
 victim:
   name: 石橋礼司
   introduction: 出版社「青燈社」編集長
+  foundAt: 21:00
+  foundIn: 編集長室
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 石橋礼司は編集長室で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「海外版権の送金記録と支払帳簿」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -38,46 +45,36 @@ facts:
   - id: kawase-diverted-royalties
     statement: 川瀬梨奈は海外版権の入金の一部を作家へ報告せず、自分の管理口座へ留めていた
     kind: motive
-    secret: true
   - id: ishibashi-found-royalty-gap
     statement: 石橋礼司は事件当日、海外版権の送金記録と作家への支払額の差から川瀬梨奈の不正を見抜いた
     kind: motive
-    secret: true
   - id: ishibashi-warned-kawase
     statement: 20時25分ごろ、石橋礼司は川瀬梨奈に契約を打ち切り、翌朝作家と弁護士へ不正を知らせると告げた
     kind: motive
-    secret: true
   - id: shido-plagiarism
     statement: 志堂透の新作には、絶版小説から無断で流用した一節が含まれていた
     kind: other
-    secret: true
   - id: shido-argued-2031
     statement: 20時31分から20時34分まで、志堂透は盗用疑惑を巡って石橋礼司と編集長室で口論した
     kind: observation
-    secret: true
   - id: kawase-entered-2038
     statement: 20時38分ごろ、川瀬梨奈は編集長室へ入った
     kind: truth
-    secret: true
   - id: kawase-killed-ishibashi-2041
     statement: 20時41分ごろ、川瀬梨奈は編集長室で石橋礼司を襲い死亡させた
     kind: truth
-    secret: true
   - id: fujimoto-saw-kawase-2044
     statement: 20時44分ごろ、藤本圭は編集長室の前から離れる川瀬梨奈を見た
     kind: observation
   - id: contract-printed-2047
     statement: 問題の契約書は20時47分、川瀬梨奈の端末から社内プリンターへ送信され印刷された
     kind: physical
-    secret: true
   - id: kawase-forged-signature
     statement: 川瀬梨奈は別の契約書にあった石橋礼司の署名を利用し、20時47分に印刷した書類へ石橋が署名したように偽装した
     kind: truth
-    secret: true
   - id: fujimoto-leaked-manuscript
     statement: 藤本圭は話題作りのため、未発表原稿の一部を知人の書評ブログへ匿名で流していた
     kind: other
-    secret: true
   - id: body-found-2100
     statement: 21時00分、藤本圭が編集長室で石橋礼司の死を発見した
     kind: observation
@@ -90,45 +87,53 @@ timeline:
     participants: [kawase]
     facts: [kawase-diverted-royalties, ishibashi-found-royalty-gap, ishibashi-warned-kawase]
     description: 石橋が川瀬の版権収入の不正を指摘し、翌朝の契約打ち切りと報告を告げる。
+    location: 編集部内
   - id: shido-argument
     at: "20:31"
     participants: [shido]
     facts: [shido-argued-2031, shido-plagiarism]
     description: 志堂が盗用疑惑を巡って石橋と口論する。
+    location: 編集部内
   - id: kawase-enters
     at: "20:38"
     participants: [kawase]
     facts: [kawase-entered-2038]
     description: 川瀬が編集長室へ入る。
+    location: 編集長室
   - id: ishibashi-death
     at: "20:41"
     participants: [kawase]
     facts: [kawase-killed-ishibashi-2041]
     description: 川瀬が石橋を襲い、石橋は編集長室で死亡する。
+    location: 編集長室
   - id: kawase-leaves
     at: "20:44"
     participants: [kawase, fujimoto]
     facts: [fujimoto-saw-kawase-2044]
     description: 藤本が編集長室前から離れる川瀬を目撃する。
+    location: 編集長室前
   - id: contract-print
     at: "20:47"
     participants: [kawase]
     facts: [contract-printed-2047, kawase-forged-signature]
+    record: 印刷履歴
     description: 川瀬が契約書を印刷し、石橋が後から署名したように見える書類を作る。
+    location: 編集部
   - id: claimed-signing
     at: "20:50"
     participants: [kawase]
     facts: [signed-contract-claims-2050]
     description: 川瀬は後に、この時刻に石橋本人から署名をもらったと説明する。
+    location: 編集部内
   - id: discovery
     at: "21:00"
     participants: [fujimoto, kawase, shido]
     facts: [body-found-2100]
     description: 藤本が編集長室で石橋の死を発見する。
+    location: 編集長室
 characters:
   - id: kawase
     name: 川瀬梨奈
-    role: suspect
     publicIntroduction: "交渉上手で感情を表に出さない著作権エージェント。"
     personality: 交渉上手で感情を表に出さない著作権エージェント。契約書や入金記録の細部まで把握しているが、自分の管理する口座について尋ねられると話を一般論へそらす。石橋とは長く仕事をしてきた。
     goals:
@@ -157,7 +162,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: contract-termination
-        about: ishibashi-warned-kawase
         detail: 石橋から「明日の朝、作家にも弁護士にも全部見せる」と言われたとき、今まで築いた仕事が一気に崩れると思った。
     relationships:
       - character: fujimoto
@@ -165,7 +169,6 @@ characters:
         attitude: 真面目だが融通が利かないと思っている
   - id: fujimoto
     name: 藤本圭
-    role: witness
     publicIntroduction: "几帳面で締切に厳しい編集者。"
     personality: 几帳面で締切に厳しい編集者。話題作りのため未発表原稿を流したことを強く後悔しており、端末ログを詳しく調べられるのを嫌がる。人の出入りにはよく気づく。
     goals:
@@ -182,7 +185,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: kawase-at-door
-        about: fujimoto-saw-kawase-2044
         detail: 20時44分ごろ、編集長室の扉を静かに閉めて離れる川瀬を見た。声をかけたが返事が短かった。
     relationships:
       - character: kawase
@@ -190,7 +192,6 @@ characters:
         attitude: 契約の話になると隙がない人だと思っている
   - id: shido
     name: 志堂透
-    role: suspect
     publicIntroduction: "評判を気にする中堅作家。"
     personality: 評判を気にする中堅作家。自尊心が高く、盗用疑惑を認めるくらいなら石橋との口論自体を隠したいと思っている。感情的にはなるが、事件後は露骨に怯えている。
     goals:
@@ -209,7 +210,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: plagiarism-argument
-        about: shido-argued-2031
         detail: 石橋に原稿の一節を示され「これ、元の作品を知ってるよ」と言われ、思わず声を荒らげたことを覚えている。
     relationships: []
 revelations:
@@ -254,7 +254,6 @@ evidences:
     label: 社内プリンターの二十時四十七分の履歴
     description: 問題の契約書は20時47分に川瀬の端末から送信され、その時刻に初めて印刷されている。
     reveal:
-      mode: conversation
       condition: 川瀬に契約書を用意した時刻を尋ねるか、藤本に社内プリンターの履歴を確認できないか尋ねたら開示する。
     sources:
       - type: character
@@ -267,7 +266,6 @@ evidences:
     label: 二十時四十四分の編集長室前の目撃
     description: 藤本は20時44分ごろ、編集長室から離れる川瀬を見ている。
     reveal:
-      mode: conversation
       condition: 藤本に20時40分台の編集長室前で誰を見たか尋ねたら開示する。
     sources:
       - type: character
@@ -278,20 +276,20 @@ evidences:
     label: 海外版権の送金記録と支払帳簿
     description: 海外出版社からの入金額に対して作家へ報告された金額が少なく、川瀬の管理口座へ差額が残っている。
     reveal:
-      mode: conversation
-      condition: 川瀬に石橋が調べていた版権収入について尋ねるか、藤本に石橋が事件前に確認していた帳簿を尋ねたら開示する。
+      condition: 川瀬に石橋が調べていた版権収入について尋ねるか、藤本に石橋が事件前に確認していた帳簿を尋ねたら開示する。または遺体・現場を調べ、「海外版権の送金記録と支払帳簿」に関わる資料を確認したら開示する。
     sources:
       - type: character
         id: kawase
       - type: character
         id: fujimoto
+      - type: victim
+        id: victim
     supports: [kawase-diverted-royalties, ishibashi-found-royalty-gap, ishibashi-warned-kawase]
     contradicts: []
   - id: plagiarism-comparison
     label: 志堂の原稿と絶版小説の比較
     description: 複数の表現が一致しており、志堂が石橋と盗用疑惑で揉めていた理由は分かるが、20時34分以降の行動とは結びつかない。
     reveal:
-      mode: conversation
       condition: 志堂に石橋と原稿について揉めていなかったか尋ね、口論を否定したら開示する。
     sources:
       - type: character
@@ -302,7 +300,6 @@ evidences:
     label: 未発表原稿の送信履歴
     description: 藤本の端末から社外へ未発表原稿の一部が送られた記録が残るが、石橋の死亡とは無関係である。
     reveal:
-      mode: conversation
       condition: 藤本に原稿漏洩の可能性を尋ね、社外送信を否定したため端末履歴を確認したら開示する。
     sources:
       - type: character
@@ -314,18 +311,9 @@ solution:
   summary: 犯人は川瀬梨奈。海外版権収入の一部を留保していた不正を石橋に見抜かれ、翌朝に契約を打ち切って作家と弁護士へ知らせると告げられた。川瀬は20時38分ごろ編集長室へ入り、20時41分ごろ石橋を襲った。20時44分には藤本が編集長室前から離れる川瀬を見ている。その後20時47分、川瀬は新しい契約書を印刷し、石橋が20時50分に署名したように見える書類を作った。しかしプリンター記録はその紙が20時47分に初めて作られたことを示し、署名を生存証明として使う川瀬の説明を崩す。志堂の盗用と藤本の原稿漏洩は独立した秘密である。
   method: 石橋を編集長室で襲った後、20時47分に契約書を作成して既存の署名を利用し、20時50分まで石橋が生きていたように偽装した
   motive: 海外版権収入の不正が発覚し、契約打ち切りと作家・弁護士への報告で仕事を失うことを恐れたため
-  requiredFacts: [kawase-diverted-royalties, ishibashi-warned-kawase, kawase-entered-2038, kawase-killed-ishibashi-2041, fujimoto-saw-kawase-2044, contract-printed-2047, kawase-forged-signature]
   secretKeywords:
     - 犯人は川瀬
     - 川瀬が犯人
     - 川瀬が石橋を襲
     - 私が石橋を襲
     - 契約書を偽造して生存を偽装
-quality:
-  expectedQuestionCount:
-    min: 8
-    max: 18
-  requiredEvidence:
-    min: 2
-  redHerrings: [shido-plagiarism, fujimoto-leaked-manuscript]
-  notes: 書類に署名があることを生存証明とみなす思い込みを、印刷時刻で崩す。藤本の20時44分の目撃を合わせれば川瀬が死亡直後に編集長室から出たことまで繋がる。

@@ -32,6 +32,18 @@ const SENA = idOf(2)
 const SEGMENTS: AlibiSegment[] = [
   { who: MAKINO, from: '18:20', to: '18:36', kind: 'solid', place: '店内' },
   { who: MAKINO, from: '18:36', to: '19:08', kind: 'claim', place: '郵便局へ、雨のなかを' },
+  /*
+   * 帳場の帳面から立つ短い裏付け。聞き込みだけでなく場所を調べても線が引けるので、
+   * 申告の破線と同じ時間帯にこれが重なる——告発の画面はその食い違いを見ながら書く。
+   */
+  {
+    who: MAKINO,
+    from: '18:40',
+    to: '18:44',
+    kind: 'solid',
+    place: '帳場',
+    fix: '18:44　最後の記帳',
+  },
   { who: MAKINO, from: '19:08', to: '19:14', kind: 'solid', place: '郵便窓口', fix: '19:08　受付' },
   { who: KURODA, from: '18:23', to: '18:41', kind: 'solid', place: '店内', fix: '18:23　来店' },
   {
@@ -81,7 +93,16 @@ export default meta
 
 type Story = StoryObj<typeof AccusationScreen>
 
-/** 何も書いていないところ。提出は取り消せないので、朱はここにしか出ない。 */
+/**
+ * 指名だけ済んで、まだ何も書いていないところ。提出は取り消せないので、朱はここにしか出ない。
+ *
+ * 開いた直後に先頭のラジオを押しておく——指した一人だけ下辺と名が朱に替わる形は、
+ * 誰も選ばれていない画面では出てこない。素のラジオを直に押すので、
+ * 見た目を持たない sr-only のままでも状態は本物と同じ道を通る。
+ */
 export const Default: Story = {
   render: () => <Harness />,
+  play: ({ canvasElement }) => {
+    canvasElement.querySelector('input')?.click()
+  },
 }

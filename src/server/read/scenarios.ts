@@ -23,8 +23,22 @@ export type ScenarioDetail = {
   briefing: string
   /** 事件が動いていた時間の幅。軸を引けないシナリオもあるので null あり。 */
   timeWindow: { start: string; end: string } | null
-  /** 亡くなった人。聞き込みの相手ではないので characters とは別に返す。 */
-  victim: { name: string; introduction: string } | null
+  /**
+   * 亡くなった人。聞き込みの相手ではないので characters とは別に返す。
+   *
+   * `investigable` は「遺体を調べられる事件か」。所見も死因も無いシナリオでは false で、
+   * 画面はこれを見て聞き込みの相手に並べるかどうかを決める。所見そのものは真相側にあり、
+   * ここには出てこない——調べて初めて分かるものなので。
+   */
+  victim: {
+    name: string
+    introduction: string
+    foundAt: string | null
+    foundIn: string | null
+    /** 死亡推定時刻。アリバイ表を横断する刻限の線になる。 */
+    estimatedDeathAt: string | null
+    investigable: boolean
+  } | null
   /** 既定値を埋めたあとの形。列そのものの型（入力側）ではない。 */
   floorPlan: FloorPlan | null
   difficulty: number
@@ -46,6 +60,14 @@ export const normalizePublicIntroduction = (value: string): string => {
     ? PUBLIC_INTRODUCTION_FALLBACK
     : trimmed
 }
+
+/**
+ * characters.id はシナリオ投入時に独立に採番される UUID。
+ * UUID の辞書順を表示順として使えば、作者が characters 配列へ書いた順序（犯人を
+ * 最初に設計しがちな LLM の癖）を公開 UI へ持ち込まず、同じ DB の間は順序も安定する。
+ */
+export const sortCharactersById = <T extends { id: string }>(characters: T[]): T[] =>
+  [...characters].sort((left, right) => left.id.localeCompare(right.id))
 
 /** 公開シナリオの一覧。読みは多いが滅多に書き換わらないので KV から返す。 */
 export const listScenarios = (kv: KVNamespace, db: Db): Promise<PublishedScenario[]> =>
@@ -85,6 +107,10 @@ export const findScenarioDetail = async (
       timeEnd: scenarios.timeEnd,
       victimName: scenarios.victimName,
       victimIntroduction: scenarios.victimIntroduction,
+      victimFoundAt: scenarios.victimFoundAt,
+      victimFoundIn: scenarios.victimFoundIn,
+      victimInvestigable: scenarios.victimInvestigable,
+      victimEstimatedDeathAt: scenarios.victimEstimatedDeathAt,
       difficulty: scenarios.difficulty,
       estimatedMinutes: scenarios.estimatedMinutes,
     })
@@ -98,19 +124,21 @@ export const findScenarioDetail = async (
     return undefined
   }
 
-  const characterRows = (
-    await db
-      .select({
-        id: characters.id,
-        name: characters.name,
-        publicIntroduction: characters.publicIntroduction,
-      })
-      .from(characters)
-      .where(eq(characters.scenarioId, scenarioId))
-  ).map((character) => ({
-    ...character,
-    publicIntroduction: normalizePublicIntroduction(character.publicIntroduction),
-  }))
+  const characterRows = sortCharactersById(
+    (
+      await db
+        .select({
+          id: characters.id,
+          name: characters.name,
+          publicIntroduction: characters.publicIntroduction,
+        })
+        .from(characters)
+        .where(eq(characters.scenarioId, scenarioId))
+    ).map((character) => ({
+      ...character,
+      publicIntroduction: normalizePublicIntroduction(character.publicIntroduction),
+    })),
+  )
 
   /*
     図面はここで読み替えてから返す。
@@ -136,7 +164,14 @@ export const findScenarioDetail = async (
     victim:
       scenario.victimName === null || scenario.victimIntroduction === null
         ? null
-        : { name: scenario.victimName, introduction: scenario.victimIntroduction },
+        : {
+            name: scenario.victimName,
+            introduction: scenario.victimIntroduction,
+            foundAt: scenario.victimFoundAt,
+            foundIn: scenario.victimFoundIn,
+            estimatedDeathAt: scenario.victimEstimatedDeathAt,
+            investigable: scenario.victimInvestigable,
+          },
     characters: characterRows,
   }
 }

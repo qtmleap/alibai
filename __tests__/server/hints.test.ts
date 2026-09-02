@@ -182,3 +182,78 @@ describe('gameModeOf', () => {
     expect(gameModeOf('impossible')).toBe('nohope')
   })
 })
+
+/*
+ * 遺体由来の手掛かり。
+ *
+ * 出どころの type は解禁の判定では victim だが、数える側では人物へ畳んである
+ * （src/server/cache/scenario.ts の asHintSource）。画面でも聴く相手の並びに
+ * 一人分として出るので、そこだけ別枠にすると内訳と実際の出方が食い違う。
+ */
+describe('remainingHints: 遺体を数える相手に含めたとき', () => {
+  const withVictim: HintItem[] = [
+    ...items,
+    { id: 'nail-fiber', sources: [{ type: 'character', id: 'victim' }] },
+    {
+      id: 'will-draft',
+      sources: [
+        { type: 'character', id: 'victim' },
+        { type: 'character', id: 'mizuki' },
+      ],
+    },
+  ]
+
+  test('内訳に遺体の行が出る', () => {
+    const hint = remainingHints({
+      mode: 'easy',
+      items: withVictim,
+      discoveredIds: [],
+      roomIds,
+      characterIds: [...characterIds, 'victim'],
+    })
+    const victim = hint.mode === 'easy' ? hint.characters.find((c) => c.id === 'victim') : undefined
+
+    expect(victim).toEqual({ id: 'victim', remaining: 2 })
+  })
+
+  test('調べられない事件では並びに出さない（数える相手に入れない）', () => {
+    // 聞き込みの相手に出てこない相手へ「あと0件」と添えるのは、無いものを数えて見せることになる。
+    const hint = remainingHints({
+      mode: 'easy',
+      items: withVictim,
+      discoveredIds: [],
+      roomIds,
+      characterIds,
+    })
+    const ids = hint.mode === 'easy' ? hint.characters.map((c) => c.id) : []
+
+    expect(ids).not.toContain('victim')
+  })
+
+  test('遺体から掴んだ分は、遺体の行からも人物の行からも減る', () => {
+    const hint = remainingHints({
+      mode: 'easy',
+      items: withVictim,
+      discoveredIds: ['will-draft'],
+      roomIds,
+      characterIds: [...characterIds, 'victim'],
+    })
+    const characters = hint.mode === 'easy' ? hint.characters : []
+
+    // 美月は brandy も残しているので、減るのは will-draft のぶんだけ。
+    expect(characters.find((c) => c.id === 'victim')?.remaining).toBe(1)
+    expect(characters.find((c) => c.id === 'mizuki')?.remaining).toBe(1)
+  })
+
+  test('normal の人数にも数えられている（畳んであるので type は character）', () => {
+    const hint = remainingHints({
+      mode: 'normal',
+      items: withVictim,
+      discoveredIds: [],
+      roomIds,
+      characterIds: [...characterIds, 'victim'],
+    })
+
+    expect(hint).toEqual({ mode: 'normal', places: 2, people: 5 })
+  })
+})

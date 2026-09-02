@@ -20,7 +20,7 @@ const buttonVariants = cva(
         default:
           'border border-nezumi-dim font-semibold tracking-widest text-kinari hover:border-nezumi',
         /** 取り返しのつかない操作。朱が出るのはこの variant だけ。 */
-        destructive: 'border border-shu/70 tracking-widest text-shu hover:border-shu',
+        destructive: 'border border-shu tracking-widest text-shu hover:border-shu',
         /** 沈めた枠。選ばれていない選択肢や、副次的な入口。 */
         outline: 'border border-sumi-3 text-nezumi-dim hover:border-nezumi-dim hover:text-nezumi',
         /** 丸いアイコンボタン（記・図・推）。 */
@@ -38,8 +38,12 @@ const buttonVariants = cva(
         default: 'h-8 px-3',
         sm: 'h-7 px-2 text-xs',
         lg: 'h-9 px-4',
-        /** 縦に伸びる主ボタン。高さではなく余白で厚みを出す。 */
-        block: 'w-full py-3',
+        /**
+         * 縦に伸びる主ボタン。高さではなく余白で厚みを出す。
+         * 語りと同じ明朝で、字送りを広く取る——押す前に一拍置かせるため。
+         */
+        block:
+          'w-full py-[11px] font-mincho font-normal tracking-[0.2em] lg:py-[13px] lg:text-[15px]',
         icon: 'size-9',
         'icon-sm': 'size-7',
       },

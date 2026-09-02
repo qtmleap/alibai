@@ -87,6 +87,14 @@
       .paper.desk iframe { width: 1440px; height: 900px; }
       .paper.phone { width: 195px; height: 422px; }
       .paper.phone iframe { width: 390px; height: 844px; }
+      /*
+        動きは一つずつ別の枚に分けてあり、ここでは升目に嵌めて並べる。
+        縮めないのは、画面の見え方ではなく速さと大きさを見る枠だから——
+        50% にすると 5px の浮きが 2.5px になり、比べたいものが消える。
+      */
+      .fxgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1px; background: var(--keisen); border: 1px solid var(--keisen); }
+      .fxgrid .paper { width: auto; height: 300px; border: 0; }
+      .fxgrid iframe { width: 100%; height: 300px; transform: none; }
     </style>
   </head>
   <body>
@@ -300,6 +308,32 @@
           <div class="pair">
             <div class="paper desk"><iframe src="./desktop/settings.html#unset=1"></iframe></div>
             <div class="paper phone"><iframe src="./mobile/settings.html#unset=1"></iframe></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" data-shot="fx">
+        <h2><span class="pfx">ALI_FX</span>動き</h2>
+        <p class="note">
+          画面をまたいで使う十の動き。枠の中で <b>もう一度</b> を押すと再生する。
+          実装は src/client/index.css のキーフレームと Storybook の
+          <b>Parts/十の動き</b> にあり、この升目は <b>mocks/effects/*.html</b> を一枚ずつ読んでいる。
+          クラス名はモックと実装で同じにしてあるので、ここで当てた場所がそのまま実装で当てる場所になる
+          （モック側の語彙は <b>mocks/_motion.css</b>）。
+        </p>
+        <div class="state">
+          <div class="cap"><span class="nm">十の動きと、その役目</span><span class="hash">—</span></div>
+          <div class="fxgrid">
+            <div class="paper"><iframe src="./effects/pin-rise.html"></iframe></div>
+            <div class="paper"><iframe src="./effects/doubt.html"></iframe></div>
+            <div class="paper"><iframe src="./effects/spark.html"></iframe></div>
+            <div class="paper"><iframe src="./effects/band.html"></iframe></div>
+            <div class="paper"><iframe src="./effects/line-in.html"></iframe></div>
+            <div class="paper"><iframe src="./effects/typing.html"></iframe></div>
+            <div class="paper"><iframe src="./effects/crawl.html"></iframe></div>
+            <div class="paper"><iframe src="./effects/dive.html"></iframe></div>
+            <div class="paper"><iframe src="./effects/fold.html"></iframe></div>
+            <div class="paper"><iframe src="./effects/rows.html"></iframe></div>
           </div>
         </div>
       </section>

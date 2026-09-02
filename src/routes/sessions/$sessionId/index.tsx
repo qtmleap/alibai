@@ -1,4 +1,5 @@
 import { createFileRoute, getRouteApi, Navigate, useNavigate } from '@tanstack/react-router'
+import { useEffect, useState } from 'react'
 import { useInterrogationContext } from '@/client/hooks/InterrogationContext'
 import { InterrogationScreen } from '@/client/screens/InterrogationScreen'
 
@@ -11,8 +12,24 @@ export const Route = createFileRoute('/sessions/$sessionId/')({
 
 function Interrogation() {
   const { scenario, state } = layout.useLoaderData()
+  const { first } = layout.useSearch()
   const interrogation = useInterrogationContext()
   const navigate = useNavigate()
+
+  /*
+   * 支度で選んだ相手は一度だけ使う。
+   *
+   * URLに残したままにすると、推理の画面へ行って戻るたびにこの相手へ引き戻され、
+   * 聞き込みの途中で替えた相手が巻き戻る。最初の描画で受け取ってから、
+   * クエリだけを静かに落とす（履歴に残さないので、戻るボタンの挙動も変わらない）。
+   */
+  const [initialTarget] = useState(first)
+
+  useEffect(() => {
+    if (first !== undefined) {
+      navigate({ to: '.', search: {}, replace: true })
+    }
+  }, [first, navigate])
 
   // 終わった事件は聞き込みに戻れない（推理を出した後に戻るを押した場合など）。
   // 開いたままにすると、答え合わせが済んだ相手に質問を投げられてしまう。
@@ -28,6 +45,20 @@ function Interrogation() {
       sessionId={state.sessionId}
       detectiveName={state.detectiveName}
       interrogation={interrogation}
+      // 支度で選んだ相手。会話が始まっていればそちらが優先される。
+      firstTarget={initialTarget}
+      /*
+        刻限は死亡推定時刻から引く。事件の記録が既に語っている時刻なので、
+        聞き込みが一問も進んでいなくても最初から出してよい。
+      */
+      alibi={{
+        segments: interrogation.alibiSegments,
+        deadline:
+          scenario.victim?.estimatedDeathAt == null
+            ? undefined
+            : { at: scenario.victim.estimatedDeathAt, label: '死亡推定' },
+        clash: interrogation.clash,
+      }}
       onAccuse={() =>
         navigate({ to: '/sessions/$sessionId/accuse', params: { sessionId: state.sessionId } })
       }

@@ -51,6 +51,8 @@ const board = {
   segments,
   span: { from: '18:20', to: '19:20' },
   deadline: { at: '18:50', label: '死亡' },
+  /** 刻限そのものを指した回。端末の目盛りでは真相と重なる。 */
+  accusedAt: '18:50',
   truth: [
     { who: MAKINO, from: '18:20', to: '18:50', note: '申告より14分ぶん長い' },
     { who: 'kuroda', from: '18:23', to: '18:48' },
@@ -76,9 +78,13 @@ export const Solved: Story = {
   args: { accuseResult: ACCUSE_CORRECT },
 }
 
+/** 迷宮入りの回は刻限を外して指している。真相の目盛りは引かないので、残るのはこの一本だけ。 */
+const missedBoard = { ...board, accusedAt: '18:36' }
+
 /** 犯人は言い当てたが、筋書きが立たなかった。迷宮入りなので真相は開かない。 */
 export const Missed: Story = {
   args: {
+    board: missedBoard,
     accuseResult: {
       ...ACCUSE_WRONG,
       correct: true,
@@ -89,5 +95,5 @@ export const Missed: Story = {
 
 /** 犯人そのものを外した。名前も出さない——返すのは「外した」ことだけ。 */
 export const MissedCulprit: Story = {
-  args: { accuseResult: ACCUSE_WRONG },
+  args: { board: missedBoard, accuseResult: ACCUSE_WRONG },
 }

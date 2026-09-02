@@ -1,5 +1,7 @@
 import { edgeOf, inkOf } from '@/client/components/CharacterAvatar'
 import type { ChatTurn } from '@/client/hooks/useInterrogation'
+import { usePacedReveal } from '@/client/hooks/usePacedReveal'
+import { settledSentences } from '@/client/lib/paragraphs'
 
 type Props = {
   turns: ChatTurn[]
@@ -33,40 +35,34 @@ type Item =
   | { kind: 'block'; id: string; role: 'user' | 'assistant'; lines: Line[] }
 
 /**
- * ひとつの発言を、空行の位置で行に割る。
+ * ひとつの発言を、画面に置く一文ずつに割る。
  *
- * NPCは息継ぎのある喋り方をするよう指示されていて（`@/server/game/rules`）、
- * 塊のあいだが空行で来る。割るのをここに置いてあるのは、流れてくる最中の返答も
- * 読み直した履歴も同じ1本のテキストだから。積む側で割ると、リロードを挟んだ
- * 前後で行の分かれ方が変わる。
- *
- * 改行が続いても区切りは1つと数える。塊のあいだを空行1つで区切るか2つで区切るかは
- * モデルの気分で揺れるが、読み手にとっては同じ「間」でしかない。
+ * 割るのをここに置いてあるのは、流れてくる最中の返答も読み直した履歴も同じ1本の
+ * テキストだから。積む側で割ると、リロードを挟んだ前後で行の分かれ方が変わる。
  */
-const splitLines = (text: string): string[] =>
-  text
-    .split(/\n+/)
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0)
-
-const linesOf = (turn: ChatTurn): Line[] =>
-  splitLines(turn.text).map((text, index) => ({ id: `${turn.id}:${index}`, text }))
+const linesOf = (turn: ChatTurn, streaming: boolean): Line[] =>
+  settledSentences(turn.text, streaming).map((text, index) => ({
+    id: `${turn.id}:${index}`,
+    text,
+  }))
 
 /**
  * 続けて喋った分をひと塊にまとめる。
  *
  * 表示のための純関数なので、ここに通信も状態も持たせない。
  */
-export const groupTurns = (turns: ChatTurn[]): Item[] => {
+export const groupTurns = (turns: ChatTurn[], awaiting: boolean): Item[] => {
   const items: Item[] = []
+  const lastIndex = turns.length - 1
 
-  for (const turn of turns) {
+  for (const [index, turn] of turns.entries()) {
     if (turn.role === 'topic') {
       items.push({ kind: 'topic', id: turn.id, text: turn.text })
       continue
     }
 
-    const lines = linesOf(turn)
+    // 流れている最中なのは末尾の返答だけ。それより前は書き終わっている。
+    const lines = linesOf(turn, awaiting && index === lastIndex && turn.role === 'assistant')
 
     // 返答待ちのあいだ積まれている空の行は、中身が届くまで置かない。
     // 最初の一文字が改行だったときも同じ扱いにしたいので、割った結果で見る。
@@ -87,7 +83,37 @@ export const groupTurns = (turns: ChatTurn[]): Item[] => {
   return items
 }
 
+/**
+ * 出してよい行数まで切り詰める。
+ *
+ * 話題の区切りは行として数えない。プレイヤー自身が投げたものなので、
+ * 本人に向かって間を置いて出す意味がない。
+ */
+const capItems = (items: Item[], limit: number): Item[] =>
+  items.reduce<{ left: number; kept: Item[] }>(
+    (acc, item) => {
+      if (item.kind === 'topic') {
+        return { left: acc.left, kept: [...acc.kept, item] }
+      }
+
+      const lines = item.lines.slice(0, acc.left)
+
+      return {
+        left: acc.left - lines.length,
+        // 行が残らない塊は落とす。名前だけが立つと、口を開けたまま黙って見える。
+        kept: lines.length === 0 ? acc.kept : [...acc.kept, { ...item, lines }],
+      }
+    },
+    { left: limit, kept: [] },
+  ).kept
+
 export const ChatLog = ({ turns, speakerName, speakerIndex, askerName, awaiting }: Props) => {
+  const items = groupTurns(turns, awaiting)
+  const shown = usePacedReveal(
+    items.reduce((count, item) => (item.kind === 'topic' ? count : count + item.lines.length), 0),
+    awaiting,
+  )
+
   /*
    * 点を出すのは「送ったが、まだ一文字も返ってきていない」あいだだけ。
    *
@@ -99,11 +125,11 @@ export const ChatLog = ({ turns, speakerName, speakerIndex, askerName, awaiting 
   const showTyping =
     awaiting &&
     last !== undefined &&
-    (last.role === 'topic' || (last.role === 'assistant' && last.text.length === 0))
+    (last.role === 'topic' || (last.role === 'assistant' && linesOf(last, true).length === 0))
 
   return (
     <>
-      {groupTurns(turns).map((item) => {
+      {capItems(items, shown).map((item) => {
         if (item.kind === 'topic') {
           return (
             <div key={item.id} className="flex items-center gap-2 pt-2 text-[11px] text-nezumi-dim">
@@ -134,7 +160,7 @@ export const ChatLog = ({ turns, speakerName, speakerIndex, askerName, awaiting 
             {item.lines.map((line) => (
               <p
                 key={line.id}
-                className={`whitespace-pre-wrap break-words text-[12.5px] leading-[1.95] ${
+                className={`line-in whitespace-pre-wrap break-words text-[12.5px] leading-[1.95] ${
                   mine ? 'text-nezumi' : 'text-kinari'
                 }`}
               >
