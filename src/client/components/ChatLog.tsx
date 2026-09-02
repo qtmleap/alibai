@@ -31,7 +31,7 @@ type Props = {
 type Line = { id: string; text: string }
 
 type Item =
-  | { kind: 'topic'; id: string; text: string }
+  | { kind: 'topic'; id: string; text: string; notable: boolean }
   | { kind: 'block'; id: string; role: 'user' | 'assistant'; lines: Line[] }
 
 /**
@@ -57,7 +57,12 @@ export const groupTurns = (turns: ChatTurn[], awaiting: boolean): Item[] => {
 
   for (const [index, turn] of turns.entries()) {
     if (turn.role === 'topic') {
-      items.push({ kind: 'topic', id: turn.id, text: turn.text })
+      items.push({
+        kind: 'topic',
+        id: turn.id,
+        text: turn.text,
+        notable: turn.notable === true,
+      })
       continue
     }
 
@@ -134,7 +139,18 @@ export const ChatLog = ({ turns, speakerName, speakerIndex, askerName, awaiting 
           return (
             <div key={item.id} className="flex items-center gap-2 pt-2 text-[11px] text-nezumi-dim">
               <span aria-hidden="true" className="h-px flex-1 bg-keisen" />
-              <span className="max-w-[70%] break-words text-center">話題: {item.text}</span>
+              {/*
+                何かを引き出せた話題だけ、字を地の明るさまで上げる。話題は何度も並ぶので、
+                遡ったときにどれが効いたのかを読み返さずに拾えるようにする。
+                色は足さない——顔料は答える相手のもので、話題は誰のものでもない。
+              */}
+              <span
+                className={`max-w-[70%] break-words text-center ${
+                  item.notable ? 'text-kinari' : ''
+                }`}
+              >
+                話題: {item.text}
+              </span>
               <span aria-hidden="true" className="h-px flex-1 bg-keisen" />
             </div>
           )

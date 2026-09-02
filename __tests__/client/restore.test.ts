@@ -13,7 +13,15 @@ describe('restoreConversations', () => {
       history([
         {
           characterId: 'a',
-          exchanges: [{ question: '昨夜どこに？', answer: '書斎です', askedAt: 100, topic: null }],
+          exchanges: [
+            {
+              question: '昨夜どこに？',
+              answer: '書斎です',
+              askedAt: 100,
+              topic: null,
+              yielded: false,
+            },
+          ],
         },
       ]),
     )
@@ -32,15 +40,27 @@ describe('restoreConversations', () => {
         {
           characterId: 'a',
           exchanges: [
-            { question: '昨夜どこに？', answer: '書斎です', askedAt: 100, topic: 'アリバイ' },
-            { question: '何時まで？', answer: '日付が変わる頃まで', askedAt: 100, topic: null },
+            {
+              question: '昨夜どこに？',
+              answer: '書斎です',
+              askedAt: 100,
+              topic: 'アリバイ',
+              yielded: false,
+            },
+            {
+              question: '何時まで？',
+              answer: '日付が変わる頃まで',
+              askedAt: 100,
+              topic: null,
+              yielded: false,
+            },
           ],
         },
       ]),
     )
 
     expect(result.a).toEqual([
-      { id: '100:0', role: 'topic', text: 'アリバイ', askedAt: 100 },
+      { id: '100:0', role: 'topic', text: 'アリバイ', askedAt: 100, notable: false },
       { id: '100:1', role: 'user', text: '昨夜どこに？', askedAt: 100 },
       { id: '100:2', role: 'assistant', text: '書斎です', askedAt: 100 },
       { id: '100:3', role: 'user', text: '何時まで？', askedAt: 100 },
@@ -48,16 +68,43 @@ describe('restoreConversations', () => {
     ])
   })
 
+  test('何かを引き出した話題には印が立つ', () => {
+    const result = restoreConversations(
+      history([
+        {
+          characterId: 'a',
+          exchanges: [
+            {
+              question: '傘は？',
+              answer: '差していません',
+              askedAt: 100,
+              topic: '雨',
+              yielded: true,
+            },
+          ],
+        },
+      ]),
+    )
+
+    expect(result.a?.[0]).toEqual({
+      id: '100:0',
+      role: 'topic',
+      text: '雨',
+      askedAt: 100,
+      notable: true,
+    })
+  })
+
   test('質問と答えは同じ時刻を持つ（NPCをまたいで並べ直すため）', () => {
     const result = restoreConversations(
       history([
         {
           characterId: 'a',
-          exchanges: [{ question: 'q1', answer: 'a1', askedAt: 300, topic: null }],
+          exchanges: [{ question: 'q1', answer: 'a1', askedAt: 300, topic: null, yielded: false }],
         },
         {
           characterId: 'b',
-          exchanges: [{ question: 'q2', answer: 'a2', askedAt: 200, topic: null }],
+          exchanges: [{ question: 'q2', answer: 'a2', askedAt: 200, topic: null, yielded: false }],
         },
       ]),
     )
@@ -71,13 +118,15 @@ describe('restoreConversations', () => {
       history([
         {
           characterId: 'a',
-          exchanges: [{ question: '聞きかけ', answer: '', askedAt: 1, topic: '話題' }],
+          exchanges: [
+            { question: '聞きかけ', answer: '', askedAt: 1, topic: '話題', yielded: false },
+          ],
         },
       ]),
     )
 
     expect(result.a).toEqual([
-      { id: '1:0', role: 'topic', text: '話題', askedAt: 1 },
+      { id: '1:0', role: 'topic', text: '話題', askedAt: 1, notable: false },
       { id: '1:1', role: 'user', text: '聞きかけ', askedAt: 1 },
     ])
   })
@@ -85,7 +134,10 @@ describe('restoreConversations', () => {
   test('一度も話していないNPCはキーごと作らない', () => {
     const result = restoreConversations(
       history([
-        { characterId: 'a', exchanges: [{ question: 'q', answer: 'a', askedAt: 1, topic: null }] },
+        {
+          characterId: 'a',
+          exchanges: [{ question: 'q', answer: 'a', askedAt: 1, topic: null, yielded: false }],
+        },
         { characterId: 'b', exchanges: [] },
       ]),
     )

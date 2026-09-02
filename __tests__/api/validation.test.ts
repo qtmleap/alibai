@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import app from '@/server/index'
+import { MAX_TOPIC_CHARS } from '@/shared/turns'
 
 /**
  * bun test は Workers ランタイムの外で動くので、バインディング（DO / KV / Hyperdrive）を
@@ -120,21 +121,21 @@ describe('POST /api/sessions/:id/ask', () => {
     expect(res.status).toBe(400)
   })
 
-  test('話題が501文字なら 400', async () => {
+  test('話題が上限を1文字でも超えれば 400', async () => {
     const res = await postJson(`/api/sessions/${SESSION_ID}/ask`, {
       sessionId: SESSION_ID,
       characterId: CHARACTER_ID,
-      topic: 'あ'.repeat(501),
+      topic: 'あ'.repeat(MAX_TOPIC_CHARS + 1),
     })
 
     expect(res.status).toBe(400)
   })
 
-  test('500文字ちょうどはバリデーションを通過する（境界の内側）', async () => {
+  test('上限ちょうどはバリデーションを通過する（境界の内側）', async () => {
     const res = await postJson(`/api/sessions/${SESSION_ID}/ask`, {
       sessionId: SESSION_ID,
       characterId: CHARACTER_ID,
-      topic: 'あ'.repeat(500),
+      topic: 'あ'.repeat(MAX_TOPIC_CHARS),
     })
 
     // バインディングが無いのでこの先は進めない。ここで見たいのは

@@ -108,6 +108,16 @@ const askedAtKey = (characterId: string) => `asked-at:${characterId}`
 const topicsKey = (characterId: string) => `topics:${characterId}`
 
 /**
+ * 何かを引き出した話題の、往復番号の一覧。
+ *
+ * 話題そのものと同じ長さの配列にせず番号だけを持つのは、印が後から付くため。
+ * 判定が終わって初めて「実りがあったか」が決まるので、既に積んだ往復の位置へ
+ * 書き戻すことになる。番号の集合なら、印を付ける操作が末尾への追加だけで済む。
+ * この機能より前のセッションでは空になり、どこにも印が付かない。
+ */
+const yieldsKey = (characterId: string) => `yields:${characterId}`
+
+/**
  * ModelMessage の content は文字列とは限らない（パーツの配列にもなる）。
  * このDOが積むのは自分で組み立てた文字列だけだが、型の上では両方あり得るので
  * 復元して返すときにここで均しておく。
@@ -130,6 +140,8 @@ export type HistoryExchange = {
    * セッションでは null になる。
    */
   topic: string | null
+  /** この話題が証拠や気づきを引き出したか。話題の先頭の往復にだけ意味がある。 */
+  yielded: boolean
 }
 
 export type CharacterHistory = {
@@ -264,12 +276,15 @@ export class PlaySession extends DurableObject<SessionBindings> {
    *
    * 時刻は往復ごとに取り直さず、この話題ぜんぶで同じ値を共有する。1つの話題は
    * 一続きのやり取りなので、記録を並べ直したときにも塊のまま残ってほしい。
+   *
+   * 話題の先頭が何往復目かも返す。実りがあったかは判定が終わって初めて決まるので、
+   * 後から `markTopicYield` で印を付けるときの宛先になる。
    */
   async appendTopic(
     characterId: string,
     topic: string,
     exchanges: { question: string; answer: string }[],
-  ): Promise<number> {
+  ): Promise<{ questionCount: number; round: number }> {
     const current = await this.getHistory(characterId)
     const next: ModelMessage[] = [
       ...current,
@@ -297,7 +312,8 @@ export class PlaySession extends DurableObject<SessionBindings> {
       [META_KEY]: updated,
     })
 
-    return updated.questionCount
+    // 積む前の履歴は「質問と答え」で2つずつ並んでいるので、その半分が話題の先頭の番号。
+    return { questionCount: updated.questionCount, round: current.length / 2 }
   }
 
   /** 往復ごとの質問時刻。この機能より前に始まったセッションでは空になる。 */
@@ -312,6 +328,30 @@ export class PlaySession extends DurableObject<SessionBindings> {
     const stored = await this.ctx.storage.get<(string | null)[]>(topicsKey(characterId))
 
     return stored === undefined ? [] : stored
+  }
+
+  /** 何かを引き出した往復の番号。印の付いていないセッションでは空になる。 */
+  private async yieldList(characterId: string): Promise<number[]> {
+    const stored = await this.ctx.storage.get<number[]>(yieldsKey(characterId))
+
+    return stored === undefined ? [] : stored
+  }
+
+  /**
+   * その話題が証拠や気づきを引き出したことを記録する。
+   *
+   * 会話ログのどこが実りのある話題だったかを、開き直した後でも辿れるようにする印。
+   * どの往復かは呼び出し側が数えて渡す——ここで最後の話題を探しにいくと、
+   * 同じNPCへ続けて投げたときにどちらの話題か決められない。
+   */
+  async markTopicYield(characterId: string, round: number): Promise<void> {
+    const yields = await this.yieldList(characterId)
+
+    if (yields.includes(round)) {
+      return
+    }
+
+    await this.ctx.storage.put(yieldsKey(characterId), [...yields, round])
   }
 
   /**
@@ -330,9 +370,10 @@ export class PlaySession extends DurableObject<SessionBindings> {
     return await Promise.all(
       characterIds.map(async (characterId) => {
         const messages = await this.getHistory(characterId)
-        const [times, topics] = await Promise.all([
+        const [times, topics, yields] = await Promise.all([
           this.askedAtList(characterId),
           this.topicList(characterId),
+          this.yieldList(characterId),
         ])
         const exchanges = messages.flatMap((message, index) => {
           if (message.role !== 'user') {
@@ -350,6 +391,7 @@ export class PlaySession extends DurableObject<SessionBindings> {
               answer: answer === undefined ? '' : textOf(answer.content),
               askedAt: recorded === undefined ? meta.startedAt + round * 1000 : recorded,
               topic: topic === undefined ? null : topic,
+              yielded: yields.includes(round),
             },
           ]
         })
