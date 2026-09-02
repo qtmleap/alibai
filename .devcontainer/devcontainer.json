@@ -1,15 +1,11 @@
 {
   "name": "AlibAI",
-  "dockerComposeFile": [
-    "compose.yaml"
-  ],
+  "dockerComposeFile": ["compose.yaml"],
   "service": "app",
   "workspaceFolder": "/home/vscode/app",
   "shutdownAction": "stopCompose",
   "remoteUser": "vscode",
-  "forwardPorts": [
-    5173
-  ],
+  "forwardPorts": [5173],
   "portsAttributes": {
     "5173": {
       "label": "AlibAI (Vite + Hono)",
