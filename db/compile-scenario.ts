@@ -203,6 +203,12 @@ const compileDefinition = (
     supports: evidence.supports,
     // 食い違いの印が読む。どの嘘を崩したかが分かって初めて、盤面の一点を指せる。
     contradicts: evidence.contradicts,
+    /*
+      刻限が読む。この証拠を掴んだ瞬間に死亡推定が盤面へ出る、という印。
+      時刻そのものは公開側（scenarios.victimEstimatedDeathAt）にあり、
+      サーバは掴んだ証拠にこの印があるときだけそれを返す。
+    */
+    revealsDeathTime: evidence.revealsDeathTime,
   }))
 
   const compiledRevelations = definition.revelations.map((revelation) => ({

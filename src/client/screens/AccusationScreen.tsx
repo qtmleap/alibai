@@ -5,7 +5,7 @@ import { Button } from '@/client/components/ui/button'
 import { Textarea } from '@/client/components/ui/textarea'
 import type { UseInterrogation } from '@/client/hooks/useInterrogation'
 import { describeError, submitAccusation } from '@/client/lib/api'
-import { deadlineOf, examinedBody } from '@/client/lib/deadline'
+import { deadlineOf } from '@/client/lib/deadline'
 import type { AccuseResult, ScenarioDetail } from '@/client/lib/schemas'
 import { playSe } from '@/client/lib/sound'
 
@@ -50,7 +50,7 @@ type Props = {
   scenario: ScenarioDetail
   /** 進行中のセッション。画面が使うのはIDだけ。 */
   sessionId: string
-  /** 残りターンを上部バーに出すため、そして遺体を検分したかを見るために持ち込む。 */
+  /** 残りターンを上部バーに出すため、そして開示済みの刻限を盤面へ渡すために持ち込む。 */
   interrogation: UseInterrogation
   /**
    * 聞き終えた供述と、端末の帯に立てる刻限。まだサーバから降ってこないので、
@@ -214,10 +214,10 @@ export const AccusationScreen = ({
                 span={{ from: timeWindow.start, to: timeWindow.end }}
                 /*
                   刻限は聞き込みの盤面と同じ規則で引く。告発は答え合わせの前なので、
-                  遺体を検分していなければ死亡推定はまだ「不明」のまま。
+                  死亡推定を明かす手掛かりを掴んでいなければ、まだ「不明」のまま。
                   下の帯（端末）だけは一本線のままで、そちらは alibi が持つ値を使う。
                 */
-                deadline={deadlineOf(scenario.victim, examinedBody(interrogation.conversations))}
+                deadline={deadlineOf(scenario.victim, interrogation.estimatedDeathAt)}
               />
             </div>
 

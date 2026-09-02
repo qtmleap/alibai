@@ -39,7 +39,6 @@ export const SCENARIO: ScenarioDetail = {
     introduction: '青雨堂店主。初版本の商談を抱えていた',
     foundAt: '19:15',
     foundIn: '店の奥',
-    estimatedDeathAt: '18:50',
     investigable: true,
   },
   /*
@@ -216,6 +215,8 @@ export const INTERROGATION_SEED: InterrogationSeed = {
   // 線は story ごとに違うものを見たいので、種には持たせず画面へ直に渡す。
   alibiSegments: [],
   clash: undefined,
+  // 刻限はまだ開いていない状態を既定にする。掴んだ後の姿は story 側で差し替える。
+  estimatedDeathAt: null,
   questionCount: 3,
   turn: {
     turn: 4,

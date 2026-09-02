@@ -511,6 +511,11 @@ characters:
         detail: 若い頃からずっと涼子を支えてきた。
       - id: the-quiet-shock
         detail: 「薬草園を整理してほしい」と言われたときの、静かなショックをまだ引きずっている。
+      # 死亡推定時刻を訊かれたときの拠りどころ。医師として何を見て何分と読んだのかが
+      # 無いと、時刻を答えろと言われた桐生がその場で数字を作ることになる。
+      # facts には置かない——あそこへ入れると毒の経路まで一緒に話せてしまう。
+      - id: the-body-at-2030
+        detail: 発見したとき、医師として涼子の体に触れて確かめた。まだ温かさが残っていて、硬直も始まったばかりだった。事切れてから十五分ほど、20時15分ごろだろうと見当をつけている。
     relationships: []
 # revelation は「解禁されて初めてカードになる情報」。
 # 後継者への焦り（動機）は、後継者指定そのものを知り、遺言書を見つけた後でなければ出さない。
@@ -552,6 +557,11 @@ revelations:
       - ryoko-reconsidering-heir
 # reveal.condition は Judge のルーブリックへ 1件1行で並ぶ
 # （src/server/cache/scenario.ts）。改行を入れると行が割れて判定できなくなる。
+#
+# revealsDeathTime を立てた証拠を掴むと、盤面の死亡推定（20:15）が初めて実線で出る。
+# 印はここに二つある。探偵が自分で遺体を検分する道（postmortem-signs）と、医師の桐生に
+# 見立てを訊く道（kiryu-death-estimate）。どちらか一方だけにすると、その一手を選ばなかった
+# プレイヤーは最後まで刻限を知らないまま告発することになる。
 evidences:
   - id: phone-record
     label: 深川の携帯電話の発着信履歴
@@ -622,6 +632,35 @@ evidences:
     supports:
       - ryoko-reconsidering-heir
     contradicts: []
+  # 探偵自身の検死。遺体を調べる一手を使った人だけが、刻限を自分の目で確かめられる。
+  - id: postmortem-signs
+    label: 遺体に残る中毒の徴候と、その進み具合
+    description: 唇のまわりと指先のしびれの跡、体の冷え方と硬直の出方。口にしてから絶命までの時間と合わせると、事切れたのは20時15分ごろになる。
+    reveal:
+      condition: プレイヤーが遺体を調べ、探偵が唇や指先の跡、体の冷え方や硬直といった死後の変化に触れたら開示する。
+    sources:
+      - type: victim
+        id: victim
+    supports:
+      - ryoko-drank-at-2015
+    contradicts: []
+    # 検死で出た数字。実線で出してよい（docs/design/deadline-window.md の「確定」）。
+    revealsDeathTime: true
+  # 医師の見立て。遺体を調べなかったプレイヤーにも、聞き込みだけで同じ時刻へ辿り着く道を残す。
+  - id: kiryu-death-estimate
+    label: 桐生が医師として述べた死亡推定時刻
+    description: 発見時の体温と硬直の具合から、亡くなったのは20時15分前後だと桐生は見ている。
+    reveal:
+      condition: プレイヤーが桐生に「医師から見て涼子さんが亡くなったのはいつごろか」と尋ね、桐生が発見時の体の様子を根拠に時刻の見立てを答えたら開示する。
+    sources:
+      - type: character
+        id: kiryu
+    supports:
+      - ryoko-drank-at-2015
+    contradicts: []
+    # 桐生は犯人ではないので見立ても動かない。第三者の推定として破線で描き分けるのは、
+    # 拠りどころを盤面が持てるようになってからの仕事（docs/design/deadline-window.md）。
+    revealsDeathTime: true
   - id: brandy-bottle
     label: 書斎に残されたブランデーの瓶とグラス
     description: 瓶とグラスの双方から毒物の反応が出ている。

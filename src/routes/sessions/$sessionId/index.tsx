@@ -1,7 +1,7 @@
 import { createFileRoute, getRouteApi, Navigate, useNavigate } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import { useInterrogationContext } from '@/client/hooks/InterrogationContext'
-import { deadlineOf, examinedBody } from '@/client/lib/deadline'
+import { deadlineOf } from '@/client/lib/deadline'
 import { InterrogationScreen } from '@/client/screens/InterrogationScreen'
 
 const layout = getRouteApi('/sessions/$sessionId')
@@ -33,10 +33,11 @@ function Interrogation() {
   }, [first, navigate])
 
   /*
-   * 刻限。遺体発見は最初から、死亡推定は検分してから（docs/design/deadline-window.md）。
-   * 開示の規則そのものは client/lib/deadline.ts が持つ——支度と告発の盤面も同じ規則で引く。
+   * 刻限。遺体発見は最初から、死亡推定は手に入れてから（docs/design/deadline-window.md）。
+   * 開示済みかを決めるのはサーバで、ここへ届くのは判断の結果だけ。線と同じく判定のたびに
+   * 引き直されるので、刻限を明かす証拠を掴んだ話題の直後に点線が実線へ変わる。
    */
-  const deadline = deadlineOf(scenario.victim, examinedBody(interrogation.conversations))
+  const deadline = deadlineOf(scenario.victim, interrogation.estimatedDeathAt)
 
   // 終わった事件は聞き込みに戻れない（推理を出した後に戻るを押した場合など）。
   // 開いたままにすると、答え合わせが済んだ相手に質問を投げられてしまう。

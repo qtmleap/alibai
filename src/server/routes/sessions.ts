@@ -13,7 +13,13 @@ import {
 import type { Db } from '@/server/db/client'
 import { createDb } from '@/server/db/client'
 import type { Bindings, Env } from '@/server/env'
-import { type AlibiSegment, alibiSegmentsOf, type Clash, clashOf } from '@/server/game/alibi'
+import {
+  type AlibiSegment,
+  alibiSegmentsOf,
+  type Clash,
+  clashOf,
+  deathEstimateOf,
+} from '@/server/game/alibi'
 import { buildPlaceSheet, buildVictimSheet, type DiscoveredIds } from '@/server/game/examination'
 import { remainingHints } from '@/server/game/hints'
 import { acceptRevealedRevelationIds, type RevelationSourceType } from '@/server/game/revelations'
@@ -311,41 +317,36 @@ const loadPlaceSubject = async (
 }
 
 /**
- * 時刻表に引ける線を、発見済みの手掛かりから組み立てる。
+ * 盤面へ返せるもの。線・食い違いの印・刻限を、発見済みの手掛かりから組み立てる。
  *
  * 真相そのもの（timeline_events）は読むが、返すのはプレイヤーが辿り着いた分だけ。
  * 絞り込みは alibiSegmentsOf に閉じているので、ここは材料を揃えるだけにする。
  *
- * 時刻軸の右端が無いシナリオでは何も返さない。端が無いと線の終わりを決められず、
- * 描いても軸の外へ流れる。
+ * 時刻軸の右端が無いシナリオでは線を返さない。端が無いと線の終わりを決められず、
+ * 描いても軸の外へ流れる。刻限のほうは軸と関係が無いので、そこでも返す。
  */
-const loadAlibiSegments = async (
+const loadBoard = async (
   db: Db,
   scenarioId: string,
   discoveredEvidenceIds: string[],
   discoveredRevelationIds: string[],
-): Promise<{ segments: AlibiSegment[]; clash: Clash | undefined }> => {
-  const [truthRows, scenarioRows] = await Promise.all([
+): Promise<{
+  segments: AlibiSegment[]
+  clash: Clash | undefined
+  /** 開示済みの死亡推定時刻。まだ手に入っていなければ null。 */
+  estimatedDeathAt: string | null
+}> => {
+  const [truthRows, scenarioRows, evidenceRows, revelationRows] = await Promise.all([
     db
       .select({ timelineEvents: scenarioTruths.timelineEvents })
       .from(scenarioTruths)
       .where(eq(scenarioTruths.scenarioId, scenarioId))
       .limit(1),
     db
-      .select({ timeEnd: scenarios.timeEnd })
+      .select({ timeEnd: scenarios.timeEnd, estimatedDeathAt: scenarios.victimEstimatedDeathAt })
       .from(scenarios)
       .where(eq(scenarios.id, scenarioId))
       .limit(1),
-  ])
-
-  const events = truthRows[0]?.timelineEvents
-  const end = scenarioRows[0]?.timeEnd
-
-  if (events === undefined || events.length === 0 || end === null || end === undefined) {
-    return { segments: [], clash: undefined }
-  }
-
-  const [evidenceRows, revelationRows] = await Promise.all([
     discoveredEvidenceIds.length === 0
       ? Promise.resolve([])
       : db
@@ -353,6 +354,7 @@ const loadAlibiSegments = async (
             supports: evidences.supports,
             contradicts: evidences.contradicts,
             sources: evidences.sources,
+            revealsDeathTime: evidences.revealsDeathTime,
           })
           .from(evidences)
           .where(
@@ -374,6 +376,25 @@ const loadAlibiSegments = async (
             ),
           ),
   ])
+
+  const scenarioRow = scenarioRows[0]
+
+  /*
+    刻限を締める一手は、印の付いた証拠を掴んだときだけ。どの証拠が印を持っているかは
+    ここから外へ出さない——対応表を返せば、盤面が答え合わせの鍵を持つことになる
+    （docs/design/deadline-window.md）。掴む前は null で、画面は「不明」を描く。
+  */
+  const estimatedDeathAt = deathEstimateOf({
+    estimatedDeathAt: scenarioRow === undefined ? null : scenarioRow.estimatedDeathAt,
+    evidences: evidenceRows,
+  })
+
+  const events = truthRows[0]?.timelineEvents
+  const end = scenarioRow === undefined ? null : scenarioRow.timeEnd
+
+  if (events === undefined || events.length === 0 || end === null) {
+    return { segments: [], clash: undefined, estimatedDeathAt }
+  }
 
   /*
     嘘の紐は人物をまたいで平らにするが、誰の嘘かは持たせたまま運ぶ。
@@ -398,6 +419,7 @@ const loadAlibiSegments = async (
       lies: lieRows.flatMap((row) => row.lieRefs.map((lie) => ({ ...lie, who: row.id }))),
       evidences: evidenceRows,
     }),
+    estimatedDeathAt,
   }
 }
 
@@ -611,7 +633,7 @@ sessionRoutes.get('/api/sessions/:id', validateSessionId, withEnv, async (c) => 
     発見済みは必ず DO の snapshot から取る。discoveries / revelation_discoveries の
     行から数えると、DO への記録は成功して DB の insert が落ちた回でずれる。
   */
-  const board = await loadAlibiSegments(
+  const board = await loadBoard(
     db,
     scenarioId,
     snapshot.discoveredEvidenceIds,
@@ -650,6 +672,11 @@ sessionRoutes.get('/api/sessions/:id', validateSessionId, withEnv, async (c) => 
     })),
     alibiSegments: board.segments,
     clash: board.clash,
+    /*
+      死亡推定時刻。開示の判断はサーバが持ち、掴んだ後だけ時刻そのものを渡す。
+      発見時刻（公開情報）はシナリオ詳細のほうに最初から入っている。
+    */
+    estimatedDeathAt: board.estimatedDeathAt,
     turn: turnStateOf(snapshot.questionCount, limits.maxTurns, limits.questionsPerTurn),
   })
 })
@@ -1233,7 +1260,7 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
         リロードで組み直した表と食い違う。表の側は key で見分けるので、
         既に立っている線が送り直されても動き直さない。
       */
-      const board = await loadAlibiSegments(
+      const board = await loadBoard(
         db,
         scenarioId,
         snapshot.discoveredEvidenceIds,
@@ -1255,6 +1282,11 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
           suggestedQuestions: judgement.suggestedQuestions,
           alibiSegments: board.segments,
           clash: board.clash,
+          /*
+            刻限も毎回そのときの姿を返す。この話題で刻限を明かす証拠を掴んでいれば、
+            ここで初めて時刻が入る——リロードを待たずに盤面の点線が実線へ変わる。
+          */
+          estimatedDeathAt: board.estimatedDeathAt,
           questionCount,
           turn: turnStateOf(questionCount, limits.maxTurns, limits.questionsPerTurn),
         }),

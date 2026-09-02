@@ -151,7 +151,7 @@ describe('compileScenario: 月見荘のコンパイル', () => {
     expect(compiled.scenario.isPublished).toBe(true)
     expect(compiled.scenario.title).toBe('十七回忌の客')
     expect(compiled.characters).toHaveLength(3)
-    expect(compiled.evidences).toHaveLength(7)
+    expect(compiled.evidences).toHaveLength(9)
     expect(compiled.revelations).toHaveLength(2)
   })
 
@@ -524,5 +524,48 @@ describe('被害者の所見', () => {
     expect(compiled.scenario.victimInvestigable).toBe(true)
     expect(compiled.scenario.victimFoundAt).toBe('20:30')
     expect(compiled.truth.victimCauseOfDeath).not.toBeNull()
+  })
+})
+
+describe('死亡推定時刻を明かす印', () => {
+  test('印を立てた証拠だけが true で焼かれる', () => {
+    const marked = compiled.evidences.filter((evidence) => evidence.revealsDeathTime)
+
+    // 検死の一件と、医師の見立ての一件。どちらの道からでも刻限へ辿り着ける。
+    expect(marked.map((evidence) => evidence.label)).toEqual([
+      '遺体に残る中毒の徴候と、その進み具合',
+      '桐生が医師として述べた死亡推定時刻',
+    ])
+  })
+
+  test('印の無い証拠は false。時刻は公開側の列にだけ載る', () => {
+    const unmarked = compiled.evidences.filter((evidence) => !evidence.revealsDeathTime)
+
+    expect(unmarked.length).toBeGreaterThan(0)
+    // 時刻そのものは印と別の場所。サーバが両方を突き合わせて初めて盤面へ出る。
+    expect(compiled.scenario.victimEstimatedDeathAt).toBe('20:15')
+  })
+
+  test('死亡推定時刻を持たない事件では印を立てられない', () => {
+    const definition = makeMinimal()
+    const result = compileScenario(
+      {
+        ...definition,
+        victim: { name: '水野英治', introduction: '青雨堂店主' },
+        evidences: [
+          {
+            id: 'coroner-note',
+            label: '検死の覚え書き',
+            reveal: { condition: '遺体を調べたら開示する。' },
+            revealsDeathTime: true,
+          },
+        ],
+      },
+      { isPublished: true, newId: sequentialIds() },
+    )
+
+    expect(result.ok).toBe(false)
+    // 開けるべき時刻がどこにも無いまま印だけが立つと、掴んでも盤面が変わらない。
+    expect(result.ok ? [] : result.issues.join('\n')).toContain('revealsDeathTime')
   })
 })

@@ -1,5 +1,11 @@
 import { describe, expect, test } from 'bun:test'
-import { alibiSegmentsOf, clashOf, type LieRef, type RevealedClues } from '@/server/game/alibi'
+import {
+  alibiSegmentsOf,
+  clashOf,
+  deathEstimateOf,
+  type LieRef,
+  type RevealedClues,
+} from '@/server/game/alibi'
 import type { TimelineEvent } from '~/db/timeline-event'
 
 const event = (
@@ -230,5 +236,47 @@ describe('clashOf', () => {
     })
 
     expect(clash).toEqual({ at: '18:20', label: '食い違い', between: [MAKINO, SENA] })
+  })
+})
+
+describe('deathEstimateOf', () => {
+  /* 事件の記録が語っているのは発見時刻だけ。死亡推定は手に入れるまで盤面に出さない。 */
+  test('印の付いた証拠を掴むまでは開かない', () => {
+    expect(
+      deathEstimateOf({
+        estimatedDeathAt: '18:50',
+        evidences: [{ revealsDeathTime: false }, { revealsDeathTime: false }],
+      }),
+    ).toBeNull()
+  })
+
+  test('何も掴んでいなければ、当然まだ開かない', () => {
+    expect(deathEstimateOf({ estimatedDeathAt: '18:50', evidences: [] })).toBeNull()
+  })
+
+  test('印の付いた証拠が一つでもあれば時刻が出る', () => {
+    expect(
+      deathEstimateOf({
+        estimatedDeathAt: '18:50',
+        evidences: [{ revealsDeathTime: false }, { revealsDeathTime: true }],
+      }),
+    ).toBe('18:50')
+  })
+
+  /* 検死からでも医師の見立てからでも、辿り着く先は同じ一つの時刻。 */
+  test('道が二つ開いていても、返るのは一つの時刻', () => {
+    expect(
+      deathEstimateOf({
+        estimatedDeathAt: '18:50',
+        evidences: [{ revealsDeathTime: true }, { revealsDeathTime: true }],
+      }),
+    ).toBe('18:50')
+  })
+
+  /* 死亡推定時刻を書いていない事件では、印があっても出す時刻が無い。 */
+  test('時刻を持たない事件では、印があっても null', () => {
+    expect(
+      deathEstimateOf({ estimatedDeathAt: null, evidences: [{ revealsDeathTime: true }] }),
+    ).toBeNull()
   })
 })

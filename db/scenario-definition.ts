@@ -262,6 +262,19 @@ export const scenarioEvidenceSchema = z.object({
   sources: z.array(scenarioEvidenceSourceSchema).default([]),
   supports: z.array(localIdSchema).default([]),
   contradicts: z.array(nonemptyTextSchema).default([]),
+  /**
+   * この証拠を掴んだら、死亡推定時刻（`victim.estimatedDeathAt`）を盤面に出すか。
+   *
+   * 既定は false。印がひとつも無い事件では、刻限はプレイの最後まで「不明」のまま出る
+   * ——記録に書いてあるのは発見時刻だけで、死亡推定は手に入れて初めて分かるものだから
+   * （docs/design/deadline-window.md「何が窓を締めるか」）。
+   *
+   * 所見（findings）ではなく証拠の側に置いてある。開示済みかどうかをサーバが数えられるのは
+   * 証拠と啓示だけで、所見には「見せてよいか」の前提があるだけ——読んだという記録が
+   * どこにも残らないので、印を付けても開いたかどうかを判定できない。
+   * 遺体の検分から開かせたいときは `sources: { type: victim }` の証拠へ印を付ける。
+   */
+  revealsDeathTime: z.boolean().default(false),
 })
 
 export const scenarioSolutionSchema = z.object({
@@ -756,6 +769,18 @@ export const ScenarioDefinitionSchema = scenarioDefinitionShapeSchema.superRefin
           })
         }
       })
+
+      /*
+        死亡推定時刻を持たない事件で印だけ立てても、開示できる時刻がどこにも無い。
+        作者は「開いたはずなのに盤面が変わらない」ものを見ることになるので、ここで落とす。
+      */
+      if (evidence.revealsDeathTime && scenario.victim?.estimatedDeathAt === undefined) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['evidences', evidenceIndex, 'revealsDeathTime'],
+          message: 'victim.estimatedDeathAt の無い事件では revealsDeathTime を立てられません。',
+        })
+      }
 
       evidence.contradicts.forEach((reference, contradictIndex) => {
         const lieId = reference.startsWith('lie:') ? reference.slice(4) : undefined

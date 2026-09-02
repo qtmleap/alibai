@@ -31,13 +31,17 @@ export type ScenarioDetail = {
    * 画面はこれを見て聞き込みの相手に並べるかどうかを決める。所見そのものは真相側にあり、
    * ここには出てこない——調べて初めて分かるものなので。
    */
+  /*
+    死亡推定時刻はここに出さない。あれは手に入れて初めて分かるもので、公開側の列に
+    あるからといって支度の画面へ渡してよいわけではない——渡せば、一手も打っていない
+    プレイヤーのブラウザが答えを持つことになる。開示はセッションの状態が運ぶ
+    （`GET /api/sessions/:id` の estimatedDeathAt）。
+  */
   victim: {
     name: string
     introduction: string
     foundAt: string | null
     foundIn: string | null
-    /** 死亡推定時刻。アリバイ表を横断する刻限の線になる。 */
-    estimatedDeathAt: string | null
     investigable: boolean
   } | null
   /**
@@ -120,7 +124,6 @@ export const findScenarioDetail = async (
       victimFoundAt: scenarios.victimFoundAt,
       victimFoundIn: scenarios.victimFoundIn,
       victimInvestigable: scenarios.victimInvestigable,
-      victimEstimatedDeathAt: scenarios.victimEstimatedDeathAt,
       difficulty: scenarios.difficulty,
       estimatedMinutes: scenarios.estimatedMinutes,
     })
@@ -185,7 +188,6 @@ export const findScenarioDetail = async (
             introduction: scenario.victimIntroduction,
             foundAt: scenario.victimFoundAt,
             foundIn: scenario.victimFoundIn,
-            estimatedDeathAt: scenario.victimEstimatedDeathAt,
             investigable: scenario.victimInvestigable,
           },
     characters: characterRows,

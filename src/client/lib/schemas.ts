@@ -60,10 +60,14 @@ export const scenarioDetailSchema = scenarioSummarySchema.omit({ characterCount:
     .object({
       name: z.string().nonempty(),
       introduction: z.string().nonempty(),
+      /**
+       * 発見時刻と発見場所。事件の記録が既に語っている公開情報なので、支度の時点で届く。
+       *
+       * 死亡推定時刻はここに無い。あれは手に入れて初めて分かるもので、開示済みかどうかは
+       * サーバが判断してセッションの状態で運ぶ（`sessionStateSchema.estimatedDeathAt`）。
+       */
       foundAt: z.string().nonempty().nullable(),
       foundIn: z.string().nonempty().nullable(),
-      /** 死亡推定時刻。アリバイ表を横断する刻限の線になる。 */
-      estimatedDeathAt: z.string().nonempty().nullable(),
       /** 遺体を調べられる事件か。false なら聞き込みの相手に並べない。 */
       investigable: z.boolean(),
     })
@@ -188,6 +192,14 @@ export const sessionStateSchema = z.object({
   alibiSegments: z.array(alibiSegmentSchema).default([]),
   /** 供述が噛み合わない区間。表の上に一本だけ立つ印なので、揃うまで来ない。 */
   clash: clashSchema,
+  /**
+   * 開示済みの死亡推定時刻。まだ手に入れていなければ null で、盤面は「不明」を描く。
+   *
+   * どの証拠がこれを明かすのかという対応表はサーバに残り、ここへは来ない。
+   * 既定を null にしてあるのは、この項目より前のサーバが返してこないため
+   * ——古い応答では「まだ分かっていない」に倒れる（docs/design/deadline-window.md）。
+   */
+  estimatedDeathAt: z.string().nonempty().nullable().default(null),
   turn: turnStateSchema,
 })
 
@@ -200,6 +212,8 @@ export const judgementSchema = z.object({
   /** 増えた分ではなく、その時点で引ける線すべて。表はこれで置き換える。 */
   alibiSegments: z.array(alibiSegmentSchema).default([]),
   clash: clashSchema,
+  /** 線と同じく、増えた分ではなくその時点の姿。刻限が開いた回にだけ時刻が入る。 */
+  estimatedDeathAt: z.string().nonempty().nullable().default(null),
   questionCount: z.number().int(),
   turn: turnStateSchema,
 })

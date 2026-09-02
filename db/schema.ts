@@ -270,6 +270,17 @@ export const evidences = sqliteTable(
      * 盤面のどこが怪しいかを一本の線として指せる。
      */
     contradicts: text('contradicts', { mode: 'json' }).$type<string[]>().notNull().default([]),
+    /**
+     * この証拠が死亡推定時刻を明かすか。
+     *
+     * 時刻そのものは scenarios.victimEstimatedDeathAt にあり、こちらは「開けてよいか」の印だけ。
+     * サーバはこの列を見て、掴んだ証拠に一つでも印があるときだけ時刻をクライアントへ渡す
+     * ——どの証拠が答えを明かすのかという対応表そのものは、決して盤面へ送らない。
+     *
+     * 既定が false なのは、この列より前に焼かれた行があるため。印の無い事件では
+     * 刻限は「不明」のまま出る（docs/design/deadline-window.md）。
+     */
+    revealsDeathTime: integer('reveals_death_time', { mode: 'boolean' }).notNull().default(false),
   },
   (table) => [index('evidences_scenario_id_idx').on(table.scenarioId)],
 )
