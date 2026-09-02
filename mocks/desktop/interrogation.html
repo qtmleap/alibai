@@ -52,13 +52,13 @@
           -->
           <div class="newfact" data-mock-id="ALI_INT_15">
             <span class="k t">新事実</span>
-            <span class="v">牧野は午後六時三十五分に店を出たと述べた</span>
+            <span class="v" id="newfact"></span>
           </div>
 
           <div class="log" id="log" data-mock-id="ALI_INT_06"></div>
 
           <div class="hint" id="hint" data-mock-id="ALI_INT_08">
-            <div class="hd"><span>訊けそうなこと</span><span>▲</span></div>
+            <div class="hd"><span id="hintHead"></span><span>▲</span></div>
           </div>
 
           <!-- 文言は相手で変わる。人には訊き、遺体は調べる（下の script が差し替える）。 -->
@@ -78,8 +78,12 @@
         // 一枚だけ開いて撮ったときに白紙にならないよう、既定を中盤に置く。
         var st = Mock.play(Mock.num('turn', 4), Mock.str('who', undefined))
         var me = Mock.cast[st.current]
-        // 遺体を調べているあいだ。喋る相手ではないので、文言も肩書も変わる。
-        var examining = st.current === C.victim.key
+        /*
+          遺体か現場を調べているあいだ。喋る相手ではないので、文言も肩書も変わる。
+          場所はアリバイ表に列を持たないので、ここで開いても表の見出しは光らない——
+          机の上で場所へ相手を替える口は、まだ支度の名簿だけ。
+        */
+        var examining = Mock.examines(st.current)
 
         document.getElementById('ttl').textContent = C.title
         document.getElementById('turns').textContent = st.turn + ' / ' + C.turns + ' ターン'
@@ -104,6 +108,12 @@
 
         document.getElementById('askbox').textContent = examining ? '何を調べる？' : '何について訊く？'
         document.getElementById('askbtn').textContent = examining ? '調べる' : '訊く'
+        document.getElementById('hintHead').textContent = examining
+          ? '調べられそうなこと'
+          : '訊けそうなこと'
+        // 帯に出るのは直前に増えた一行。場所を調べていれば、証言ではなく所見から来る。
+        document.getElementById('newfact').textContent =
+          me.fact === undefined ? '牧野は午後六時三十五分に店を出たと述べた' : me.fact
 
         // 直近の三塊だけ残す。上は溢れるに任せ、切れ口は CSS の霞が引き受ける。
         document.getElementById('log').innerHTML = Mock.log(st.log.slice(-6))
