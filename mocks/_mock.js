@@ -46,6 +46,75 @@
   // 10分ごとの目盛り。表と突き合わせで同じものを使う。
   var TICKS = Array.from({ length: SPAN.len / 10 + 1 }, (_, i) => i * 10)
 
+  var topOf = (at) => (toMin(at) - SPAN.from) * PX_PER_MIN
+
+  /*
+   * 刻限の印（docs/design/deadline-window.md）。
+   *
+   * 遺体発見は事件の記録に書いてある公開情報なので常に実線で出す。死亡推定のほうは
+   * 手に入れた確度で描き分ける——同じ 18:50 でも、探偵が検死して出した数字と、
+   * 居合わせた誰かがそう言っているだけの数字は別物なので。
+   *
+   * 面は塗らない。窓は両端に返しの付いた線で示す。塗ると容疑者の帯と競う。
+   */
+  var deathMarks = (name) => {
+    var state = C.death[name] === undefined ? C.death.unknown : C.death[name]
+    var line = (top, cls, label, time) =>
+      '<span class="deadline' +
+      (cls ? ' ' + cls : '') +
+      '" style="top:' +
+      top +
+      'px"><span>' +
+      label +
+      '　<span class="t">' +
+      time +
+      '</span></span></span>'
+    var win = (top, height, cls, label, time, style) =>
+      '<span class="window' +
+      (cls ? ' ' + cls : '') +
+      '" style="top:' +
+      top +
+      'px;height:' +
+      height +
+      'px' +
+      (style || '') +
+      '"><span>' +
+      label +
+      '　<span class="t">' +
+      time +
+      '</span></span></span>'
+
+    var html = line(topOf(C.found), '', '遺体発見', C.found)
+    var top = state.from === undefined ? 0 : topOf(state.from)
+    var who = state.by === undefined ? undefined : CAST_BY_KEY[state.by]
+
+    if (state.kind === 'fixed') {
+      return html + line(topOf(state.at), '', '死亡推定', state.at)
+    }
+
+    if (state.kind === 'range') {
+      return html + win(top, topOf(state.to) - top, '', '死亡推定', state.from + '–' + state.to)
+    }
+
+    if (state.kind === 'claimed') {
+      return (
+        html +
+        line(topOf(state.at), 'claimed', '死亡推定', '? ' + state.at) +
+        '<span class="by" style="top:' +
+        topOf(state.at) +
+        'px;color:var(--' +
+        who.hue +
+        LIT +
+        ')">' +
+        esc(who.short) +
+        'の見立て</span>'
+      )
+    }
+
+    // 不明。どこか一点を指せないので、分かっている幅ぜんぶを点線の窓で囲う。
+    return html + win(0, topOf(C.found), 'unknown', '死亡推定', '?')
+  }
+
   /*
    * 罫と左の目盛り。アリバイ表と結果の突き合わせで同じ格子を敷くので、
    * 二度書かない——片方だけ直したときに、同じはずの表が食い違う。
@@ -231,15 +300,7 @@
       html += '</span>'
     })
 
-    var dl = (toMin(C.deadline.at) - SPAN.from) * PX_PER_MIN
-    html +=
-      '<span class="deadline" style="top:' +
-      dl +
-      'px" data-mock-id="ALI_INT_13"><span>' +
-      esc(C.deadline.label) +
-      '　<span class="t">' +
-      C.deadline.at +
-      '</span></span></span>'
+    html += deathMarks(opts.death)
 
     /*
      * 食い違い。噛み合わない二人の列のあいだに一本だけ架ける。

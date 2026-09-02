@@ -100,6 +100,8 @@
           active: st.current,
           clash: st.clash,
           litFix: '19:08　受付',
+          // 刻限の状態は #death= で切り替える（docs/design/deadline-window.md）。
+          death: Mock.str('death', 'unknown'),
         })
 
         document.getElementById('who').textContent = me.name

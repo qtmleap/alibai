@@ -389,7 +389,8 @@ select {
 /* 直の子だけ。子孫まで拾うと、中の .t までもう一段持ち上がって時刻が宙に浮く。 */
 .deadline > span {
   position: absolute;
-  right: 0;
+  /* 窓の芯（右端 2px）より左に置く。重ねると点線が時刻の上を走る。 */
+  right: 12px;
   top: -17px;
   white-space: nowrap;
   font-family: var(--mincho);
@@ -399,6 +400,68 @@ select {
 }
 .deadline span .t {
   color: var(--nezumi-dim);
+}
+
+/* 第三者がそう言っているだけの刻限。裏が取れていないので点線にする。 */
+.deadline.claimed {
+  background: none;
+  border-top: 1px dotted var(--nezumi-dim);
+  height: 0;
+}
+/* 誰の見立てかを線の下に添える。顔料はその人のもの（色は JS が差す）。 */
+.by {
+  position: absolute;
+  right: 0;
+  margin-top: 4px;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+/*
+ * 刻限の窓。幅そのものが「まだ分かっていない量」なので、塗らずに
+ * 両端へ返しの付いた一本の線で示す。面を足すと容疑者の帯と競う。
+ */
+.window {
+  position: absolute;
+  right: 2px;
+  width: 1px;
+  background: var(--nezumi-dim);
+}
+.window::before,
+.window::after {
+  content: "";
+  position: absolute;
+  left: -3px;
+  width: 7px;
+  height: 1px;
+  background: var(--nezumi-dim);
+}
+.window::before {
+  top: 0;
+}
+.window::after {
+  bottom: 0;
+}
+.window > span {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  font-family: var(--mincho);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--nezumi);
+}
+.window span .t {
+  color: var(--nezumi-dim);
+}
+/* まだ何も無い状態。芯を点線にして、時刻の代わりに ? を置く。 */
+.window.unknown {
+  background: none;
+  width: 0;
+  border-left: 1px dotted var(--nezumi-dim);
 }
 
 /* 食い違い。表の上でひとつだけ立つ印。
