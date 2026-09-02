@@ -794,9 +794,29 @@ select {
   display: contents;
 }
 .talk-head {
+  position: relative;
   padding-bottom: 14px;
   border-bottom: 1px solid var(--keisen);
   flex: none;
+}
+/*
+ * 調べられる場所への切り替え。人は表の列見出しから選べるが、場所は表に列を持たない。
+ * 名札の右上に小さく置く。答えない相手なので顔料は持たせず、灰のまま並べる。
+ */
+.talk-head .places {
+  position: absolute;
+  right: 0;
+  top: 5px;
+  display: flex;
+  gap: 15px;
+  font-size: 11.5px;
+}
+.talk-head .places a {
+  color: var(--nezumi-dim);
+  text-decoration: none;
+}
+.talk-head .places a:hover {
+  color: var(--nezumi);
 }
 .talk-head .nm {
   font-family: var(--mincho);
