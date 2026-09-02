@@ -18,6 +18,17 @@ victim:
       statement: 高瀬修司は運行事務室で倒れており、その場で死亡が確認されている。
     - id: victim-motive-material
       statement: 遺体のそばには「制動点検記録と作業履歴の不一致」に関わる資料が残されている。
+places:
+  - id: emergency-cabin
+    name: 非常用搬器
+    shortName: 非常搬器
+    introduction: 非常時と保守点検に使う、小型の予備搬器
+    situation: 営業終了後の点検位置で停止している
+    findings:
+      - id: seat-senses-weight
+        statement: 点検席のセンサーは人物を識別せず、一定以上の重量が掛かると「乗員1」を表示する。
+      - id: tool-case-triggers-seat
+        statement: 保守用工具ケースだけを点検席へ置いても、監視盤の表示は「乗員1」へ切り替わる。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -341,11 +352,12 @@ evidences:
     label: 非常用搬器の座席重量仕様
     description: 『乗員1』は一定以上の荷重で点灯し、保守用工具ケースだけでも同じ表示になる。21時台にはそのケースが点検席へ置かれていた。
     reveal:
-      condition: 須藤、長峰、折原のいずれかに『乗員1』表示の検知方式と工具ケースについて尋ねたら開示する。
+      condition: 須藤、長峰、折原のいずれかに『乗員1』表示の検知方式と工具ケースについて尋ねたら開示する。または非常用搬器を調べ、座席センサーが重量だけを検知することと工具ケースの重さを確認したら開示する。
     sources:
       - { type: character, id: sudo }
       - { type: character, id: nagamine }
       - { type: character, id: orihara }
+      - { type: location, id: emergency-cabin }
     supports:
       [
         cabin-display-weight-based,

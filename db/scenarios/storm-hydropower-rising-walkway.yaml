@@ -17,6 +17,17 @@ victim:
       statement: 峰岸達也は旧制御室で倒れており、その場で死亡が確認されている。
     - id: victim-motive-material
       statement: 遺体のそばには「未実施箇所の点検票」に関わる資料が残されている。
+places:
+  - id: old-walkway
+    name: 旧保守歩廊
+    shortName: 旧歩廊
+    introduction: 排水区画に残る、現在は使われていない保守通路
+    situation: 現在は増水で水に覆われ、入口から先へ進めない
+    findings:
+      - id: walkway-connects-control
+        statement: 設備図と入口の表示から、この歩廊は正面扉を通らず旧制御室へ入れる接続口まで続いている。
+      - id: reddish-silt-floor
+        statement: 水際より手前の床には、この歩廊周辺に特有の赤褐色の堆積泥が残っている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -324,12 +335,13 @@ evidences:
     label: 旧保守歩廊の接続図
     description: 正面扉とは別に、排水区画側から旧制御室へ接続する保守歩廊がある。
     reveal:
-      condition: 城戸に旧制御室の保守経路を尋ねるか、谷口に設備図上の接続を確認したら開示する。
+      condition: 城戸に旧制御室の保守経路を尋ねるか、谷口に設備図上の接続を確認したら開示する。または旧保守歩廊を調べ、旧制御室への接続口を確認したら開示する。
     sources:
       - type: character
         id: kido
       - type: character
         id: taniguchi
+      - { type: location, id: old-walkway }
     supports: [ old-walkway-connects ]
     contradicts: [ "lie:kido-impossible-entry" ]
   - id: reddish-silt

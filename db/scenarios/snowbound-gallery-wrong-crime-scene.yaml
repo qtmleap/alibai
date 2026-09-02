@@ -17,6 +17,17 @@ victim:
       statement: 荻原直哉は保存庫で倒れており、その場で死亡が確認されている。
     - id: victim-motive-material
       statement: 遺体のそばには「修復工程と材料在庫の不一致」に関わる資料が残されている。
+places:
+  - id: framing-room
+    name: 額装作業室
+    shortName: 額装室
+    introduction: 作品台紙の加工と搬送準備を行う作業室
+    situation: 作業台と資材棚が、閉館時のまま残されている
+    findings:
+      - id: framing-paper-traces
+        statement: 床に散った紙片は、その夜に荻原が確認していた作品台紙と同じ材質である。
+      - id: cart-used-again
+        statement: 清掃後に戻された作品搬送台車には、その後もう一度動かされた車輪跡が残っている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -305,12 +316,13 @@ evidences:
     label: 額装作業室の台紙片
     description: 清掃後の額装作業室に、荻原が確認していた作品台紙と同じ紙片が散っている。
     reveal:
-      condition: 朝倉に事件後の額装作業室で気づいた変化を尋ねたら開示する。
+      condition: 朝倉に事件後の額装作業室で気づいた変化を尋ねたら開示する。または額装作業室を調べ、床の台紙片と作業台周辺の痕跡を確認したら開示する。
     sources:
       - type: character
         id: asakura
       - type: character
         id: kosaka
+      - { type: location, id: framing-room }
     supports: [ framing-paper-fibers, kosaka-killed-ogiwara-framing ]
     contradicts: [ "lie:kosaka-vault-crime" ]
   - id: cart-trace

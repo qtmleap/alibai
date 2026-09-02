@@ -17,6 +17,17 @@ victim:
       statement: 今泉孝臣は資料庫で倒れており、その場で死亡が確認されている。
     - id: victim-motive-material
       statement: 遺体のそばには「修復処置記録と資料状態の不一致」に関わる資料が残されている。
+places:
+  - id: rare-vault
+    name: 希少資料庫
+    shortName: 資料庫
+    introduction: 貴重資料を保管する、厚い防火扉の資料庫
+    situation: 重い扉が閉じ、廊下側には開錠用の鍵穴がある
+    findings:
+      - id: self-locking-latch
+        statement: 扉は廊下側から開けるときだけ鍵を使い、外へ出て閉じればラッチが自動で掛かる構造になっている。
+      - id: door-contact-window
+        statement: 扉センサーには21時09分から21時22分まで開放が続き、その後に閉じた記録が残っている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -315,10 +326,11 @@ evidences:
     label: 希少資料庫の自動施錠仕様
     description: 廊下側から開ける時だけ館長鍵が必要で、外へ出て扉を閉めるとラッチが自動で掛かる。施錠操作に鍵は不要である。
     reveal:
-      condition: 八神か戸塚に資料庫の鍵が開錠と施錠のどちらに必要なのか具体的に尋ねたら開示する。
+      condition: 八神か戸塚に資料庫の鍵が開錠と施錠のどちらに必要なのか具体的に尋ねたら開示する。または希少資料庫の扉を調べ、閉じるだけで施錠されるラッチ構造を確認したら開示する。
     sources:
       - { type: character, id: yagami }
       - { type: character, id: tozuka }
+      - { type: location, id: rare-vault }
     supports: [vault-key-only-opens, vault-self-locks, key-found-on-imaizumi]
     contradicts: ["lie:yagami-key-needed-to-lock"]
   - id: door-contact-log

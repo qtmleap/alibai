@@ -17,6 +17,17 @@ victim:
       statement: 岩代圭吾は地図解析室で倒れており、その場で死亡が確認されている。
     - id: victim-motive-material
       statement: 遺体のそばには「試料ラベルと測量座標の不一致」に関わる資料が残されている。
+places:
+  - id: survey-zone
+    name: 自動測量区画
+    shortName: 測量区画
+    introduction: 測量カートの校正と位置タグ確認を行う研究区画
+    situation: カートと位置タグの充電台が壁沿いに並んでいる
+    findings:
+      - id: cart-tag-fastener
+        statement: 測量カートの収納ベルトには、小型の位置タグを固定できる留め具と新しい擦れ跡がある。
+      - id: cart-track-overlay
+        statement: 端末に残るカートの走行軌跡と位置タグの軌跡は、同じ時間帯に同じ経路を通っている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -309,11 +320,12 @@ evidences:
     label: 位置タグと自動測量カートの軌跡比較
     description: 香川の位置タグと自動測量カートが、21時00分から15分まで同じ地点を同じ時刻に通過している。二つの軌跡は実質的に重なる。
     reveal:
-      condition: 香川、結城、新堂のいずれかに位置タグの軌跡と自動測量カートの運行を比較できないか尋ねたら開示する。
+      condition: 香川、結城、新堂のいずれかに位置タグの軌跡と自動測量カートの運行を比較できないか尋ねたら開示する。または自動測量区画を調べ、カートの走行跡と位置タグの固定跡を照合したら開示する。
     sources:
       - { type: character, id: kagawa }
       - { type: character, id: yuki }
       - { type: character, id: shindo }
+      - { type: location, id: survey-zone }
     supports: [locator-tag-removable, mapping-cart-auto-loop, kagawa-tag-on-cart, tag-track-matches-cart]
     contradicts: ["lie:kagawa-location-alibi", "lie:kagawa-wore-tag"]
   - id: tagless-sighting

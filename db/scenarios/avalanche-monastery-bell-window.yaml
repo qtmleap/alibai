@@ -11,12 +11,24 @@ victim:
   introduction: 修道院資料館館長
   foundAt: 21:40
   foundIn: 資料整理室
+  estimatedDeathAt: "21:05"
   causeOfDeath: 事件性のある外傷による死亡
   findings:
     - id: victim-state
       statement: 高瀬静一は資料整理室で倒れており、その場で死亡が確認されている。
     - id: victim-motive-material
       statement: 遺体のそばには「修復費の追加請求一覧」に関わる資料が残されている。
+places:
+  - id: choir-access
+    name: 聖歌席裏
+    shortName: 聖歌席裏
+    introduction: 鐘の修復資材が置かれた、一階の作業区画
+    situation: 木箱と工事用の札がまとめて置かれている
+    findings:
+      - id: test-line-still-present
+        statement: 点検口の奥に仮設試験線が残り、工事タグも撤去済みの状態にはなっていない。
+      - id: test-line-reaches-bell
+        statement: 仮設試験線は、鐘塔へ入らず一階側から鐘の作動確認を行える配線になっている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -198,6 +210,8 @@ characters:
     memories:
       - id: assumed-removed
         detail: 前日の作業員が「試験は終わり」と言っていたので、仮設線そのものも外したのだと思い込んでいた。
+      - id: death-estimate-memory
+        detail: 発見時の高瀬の状態と冷えた資料整理室の様子を確認しており、死亡は21時05分ごろと見積もられるという確認内容を覚えている。
     relationships:
       - character: mizuki
         relation: 工事監理者
@@ -265,12 +279,13 @@ evidences:
     label: 聖歌席裏の工事タグ
     description: 点検口には仮設試験線がまだ接続中であることを示す工事タグが残っている。
     reveal:
-      condition: 玄田に聖歌席裏の点検口で見たものを尋ねるか、水城に仮設線の撤去状況を確認したら開示する。
+      condition: 玄田に聖歌席裏の点検口で見たものを尋ねるか、水城に仮設線の撤去状況を確認したら開示する。または聖歌席裏の点検口を調べ、残った工事タグと仮設線を確認したら開示する。
     sources:
       - type: character
         id: genda
       - type: character
         id: mizuki
+      - { type: location, id: choir-access }
     supports: [test-line-tag-remained, temporary-test-line-exists]
     contradicts: ["lie:mizuki-bell-alibi"]
   - id: no-visual-confirmation
@@ -319,6 +334,17 @@ evidences:
         id: genda
     supports: [genda-secret-key-copy]
     contradicts: ["lie:genda-no-copy-key"]
+  - id: death-estimate
+    label: 発見時の死亡推定
+    description: 資料整理室の室温と発見時の状態を照合すると、高瀬が死亡したのは21時05分ごろと見積もられる。21時20分の鐘より前である。
+    reveal:
+      condition: 遺体を調べて発見時の状態から死亡時刻を推定するか、玄田に発見時の状態と確認内容を具体的に尋ねたら開示する。
+    sources:
+      - { type: victim, id: victim }
+      - { type: character, id: genda }
+    supports: [mizuki-killed-takase]
+    contradicts: []
+    revealsDeathTime: true
 solution:
   culprit: mizuki
   summary: 犯人は水城奈央。修復費の架空請求を高瀬に見つけられ、翌朝までの説明を求められたことから高瀬を襲った。その後、水城は自分が設計した仮設試験線を利用し、21時20分に塔へ入らず鐘を鳴らした。三人は毎晩の習慣から高瀬本人が鐘を鳴らしたと解釈したが、誰もその時刻の高瀬を見ていない。工事系統図と聖歌席裏に残ったタグから、鐘は鍵なしでも鳴らせたと分かる。鐘の音は時刻の手掛かりではあっても、高瀬の生存証明ではなかった。

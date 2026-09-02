@@ -272,6 +272,8 @@ characters:
     memories:
       - id: office-corridor-aizawa
         detail: 21時29分ごろ、設備盤の時計を確認した直後に、執務室前の廊下から相沢が出てきた。本人は気づかず講義室方向へ急いでいた。
+      - id: death-estimate-memory
+        detail: 発見時に執務室の状態を確認しており、榊原の死亡は21時28分ごろと見積もられるという確認内容を覚えている。
     relationships: []
 
 revelations:
@@ -420,6 +422,17 @@ evidences:
     supports: [ horie-hid-room-use ]
     contradicts: [ "lie:horie-no-private-room" ]
 
+  - id: death-estimate
+    label: 執務室の死亡推定
+    description: 執務室の室温と発見時の状態から、榊原の死亡は21時28分ごろと見積もられる。21時42分のメール送信より前である。
+    reveal:
+      condition: 遺体を調べて発見時の状態を確認するか、堀江に執務室へ入ったときの状態と確認内容を尋ねたら開示する。
+    sources:
+      - { type: victim, id: victim }
+      - { type: character, id: horie }
+    supports: [aizawa-killed-sakakibara]
+    contradicts: []
+    revealsDeathTime: true
 solution:
   culprit: aizawa
   summary: 犯人は相沢奈緒。小口支出を使った財団資金の流用を榊原に見抜かれ、翌朝に文書管理から外され監査担当へ記録を渡される予定だった。相沢は榊原が夕方に21時42分の予定送信メールを設定したことを知っていた。21時24分ごろ執務室へ入り、21時28分ごろ榊原を襲い、21時29分には堀江が執務室前から出てくる相沢を目撃している。相沢は21時35分から羽鳥と講義室にいて、その後には確かなアリバイがある。21時42分、榊原が夕方に作成したメールが自動送信され、榊原がその時刻まで生きていたように見えたため、相沢の21時35分以降のアリバイが犯行時間と重なって見えた。

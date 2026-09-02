@@ -18,6 +18,17 @@ victim:
       statement: 桐谷宗介は帳場奥で倒れており、その場で死亡が確認されている。
     - id: victim-motive-material
       statement: 遺体のそばには「不自然な仕入れ伝票」に関わる資料が残されている。
+places:
+  - id: old-stairs
+    name: 厨房脇の旧階段
+    shortName: 旧階段
+    introduction: 厨房脇に残る、普段使われない古い木造階段
+    situation: 古い木造の隔壁と手すりがそのまま残されている
+    findings:
+      - id: partition-carries-taps
+        statement: 手すりを軽く叩くと、木の中空隔壁を通って二階廊下側へ乾いた音がよく響く。
+      - id: cane-height-marks
+        statement: 隔壁には、桐谷の杖の金属部分と高さの合う新しい打痕が残っている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -213,6 +224,8 @@ characters:
     memories:
       - id: hollow-wall
         detail: 旧階段と二階北廊下の間は昔の中空壁が連続していて、硬い音だけが意外なほど遠くへ抜ける。
+      - id: death-estimate-memory
+        detail: 発見時の帳場奥の状態を確認しており、桐谷の死亡は21時08分ごろと見積もられるという確認内容を覚えている。
     relationships:
       - character: akiwa
         relation: 宿スタッフ
@@ -278,12 +291,13 @@ evidences:
     label: 旧階段と二階廊下の中空壁
     description: 二つの区画は同じ古い中空隔壁に接し、旧階段側の硬い音が二階から聞こえることがある。
     reveal:
-      condition: 榊原に古い建物の音の伝わり方を尋ねるか、秋庭に旧階段で音が響くことを知っていたか確認したら開示する。
+      condition: 榊原に古い建物の音の伝わり方を尋ねるか、秋庭に旧階段で音が響くことを知っていたか確認したら開示する。または厨房脇の旧階段を調べ、隔壁の構造と音の伝わり方を確認したら開示する。
     sources:
       - type: character
         id: sakakibara
       - type: character
         id: akiwa
+      - { type: location, id: old-stairs }
     supports: [old-partition-transmits]
     contradicts: ["lie:akiwa-cane-proves-alive"]
   - id: cane-kitchen
@@ -344,6 +358,17 @@ evidences:
         id: sakakibara
     supports: [sakakibara-secret-materials]
     contradicts: ["lie:sakakibara-no-materials"]
+  - id: death-estimate
+    label: 帳場奥の死亡推定
+    description: 帳場奥の室温と発見時の状態から、桐谷の死亡は21時08分ごろと見積もられる。21時25分に聞かれた杖音より前である。
+    reveal:
+      condition: 遺体を調べて発見時の状態を確認するか、榊原に発見時の室内と確認内容を尋ねたら開示する。
+    sources:
+      - { type: victim, id: victim }
+      - { type: character, id: sakakibara }
+    supports: [akiwa-killed-kiritani]
+    contradicts: []
+    revealsDeathTime: true
 solution:
   culprit: akiwa
   summary: 犯人は秋庭澄。仕入れ業者から謝礼を受けていたことを桐谷に見抜かれ、翌朝の契約見直しを告げられたため桐谷を襲った。秋庭は桐谷の杖を厨房脇へ持ち出し、旧階段の中空壁へ金属部分を当てて特徴的な音を作った。森崎は長年聞き慣れた音だったため二階を桐谷が歩いていると思ったが、実際には足音も声も確認していない。杖が厨房脇で見つかったこと、旧階段に新しい打痕があること、建物の構造上そこから二階へ硬い音が伝わることを合わせると、九時二十五分の音は桐谷の生存証明ではない。

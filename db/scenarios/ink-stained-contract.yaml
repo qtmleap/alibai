@@ -11,6 +11,7 @@ victim:
   introduction: 出版社「青燈社」編集長
   foundAt: 21:00
   foundIn: 編集長室
+  estimatedDeathAt: "20:41"
   causeOfDeath: 事件性のある外傷による死亡
   findings:
     - id: victim-state
@@ -186,6 +187,8 @@ characters:
     memories:
       - id: kawase-at-door
         detail: 20時44分ごろ、編集長室の扉を静かに閉めて離れる川瀬を見た。声をかけたが返事が短かった。
+      - id: death-estimate-memory
+        detail: 発見時の石橋の状態と編集長室の室温を確認しており、死亡は20時41分ごろと見積もられるという確認内容を覚えている。
     relationships:
       - character: kawase
         relation: 仕事上の取引相手
@@ -306,6 +309,17 @@ evidences:
         id: fujimoto
     supports: [fujimoto-leaked-manuscript]
     contradicts: ["lie:fujimoto-no-leak"]
+  - id: death-estimate
+    label: 編集長室の死亡推定
+    description: 編集長室の室温と発見時の状態を合わせると、石橋の死亡は20時41分ごろと見積もられる。20時50分の署名時刻より前である。
+    reveal:
+      condition: 遺体を調べて発見時の状態から死亡時刻を推定するか、藤本に発見時に確認した状態と時刻について尋ねたら開示する。
+    sources:
+      - { type: victim, id: victim }
+      - { type: character, id: fujimoto }
+    supports: [kawase-killed-ishibashi-2041]
+    contradicts: []
+    revealsDeathTime: true
 solution:
   culprit: kawase
   summary: 犯人は川瀬梨奈。海外版権収入の一部を留保していた不正を石橋に見抜かれ、翌朝に契約を打ち切って作家と弁護士へ知らせると告げられた。川瀬は20時38分ごろ編集長室へ入り、20時41分ごろ石橋を襲った。20時44分には藤本が編集長室前から離れる川瀬を見ている。その後20時47分、川瀬は新しい契約書を印刷し、石橋が20時50分に署名したように見える書類を作った。しかしプリンター記録はその紙が20時47分に初めて作られたことを示し、署名を生存証明として使う川瀬の説明を崩す。志堂の盗用と藤本の原稿漏洩は独立した秘密である。

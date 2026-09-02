@@ -226,6 +226,8 @@ characters:
     memories:
       - id: yuna-discovery-clock
         detail: 医療区時計では06時08分だったが、標準時表示では06時28分だったのを覚えている。
+      - id: death-estimate-memory
+        detail: 医療担当として発見時の状態を確認し、死亡は船内標準時05時57分ごろと見積もっている。人工昼夜表示ではなく標準時で記録した。
     relationships:
       - character: sera
         relation: 同僚
@@ -312,6 +314,17 @@ evidences:
       - { type: character, id: yuna }
     supports: [ yuna-private-medication ]
     contradicts: [ "lie:yuna-no-private-supply" ]
+  - id: death-estimate
+    label: 医療区の死亡推定
+    description: 医療センサーによる発見時の確認では、ミラの死亡は船内標準時05時57分ごろと見積もられる。区画ごとの人工時刻とは別の基準である。
+    reveal:
+      condition: 遺体を調べて医療センサーの確認値を見るか、医療担当のユナに死亡推定を船内標準時で尋ねたら開示する。
+    sources:
+      - { type: victim, id: victim }
+      - { type: character, id: yuna }
+    supports: [sera-killed-mira]
+    contradicts: []
+    revealsDeathTime: true
 solution:
   culprit: sera
   summary: 犯人はセラ・イワノフ。希少種子の流用をミラに見抜かれ、中央評議会へ報告されるのを恐れた。セラは農業区の人工時刻を使って「06時05分には農業区にいた」と語り、聞き手が船内標準時の06時05分だと思うよう誘導した。しかし農業区の06時00分は標準時05時40分で、農業区06時05分は標準時05時45分にすぎない。標準時05時52分にはダリオが種子保管区へ向かうセラを目撃し、05時57分ごろ事件が起きている。区画ごとの複数の朝を一つの時系列へ換算するとアリバイは消える。

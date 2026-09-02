@@ -17,6 +17,17 @@ victim:
       statement: 鳥羽薫は収蔵庫前で倒れており、その場で死亡が確認されている。
     - id: victim-motive-material
       statement: 遺体のそばには「鳥羽の額装検査メモ」に関わる資料が残されている。
+places:
+  - id: restoration-room
+    name: 修復室
+    shortName: 修復室
+    introduction: 紫外線検査装置と修復用の作業台がある部屋
+    situation: 検査装置は停止し、作業台だけが照明に浮かんでいる
+    findings:
+      - id: uv-power-gap
+        statement: 紫外線検査装置の履歴には、18時37分から18時51分まで電源が切れていた空白がある。
+      - id: uv-resume-time
+        statement: 装置は18時51分に再起動しており、その前の検査状態が連続していたわけではない。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -257,12 +268,13 @@ evidences:
     label: 紫外線検査装置の電源履歴
     description: 装置は18時35分に起動したが、18時37分から18時51分まで停止している。
     reveal:
-      condition: 榊に検査を続けていた時間帯を尋ねるか、榎本に修復室の機器ログを確認できないか尋ねたら開示する。
+      condition: 榊に検査を続けていた時間帯を尋ねるか、榎本に修復室の機器ログを確認できないか尋ねたら開示する。または修復室を調べ、紫外線検査装置の電源履歴を確認したら開示する。
     sources:
       - type: character
         id: sakaki
       - type: character
         id: enomoto
+      - { type: location, id: restoration-room }
     supports: [uv-test-started, uv-lamp-off-1837, uv-test-resumed]
     contradicts: ["lie:sakaki-uv-alibi"]
   - id: enomoto-sighting

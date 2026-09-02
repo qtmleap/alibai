@@ -11,12 +11,24 @@ victim:
   introduction: 私設時計博物館学芸員長
   foundAt: 20:42
   foundIn: 修復室
+  estimatedDeathAt: "20:28"
   causeOfDeath: 事件性のある外傷による死亡
   findings:
     - id: victim-state
       statement: 倉橋宗一は修復室で倒れており、その場で死亡が確認されている。
     - id: victim-motive-material
       statement: 遺体のそばには「倉橋の来歴照合メモ」に関わる資料が残されている。
+places:
+  - id: master-clock
+    name: 親時計盤
+    shortName: 親時計
+    introduction: 館内の展示時計と時報へ基準時刻を配る同期盤
+    situation: 保守扉に夕方の同期試験票が挟まれたままになっている
+    findings:
+      - id: master-clock-offset
+        statement: 親時計盤の補正値は正しい時刻より十一分進む設定になっている。
+      - id: independent-security-clock
+        statement: 防災端末の時刻は親時計盤と別系統で、同じ瞬間を十一分早い数字で記録している。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -229,6 +241,8 @@ characters:
     memories:
       - id: master-clock-looked-odd
         detail: 20時台に自分の腕時計と中央ホールの時計を見比べ、館内時計の方がかなり進んでいる気がしたが、作業中で深く考えなかった。
+      - id: death-estimate-memory
+        detail: 発見時の確認内容を防災端末の正しい時刻で控えており、倉橋の死亡は20時28分ごろと見積もられると覚えている。
     relationships:
       - character: shiba
         relation: 同僚
@@ -318,10 +332,11 @@ evidences:
     label: 親時計と防災端末の時刻差
     description: 防災端末が20時19分を記録した瞬間の監視画像で、中央ホールの親時計は20時30分を示している。両系統には十一分の差がある。
     reveal:
-      condition: 城戸か保科に館内時計の精度と、防災端末など別系統の時計との比較を尋ねたら開示する。
+      condition: 城戸か保科に館内時計の精度と、防災端末など別系統の時計との比較を尋ねたら開示する。または親時計盤を調べ、防災端末と表示時刻を突き合わせたら開示する。
     sources:
       - { type: character, id: kido }
       - { type: character, id: hoshina }
+      - { type: location, id: master-clock }
     supports: [master-clock-fast-eleven, gallery-clocks-follow-master, security-clock-accurate, half-past-chime-actual-2019]
     contradicts: ["lie:kido-clock-accurate", "lie:shiba-late-last-seen"]
   - id: north-corridor-sighting
@@ -372,6 +387,17 @@ evidences:
     supports: [kido-caused-clock-offset, master-clock-fast-eleven]
     contradicts: ["lie:kido-clock-accurate"]
 
+  - id: death-estimate
+    label: 修復室の死亡推定
+    description: 発見時の状態を、親時計とは別系統の防災端末時刻で整理すると、倉橋の死亡は20時28分ごろと見積もられる。
+    reveal:
+      condition: 遺体を調べて発見時の状態を正しい時刻系で確認するか、保科に発見時の確認内容を防災端末の時刻基準で尋ねたら開示する。
+    sources:
+      - { type: victim, id: victim }
+      - { type: character, id: hoshina }
+    supports: [shiba-killed-kurahashi]
+    contradicts: []
+    revealsDeathTime: true
 solution:
   culprit: shiba
   summary: 犯人は志波沙月。展示時計の来歴を偽ったことを倉橋に見抜かれ、翌朝に展示を外され理事会へ報告される予定だった。館内の親時計は十一分進んでおり、20時30分の鐘が鳴った実時刻は20時19分だった。志波が倉橋と話したのはその直後の20時20分ごろで、志波の「20時31分ごろにも倉橋は生きていた」という説明は十一分ずれている。志波は20時22分ごろ西回廊を離れ、20時24分には朝倉が修復室側の北廊下で志波を目撃している。20時28分ごろ倉橋を襲った後、20時34分ごろ展示準備室へ戻った。館内時計の表示を正しい時刻だと思い込むと、最後の目撃が十一分後ろへずれて犯行時間そのものを誤る仕掛けだった。

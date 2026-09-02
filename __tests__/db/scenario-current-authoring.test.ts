@@ -112,6 +112,46 @@ const LEGACY_TITLES = new Set([
 
 const TIME_DECEPTION_PATTERN = /(死亡時刻|生存時刻|事件時刻|死亡後)/
 
+// 43本を真相・時系列・嘘・証拠まで読み直したうえで、
+// 「死後の出来事を生存証明に見せる／時計の基準をずらす」こと自体が解法の軸になる事件。
+// 文言だけの正規表現では取りこぼすので、レビュー結果を明示しておく。
+const REVIEWED_DEATH_TIME_CASES = new Set([
+  'avalanche-monastery-bell-window.yaml',
+  'coldcase-lodge-borrowed-memory.yaml',
+  'generation-ship-staggered-dawn.yaml',
+  'ink-stained-contract.yaml',
+  'landslide-clock-museum-eleven-minutes.yaml',
+  'landslide-hotel-frosted-silhouette.yaml',
+  'midnight-radio-rerun.yaml',
+  'quarantine-clinic-borrowed-badge.yaml',
+  'shanghai-warehouse-carbon-copy.yaml',
+  'snowbound-farm-morning-chores.yaml',
+  'storm-island-scheduled-mail.yaml',
+  'storm-mountain-inn-echoed-cane.yaml',
+  'storm-planetarium-reflected-witness.yaml',
+  'victorian-underground-last-telegram.yaml',
+])
+
+// 場所そのものの設備・構造を確かめる行為が、人物への聞き込みとは別の推理になる事件。
+// 「places が新機能だから」ではなく、全件レビューで一手を使う価値があると判断したものだけ。
+const REVIEWED_PLACE_CASES = new Set([
+  'avalanche-monastery-bell-window.yaml',
+  'cave-lab-locator-cart.yaml',
+  'coldcase-lodge-borrowed-memory.yaml',
+  'flood-archive-self-locking-vault.yaml',
+  'gallery-blue-frame.yaml',
+  'landslide-clock-museum-eleven-minutes.yaml',
+  'midnight-radio-rerun.yaml',
+  'quarantine-clinic-borrowed-badge.yaml',
+  'snowbound-gallery-wrong-crime-scene.yaml',
+  'snowbound-studio-roomtone-loop.yaml',
+  'storm-hydropower-rising-walkway.yaml',
+  'storm-mountain-inn-echoed-cane.yaml',
+  'storm-planetarium-reflected-witness.yaml',
+  'thunder-cablecar-occupied-cabin.yaml',
+  'victorian-underground-last-telegram.yaml',
+])
+
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value)
 
@@ -131,11 +171,25 @@ describe('scenario current authoring guide', () => {
 
       if (victim.foundAt === undefined) violations.push(`${file}: victim.foundAt`)
       if (victim.foundIn === undefined) violations.push(`${file}: victim.foundIn`)
-      if (victim.causeOfDeath === undefined) violations.push(`${file}: victim.causeOfDeath`)
-      if (victim.findings.length < 2) violations.push(`${file}: victim.findings < 2`)
+      if (file !== 'coldcase-lodge-borrowed-memory.yaml') {
+        if (victim.causeOfDeath === undefined) violations.push(`${file}: victim.causeOfDeath`)
+        if (victim.findings.length < 2) violations.push(`${file}: victim.findings < 2`)
+      }
     }
 
     expect(violations).toEqual([])
+  })
+
+  test('過去の未解決事件は現在の遺体ではなく旧捜査資料を調べる', async () => {
+    const item = (await scenarios()).find(
+      ({ file }) => file === 'coldcase-lodge-borrowed-memory.yaml',
+    )
+    expect(item).toBeDefined()
+    if (item === undefined) return
+
+    expect(item.scenario.victim?.causeOfDeath).toBeUndefined()
+    expect(item.scenario.victim?.findings).toEqual([])
+    expect(item.scenario.places.length).toBeGreaterThan(0)
   })
 
   test('動機へ繋がる手掛かりが最低1つ victim source から取れる', async () => {
@@ -156,8 +210,18 @@ describe('scenario current authoring guide', () => {
           revelation.sources.some((source) => source.type === 'victim'),
       )
 
-      if (!evidenceHasMotiveClue && !revelationHasMotiveClue) {
-        violations.push(`${file}: no victim-sourced motive clue`)
+      const locationHasMotiveClue = scenario.evidences.some(
+        (evidence) =>
+          evidence.sources.some((source) => source.type === 'location') &&
+          evidence.supports.some((factId) => motiveFacts.has(factId)),
+      )
+
+      if (
+        !evidenceHasMotiveClue &&
+        !revelationHasMotiveClue &&
+        !(file === 'coldcase-lodge-borrowed-memory.yaml' && locationHasMotiveClue)
+      ) {
+        violations.push(`${file}: no stable motive clue`)
       }
     }
 
@@ -228,11 +292,62 @@ describe('scenario current authoring guide', () => {
     const violations: string[] = []
 
     for (const { file, scenario } of await scenarios()) {
+      const reviewedAsTimeCase = REVIEWED_DEATH_TIME_CASES.has(file)
       if (
-        TIME_DECEPTION_PATTERN.test(scenario.solution.method) &&
+        (reviewedAsTimeCase || TIME_DECEPTION_PATTERN.test(scenario.solution.method)) &&
         scenario.victim?.estimatedDeathAt === undefined
       ) {
         violations.push(`${file}: victim.estimatedDeathAt`)
+      }
+    }
+
+    expect(violations).toEqual([])
+  })
+
+  test('死亡推定時刻を置いた事件には、それを手掛かりから開ける経路がある', async () => {
+    const violations: string[] = []
+
+    for (const { file, scenario } of await scenarios()) {
+      if (scenario.victim?.estimatedDeathAt === undefined) continue
+
+      const marked = scenario.evidences.filter((evidence) => evidence.revealsDeathTime)
+      if (marked.length === 0) {
+        violations.push(`${file}: no revealsDeathTime evidence`)
+        continue
+      }
+
+      const routes = new Set(
+        marked.flatMap((evidence) =>
+          evidence.sources.map((source) => `${source.type}:${source.id}`),
+        ),
+      )
+      if (routes.size < 2) {
+        violations.push(`${file}: death-time routes < 2`)
+      }
+    }
+
+    expect(violations).toEqual([])
+  })
+
+  test('精読で場所調査が有効と判断した事件には、空振りしない調査場所を置く', async () => {
+    const violations: string[] = []
+
+    for (const { file, scenario } of await scenarios()) {
+      if (REVIEWED_PLACE_CASES.has(file) && scenario.places.length === 0) {
+        violations.push(`${file}: places missing`)
+      }
+
+      for (const place of scenario.places) {
+        const hasSource =
+          scenario.evidences.some((evidence) =>
+            evidence.sources.some((source) => source.type === 'location' && source.id === place.id),
+          ) ||
+          scenario.revelations.some((revelation) =>
+            revelation.sources.some(
+              (source) => source.type === 'location' && source.id === place.id,
+            ),
+          )
+        if (!hasSource) violations.push(`${file}: place:${place.id}: no source route`)
       }
     }
 

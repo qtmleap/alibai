@@ -208,6 +208,8 @@ characters:
     memories:
       - id: missing-coat
         detail: フロント裏を撮る許可を確認したとき、いつも端に掛かっていた長峰の長い上着だけが消えていたので妙に目についた。
+      - id: death-estimate-memory
+        detail: 最初に執務室へ入ったときの状態を覚えており、確認では長峰の死亡は21時05分ごろと見積もられていた。
     relationships:
       - character: ayase
         relation: 撮影窓口
@@ -327,6 +329,17 @@ evidences:
         id: hoshino
     supports: [hoshino-secret-photo]
     contradicts: ["lie:hoshino-no-side-sale"]
+  - id: death-estimate
+    label: 執務室の死亡推定
+    description: 執務室の室温と発見時の状態から、長峰の死亡は21時05分ごろと見積もられる。21時30分に見えた人影より前である。
+    reveal:
+      condition: 遺体を調べて発見時の状態を確認するか、星野に最初に執務室へ入ったときの状態と確認内容を尋ねたら開示する。
+    sources:
+      - { type: victim, id: victim }
+      - { type: character, id: hoshino }
+    supports: [ayase-killed-nagamine]
+    contradicts: []
+    revealsDeathTime: true
 solution:
   culprit: ayase
   summary: 犯人は綾瀬環。改装費の水増しを長峰に見抜かれ、説明を求められた直後に執務室で長峰を襲った。犯行を21時半以後に見せるため、長峰の長い上着を衣紋掛けに掛け、机上灯で磨りガラスへ人の輪郭を映した。神田はその輪郭を長峰本人だと思い込んだが、顔も声も確認していない。上着が21時18分にはフロント裏から消えていたこと、発見時には執務室の衣紋掛けに掛かっていたこと、衣紋掛けを磨りガラス付近へ移動した跡が残ることを合わせると、目撃は生存証明ではなく偽装だったと分かる。

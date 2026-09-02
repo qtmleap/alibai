@@ -11,12 +11,24 @@ victim:
   introduction: 星見ヶ丘天象館館長
   foundAt: 22:00
   foundIn: 投影準備室
+  estimatedDeathAt: "21:24"
   causeOfDeath: 事件性のある外傷による死亡
   findings:
     - id: victim-state
       statement: 犬塚誠は投影準備室で倒れており、その場で死亡が確認されている。
     - id: victim-motive-material
       statement: 遺体のそばには「運営法人への予算報告草案」に関わる資料が残されている。
+places:
+  - id: observation-glass
+    name: 投影室の観察ガラス
+    shortName: 観察ガラス
+    introduction: 投影室と廊下を隔てる、大型の観察窓
+    situation: 投影室と廊下のあいだを、大きな一枚ガラスが隔てている
+    findings:
+      - id: corridor-reflection
+        statement: 投影室を暗くして廊下側を明るくすると、ガラスには廊下側に立つ人物の像が強く映り込む。
+      - id: witness-position-replay
+        statement: 21時35分の立ち位置を再現すると、廊下にいた人物の像が投影室内の人影のように重なる。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -175,6 +187,8 @@ characters:
         detail: ガラス越しに白い上着の上半身が見えたので犬塚だと思ったが、顔をはっきり見たわけではない。
       - id: onodera-behind
         detail: 「館長、まだ中にいるんですね」と言ったとき、小野寺がすぐ後ろから「そうみたいですね」と返事をしたのを覚えている。
+      - id: death-estimate-memory
+        detail: 発見時の投影準備室の状態を確認しており、犬塚の死亡は21時24分ごろと見積もられるという確認内容を覚えている。
     relationships:
       - character: onodera
         relation: 同僚
@@ -244,12 +258,13 @@ evidences:
     label: 観察ガラスの照明条件テスト
     description: 投影室を暗くして廊下を明るくすると、観察ガラスには室内より廊下側の人物が強く反射する。
     reveal:
-      condition: 松田か小野寺に投影室消灯時の観察ガラスの見え方を具体的に尋ねたら開示する。
+      condition: 松田か小野寺に投影室消灯時の観察ガラスの見え方を具体的に尋ねたら開示する。または投影室の観察ガラスを調べ、消灯時の反射を同じ立ち位置で再現したら開示する。
     sources:
       - type: character
         id: matsuda
       - type: character
         id: onodera
+      - { type: location, id: observation-glass }
     supports: [booth-dark-2130, glass-reflects-dark-booth, onodera-knew-reflection]
     contradicts: ["lie:onodera-sighting-was-inuzuka"]
   - id: white-jacket-record
@@ -308,6 +323,17 @@ evidences:
         id: asakura
     supports: [asakura-hid-stock-loss]
     contradicts: ["lie:asakura-stock-clean"]
+  - id: death-estimate
+    label: 投影準備室の死亡推定
+    description: 投影準備室の温度と発見時の状態を合わせると、犬塚の死亡は21時24分ごろと見積もられる。21時35分の人影目撃より前である。
+    reveal:
+      condition: 遺体を調べて発見時の状態を確認するか、松田に投影準備室へ入ったときの状態と確認内容を尋ねたら開示する。
+    sources:
+      - { type: victim, id: victim }
+      - { type: character, id: matsuda }
+    supports: [inuzuka-death-2124]
+    contradicts: []
+    revealsDeathTime: true
 solution:
   culprit: onodera
   summary: 犯人は小野寺莉香。21時35分に松田が観察ガラスで見た白い人物像は、投影室内の犬塚ではなかった。投影室は機器点検で暗く、廊下側が明るかったため、ガラスには松田の数歩後ろにいた小野寺が反射していた。小野寺は犬塚と同型の白い展示用上着を着ており、松田は顔を確認せず犬塚だと思い込んだ。小野寺自身はガラスの反射条件を以前から知っていたうえ、松田のすぐ後ろにいたのに「館長はまだ中にいた」と誤認を補強している。犬塚は実際には21時24分ごろ小野寺に襲われていた。翌朝、犬塚は小野寺による無断の予算振替を運営法人へ報告する予定だった。

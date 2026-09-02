@@ -213,6 +213,8 @@ characters:
     memories:
       - id: late-corridor
         detail: 22時すぎ、工具を取りに出たとき、冬木が事務室側から早足で戻ってきたのを覚えている。
+      - id: death-estimate-memory
+        detail: 設備担当として事務室の夜間温度を把握し、発見時の確認では佐久間の死亡は前夜22時10分ごろと見積もられていたことを覚えている。
     relationships:
       - character: fuyuki
         relation: 同僚
@@ -332,6 +334,17 @@ evidences:
         id: kuze
     supports: [kuze-generator-secret]
     contradicts: ["lie:kuze-no-private-power"]
+  - id: death-estimate
+    label: 冬夜の死亡推定
+    description: 事務室の夜間温度と発見時の状態を合わせると、佐久間の死亡は前夜22時10分ごろと見積もられる。明け方の朝仕事より大幅に早い。
+    reveal:
+      condition: 遺体を調べて発見時の状態を確認するか、久世に事務室の夜間温度と発見時の確認内容を尋ねたら開示する。
+    sources:
+      - { type: victim, id: victim }
+      - { type: character, id: kuze }
+    supports: [fuyuki-killed-sakuma]
+    contradicts: []
+    revealsDeathTime: true
 solution:
   culprit: fuyuki
   summary: 冬木紬は出荷代金の流用を佐久間に見抜かれ、翌朝に帳簿を再確認されることを恐れた。前夜22時台に事務室へ向かい佐久間を襲った後、明け方に佐久間が毎朝行っていた家畜の世話を代わりに済ませ、台所にも人が起きているような痕跡を残した。希は灯りを見ただけで佐久間本人を確認しておらず、朝飼いの作業板にも佐久間が毎朝残す時刻の記入がない。さらに六時すぎの冬木の長靴には外へ出た直後の雪解け水と飼料庫の藁が付いており、「朝まで部屋にいた」という説明と矛盾する。朝の生活痕は佐久間の生存証明ではなく、犯行時刻を遅く見せるための偽装だった。
