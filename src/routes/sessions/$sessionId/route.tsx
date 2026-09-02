@@ -54,6 +54,7 @@ function PlaySession() {
     hint: state.hint,
     alibiSegments: state.alibiSegments,
     clash: state.clash,
+    estimatedDeathAt: state.estimatedDeathAt,
     questionCount: state.questionCount,
     turn: state.turn,
   })

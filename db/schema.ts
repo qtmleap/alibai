@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm'
 import { index, integer, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 import type { Detective } from './detective'
 import type { FloorPlanInput } from './floor-plan'
+import type { InvestigablePlace, PlaceFindings } from './place'
 import type { ScenarioEvidenceSource, ScenarioRevelationSource } from './scenario-definition'
 import type { TimelineEvent } from './timeline-event'
 import type { VictimFinding } from './victim-finding'
@@ -16,6 +17,11 @@ export type { Detective } from './detective'
  * ここでは列に型を付けるためだけに読み込み、定義は持たない。
  */
 export type { FloorPlan, FloorPlanInput, Room } from './floor-plan'
+/**
+ * 調べられる場所の形と検証は db/place.ts が正典。
+ * 見取り図と同じく、ここでは列に型を付けるためだけに読み込む。
+ */
+export type { InvestigablePlace, PlaceFindings } from './place'
 
 /**
  * D1（SQLite）には uuid 型も gen_random_uuid() も無いので、主キーは text で持ち、
@@ -105,6 +111,19 @@ export const scenarios = sqliteTable('scenarios', {
    * 「いつまでに」が引けなくなり、時刻の偽装を核にした事件が読み解けなくなる。
    */
   victimEstimatedDeathAt: text('victim_estimated_death_at'),
+  /**
+   * 調べられる場所。喋らないが、聞き込みと同じ一手で調べる相手。
+   *
+   * 公開側に置くのは、名前と紹介が支度の名簿に並ぶから。所見は調べて初めて出るので
+   * scenario_truths のほうへ分けてある（遺体とまったく同じ分け方）。
+   *
+   * テーブルにせず JSON 列にしてあるのは、場所が実行時の同一性を持たないため。
+   * characters が表なのは messages が外部キーで指すからで、場所を指す行は無く、
+   * 参照は authoring のローカル ID の文字列そのままで足りる（見取り図の部屋と同じ）。
+   *
+   * 既定が空なのは、この列より前に焼かれたシナリオ行があるため。
+   */
+  places: text('places', { mode: 'json' }).$type<InvestigablePlace[]>().notNull().default([]),
   authorId: text('author_id'),
   isPublished: integer('is_published', { mode: 'boolean' }).notNull().default(false),
   difficulty: integer('difficulty').notNull().default(3),
@@ -160,6 +179,18 @@ export const scenarioTruths = sqliteTable('scenario_truths', {
   victimCauseOfDeath: text('victim_cause_of_death'),
   victimFindings: text('victim_findings', { mode: 'json' })
     .$type<VictimFinding[]>()
+    .notNull()
+    .default([]),
+  /**
+   * 場所ごとの所見。
+   *
+   * 遺体の findings と同じ理由で真相側にある。場所そのもの（名前・紹介・佇まい）は
+   * 調べる前から見えるので scenarios 側で、ここに入るのは調べて初めて出るものだけ。
+   *
+   * 既定が空なのは、この列より前に焼かれたシナリオ行があるため。
+   */
+  placeFindings: text('place_findings', { mode: 'json' })
+    .$type<PlaceFindings[]>()
     .notNull()
     .default([]),
   /** 出力フィルタが漏洩検知に使う秘匿キーワード */
@@ -239,6 +270,17 @@ export const evidences = sqliteTable(
      * 盤面のどこが怪しいかを一本の線として指せる。
      */
     contradicts: text('contradicts', { mode: 'json' }).$type<string[]>().notNull().default([]),
+    /**
+     * この証拠が死亡推定時刻を明かすか。
+     *
+     * 時刻そのものは scenarios.victimEstimatedDeathAt にあり、こちらは「開けてよいか」の印だけ。
+     * サーバはこの列を見て、掴んだ証拠に一つでも印があるときだけ時刻をクライアントへ渡す
+     * ——どの証拠が答えを明かすのかという対応表そのものは、決して盤面へ送らない。
+     *
+     * 既定が false なのは、この列より前に焼かれた行があるため。印の無い事件では
+     * 刻限は「不明」のまま出る（docs/design/deadline-window.md）。
+     */
+    revealsDeathTime: integer('reveals_death_time', { mode: 'boolean' }).notNull().default(false),
   },
   (table) => [index('evidences_scenario_id_idx').on(table.scenarioId)],
 )

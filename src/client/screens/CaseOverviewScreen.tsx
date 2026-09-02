@@ -15,6 +15,7 @@ import {
 } from '@/client/components/ui/alert-dialog'
 import { Button } from '@/client/components/ui/button'
 import { createSession, describeError } from '@/client/lib/api'
+import { deadlineOf } from '@/client/lib/deadline'
 import { activeDetective, loadDetectiveStore, toDetective } from '@/client/lib/detective-store'
 import { loadGameMode } from '@/client/lib/game-mode-store'
 import type { CreateSessionResponse, InvestigablePlace, ScenarioDetail } from '@/client/lib/schemas'
@@ -339,14 +340,15 @@ export const CaseOverviewScreen = ({
               segments={[]}
               span={{ from: scenario.timeWindow.start, to: scenario.timeWindow.end }}
               /*
-                白紙の表にも刻限だけは引く。「いつまでに殺せたか」は事件の記録が
-                既に語っていて、これから何を埋めるのかを示す唯一の目印になる。
+                白紙の表にも刻限だけは引く。これから何を埋めるのかを示す唯一の目印になる。
+
+                出せるのは遺体発見時刻まで。事件の記録が既に語っている公開情報なので、
+                読み終えた人はもう知っている。死亡推定のほうは手に入れて初めて分かるもので、
+                ここでは常に「不明」——支度はまだ一手も使っていない場所で、この画面は
+                セッションを持たない。開示済みかを言えるのはサーバだけなので、
+                渡せる値そのものが無い。
               */
-              deadline={
-                scenario.victim?.estimatedDeathAt == null
-                  ? undefined
-                  : { at: scenario.victim.estimatedDeathAt, label: '死亡推定' }
-              }
+              deadline={deadlineOf(scenario.victim, null)}
             />
           </div>
 

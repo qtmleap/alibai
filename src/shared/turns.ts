@@ -123,7 +123,7 @@ export const clampLimits = (
 export const modelCallsPerTopic = (exchangesPerTopic: number): number => 2 * exchangesPerTopic + 1
 
 /**
- * 遺体を検分するときのモデル呼び出しの回数。
+ * 遺体や場所を検分するときのモデル呼び出しの回数。
  *
  * 何を調べるかを組み立てて1回、所見を書き起こして1回、判定で1回。
  * 相手が喋らないので往復しない——聞き込み（既定7回）より軽い。

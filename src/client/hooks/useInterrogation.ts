@@ -53,6 +53,8 @@ export type InterrogationSeed = {
   alibiSegments: AlibiSegmentData[]
   /** 供述が噛み合わない区間。揃うまでは無い。 */
   clash: Clash | undefined
+  /** 開示済みの死亡推定時刻。掴むまでは null で、盤面は「不明」を描く。 */
+  estimatedDeathAt: string | null
   questionCount: number
   turn: TurnState | undefined
 }
@@ -81,6 +83,11 @@ export const useInterrogation = (seed: InterrogationSeed) => {
    */
   const [alibiSegments, setAlibiSegments] = useState<AlibiSegmentData[]>(seed.alibiSegments)
   const [clash, setClash] = useState<Clash | undefined>(seed.clash)
+  /**
+   * 刻限。開示済みかどうかを決めるのはサーバで、こちらは届いた値を置くだけ。
+   * 線と同じく毎回そのときの姿が届くので、足さずに置き換える。
+   */
+  const [estimatedDeathAt, setEstimatedDeathAt] = useState<string | null>(seed.estimatedDeathAt)
   const [questionCount, setQuestionCount] = useState(seed.questionCount)
   /**
    * ターンの進行。正典はサーバ側（DOの質問回数から導かれる）で、
@@ -222,6 +229,7 @@ export const useInterrogation = (seed: InterrogationSeed) => {
           }))
           setAlibiSegments(judgement.alibiSegments)
           setClash(judgement.clash)
+          setEstimatedDeathAt(judgement.estimatedDeathAt)
           setQuestionCount(judgement.questionCount)
           setTurn(judgement.turn)
         },
@@ -245,6 +253,7 @@ export const useInterrogation = (seed: InterrogationSeed) => {
     alibiSegments,
     setAlibiSegments,
     clash,
+    estimatedDeathAt,
     questionCount,
     askingCharacterId,
     error,

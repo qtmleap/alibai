@@ -24,12 +24,41 @@ export type AlibiSegment = {
   fix?: string
 }
 
+/**
+ * 死亡推定の四つの状態（docs/design/deadline-window.md）。
+ *
+ * 同じ 18:50 を指していても、探偵が検死して出した数字と、居合わせた誰かが
+ * そう言っているだけの数字とでは意味がまるで違う。盤面はそこを描き分ける——
+ * 潰して一本の実線にすると、画面がプレイヤーより先に何かを知っていることになる。
+ */
+export type DeathEstimate =
+  /** 一 確定。探偵の検死か物証から出たもの。実線で、時刻をそのまま出す。 */
+  | { kind: 'fixed'; at: string }
+  /** 二 範囲。ここからここまで、としか言えないとき。両端に返しの付いた線。 */
+  | { kind: 'range'; from: string; to: string }
+  /** 三 不明。まだ何も無い。点線と `?` だけで、空白にはしない。 */
+  | { kind: 'unknown' }
+  /** 四 第三者の推定。そう言っている人がいるだけのもの。誰の見立てかを添える。 */
+  | { kind: 'claimed'; at: string; by: { name: string; hue: Hue } }
+
+export type Deadline = {
+  /**
+   * 遺体発見時刻 `HH:mm`。事件の記録に書いてある公開情報なので常に実線で出す。
+   * 記録が発見時刻を語らない事件では渡さない——引けば盤面が記録より多くを知る。
+   */
+  foundAt?: string
+  /** 死亡推定に添える札。盤面では「死亡推定」、結果の突き合わせでは真相なので「死亡」。 */
+  label: string
+  death: DeathEstimate
+}
+
 type Props = {
   people: AlibiPerson[]
   /** まだ何も聞けていないうちは空。白紙の表を先に見せることに意味がある。 */
   segments: AlibiSegment[]
   span: { from: string; to: string }
-  deadline?: { at: string; label: string }
+  /** 被害者の刻限。遺体発見と死亡推定の二段で、後者は手に入れた確度で描き分ける。 */
+  deadline?: Deadline
   /** いま聞き込んでいる相手。その列だけ地をわずかに起こす。 */
   activeKey?: string
   /**
@@ -88,6 +117,141 @@ const BAR_MID = 18.5
  * 線が伸びきる前に端の印だけが宙に浮く。
  */
 const CLASH_SETTLED_MS = '700ms'
+
+/** 刻限の札。線の傍らに置く一行で、等幅にしてよいのは時刻のほうだけ。 */
+const DeadlineLabel = ({ label, time }: { label: string; time: string }) => (
+  <>
+    {/* 全角空白は式で置く。地のまま行末に置くと JSX が行末の空白ごと落とす。 */}
+    {`${label}　`}
+    <span className="font-mono text-nezumi-dim tabular-nums">{time}</span>
+  </>
+)
+
+/**
+ * 刻限の一本線。表の全列を横断する。
+ *
+ * 裏の取れていない見立てだけ点線にする。実線で引くと、誰かの言い分を盤面が
+ * 保証したことになる——嘘をつくのは登場人物であって、画面ではない。
+ */
+const DeadlineLine = ({
+  top,
+  label,
+  time,
+  dotted,
+}: {
+  top: number
+  label: string
+  time: string
+  dotted: boolean
+}) => (
+  <span
+    className={`absolute right-0 ${
+      dotted ? 'border-t border-t-nezumi-dim border-dotted' : 'h-px bg-nezumi-dim'
+    }`}
+    style={{ left: `${GUTTER}px`, top: `${top}px` }}
+  >
+    {/* 札は窓の芯（右端 2px）より左に置く。重ねると点線が時刻の上を走る。 */}
+    <span className="absolute top-[-17px] right-[12px] whitespace-nowrap font-mincho text-[11px] tracking-[0.08em] text-nezumi">
+      <DeadlineLabel label={label} time={time} />
+    </span>
+  </span>
+)
+
+/**
+ * 刻限の窓。
+ *
+ * 幅がそのまま「まだ分かっていない量」なので、面を塗らずに両端へ返しの付いた
+ * 一本の線で示す。塗ると面が増えて容疑者の帯と競う。
+ */
+const DeadlineWindow = ({
+  top,
+  height,
+  label,
+  time,
+  dotted,
+}: {
+  top: number
+  height: number
+  label: string
+  time: string
+  dotted: boolean
+}) => (
+  <span
+    className={`absolute right-[2px] before:absolute before:top-0 before:-left-[3px] before:h-px before:w-[7px] before:bg-nezumi-dim before:content-[''] after:absolute after:bottom-0 after:-left-[3px] after:h-px after:w-[7px] after:bg-nezumi-dim after:content-[''] ${
+      dotted ? 'w-0 border-l border-l-nezumi-dim border-dotted' : 'w-px bg-nezumi-dim'
+    }`}
+    style={{ top: `${top}px`, height: `${height}px` }}
+  >
+    <span className="-translate-y-1/2 absolute top-1/2 right-[12px] whitespace-nowrap font-mincho text-[11px] tracking-[0.08em] text-nezumi">
+      <DeadlineLabel label={label} time={time} />
+    </span>
+  </span>
+)
+
+/**
+ * 刻限の印（docs/design/deadline-window.md）。
+ *
+ * 遺体発見は事件の記録に書いてある公開情報なので、どの状態でも実線で出す。
+ * 死亡推定のほうは、手に入れた確度で描き分ける。
+ */
+const DeadlineMarks = ({
+  deadline,
+  topOf,
+  height,
+}: {
+  deadline: Deadline
+  /** 時刻を表のなかの px へ。 */
+  topOf: (at: string) => number
+  /** 表の丈。発見時刻を持たない事件では、これが「分かっている幅」になる。 */
+  height: number
+}) => {
+  const { death, foundAt, label } = deadline
+
+  return (
+    <>
+      {foundAt === undefined ? null : (
+        <DeadlineLine top={topOf(foundAt)} label="遺体発見" time={foundAt} dotted={false} />
+      )}
+
+      {death.kind === 'fixed' ? (
+        <DeadlineLine top={topOf(death.at)} label={label} time={death.at} dotted={false} />
+      ) : death.kind === 'range' ? (
+        <DeadlineWindow
+          top={topOf(death.from)}
+          height={topOf(death.to) - topOf(death.from)}
+          label={label}
+          time={`${death.from}–${death.to}`}
+          dotted={false}
+        />
+      ) : death.kind === 'claimed' ? (
+        <>
+          <DeadlineLine top={topOf(death.at)} label={label} time={`? ${death.at}`} dotted={true} />
+          {/*
+            誰の見立てかを線の下に添える。顔料はその人のもの——見立てが誰の口から
+            出たかが分かれば、その人が犯人だったときに嘘が嘘として読める。
+          */}
+          <span
+            className={`absolute right-0 mt-[4px] whitespace-nowrap text-[10px] tracking-[0.06em] ${
+              HUE[death.by.hue].text
+            }`}
+            style={{ top: `${topOf(death.at)}px` }}
+          >
+            {`${death.by.name}の見立て`}
+          </span>
+        </>
+      ) : (
+        // 不明。どこか一点を指せないので、分かっている幅ぜんぶを点線の窓で囲う。
+        <DeadlineWindow
+          top={0}
+          height={foundAt === undefined ? height : topOf(foundAt)}
+          label={label}
+          time="?"
+          dotted={true}
+        />
+      )}
+    </>
+  )
+}
 
 /**
  * アリバイ表。
@@ -342,21 +506,13 @@ export const AlibiChart = ({
           </div>
         ))}
 
-        {/* 被害者の刻限。表の全列を横断する唯一の線。 */}
+        {/* 被害者の刻限。表の全列を横断する唯一の印。 */}
         {deadline === undefined ? null : (
-          <span
-            className="absolute right-0 h-px bg-nezumi-dim"
-            style={{
-              left: `${GUTTER}px`,
-              top: `${(toMinutes(deadline.at) - from) * PX_PER_MIN}px`,
-            }}
-          >
-            <span className="absolute top-[-17px] right-0 whitespace-nowrap font-mincho text-[11px] tracking-[0.08em] text-nezumi">
-              {/* 全角空白は式で置く。地のまま行末に置くと JSX が行末の空白ごと落とす。 */}
-              {`${deadline.label}　`}
-              <span className="font-mono text-nezumi-dim tabular-nums">{deadline.at}</span>
-            </span>
-          </span>
+          <DeadlineMarks
+            deadline={deadline}
+            topOf={(at) => (toMinutes(at) - from) * PX_PER_MIN}
+            height={height}
+          />
         )}
 
         {clash === undefined || clashEnds === undefined ? null : (

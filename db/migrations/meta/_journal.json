@@ -134,6 +134,20 @@
       "when": 1788262996112,
       "tag": "0018_scenario-required-records",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "6",
+      "when": 1788361336006,
+      "tag": "0019_investigable-places",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "6",
+      "when": 1788362994843,
+      "tag": "0020_deadline-disclosure",
+      "breakpoints": true
     }
   ]
 }

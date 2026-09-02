@@ -122,7 +122,11 @@
         document.getElementById('bspan').textContent = C.span.from + ' – ' + C.span.to
 
         document.getElementById('head').innerHTML = Mock.chartHead({})
-        document.getElementById('chart').innerHTML = Mock.chart({ segments: st.segments })
+        // 刻限の状態は #death= で切り替える（docs/design/deadline-window.md）。
+        document.getElementById('chart').innerHTML = Mock.chart({
+          segments: st.segments,
+          death: Mock.str('death', 'unknown'),
+        })
 
         document.getElementById('suspects').innerHTML = C.cast
           .map(function (p) {

@@ -369,18 +369,33 @@ textarea {
   color: var(--nezumi-dim);
 }
 
-/* 時刻軸（帯）— この案の主役 */
+/*
+ * 時刻軸（帯）— この案の主役。
+ *
+ * 深さは三段ぶん要る。上から、両端の時刻／印の道／刻限の一段。
+ * 元は 34px の一段しか無く、両端の時刻と印が同じ高さの帯を奪い合っていた。白紙のうちは
+ * 気づかないが、18:23 のように端寄りの時刻が確定した途端、印が「18:20」の字を貫く。
+ * さらに刻限の窓は札を連れてくるので、印の道の下にもう一段いる。
+ */
 .rail {
   position: relative;
-  height: 34px;
+  height: 64px;
   padding: 0 10px;
   display: flex;
   align-items: center;
+
+  /* 刻限の印の深さ。形は下の共有の塊が持ち、どこに置くかだけ器が決める。 */
+  --dl-top: 20px;
+  --dl-bottom: 26px;
+  --dl-win: 42px;
+  --dl-lb: 47px;
 }
+/* 線も明示的に置く。flex の中央任せだと、帯を深くした途端に印とずれる。 */
 .rail .line {
   position: absolute;
   left: 10px;
   right: 10px;
+  top: 28px;
   height: 1px;
   background: var(--keisen);
 }
@@ -388,27 +403,119 @@ textarea {
   position: absolute;
   width: 2px;
   height: 13px;
-  top: 11px;
+  top: 22px;
 }
 .rail .pin.hollow {
   opacity: 0.32;
 }
 .rail .now {
   position: absolute;
-  top: 6px;
+  top: 18px;
   width: 1px;
-  height: 23px;
+  height: 20px;
   background: var(--kinari);
 }
 .rail .cap {
   position: absolute;
   left: 10px;
-  top: 1px;
+  top: 0;
 }
 .rail .cap2 {
   position: absolute;
   right: 10px;
-  top: 1px;
+  top: 0;
+}
+
+/*
+ * ---- 刻限の印（docs/design/deadline-window.md）。聞き込みの帯と告発の拡大軸で共に使う ----
+ *
+ * 机は時刻が上から下へ流れるので横一本の線になるが、端末は左から右なので縦の目盛りになる。
+ * 一点を指す印（遺体発見・確定・第三者の見立て）は帯を貫き、幅を持つ印（範囲・不明）は
+ * 両端に返しの付いた線を印の道の下へ渡す。塗らないのは机と同じ理由で、面を足すと容疑者の帯と競う。
+ */
+.rail .deadline,
+.rail-big .deadline {
+  position: absolute;
+  top: var(--dl-top);
+  bottom: var(--dl-bottom);
+  width: 1px;
+  background: var(--nezumi-dim);
+}
+/* 第三者がそう言っているだけの刻限。裏が取れていないので点線にする。 */
+.rail .deadline.claimed,
+.rail-big .deadline.claimed {
+  background: none;
+  width: 0;
+  border-left: 1px dotted var(--nezumi-dim);
+}
+.rail .window,
+.rail-big .window {
+  position: absolute;
+  top: var(--dl-win);
+  height: 1px;
+  background: var(--nezumi-dim);
+}
+/* 両端の返し。これが無いと、ただの罫線に見えて幅を指していることが伝わらない。 */
+.rail .window::before,
+.rail .window::after,
+.rail-big .window::before,
+.rail-big .window::after {
+  content: "";
+  position: absolute;
+  top: -3px;
+  width: 1px;
+  height: 7px;
+  background: var(--nezumi-dim);
+}
+.rail .window::before,
+.rail-big .window::before {
+  left: 0;
+}
+.rail .window::after,
+.rail-big .window::after {
+  right: 0;
+}
+/* まだ何も無い状態。芯を点線にして、時刻の代わりに ? を置く。 */
+.rail .window.unknown,
+.rail-big .window.unknown {
+  background: none;
+  height: 0;
+  border-top: 1px dotted var(--nezumi-dim);
+}
+/*
+ * 刻限の札。印の子ではなく兄弟にしてあるので、深さは器の変数から取る。
+ * 既定は印を跨いで中央。端に寄った印（遺体発見は軸の 92% に立つ）では、
+ * 札の右端を印に合わせて内側へ折り返す——390px しかないので、はみ出せば読めなくなる。
+ */
+.rail .lb,
+.rail-big .lb {
+  position: absolute;
+  top: var(--dl-lb);
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-family: var(--mincho);
+  font-size: 9.5px;
+  line-height: 1.4;
+  letter-spacing: 0.06em;
+  color: var(--nezumi);
+}
+.rail .lb.end,
+.rail-big .lb.end {
+  transform: translateX(-100%);
+}
+.rail .lb.start,
+.rail-big .lb.start {
+  transform: none;
+}
+.rail .lb .t,
+.rail-big .lb .t {
+  font-size: 9px;
+  color: var(--nezumi-dim);
+}
+/* 誰の見立てかは、机では線の下の一行。端末にはその一段が無いので札の尾に続ける。 */
+.rail .lb .by,
+.rail-big .lb .by {
+  margin-left: 6px;
 }
 
 /* 最新の発話を下端に置く。交互とは限らないので、上は溢れるに任せる。 */
@@ -568,11 +675,20 @@ textarea {
   color: var(--nezumi);
   margin: 0 0 18px;
 }
-/* 拡大した時刻軸。ここでは目盛りを掴んで動かす */
+/*
+ * 拡大した時刻軸。ここでは目盛りを掴んで動かす。
+ * 段の下に刻限の一段（窓の線と札）を挟むので、帯そのものより 30px ぶん深い。
+ */
 .rail-big {
   position: relative;
-  height: 106px;
+  height: 136px;
   margin-bottom: 14px;
+
+  /* 刻限の印の深さ。三段の下、軸の上に置く。 */
+  --dl-top: 4px;
+  --dl-bottom: 48px;
+  --dl-win: 88px;
+  --dl-lb: 94px;
 }
 .rail-big .lane {
   position: absolute;
@@ -603,10 +719,15 @@ textarea {
   display: flex;
   justify-content: space-between;
 }
+/*
+ * 掴んで動かす目盛り。段の下で止める——指した時刻が刻限と同じところに落ちたとき
+ * （このモックの既定がまさにそれ）、朱の線が刻限の印を丸ごと隠してしまうため。
+ * 段を出たところから下は刻限の側の受け持ちで、実線か点線かはそこで見分ける。
+ */
 .rail-big .mark {
   position: absolute;
   top: -4px;
-  bottom: 18px;
+  bottom: 57px;
   width: 1.5px;
   background: var(--shu);
 }

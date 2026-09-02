@@ -152,6 +152,28 @@ describe('POST /api/sessions/:id/ask', () => {
 
     expect(res.status).toBe(400)
   })
+
+  test('調べられる場所も相手として受ける', async () => {
+    // 人物は uuid、遺体は victim、場所は作者が書いたローカルID。同じ口へ来る。
+    const res = await postJson(`/api/sessions/${SESSION_ID}/ask`, {
+      sessionId: SESSION_ID,
+      characterId: 'choba',
+      topic: '帳面を見てみる',
+    })
+
+    expect(res.status).not.toBe(400)
+  })
+
+  test('相手の形をしていない文字列は 400', async () => {
+    // uuid でも victim でも、場所の ID の形でもないもの。
+    const res = await postJson(`/api/sessions/${SESSION_ID}/ask`, {
+      sessionId: SESSION_ID,
+      characterId: '帳場',
+      topic: '帳面を見てみる',
+    })
+
+    expect(res.status).toBe(400)
+  })
 })
 
 describe('POST /api/sessions/:id/accuse', () => {

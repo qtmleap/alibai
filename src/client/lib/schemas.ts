@@ -3,6 +3,7 @@ import { detectiveSchema } from '~/db/detective'
 import { floorPlanSchema } from '~/db/floor-plan'
 import { gameModeSchema, hintSchema } from '~/db/game-mode'
 import { llmProviderSchema, settableLlmRoleSchema } from '~/db/llm-catalog'
+import { investigablePlaceSchema } from '~/db/place'
 import { VICTIM_ID } from '~/db/scenario-definition'
 
 /**
@@ -59,32 +60,39 @@ export const scenarioDetailSchema = scenarioSummarySchema.omit({ characterCount:
     .object({
       name: z.string().nonempty(),
       introduction: z.string().nonempty(),
+      /**
+       * 発見時刻と発見場所。事件の記録が既に語っている公開情報なので、支度の時点で届く。
+       *
+       * 死亡推定時刻はここに無い。あれは手に入れて初めて分かるもので、開示済みかどうかは
+       * サーバが判断してセッションの状態で運ぶ（`sessionStateSchema.estimatedDeathAt`）。
+       */
       foundAt: z.string().nonempty().nullable(),
       foundIn: z.string().nonempty().nullable(),
-      /** 死亡推定時刻。アリバイ表を横断する刻限の線になる。 */
-      estimatedDeathAt: z.string().nonempty().nullable(),
       /** 遺体を調べられる事件か。false なら聞き込みの相手に並べない。 */
       investigable: z.boolean(),
     })
     .nullable(),
+  /**
+   * 調べられる場所。
+   *
+   * 喋らないので characters には並ばないが、選ぶという一手は人物と同じで、同じ画面で調べる。
+   * 既定を空にしてあるのは、場所を持たない事件と、この項目より前のサーバが
+   * 返してこない応答の両方を落とさないため。
+   */
+  places: z.array(investigablePlaceSchema).default([]),
   characters: z.array(characterSchema),
 })
 
 /**
- * 調べられる場所。
+ * 調べられる場所。形と検証の正典は db/place.ts にあり、ここでは読み込むだけ
+ * （見取り図や難易度モードと同じ扱い）。
  *
- * 喋らないので聞き込みの相手ではないが、選ぶという一手は人物と同じで、同じ画面で調べる。
- * 顔料を持たせないのは、色の付いた相手は答え、灰のままの相手は答えない、という区別を
- * 盤面の色だけで付けるため。
- *
- * まだAPIが返さないので zod の schema は持たない——支度と聞き込みが同じ形を見るための型だけ。
- * `scenarioDetailSchema` に載った時点で、ここは z.infer に置き換わる。
+ * 顔料を持たないのは、色の付いた相手は答え、灰のままの相手は答えない、という区別を
+ * 盤面の色だけで付けるため。アリバイ表にも列を持たない——場所は動かない。
  */
-export type InvestigablePlace = {
-  id: string
-  name: string
-  introduction: string
-}
+export type { investigablePlaceSchema }
+
+export type InvestigablePlace = z.infer<typeof investigablePlaceSchema>
 
 /**
  * プレイヤーが演じる探偵。名乗らずに始めることもできる。
@@ -184,6 +192,14 @@ export const sessionStateSchema = z.object({
   alibiSegments: z.array(alibiSegmentSchema).default([]),
   /** 供述が噛み合わない区間。表の上に一本だけ立つ印なので、揃うまで来ない。 */
   clash: clashSchema,
+  /**
+   * 開示済みの死亡推定時刻。まだ手に入れていなければ null で、盤面は「不明」を描く。
+   *
+   * どの証拠がこれを明かすのかという対応表はサーバに残り、ここへは来ない。
+   * 既定を null にしてあるのは、この項目より前のサーバが返してこないため
+   * ——古い応答では「まだ分かっていない」に倒れる（docs/design/deadline-window.md）。
+   */
+  estimatedDeathAt: z.string().nonempty().nullable().default(null),
   turn: turnStateSchema,
 })
 
@@ -196,6 +212,8 @@ export const judgementSchema = z.object({
   /** 増えた分ではなく、その時点で引ける線すべて。表はこれで置き換える。 */
   alibiSegments: z.array(alibiSegmentSchema).default([]),
   clash: clashSchema,
+  /** 線と同じく、増えた分ではなくその時点の姿。刻限が開いた回にだけ時刻が入る。 */
+  estimatedDeathAt: z.string().nonempty().nullable().default(null),
   questionCount: z.number().int(),
   turn: turnStateSchema,
 })

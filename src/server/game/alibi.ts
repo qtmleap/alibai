@@ -154,6 +154,28 @@ export const alibiSegmentsOf = (params: {
   })
 }
 
+/**
+ * 盤面に出してよい死亡推定時刻。
+ *
+ * 掴んだ証拠のどれかに作者の印（`revealsDeathTime`）が立っていれば、そのとき初めて
+ * 時刻を返す。掴んでいなければ null で、盤面は「不明」を描く——事件の記録が語っているのは
+ * 遺体発見時刻だけで、死亡推定は探偵が検死するか、物証か、医師の見立てから
+ * 手に入れて初めて分かるもの（docs/design/deadline-window.md）。
+ *
+ * 判断をサーバに置いているのは、どの証拠が刻限を明かすのかという対応表を
+ * クライアントへ渡さないため。渡せば、盤面が答え合わせの鍵を持つことになる。
+ *
+ * 印が複数あっても返す時刻は一つ。いまは確定（`fixed`）だけを扱うので、
+ * どの道から辿り着いても出てくる数字は同じシナリオの `estimatedDeathAt` になる。
+ */
+export const deathEstimateOf = (params: {
+  /** シナリオが持つ死亡推定時刻。書かれていない事件では null。 */
+  estimatedDeathAt: string | null
+  /** 発見済みの証拠。印だけを見る。 */
+  evidences: { revealsDeathTime: boolean }[]
+}): string | null =>
+  params.evidences.some((evidence) => evidence.revealsDeathTime) ? params.estimatedDeathAt : null
+
 /** 証拠の `contradicts` が嘘を指すときの接頭辞。`"lie:<lies[].id>"` の形で書かれる。 */
 const LIE_PREFIX = 'lie:'
 

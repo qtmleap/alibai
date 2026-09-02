@@ -17,7 +17,10 @@ export type RemainingHintsInput = {
   items: HintItem[]
   /** 進行中のセッションで発見済みのID。DO の snapshot から取ること。 */
   discoveredIds: string[]
-  /** 見取り図の全部屋。図に並ぶ順のまま渡す。 */
+  /**
+   * 場所として数える相手のID。見取り図の全部屋と、調べられる場所。
+   * 図のあるぶんは図に並ぶ順のまま渡す。
+   */
   roomIds: string[]
   /** 全登場人物。 */
   characterIds: string[]

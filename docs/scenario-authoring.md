@@ -203,9 +203,19 @@ victim:
 - 誰がやったかを書かない。見えたものだけを置き、繋ぐのはプレイヤーの仕事です。
 - `findings` も `causeOfDeath` も無ければ、被害者は聞き込みの相手に並びません（調べても何も出ないので）。
 - `foundIn` は `timeline` の `location` と同じ扱いです。画面に出る文字で、部屋IDは `foundRoom` へ。
-- **`estimatedDeathAt` はアリバイ表を横断する刻限の線になります。** 発見時刻（`foundAt`）とは別物です。
-  「いつまでに殺せたか」が盤面に引かれるので、**時刻の偽装を核にする事件では必ず入れてください。**
-  ここが無いと、線が何本増えても「間に合ったのか」を読む基準が画面に現れません。
+- **`foundAt` と `estimatedDeathAt` は、盤面に出るときが違います。** どちらもアリバイ表を横断する
+  刻限になりますが、前者は最初から、後者は探偵が手に入れてからです（docs/design/deadline-window.md）。
+  - `foundAt` は**公開情報**です。「午後八時三十分ごろ、書斎で倒れているのが見つかります」と
+    事件の記録（`briefing`）が語っている時刻なので、一手も打っていないうちから実線で引かれます。
+  - `estimatedDeathAt` は**手に入れて初めて分かるもの**です。プレイヤーがまだ掴んでいないあいだ、
+    盤面はそこを点線と `?` で囲って「まだ分かっていない」と示します。**この時刻を記録の本文に
+    書かないでください。** 書けば、誰も遺体を見ていないうちから読み物のほうで漏れてしまい、
+    盤面が伏せている意味が無くなります。
+  - **何を掴めば開くのかは、作者が決めます。** 証拠に `revealsDeathTime: true` の印を付けてください
+    （§8）。印をひとつも付けなければ、刻限は最後まで「不明」のままです。時刻を書いただけでは
+    盤面に出ません——出る道を作るのも作者の仕事だからです。
+  - 時刻の偽装を核にする事件では `estimatedDeathAt` を必ず入れてください。ここが無いと、線が何本
+    増えても「間に合ったのか」を読む基準が最後まで画面に現れません。
 - 遺体を調べるのも**質問1回ぶん**を消費します。人に訊くか現場を見るかの配分がそのままゲームになります。
 
 ### `sources: { type: victim }`
@@ -251,6 +261,53 @@ characters:
         relation: 顔見知り
         attitude: 苦手意識がある        # 省略可
 ```
+
+### `places` — 話を聞けない相手（その二）
+
+現場そのものを調べさせられます。喋らないという点では遺体と同じで、プレイヤーから見れば
+「誰に訊くか」の選択肢が人物と遺体と場所の三択になります。省略できます（既定は空）。
+
+```yaml
+places:
+  - id: choba                                    # 英小文字始まり
+    name: 帳場                                    # 20字まで
+    shortName: 帳場                               # 8字まで。端末の切り替えに並ぶ
+    introduction: 青雨堂の一階。レジと帳面           # 60字まで。支度の名簿に出る紹介
+    situation: 閉店の片づけが、途中で止まっている     # 60字まで。調べているあいだ名札の下に出る
+    findings:                                     # 1件以上。遺体の findings と同じ組み
+      - id: ledger-stops-1844
+        statement: 帳場の帳面は18時44分の記入で止まっていて、その先が書かれていない。
+```
+
+`findings` を1件以上必須にしてあるのは、**名簿に並んだ場所は必ず調べられる**ようにするためです。
+押せるのに何も出ない相手を出さない、という決まりがここにも効いています。
+
+**IDの決まり**は `[a-z][a-z0-9-]*`。`victim` と uuid の形は使えません。人物・遺体・場所の三者が
+`ask` の同じ一つの口へ来るので、IDの形だけで誰を指したのかが決まる必要があるためです。
+
+**見取り図がある事件では、部屋のIDと揃えてください。** 同じ場所を指すなら一つのIDで、
+`sources: { type: location }` が図の部屋と調べる相手の両方に当たります。図が無くても場所は置けます。
+
+`situation` は所見ではありません。名簿にも名札にも出る公開情報なので、秘匿キーワードの検査対象です。
+`findings` は調べて初めて出るものなので対象外。ここを取り違えて `situation` に手掛かりを書くと、
+一手も使わないうちに漏れます。
+
+**場所を置いたら、その場所を出どころにした証拠か啓示を最低ひとつ置いてください。**
+
+```yaml
+evidences:
+  - id: debt-ledger
+    label: 貸し借りの覚え書き
+    sources:
+      - type: location
+        id: choba
+```
+
+無いと、増やした一手が空振りになります。開示条件にも「または帳場を調べ、帳面の途切れに行き当たったら
+開示する」のような節を足しておくこと。
+
+場所を調べるのも質問1回ぶんを使います。三択になるぶん、場所を増やしすぎると聞き込みが痩せるので、
+事件の芯に関わるものだけに絞ってください。遺体と同じで、場所は**逃げも黙秘もしない情報源**です。
 
 ### `publicIntroduction` と `personality`
 
@@ -345,6 +402,36 @@ evidences:
 - **`supports` はアリバイ表の鍵でもあります。** この証拠が裏付ける事実が `timeline` のどれかの
   出来事に含まれていれば、その証拠を掴んだ時点で表に線が引かれます。空にすると、
   証拠を掴んでも表が動きません。裏付けている事実を必ず書いてください。
+
+### `revealsDeathTime` — 刻限を開ける印
+
+死亡推定時刻（`victim.estimatedDeathAt`）を盤面に出す証拠へ、この印を立てます。省略できます（既定は false）。
+
+```yaml
+evidences:
+  - id: postmortem-signs
+    label: 遺体に残る中毒の徴候と、その進み具合
+    description: 唇と指先の跡、体の冷え方。事切れたのは20時15分ごろになる。
+    reveal:
+      condition: 遺体を調べ、探偵が死後の変化に触れたら開示する。
+    sources:
+      - { type: victim, id: victim }
+    supports: [ryoko-drank-at-2015]
+    revealsDeathTime: true            # これを掴むと、盤面の死亡推定が実線で出る
+```
+
+- **印が一つも無い事件では、死亡推定は最後まで「不明」のまま出ます。** 盤面がプレイヤーより先に
+  検死の結果を知ることはありません。時刻を書いただけで自動的に出る、という作りにはしていません。
+- **`estimatedDeathAt` を書いていない事件では印を立てられません**（検証で落ちます）。開ける先の
+  時刻がどこにも無いまま印だけが立つと、掴んでも盤面が変わらず、作者からは壊れて見えます。
+- **道は二つ以上作ってください。** 遺体の検分に一つ、聞き込みに一つが目安です。片方だけにすると、
+  その一手を選ばなかったプレイヤーは刻限を知らないまま告発することになります。医師や検死に関わった
+  人物がいる事件なら、その人の証言に紐づく証拠へも印を付けてください。
+- 印は**証拠にだけ**置けます。`findings` には置けません。所見は「見せてよいか」の前提を持つだけで、
+  プレイヤーが読んだという記録がどこにも残らないため、開いたかどうかを判定できないからです。
+  遺体の検分から開かせたいときは、`sources: { type: victim }` の証拠に印を付けてください。
+- 開示済みかどうかを判断するのはサーバです。どの証拠が刻限を明かすのかという対応表は、
+  クライアントへは送られません（docs/design/deadline-window.md）。
 
 ### `revelations` — 解禁されて初めて見える情報
 
@@ -453,11 +540,12 @@ solution:
 
 - `knowledge` / `secrets[].fact` / `lies[].about` / `timeline[].facts` / `supports` / `relatedFacts` → `facts[].id`
 - `relationships[].character` / `timeline[].participants` / `timeline[].witnesses` / `culprit` / `type: character` のソース → `characters[].id`
-- `type: location` のソースと `subject.type: location`、`timeline[].room`、`victim.foundRoom` → `floorPlan` の部屋 ID
+- `type: location` のソースと `subject.type: location` → `floorPlan` の部屋 ID **または** `places[].id`（図の無い事件でも場所は出どころになる）
+- `timeline[].room`、`victim.foundRoom` → `floorPlan` の部屋 ID
 - `subject.type: event` → `timeline[].id`
 - `requires.evidences` → `evidences[].id`、`requires.revelations` → `revelations[].id`
 - `contradicts` の `lie:` → 実在する `lies[].id`
-- `victim.findings[].requires` → `evidences[].id` / `revelations[].id`
+- `victim.findings[].requires` / `places[].findings[].requires` → `evidences[].id` / `revelations[].id`
 - `type: victim` のソース → その事件に `victim` があること（`id` は `victim` 固定）
 
 **ID が重複しないこと** — `facts` / `timeline` / `characters` / `evidences` / `revelations`、および全人物を通した `lies`、人物内の `memories`。
@@ -471,6 +559,7 @@ solution:
 - `synopsis` / `briefing` に典型的な解法誘導表現が入っていない
 - `publicIntroduction` に秘密・不正・アリバイやトリックの着眼点を示す表現が入っていない
 - 同じ人物が `participants` と `witnesses` の両方にいない
+- `revealsDeathTime` を立てた事件に `victim.estimatedDeathAt` があること
 - 見取り図が図面として成立している（§9）
 
 ---

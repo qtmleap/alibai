@@ -1,6 +1,7 @@
 import { createFileRoute, getRouteApi, Navigate, useNavigate } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import { useInterrogationContext } from '@/client/hooks/InterrogationContext'
+import { deadlineOf } from '@/client/lib/deadline'
 import { InterrogationScreen } from '@/client/screens/InterrogationScreen'
 
 const layout = getRouteApi('/sessions/$sessionId')
@@ -31,6 +32,13 @@ function Interrogation() {
     }
   }, [first, navigate])
 
+  /*
+   * 刻限。遺体発見は最初から、死亡推定は手に入れてから（docs/design/deadline-window.md）。
+   * 開示済みかを決めるのはサーバで、ここへ届くのは判断の結果だけ。線と同じく判定のたびに
+   * 引き直されるので、刻限を明かす証拠を掴んだ話題の直後に点線が実線へ変わる。
+   */
+  const deadline = deadlineOf(scenario.victim, interrogation.estimatedDeathAt)
+
   // 終わった事件は聞き込みに戻れない（推理を出した後に戻るを押した場合など）。
   // 開いたままにすると、答え合わせが済んだ相手に質問を投げられてしまう。
   if (state.finished) {
@@ -42,21 +50,15 @@ function Interrogation() {
   return (
     <InterrogationScreen
       scenario={scenario}
+      places={scenario.places}
       sessionId={state.sessionId}
       detectiveName={state.detectiveName}
       interrogation={interrogation}
       // 支度で選んだ相手。会話が始まっていればそちらが優先される。
       firstTarget={initialTarget}
-      /*
-        刻限は死亡推定時刻から引く。事件の記録が既に語っている時刻なので、
-        聞き込みが一問も進んでいなくても最初から出してよい。
-      */
       alibi={{
         segments: interrogation.alibiSegments,
-        deadline:
-          scenario.victim?.estimatedDeathAt == null
-            ? undefined
-            : { at: scenario.victim.estimatedDeathAt, label: '死亡推定' },
+        deadline,
         clash: interrogation.clash,
       }}
       onAccuse={() =>

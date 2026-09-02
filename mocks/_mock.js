@@ -46,6 +46,75 @@
   // 10分ごとの目盛り。表と突き合わせで同じものを使う。
   var TICKS = Array.from({ length: SPAN.len / 10 + 1 }, (_, i) => i * 10)
 
+  var topOf = (at) => (toMin(at) - SPAN.from) * PX_PER_MIN
+
+  /*
+   * 刻限の印（docs/design/deadline-window.md）。
+   *
+   * 遺体発見は事件の記録に書いてある公開情報なので常に実線で出す。死亡推定のほうは
+   * 手に入れた確度で描き分ける——同じ 18:50 でも、探偵が検死して出した数字と、
+   * 居合わせた誰かがそう言っているだけの数字は別物なので。
+   *
+   * 面は塗らない。窓は両端に返しの付いた線で示す。塗ると容疑者の帯と競う。
+   */
+  var deathMarks = (name) => {
+    var state = C.death[name] === undefined ? C.death.unknown : C.death[name]
+    var line = (top, cls, label, time) =>
+      '<span class="deadline' +
+      (cls ? ' ' + cls : '') +
+      '" style="top:' +
+      top +
+      'px"><span>' +
+      label +
+      '　<span class="t">' +
+      time +
+      '</span></span></span>'
+    var win = (top, height, cls, label, time, style) =>
+      '<span class="window' +
+      (cls ? ' ' + cls : '') +
+      '" style="top:' +
+      top +
+      'px;height:' +
+      height +
+      'px' +
+      (style || '') +
+      '"><span>' +
+      label +
+      '　<span class="t">' +
+      time +
+      '</span></span></span>'
+
+    var html = line(topOf(C.found), '', '遺体発見', C.found)
+    var top = state.from === undefined ? 0 : topOf(state.from)
+    var who = state.by === undefined ? undefined : CAST_BY_KEY[state.by]
+
+    if (state.kind === 'fixed') {
+      return html + line(topOf(state.at), '', '死亡推定', state.at)
+    }
+
+    if (state.kind === 'range') {
+      return html + win(top, topOf(state.to) - top, '', '死亡推定', state.from + '–' + state.to)
+    }
+
+    if (state.kind === 'claimed') {
+      return (
+        html +
+        line(topOf(state.at), 'claimed', '死亡推定', '? ' + state.at) +
+        '<span class="by" style="top:' +
+        topOf(state.at) +
+        'px;color:var(--' +
+        who.hue +
+        LIT +
+        ')">' +
+        esc(who.short) +
+        'の見立て</span>'
+      )
+    }
+
+    // 不明。どこか一点を指せないので、分かっている幅ぜんぶを点線の窓で囲う。
+    return html + win(0, topOf(C.found), 'unknown', '死亡推定', '?')
+  }
+
   /*
    * 罫と左の目盛り。アリバイ表と結果の突き合わせで同じ格子を敷くので、
    * 二度書かない——片方だけ直したときに、同じはずの表が食い違う。
@@ -231,15 +300,7 @@
       html += '</span>'
     })
 
-    var dl = (toMin(C.deadline.at) - SPAN.from) * PX_PER_MIN
-    html +=
-      '<span class="deadline" style="top:' +
-      dl +
-      'px" data-mock-id="ALI_INT_13"><span>' +
-      esc(C.deadline.label) +
-      '　<span class="t">' +
-      C.deadline.at +
-      '</span></span></span>'
+    html += deathMarks(opts.death)
 
     /*
      * 食い違い。噛み合わない二人の列のあいだに一本だけ架ける。
@@ -313,11 +374,107 @@
       if (s.kind === 'solid') last = at
     })
     if (last) html += '<span class="now" style="left:' + last + '"></span>'
-    return html
+    // 刻限は帯の一部。机の chart が deathMarks を内から呼ぶのと同じ扱いにする。
+    return html + railDeath(opts.death, 10)
   }
 
   // 帯のなかでの位置。端末側は px ではなく % で置く（幅が端末に依るため）。
   var pct = (hhmm) => ((toMin(hhmm) - SPAN.from) / SPAN.len) * 100
+
+  /*
+   * 端末の刻限の印（docs/design/deadline-window.md）。
+   *
+   * 描き分ける四状態は机（deathMarks）と同じで、変えるのは向きだけ。机は時刻が上から下へ
+   * 流れるので横一本の線になるが、端末は左から右なので縦の目盛りになる。一点を指す印
+   * （遺体発見・確定・第三者の見立て）は帯を縦に貫き、幅を持つ印（範囲・不明）は両端に
+   * 返しの付いた線を帯の下へ渡す。塗らないのは机と同じ理由で、面を足すと容疑者の帯と競う。
+   *
+   * inset は器が持つ左右の余白。聞き込みの帯（.rail）は 10px 内側に線を引いているので、
+   * % だけで置くと印が線からずれる（.pin が同じ手当てをしている）。告発の拡大軸は 0。
+   */
+  var railDeath = (name, inset) => {
+    var state = C.death[name] === undefined ? C.death.unknown : C.death[name]
+    var pad = inset === undefined ? 0 : inset
+    var at = (p) =>
+      'calc(' + pad + 'px + (100% - ' + pad * 2 + 'px) * ' + (p / 100).toFixed(4) + ')'
+    var wide = (p) => 'calc((100% - ' + pad * 2 + 'px) * ' + (p / 100).toFixed(4) + ')'
+
+    /*
+     * 札は印の子にしない。印は帯を貫く縦線、札は帯の下の一段と、縦の置き場所が別なので、
+     * 器（.rail と .rail-big）ごとの深さを CSS の側で決められるようにしておく。
+     *
+     * 揃え方で、指しているのが一点か幅かを言い分ける。一点の印は札の右端を印に合わせ
+     * （机の札が線の左に付くのと同じ）、窓の札は幅の真ん中へ置く。
+     * 端末は 390px しかないので、印が端に寄れば札は零れる。零れる側では折り返す——
+     * 遺体発見の 19:15 は軸の 92% に立つので、右端を揃えないと画面の外へ出る。
+     */
+    var lb = (p, label, time, tail, mid) =>
+      '<span class="lb' +
+      (p < 24 ? ' start' : mid && p < 72 ? '' : ' end') +
+      '" style="left:' +
+      at(p) +
+      '">' +
+      label +
+      '　<span class="t">' +
+      time +
+      '</span>' +
+      (tail === undefined ? '' : tail) +
+      '</span>'
+
+    var tick = (p, cls) =>
+      '<span class="deadline' + (cls ? ' ' + cls : '') + '" style="left:' + at(p) + '"></span>'
+
+    var win = (from, to, cls, time) => {
+      var a = pct(from)
+      var b = pct(to)
+      return (
+        '<span class="window' +
+        (cls ? ' ' + cls : '') +
+        '" style="left:' +
+        at(a) +
+        ';width:' +
+        wide(b - a) +
+        '"></span>' +
+        lb((a + b) / 2, '死亡推定', time, undefined, true)
+      )
+    }
+
+    var html = tick(pct(C.found)) + lb(pct(C.found), '遺体発見', C.found)
+    var who = state.by === undefined ? undefined : CAST_BY_KEY[state.by]
+
+    if (state.kind === 'fixed') {
+      return html + tick(pct(state.at)) + lb(pct(state.at), '死亡推定', state.at)
+    }
+
+    if (state.kind === 'range') {
+      return html + win(state.from, state.to, '', state.from + '–' + state.to)
+    }
+
+    if (state.kind === 'claimed') {
+      /*
+       * 誰の見立てかは、机では線の下へ別の一行として添えてある。端末にはその一段が無いので
+       * 同じ札の尾に続ける——顔料はその人のものなので、続けても言い分の出どころは残る。
+       */
+      return (
+        html +
+        tick(pct(state.at), 'claimed') +
+        lb(
+          pct(state.at),
+          '死亡推定',
+          '? ' + state.at,
+          '<span class="by" style="color:var(--' +
+            who.hue +
+            LIT +
+            ')">' +
+            esc(who.short) +
+            'の見立て</span>',
+        )
+      )
+    }
+
+    // 不明。どこか一点を指せないので、分かっている幅ぜんぶを点線の窓で囲う。
+    return html + win(C.span.from, C.found, 'unknown', '?')
+  }
 
   /*
    * 端末の告発で使う、拡大した時刻軸。
@@ -365,11 +522,16 @@
         '</span></span>'
     }
 
+    // 刻限の印。段の下、軸の上に置く（_phone.css の .rail-big .lb）。
+    html += railDeath(opts.death, 0)
+
+    /*
+     * 軸の両端だけ。ここには死亡推定を焼き込まない——盤面が最初から知っていることになる。
+     * 刻限は上の印が、手に入れた確度のぶんだけ言う。
+     */
     html +=
       '<div class="axis"><span class="t label">' +
       C.span.from +
-      '</span><span class="t label">' +
-      C.deadline.at +
       '</span><span class="t label">' +
       C.span.to +
       '</span></div>'
@@ -681,6 +843,11 @@
     total: PLAY.length,
     play: play,
     chart: chart,
+    // 刻限の印だけを単体で出す。四状態を並べる台紙（deadline-states.html）が使う。
+    deathMarks: deathMarks,
+    // 同じ四状態を、端末の横に寝た時刻軸へ移したもの。
+    railDeath: railDeath,
+    pxPerMin: PX_PER_MIN,
     chartHead: chartHead,
     rail: rail,
     railBig: railBig,

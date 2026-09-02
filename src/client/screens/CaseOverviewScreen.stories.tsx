@@ -9,14 +9,18 @@ import { SCENARIO } from '@/client/stories/fixtures'
  */
 const PLACES: InvestigablePlace[] = [
   {
-    id: 'e9b41c07-2d58-4a36-9f10-6c3b7a5d8e21',
+    id: 'choba',
     name: '帳場',
+    shortName: '帳場',
     introduction: '青雨堂の一階。レジと帳面',
+    situation: '閉店の片づけが、途中で止まっている',
   },
   {
-    id: 'a2f70d13-8c64-4e59-b7a1-05d9e6f34c82',
+    id: 'oku',
     name: '奥の間',
+    shortName: '奥の間',
     introduction: '帳場の裏。倒れていた場所',
+    situation: '書架のあいだに、灯りがひとつだけ点いている',
   },
 ]
 

@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
-import { AlibiChart } from './AlibiChart'
+import { AlibiChart, type Deadline } from './AlibiChart'
 
 /*
  * 突き合わせの相手は mocks/desktop/*.html の左半分。
@@ -14,7 +14,12 @@ const people = [
 ]
 
 const span = { from: '18:20', to: '19:20' }
-const deadline = { at: '18:50', label: '死亡推定' }
+
+/*
+ * 刻限。発見時刻は事件の記録が語る公開情報なので常に出て、死亡推定のほうは
+ * まだ誰も検分していないので「不明」——盤面の既定はこの形（deadline-states.html）。
+ */
+const deadline: Deadline = { foundAt: '19:10', label: '死亡推定', death: { kind: 'unknown' } }
 
 const filled = [
   { who: 'makino', from: '18:20', to: '18:36', kind: 'solid' as const, place: '店内' },
@@ -103,7 +108,8 @@ export const Compared: Story = {
     people: people.map((p) => (p.key === 'makino' ? { ...p, role: '犯人', roleSolved: true } : p)),
     segments: filled,
     span,
-    deadline: { at: '18:50', label: '死亡' },
+    // 答え合わせが済んだ後なので、刻限は一本の実線に落ちる。
+    deadline: { label: '死亡', death: { kind: 'fixed', at: '18:50' } },
     truth: [
       { who: 'makino', from: '18:20', to: '18:50', note: '申告より14分ぶん長い' },
       { who: 'kuroda', from: '18:23', to: '18:48' },
@@ -111,6 +117,45 @@ export const Compared: Story = {
       { who: 'sena', from: '19:12', to: '19:20' },
       { who: 'mizuno', from: '18:20', to: '18:50' },
     ],
+  },
+}
+
+/**
+ * 刻限の四状態のうち、確定・範囲・第三者の推定（docs/design/deadline-window.md）。
+ * 不明は Empty が持っている。台紙は mocks/desktop/deadline-states.html。
+ */
+export const DeathFixed: Story = {
+  args: {
+    people,
+    segments: [],
+    span,
+    deadline: { foundAt: '19:10', label: '死亡推定', death: { kind: 'fixed', at: '18:50' } },
+  },
+}
+
+export const DeathRange: Story = {
+  args: {
+    people,
+    segments: [],
+    span,
+    deadline: {
+      foundAt: '19:10',
+      label: '死亡推定',
+      death: { kind: 'range', from: '18:40', to: '19:00' },
+    },
+  },
+}
+
+export const DeathClaimed: Story = {
+  args: {
+    people,
+    segments: [],
+    span,
+    deadline: {
+      foundAt: '19:10',
+      label: '死亡推定',
+      death: { kind: 'claimed', at: '18:50', by: { name: '瀬名', hue: 'suou' } },
+    },
   },
 }
 

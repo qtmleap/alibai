@@ -3,6 +3,7 @@ import {
   type ScenarioDefinition,
   ScenarioDefinitionSchema,
   type ScenarioEvidenceSource,
+  type ScenarioFinding,
   type ScenarioRevelationSource,
 } from './scenario-definition'
 import type { characters, evidences, revelations, scenarios, scenarioTruths } from './schema'
@@ -202,6 +203,12 @@ const compileDefinition = (
     supports: evidence.supports,
     // 食い違いの印が読む。どの嘘を崩したかが分かって初めて、盤面の一点を指せる。
     contradicts: evidence.contradicts,
+    /*
+      刻限が読む。この証拠を掴んだ瞬間に死亡推定が盤面へ出る、という印。
+      時刻そのものは公開側（scenarios.victimEstimatedDeathAt）にあり、
+      サーバは掴んだ証拠にこの印があるときだけそれを返す。
+    */
+    revealsDeathTime: evidence.revealsDeathTime,
   }))
 
   const compiledRevelations = definition.revelations.map((revelation) => ({
@@ -281,6 +288,42 @@ const compileDefinition = (
   */
   const window = timeWindowOf(definition.timeline)
 
+  /**
+   * 所見の解禁前提を採番し直す。
+   *
+   * DO が持っている発見済みの ID は uuid なので、authoring のローカル ID のまま焼くと、
+   * 前提が永久に満たされない所見になる。（所見自身の id は他から参照されないのでそのまま。）
+   * 遺体と場所で同じ手当てが要るので、一箇所に置く。
+   */
+  const compileFinding = (finding: ScenarioFinding): ScenarioFinding => ({
+    id: finding.id,
+    statement: finding.statement,
+    requires: {
+      revelations: finding.requires.revelations.map(revelationUuid),
+      evidences: finding.requires.evidences.map(evidenceUuid),
+    },
+  })
+
+  /*
+    場所は二つに割って焼く。名前と紹介と佇まいは調べる前から見えるので公開側へ、
+    所見は調べて初めて出るので真相側へ。遺体とまったく同じ分け方をしている。
+
+    ID はローカルのまま。場所は `type: location` のソースが指す先で、実行時も
+    その文字列で突き合わせる（部屋 ID と同じ理由。uuid にすると誰も指せなくなる）。
+  */
+  const compiledPlaces = definition.places.map((place) => ({
+    id: place.id,
+    name: place.name,
+    shortName: place.shortName,
+    introduction: place.introduction,
+    situation: place.situation,
+  }))
+
+  const compiledPlaceFindings = definition.places.map((place) => ({
+    placeId: place.id,
+    findings: place.findings.map(compileFinding),
+  }))
+
   const victim = definition.victim
 
   /*
@@ -310,6 +353,7 @@ const compileDefinition = (
           ? null
           : victim.estimatedDeathAt,
       victimInvestigable: investigable,
+      places: compiledPlaces,
       isPublished: options.isPublished,
       difficulty: definition.meta.difficulty,
       estimatedMinutes: definition.meta.estimatedMinutes,
@@ -327,22 +371,8 @@ const compileDefinition = (
       timelineEvents,
       victimCauseOfDeath:
         victim === undefined || victim.causeOfDeath === undefined ? null : victim.causeOfDeath,
-      /*
-        所見の解禁前提も採番する。DO が持っている発見済みのIDは uuid なので、
-        authoring のローカルIDのまま焼くと、前提が永久に満たされない所見になる。
-        （所見自身の id は他から参照されないので、そのまま残す。）
-      */
-      victimFindings:
-        victim === undefined
-          ? []
-          : victim.findings.map((finding) => ({
-              id: finding.id,
-              statement: finding.statement,
-              requires: {
-                revelations: finding.requires.revelations.map(revelationUuid),
-                evidences: finding.requires.evidences.map(evidenceUuid),
-              },
-            })),
+      victimFindings: victim === undefined ? [] : victim.findings.map(compileFinding),
+      placeFindings: compiledPlaceFindings,
       secretKeywords: definition.solution.secretKeywords,
     },
   }

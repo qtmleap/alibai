@@ -18,6 +18,40 @@ victim:
       statement: 水野英治は店奥で倒れており、その場で死亡が確認されている。
     - id: victim-motive-material
       statement: 遺体のそばには「店頭に残った複製本」に関わる資料が残されている。
+# 調べられる場所。喋らないが、聞き込みと同じ一手で調べる相手。
+# 図面を持たない事件なので、ID は部屋を指さない。ここで名付けた ID が
+# `type: location` のソースの行き先になる。
+places:
+  - id: choba
+    name: 帳場
+    shortName: 帳場
+    introduction: 青雨堂の一階。レジと帳面
+    # 調べているあいだ名札の下に出る一行。所見ではなく、見れば誰でも分かる佇まい。
+    situation: 閉店の片づけが、途中で止まっている
+    # 主語は場所ではなく「分かったこと」。誰がそうしたのかは書かない。
+    findings:
+      - id: ledger-stops-1844
+        statement: 帳場の帳面は18時44分の記入で止まっていて、その先が書かれていない。
+      - id: closing-unfinished
+        statement: 釣り銭は数えかけのまま、戸締まりもされていない。片づけが途中で放り出されている。
+      - id: ledger-loan-note
+        statement: 帳面の裏表紙に、貸し借りらしい数字の覚え書きがある。相手の名は略字で書かれている。
+  - id: oku
+    name: 奥の間
+    shortName: 奥の間
+    introduction: 帳場の裏。倒れていた場所
+    situation: 書架のあいだに、灯りがひとつだけ点いている
+    findings:
+      - id: shelf-gap
+        statement: 詩集の棚に一冊ぶんの隙間があり、抜かれた本が戻されていない。
+      - id: single-lamp
+        statement: 書架のあいだの灯りがひとつだけ点いている。手元を照らすためだけに点けたように見える。
+      # 複製本の一件を掴んでから見ると、棚の隙間の意味が変わる。順序を作るために前提を置く。
+      - id: replica-shelf-mark
+        statement: 隙間の奥の埃に、本を一度戻して抜き直したような跡が二重に残っている。
+        requires:
+          evidences:
+            - forged-book
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -294,7 +328,7 @@ evidences:
     label: 店頭に残った複製本
     description: 初版本として保管されていた本は精巧な複製で、在庫と発送を扱う者ならすり替えの機会があった。
     reveal:
-      condition: 牧野か黒田に事件当日の高価な初版本について詳しく尋ね、真贋に疑問が出たら開示する。または遺体・現場を調べ、「店頭に残った複製本」に関わる資料を確認したら開示する。
+      condition: 牧野か黒田に事件当日の高価な初版本について詳しく尋ね、真贋に疑問が出たら開示する。または遺体・現場を調べ、「店頭に残った複製本」に関わる資料を確認したら開示する。または奥の間の棚を調べ、抜かれたまま戻っていない一冊の跡に行き当たったら開示する。
     sources:
       - type: character
         id: makino
@@ -302,6 +336,8 @@ evidences:
         id: kuroda
       - type: victim
         id: victim
+      - type: location
+        id: oku
     supports: [ makino-swapped-book, rare-book-arrived ]
     contradicts: []
   - id: secret-deal-note
@@ -318,10 +354,12 @@ evidences:
     label: 瀬名への貸付記録
     description: 水野が瀬名へ百万円を貸していた記録。返済は遅れているが、強い取り立てをしていた形跡はない。
     reveal:
-      condition: 瀬名に水野との金銭関係を尋ね、貸し借りを否定したため記録を確認したら開示する。
+      condition: 瀬名に水野との金銭関係を尋ね、貸し借りを否定したため記録を確認したら開示する。または帳場の帳面を調べ、貸し借りの覚え書きに行き当たったら開示する。
     sources:
       - type: character
         id: sena
+      - type: location
+        id: choba
     supports: [ sena-owed-money ]
     contradicts: [ "lie:sena-no-debt" ]
 solution:

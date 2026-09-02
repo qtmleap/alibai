@@ -40,9 +40,15 @@
         </div>
 
         <div class="work">
+          <!--
+            人は表の列見出しから選べるが、場所は表に列を持たないので選ぶ口が無い。
+            端末には切り替えがあるのに机だけ支度へ戻らされるのは筋が通らないので、
+            名札の右上に小さく置く。答えない相手なので顔料は持たせず、灰のまま。
+          -->
           <div class="talk-head" data-mock-id="ALI_INT_05">
             <div class="nm" id="who"></div>
             <div class="ps" id="pers"></div>
+            <div class="places" id="places"></div>
           </div>
 
           <!--
@@ -100,11 +106,54 @@
           active: st.current,
           clash: st.clash,
           litFix: '19:08　受付',
+          // 刻限の状態は #death= で切り替える（docs/design/deadline-window.md）。
+          death: Mock.str('death', 'unknown'),
         })
 
         document.getElementById('who').textContent = me.name
         document.getElementById('who').style.color = 'var(--' + me.hue + Mock.lit + ')'
         document.getElementById('pers').textContent = me.role + '。' + me.persona
+
+        /*
+          場所への切り替え。出すのは調べているあいだだけで、人に訊いている最中は出さない。
+
+          切り替えに並べるのは「いまやっていることと同じ種類」に限る。訊くと調べるは
+          別の一手なので、会話の隅から片手間に移れる口があると、行為の切れ目がぼやける。
+          人へ戻る道は表の列見出しがいつでも持っているので、塞がりはしない。
+
+          いま開いているものは並べない——押しても何も起きない口を出さない。
+
+          このモックは台本の何手目かで画面を作るので、行き先はターン番号で指す
+          （端末の切り替えと同じ理由。who= を渡しても読む側が居ない画面がある）。
+        */
+        var lastTurnOf = function (key) {
+          var found = 0
+          for (var t = 1; t <= C.turns; t++) {
+            if (Mock.play(t).current === key) found = t
+          }
+          return found
+        }
+
+        document.getElementById('places').innerHTML = (examining ? Mock.places : [])
+          .filter(function (p) {
+            return p.key !== st.current
+          })
+          .map(function (p) {
+            var to = lastTurnOf(p.key)
+            return to === 0
+              ? ''
+              : '<a href="#turn=' + to + '" data-turn="' + to + '">' + Mock.esc(p.short) + '</a>'
+          })
+          .join('')
+
+        // ハッシュを書き換えるだけでは描き直されない。この台の他の画面と同じく読み込み直す。
+        Array.prototype.forEach.call(document.querySelectorAll('#places a'), function (el) {
+          el.addEventListener('click', function (e) {
+            e.preventDefault()
+            location.hash = 'turn=' + el.dataset.turn
+            location.reload()
+          })
+        })
 
         document.getElementById('askbox').textContent = examining ? '何を調べる？' : '何について訊く？'
         document.getElementById('askbtn').textContent = examining ? '調べる' : '訊く'

@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import { AlibiChart, type AlibiPerson, type AlibiSegment } from '@/client/components/AlibiChart'
+import {
+  AlibiChart,
+  type AlibiPerson,
+  type AlibiSegment,
+  type Deadline,
+} from '@/client/components/AlibiChart'
 import { CaseNoteDialog } from '@/client/components/CaseNote'
 import { edgeOf, inkOf, surfaceOf } from '@/client/components/CharacterAvatar'
 import { FloorPlanMap } from '@/client/components/FloorPlan'
@@ -25,7 +30,8 @@ import { VICTIM_ID } from '~/db/scenario-definition'
  */
 type Alibi = {
   segments: AlibiSegment[]
-  deadline?: { at: string; label: string }
+  /** 被害者の刻限。遺体発見は常に、死亡推定は手に入れた確度で描き分けられる。 */
+  deadline?: Deadline
   /** 供述が噛み合わない区間。`between` は噛み合わない二人で、線はその二列に架かる。 */
   clash?: { at: string; label: string; between: [string, string] }
 }
@@ -534,6 +540,17 @@ export const InterrogationScreen = ({
    * ログに出す名前は、遺体も場所も「所見」にする。喋ったのではなく探偵が見たものなので、
    * 名前を出すと死者や部屋が証言しているように読める。
    */
+  /*
+   * easy のときだけ、その場所からあと何件見つかるかが引ける。
+   *
+   * 場所は表に列を持たないので、人物のように見出しへ出せない。見取り図を持つ事件では
+   * 図の部屋が同じ数を出すが、図に無い場所（青雨堂の帳場・奥の間など）はここが唯一の
+   * 出しどころになる。数えているのは `hint.rooms`——サーバが部屋IDと場所IDを
+   * 同じ袋に入れて返すので、場所も同じ引き方で取れる。
+   */
+  const remainingAt = (placeId: string) =>
+    hint.mode === 'easy' ? hint.rooms.find((entry) => entry.id === placeId)?.remaining : undefined
+
   const subjects = [
     ...scenario.characters.map((character, index) => ({
       id: character.id,
@@ -542,6 +559,13 @@ export const InterrogationScreen = ({
       introduction: character.publicIntroduction,
       ink: inkOf(index),
       edge: edgeOf(index),
+      /** 訊く相手か、調べる相手か。切り替えに並べる相手を選り分けるのに使う。 */
+      examine: false,
+      /*
+       * 切り替えに添える残り件数。人物と遺体は表の列見出しが同じ数を出すので持たせない
+       * ——二箇所に同じ数が並ぶと、片方が古い値に見える。
+       */
+      remaining: undefined,
     })),
     ...(scenario.victim === null || !scenario.victim.investigable
       ? []
@@ -553,15 +577,24 @@ export const InterrogationScreen = ({
             introduction: `被害者・${scenario.victim.introduction}`,
             ink: inkOf(scenario.characters.length),
             edge: edgeOf(scenario.characters.length),
+            examine: true,
+            remaining: undefined,
           },
         ]),
     ...places.map((place) => ({
       id: place.id,
       name: place.name,
       logName: '所見',
-      introduction: `現場・${place.introduction}`,
+      /*
+       * 名札の下に出すのは佇まいのほう。introduction は名簿に出す紹介で、
+       * ここへ持ってくると「青雨堂の一階。レジと帳面」と、目の前にあるものではなく
+       * 場所の説明が並ぶ。モックが persona に置いているのは situation にあたる。
+       */
+      introduction: `現場・${place.situation}`,
       ink: 'text-nezumi-t',
       edge: 'border-nezumi',
+      examine: true,
+      remaining: remainingAt(place.id),
     })),
   ]
 
@@ -569,6 +602,19 @@ export const InterrogationScreen = ({
   /** 遺体か場所を調べているあいだ。訊くのではなく見るので、文言が変わる。 */
   const examining =
     activeCharacterId === VICTIM_ID || places.some((place) => place.id === activeCharacterId)
+
+  /*
+   * 相手を替える口に並べるのは、いまやっていることと同じ種類だけ。
+   * 人に訊いているあいだは人、遺体や現場を調べているあいだは調べられる相手。
+   *
+   * 訊くと調べるは別の一手なので、混ぜて並べると行為の切れ目がぼやける。
+   * 種類をまたぐときは支度の名簿へ戻る道があるので、塞がりはしない。
+   *
+   * いま開いている相手は並べない——押しても何も起きない口を出さない。
+   */
+  const switchTargets = subjects.filter(
+    (subject) => subject.examine === examining && subject.id !== activeCharacterId,
+  )
   const activeSuggestions = suggestedQuestions[activeCharacterId]
   const suggestionsToShow = activeSuggestions === undefined ? [] : activeSuggestions
   const isAsking = askingCharacterId !== undefined
@@ -727,19 +773,23 @@ export const InterrogationScreen = ({
         </span>
         {/* 端末には表の列見出しが無いので、切り替えられる場所はここだけになる。 */}
         {switchClass === undefined ? null : (
-          <nav aria-label="話す相手" className="flex shrink-0 items-baseline gap-2.5">
-            {subjects
-              .filter((subject) => subject.id !== activeCharacterId)
-              .map((subject) => (
-                <button
-                  key={subject.id}
-                  type="button"
-                  onClick={() => setActiveCharacterId(subject.id)}
-                  className={`${switchClass} text-nezumi-dim hover:text-nezumi`}
-                >
-                  {subject.name}
-                </button>
-              ))}
+          <nav
+            aria-label={examining ? '調べる相手' : '話す相手'}
+            className="flex shrink-0 items-baseline gap-2.5"
+          >
+            {switchTargets.map((subject) => (
+              <button
+                key={subject.id}
+                type="button"
+                onClick={() => setActiveCharacterId(subject.id)}
+                className={`${switchClass} text-nezumi-dim hover:text-nezumi`}
+              >
+                {subject.name}
+                {subject.remaining === undefined ? null : (
+                  <span className="ml-1.5">あと {subject.remaining}</span>
+                )}
+              </button>
+            ))}
           </nav>
         )}
       </div>

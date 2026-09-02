@@ -58,9 +58,20 @@
         var filled = Mock.str('filled', '0') === '1'
         var pick = Mock.str('who', C.truth.culprit)
 
+        /*
+          掴んで動かす目盛りは「プレイヤーが指した時刻」で、盤面が知っている刻限ではない。
+          既定は真相の一手（犯行の時刻）に置く——このモックは指名も真相に合わせてあるので、
+          書き上がった告発の絵として辻褄が合う。刻限のほうは #death= が別に描く。
+        */
+        var keyBeat = C.truth.timeline.filter(function (t) {
+          return t.key
+        })[0]
+
         document.getElementById('railBig').innerHTML = Mock.railBig({
           segments: st.segments,
-          at: C.deadline.at,
+          at: keyBeat.at,
+          // 刻限の状態は #death= で切り替える（docs/design/deadline-window.md）。
+          death: Mock.str('death', 'unknown'),
         })
 
         document.getElementById('pick').innerHTML = C.cast

@@ -36,6 +36,9 @@ export const VICTIM_ID = 'victim'
  * 1件1文。人物の心情や動機の解釈は書かない——あれは `revelations` の仕事で、
  * ここに混ぜると「遺体を見ただけで動機が分かる」ことになってしまう。
  * ここに書けるのは、その場で目にできるものだけ。
+ *
+ * 調べられる場所（`scenarioPlaceSchema`）の所見も同じ形を使う。段階的に見せる仕組みまで
+ * 含めて同じものなので、別に定義すると片方だけ直された日に食い違う。
  */
 export const scenarioVictimFindingSchema = z.object({
   id: localIdSchema,
@@ -47,6 +50,61 @@ export const scenarioVictimFindingSchema = z.object({
       evidences: z.array(localIdSchema).default([]),
     })
     .default({ revelations: [], evidences: [] }),
+})
+
+/**
+ * 調べられる場所の ID。
+ *
+ * ask の相手は人物・遺体・場所が同じ一つの口へ来るので、三者が形で見分けられないと
+ * 「誰を指したのか」が決まらない。人物は uuid、遺体は `VICTIM_ID` 固定なので、
+ * 場所はそのどちらとも重ならないよう小文字の識別子に縛る。
+ *
+ * 見取り図の部屋IDと同じ値を使ってよい——同じ場所を指しているなら、それは一つの場所である。
+ * `type: location` のソースは部屋と場所のどちらにも当たる。
+ */
+export const placeIdSchema = localIdSchema
+  .regex(/^[a-z][a-z0-9-]*$/, {
+    message: '場所の ID は英小文字で始まり、英小文字・数字・ハイフンだけで書いてください。',
+  })
+  .refine((id) => id !== VICTIM_ID, {
+    message: `場所の ID に「${VICTIM_ID}」は使えません（遺体を指す ID と重なります）。`,
+  })
+  /*
+    uuid も弾く。16進とハイフンだけの ID は上の形に当てはまってしまうので、
+    ここで落とさないと「人物の ID に見える場所」を書けてしまう。
+  */
+  .refine((id) => !z.uuid().safeParse(id).success, {
+    message: '場所の ID に uuid の形は使えません（人物を指す ID と重なります）。',
+  })
+
+/**
+ * 調べられる場所。
+ *
+ * 遺体の二人目。喋らないが調べられる相手で、findings の組みも解禁の前提もそのまま同じ。
+ * 違うのは死んでいないことだけ——だから死因も発見時刻も持たず、代わりに
+ * 「いま見るとどうなっているか」の一行（`situation`）を持つ。
+ *
+ * 顔料も、アリバイ表の列も持たない。場所は動かないので、時刻軸に引く線がない。
+ */
+export const scenarioPlaceSchema = z.object({
+  id: placeIdSchema,
+  name: nonemptyTextSchema.max(20),
+  /** 名札や記録の見出しに使う短い名前。「帳場」「奥の間」。 */
+  shortName: nonemptyTextSchema.max(8),
+  /** 支度の名簿に出る紹介文。人物の `publicIntroduction` に当たる。 */
+  introduction: nonemptyTextSchema.max(60),
+  /**
+   * 調べているあいだ、名札の下に出る一行。
+   *
+   * 所見ではない。「閉店の片づけが、途中で止まっている」のような、見れば誰でも分かる佇まい。
+   * 調べる前から公開してよい範囲で書くこと（プレイ前の名簿にも出る値と同じ扱い）。
+   */
+  situation: nonemptyTextSchema.max(60),
+  /**
+   * 調べて分かること。空の場所は書けない——調べても何も出ない相手を並べると、
+   * 一手ぶんの質問が無駄になるだけなので。
+   */
+  findings: z.array(scenarioVictimFindingSchema).min(1),
 })
 
 export const scenarioVictimSchema = z.object({
@@ -204,6 +262,19 @@ export const scenarioEvidenceSchema = z.object({
   sources: z.array(scenarioEvidenceSourceSchema).default([]),
   supports: z.array(localIdSchema).default([]),
   contradicts: z.array(nonemptyTextSchema).default([]),
+  /**
+   * この証拠を掴んだら、死亡推定時刻（`victim.estimatedDeathAt`）を盤面に出すか。
+   *
+   * 既定は false。印がひとつも無い事件では、刻限はプレイの最後まで「不明」のまま出る
+   * ——記録に書いてあるのは発見時刻だけで、死亡推定は手に入れて初めて分かるものだから
+   * （docs/design/deadline-window.md「何が窓を締めるか」）。
+   *
+   * 所見（findings）ではなく証拠の側に置いてある。開示済みかどうかをサーバが数えられるのは
+   * 証拠と啓示だけで、所見には「見せてよいか」の前提があるだけ——読んだという記録が
+   * どこにも残らないので、印を付けても開いたかどうかを判定できない。
+   * 遺体の検分から開かせたいときは `sources: { type: victim }` の証拠へ印を付ける。
+   */
+  revealsDeathTime: z.boolean().default(false),
 })
 
 export const scenarioSolutionSchema = z.object({
@@ -259,6 +330,13 @@ export const scenarioDefinitionShapeSchema = z.object({
    * 殺人以外の事件を書けるようにするため任意にしてある。
    */
   victim: scenarioVictimSchema.optional(),
+  /**
+   * 調べられる場所。
+   *
+   * 空を既定にしてあるのは、場所を持たない事件が既にあるため。人物と遺体だけで
+   * 成立している事件に、後から現場を足す義務を負わせない。
+   */
+  places: z.array(scenarioPlaceSchema).default([]),
   briefing: nonemptyTextSchema,
   floorPlan: floorPlanSchema.nullable(),
   facts: z.array(scenarioFactSchema).min(1),
@@ -276,9 +354,16 @@ export const ScenarioDefinitionSchema = scenarioDefinitionShapeSchema.superRefin
     const characterIds = new Set(scenario.characters.map((character) => character.id))
     const evidenceIds = new Set(scenario.evidences.map((evidence) => evidence.id))
     const revelationIds = new Set(scenario.revelations.map((revelation) => revelation.id))
-    const locationIds = new Set(
-      scenario.floorPlan === null ? [] : scenario.floorPlan.rooms.map((room) => room.id),
-    )
+    /*
+      `type: location` が指せる先。図面の部屋と、調べられる場所の両方。
+      図を持たない事件でも場所は置けるので（`floorPlan: null` の事件がある）、
+      部屋だけを照合先にすると、そこへ証拠を紐づけた瞬間に落ちる。
+      両方に同じ ID があるときは同じ場所を指しているものとして扱う。
+    */
+    const locationIds = new Set([
+      ...(scenario.floorPlan === null ? [] : scenario.floorPlan.rooms.map((room) => room.id)),
+      ...scenario.places.map((place) => place.id),
+    ])
 
     /**
      * 出どころが実在するか。駄目なら理由を返す。
@@ -343,35 +428,59 @@ export const ScenarioDefinitionSchema = scenarioDefinitionShapeSchema.superRefin
       (index) => ['revelations', index, 'id'],
     )
 
-    const findings = scenario.victim === undefined ? [] : scenario.victim.findings
+    /**
+     * 所見の検査。遺体と場所で同じものを使う。
+     *
+     * 見るのは ID の重複と、解禁前提の参照先。証拠や啓示を書き換えたときに、
+     * 調べる側だけ古い ID が残るのを防ぐ。
+     */
+    const addFindingIssues = (
+      findings: { id: string; requires: { revelations: string[]; evidences: string[] } }[],
+      pathTo: (index: number) => (string | number)[],
+    ) => {
+      addDuplicateIssues(
+        findings.map((finding) => finding.id),
+        'finding',
+        (index) => [...pathTo(index), 'id'],
+      )
+
+      findings.forEach((finding, findingIndex) => {
+        finding.requires.evidences.forEach((evidenceId, at) => {
+          if (!evidenceIds.has(evidenceId)) {
+            ctx.addIssue({
+              code: 'custom',
+              path: [...pathTo(findingIndex), 'requires', 'evidences', at],
+              message: `存在しない evidence「${evidenceId}」を参照しています。`,
+            })
+          }
+        })
+
+        finding.requires.revelations.forEach((revelationId, at) => {
+          if (!revelationIds.has(revelationId)) {
+            ctx.addIssue({
+              code: 'custom',
+              path: [...pathTo(findingIndex), 'requires', 'revelations', at],
+              message: `存在しない revelation「${revelationId}」を参照しています。`,
+            })
+          }
+        })
+      })
+    }
+
+    addFindingIssues(scenario.victim === undefined ? [] : scenario.victim.findings, (index) => [
+      'victim',
+      'findings',
+      index,
+    ])
 
     addDuplicateIssues(
-      findings.map((finding) => finding.id),
-      'finding',
-      (index) => ['victim', 'findings', index, 'id'],
+      scenario.places.map((place) => place.id),
+      'place',
+      (index) => ['places', index, 'id'],
     )
 
-    // 所見の解禁前提。証拠や啓示を書き換えたときに、遺体側だけ古い ID が残るのを防ぐ。
-    findings.forEach((finding, findingIndex) => {
-      finding.requires.evidences.forEach((evidenceId, at) => {
-        if (!evidenceIds.has(evidenceId)) {
-          ctx.addIssue({
-            code: 'custom',
-            path: ['victim', 'findings', findingIndex, 'requires', 'evidences', at],
-            message: `存在しない evidence「${evidenceId}」を参照しています。`,
-          })
-        }
-      })
-
-      finding.requires.revelations.forEach((revelationId, at) => {
-        if (!revelationIds.has(revelationId)) {
-          ctx.addIssue({
-            code: 'custom',
-            path: ['victim', 'findings', findingIndex, 'requires', 'revelations', at],
-            message: `存在しない revelation「${revelationId}」を参照しています。`,
-          })
-        }
-      })
+    scenario.places.forEach((place, placeIndex) => {
+      addFindingIssues(place.findings, (index) => ['places', placeIndex, 'findings', index])
     })
 
     const lieEntries = scenario.characters.flatMap((character, characterIndex) =>
@@ -661,6 +770,18 @@ export const ScenarioDefinitionSchema = scenarioDefinitionShapeSchema.superRefin
         }
       })
 
+      /*
+        死亡推定時刻を持たない事件で印だけ立てても、開示できる時刻がどこにも無い。
+        作者は「開いたはずなのに盤面が変わらない」ものを見ることになるので、ここで落とす。
+      */
+      if (evidence.revealsDeathTime && scenario.victim?.estimatedDeathAt === undefined) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['evidences', evidenceIndex, 'revealsDeathTime'],
+          message: 'victim.estimatedDeathAt の無い事件では revealsDeathTime を立てられません。',
+        })
+      }
+
       evidence.contradicts.forEach((reference, contradictIndex) => {
         const lieId = reference.startsWith('lie:') ? reference.slice(4) : undefined
         const referencesKnownLie = lieId === undefined ? false : lieIdSet.has(lieId)
@@ -688,6 +809,12 @@ export const ScenarioDefinitionSchema = scenarioDefinitionShapeSchema.superRefin
       scenario.meta.category,
       scenario.briefing,
       ...scenario.characters.map((character) => character.publicIntroduction),
+      /*
+        場所の名前・紹介・佇まいも公開情報。名簿には調べる前から並ぶし、
+        佇まいは調べ始めた瞬間に名札の下へ出る。所見（findings）は調べて初めて
+        出るものなので、遺体の所見と同じくここには入れない。
+      */
+      ...scenario.places.flatMap((place) => [place.name, place.introduction, place.situation]),
     ]
       .join('\n')
       .toLocaleLowerCase()
@@ -704,6 +831,8 @@ export const ScenarioDefinitionSchema = scenarioDefinitionShapeSchema.superRefin
   },
 )
 
+export type ScenarioFinding = z.infer<typeof scenarioVictimFindingSchema>
+export type ScenarioPlace = z.infer<typeof scenarioPlaceSchema>
 export type ScenarioEvidenceSource = z.infer<typeof scenarioEvidenceSourceSchema>
 export type ScenarioRevelationSource = z.infer<typeof scenarioRevelationSourceSchema>
 export type ScenarioRevelation = z.infer<typeof scenarioRevelationSchema>
