@@ -27,6 +27,14 @@ export const deadlineOf = (
     : {
         foundAt: victim.foundAt === null ? undefined : victim.foundAt,
         label: '死亡推定',
-        death:
-          estimatedDeathAt === null ? { kind: 'unknown' } : { kind: 'fixed', at: estimatedDeathAt },
+        /*
+         * そもそも死亡推定時刻を持たない事件では、印そのものを出さない。
+         * 「まだ見つけていない」と「最初から無い」に同じ点線を出すと、
+         * 後者では存在しないものを探せと言うことになる。
+         */
+        death: !victim.hasEstimatedDeathAt
+          ? undefined
+          : estimatedDeathAt === null
+            ? { kind: 'unknown' }
+            : { kind: 'fixed', at: estimatedDeathAt },
       }

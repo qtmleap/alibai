@@ -68,6 +68,14 @@ export const scenarioDetailSchema = scenarioSummarySchema.omit({ characterCount:
        */
       foundAt: z.string().nonempty().nullable(),
       foundIn: z.string().nonempty().nullable(),
+      /**
+       * 死亡推定時刻が**あるかどうか**だけ。時刻そのものは届かない。
+       *
+       * 「まだ見つけていない」と「最初から無い」は別のことなので、盤面が描き分けるのに要る。
+       * 前者は点線と `?` で「ここに探すものがある」と誘うが、それを後者に出すと、
+       * 存在しないものを探せと言うことになる。
+       */
+      hasEstimatedDeathAt: z.boolean(),
       /** 遺体を調べられる事件か。false なら聞き込みの相手に並べない。 */
       investigable: z.boolean(),
     })

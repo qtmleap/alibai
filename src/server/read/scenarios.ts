@@ -42,6 +42,14 @@ export type ScenarioDetail = {
     introduction: string
     foundAt: string | null
     foundIn: string | null
+    /**
+     * 死亡推定時刻が**あるかどうか**だけ。時刻そのものは渡さない。
+     *
+     * 盤面が「まだ見つけていない」と「最初から無い」を描き分けるのに要ります。
+     * 値を伏せたまま有無だけ伝えるのは、残り件数のヒントが既に「探すものがある」と
+     * 言っているのと同じ粒度なので、これ以上は漏れません。
+     */
+    hasEstimatedDeathAt: boolean
     investigable: boolean
   } | null
   /**
@@ -123,6 +131,7 @@ export const findScenarioDetail = async (
       victimIntroduction: scenarios.victimIntroduction,
       victimFoundAt: scenarios.victimFoundAt,
       victimFoundIn: scenarios.victimFoundIn,
+      victimEstimatedDeathAt: scenarios.victimEstimatedDeathAt,
       victimInvestigable: scenarios.victimInvestigable,
       difficulty: scenarios.difficulty,
       estimatedMinutes: scenarios.estimatedMinutes,
@@ -188,6 +197,7 @@ export const findScenarioDetail = async (
             introduction: scenario.victimIntroduction,
             foundAt: scenario.victimFoundAt,
             foundIn: scenario.victimFoundIn,
+            hasEstimatedDeathAt: scenario.victimEstimatedDeathAt !== null,
             investigable: scenario.victimInvestigable,
           },
     characters: characterRows,

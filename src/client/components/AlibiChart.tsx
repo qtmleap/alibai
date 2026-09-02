@@ -49,7 +49,14 @@ export type Deadline = {
   foundAt?: string
   /** 死亡推定に添える札。盤面では「死亡推定」、結果の突き合わせでは真相なので「死亡」。 */
   label: string
-  death: DeathEstimate
+  /**
+   * 死亡推定の状態。**そもそも死亡推定時刻を持たない事件では渡さない。**
+   *
+   * 「まだ見つけていない」（`unknown`）と「最初から無い」は別のことです。前者は点線と `?` で
+   * 「ここに探すものがある」と誘いますが、それを後者に出すと、存在しないものを探せと
+   * 言うことになります。盤面が知らないはずを知るのと同じ質の嘘で、向きが逆なだけです。
+   */
+  death?: DeathEstimate
 }
 
 type Props = {
@@ -213,7 +220,7 @@ const DeadlineMarks = ({
         <DeadlineLine top={topOf(foundAt)} label="遺体発見" time={foundAt} dotted={false} />
       )}
 
-      {death.kind === 'fixed' ? (
+      {death === undefined ? null : death.kind === 'fixed' ? (
         <DeadlineLine top={topOf(death.at)} label={label} time={death.at} dotted={false} />
       ) : death.kind === 'range' ? (
         <DeadlineWindow
