@@ -1,4 +1,4 @@
-import { generateText, type LanguageModelUsage, type ModelMessage, type ProviderMetadata } from 'ai'
+import { type ModelMessage, streamText } from 'ai'
 import type { Env } from '@/server/env'
 import { buildDetectiveSelfBlock } from '@/server/llm/detective'
 import { type LlmChoice, resolveModel } from '@/server/llm/provider'
@@ -54,15 +54,6 @@ export type InterviewerContext = {
   exchanges: TopicExchange[]
 }
 
-export type InterviewerResult = {
-  /** 次に投げる質問。モデルが何も返さなかったときは空文字。 */
-  question: string
-  usage: LanguageModelUsage
-  providerMetadata: ProviderMetadata | undefined
-  /** 実際に応答したモデルID。設定値ではなくレスポンス由来。 */
-  model: string
-}
-
 /**
  * ここまでのやり取りを、探偵から見た会話に組み替える。
  *
@@ -75,17 +66,26 @@ const toConversation = (characterName: string, exchanges: TopicExchange[]): Mode
     { role: 'user', content: `${characterName}: ${exchange.answer}` },
   ])
 
-export const generateQuestion = async ({
+/**
+ * 探偵の質問を、書けたところから流す。
+ *
+ * 組み上がってから丸ごと届けると、モデルが考えているあいだ画面が黙る。
+ * 待たされている時間は同じでも、字が出てくれば探偵が考えていることが伝わる。
+ *
+ * 呼び出し側は `textStream` を回してから `text` / `usage` を待つ。
+ * `streamNpcReply` と同じ形なので、ask のループで並べても扱いが変わらない。
+ */
+export const streamQuestion = ({
   env,
   choice,
   detective,
   characterName,
   topic,
   exchanges,
-}: InterviewerContext): Promise<InterviewerResult> => {
+}: InterviewerContext) =>
   // 話題はプレイヤー由来の文字列なので、必ず user ロールに閉じ込める。
   // system 側へ回すと、指示文として読ませる経路をこちらから開くことになる。
-  const result = await generateText({
+  streamText({
     model: resolveModel(env, choice),
     system:
       detective === undefined
@@ -101,11 +101,3 @@ export const generateQuestion = async ({
     // 質問は1〜2文。長く喋られると探偵の独演になり、相手の言葉が減る。
     maxOutputTokens: 256,
   })
-
-  return {
-    question: result.text.trim(),
-    usage: result.usage,
-    providerMetadata: result.providerMetadata,
-    model: result.response.modelId,
-  }
-}

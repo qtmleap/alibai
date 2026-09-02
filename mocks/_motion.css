@@ -1,0 +1,353 @@
+/*
+ * 動きの語彙。src/client/index.css の該当部分をそのまま写したもの。
+ *
+ * クラス名を実装と同じにしてあるので、モックで当てた場所がそのまま
+ * React 側で当てる場所になる。片方だけ直すと突き合わせの意味が消えるので、
+ * 値を変えるときは src/client/index.css と mocks/effects/_effects.css も一緒に直す。
+ */
+
+/*
+ * 事件の記録を下からせり上げる演出。
+ * 開始位置を枠の高さぶん下に置き、本文の高さぶん上まで流し切る。
+ * 100% は「この要素自身の高さ」なので、本文が長いほど移動距離も自然に伸びる。
+ */
+@keyframes briefing-crawl {
+  from {
+    transform: translateY(70dvh);
+  }
+  to {
+    transform: translateY(-100%);
+  }
+}
+
+/*
+ * 画面が切り替わるときの入り。
+ *
+ * わずかに寄りながら、ぼけた画面の焦点が合っていくように見せる。
+ * 事件の記録から聞き込みへ移る瞬間に「その場に入り込んだ」感じを出すのが狙い。
+ * 動きは短く、操作を待たせない範囲に収める。
+ */
+@keyframes screen-enter {
+  from {
+    opacity: 0;
+    transform: scale(1.03);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+.screen-enter {
+  animation: screen-enter 520ms ease-out both;
+}
+
+/* 動きが苦手な人には出さない。演出のために体調を崩させる理由はない。 */
+@media (prefers-reduced-motion: reduce) {
+  .screen-enter {
+    animation: none;
+  }
+}
+
+/*
+ * 発話が一行ずつ置かれる。
+ *
+ * 聞き込みの返答はこれで出す。一字ずつ送ると読む前に目が字を追いはじめるので、
+ * 文が出来上がってから、その一文をまとめて置く。5px の浮きは「今これが来た」と
+ * 言うだけの幅で、読む位置を動かさない。
+ */
+@keyframes line-in {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+}
+
+.line-in {
+  animation: line-in 360ms ease-out both;
+}
+
+/*
+ * 目盛りが立つ。
+ *
+ * 供述から時刻が確定した瞬間。軸から伸び上がり、遅れて時刻が出る。
+ * この作品でいちばん大事な出来事なので、合図のなかで強く動くのはここだけ。
+ */
+@keyframes pin-rise {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+/*
+ * 伸びる向きは呼び出し側が決める（Tailwind の origin-bottom / origin-top など）。
+ * ここで焼き込むと、横倒しの帯と縦のアリバイ表で同じ動きが使えない。
+ */
+.pin-rise {
+  animation: pin-rise 420ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+
+/*
+ * 目盛りに添う時刻。
+ *
+ * 動きだけを持ち、位置合わせは持たない。目盛りの真上に置くなら、呼ぶ側が
+ * `translate`（Tailwind の -translate-x-1/2）で寄せる——transform とは別の
+ * プロパティなので合成され、動いているあいだだけ横へずれることがない。
+ * ここに translateX(-50%) を焼くと、真上に置かない縦の表では使えなくなる。
+ */
+@keyframes at-in {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+}
+
+.at-in {
+  animation: at-in 360ms 150ms ease-out both;
+}
+
+/*
+ * 立ちきらない目盛り。
+ *
+ * 辻褄の合わない供述。伸び上がろうとして、行き過ぎて、戻って、淡いまま残る。
+ * 色は容疑者の顔料のままにする——画面がプレイヤーより先に誰かを疑わないために。
+ */
+@keyframes waver {
+  0% {
+    transform: scaleY(0);
+  }
+  45% {
+    transform: scaleY(1.18);
+  }
+  72% {
+    transform: scaleY(0.88);
+  }
+}
+
+.waver {
+  animation: waver 900ms ease-in-out both;
+}
+
+/*
+ * 離れた二つの証言が噛み合う。
+ *
+ * 二本のあいだに線が引かれ、それぞれの目盛りが一度だけ伸びる。光らせず、繋ぐ。
+ */
+@keyframes draw {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+.draw {
+  animation: draw 520ms 180ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+
+/*
+ * 目盛りが一度だけ伸びる。縦向き——時が横に流れる軸で使う。
+ *
+ * いま出番はない。アリバイ表は縦組みなので、実際に描かれるのは横向きの pin-lift-x で、
+ * こちらは対として置いてある。目盛りの向きが軸の向きで決まるという規則を、語彙の側で
+ * 一対にして示しておくため。横に流れる軸を描くことになったら、そのときはこちらを使う。
+ */
+@keyframes pin-lift {
+  55% {
+    transform: scaleY(1.5);
+  }
+}
+
+.pin-lift {
+  animation: pin-lift 620ms 180ms ease-out both;
+}
+
+/*
+ * 同じ伸びの、横向きの片割れ。
+ *
+ * 目盛りは時刻の軸に垂直に立つので、軸の向きが変わると目盛りの向きも変わる。
+ * 横に流れるレール（突き合わせの帯）では縦の短い印なので pin-lift、
+ * 縦に流れるアリバイ表では横の短い棒なので、こちら。倍率も尺も同じで、向きだけが直交する。
+ *
+ * pin-rise のように origin では吸収できない。origin はどこから伸びるかであって、
+ * どちらへ伸びるかではないため。伸びる先は帯の外なので、芯を中心に左右へ均等に伸ばす。
+ */
+@keyframes pin-lift-x {
+  55% {
+    transform: scaleX(1.5);
+  }
+}
+
+.pin-lift-x {
+  animation: pin-lift-x 620ms 180ms ease-out both;
+}
+
+/*
+ * 新事実を帯で知らせる。
+ *
+ * 記録は聞き込み中に画面上にないので、増えたことは被せて伝えるしかない。
+ * 箱にはせず、二本の罫線と薄い覆いだけ。操作は塞がず 2.6 秒で引く。
+ * 祝わない——増えたのは事実であって、手柄ではないので。
+ */
+@keyframes band {
+  0% {
+    opacity: 0;
+    transform: translateY(-50%) scaleY(0.86);
+  }
+  11% {
+    opacity: 1;
+    transform: translateY(-50%) scaleY(1);
+  }
+  84% {
+    opacity: 1;
+    transform: translateY(-50%) scaleY(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-50%) scaleY(1);
+  }
+}
+
+.band {
+  animation: band 2600ms both;
+}
+
+/*
+ * 畳んであるものが開く。
+ *
+ * 高さそのものを動かす（grid-template-rows の 0fr → 1fr）。中身を透かせるだけだと、
+ * 下にある入力欄が動かないまま文字だけ現れて、飛んで見える。
+ */
+@keyframes fold-open {
+  from {
+    grid-template-rows: 0fr;
+  }
+}
+
+.fold-open {
+  animation: fold-open 360ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+
+/*
+ * 判定が上から順に出る。
+ *
+ * 一度に出すと読む順が決まらず、遅すぎると結果を待たされている気分になる。
+ * 行ごとの遅延は使う側で 0.2 秒ずつずらす。
+ */
+@keyframes row-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.row-in {
+  animation: row-in 400ms ease-out both;
+}
+
+/*
+ * 事件の記録を読み終えて、その場に入る敷居。
+ *
+ * 墨の中から浮かび上がり、寄りが戻って焦点が合う。強く動かすのはこの一度だけで、
+ * 他の動きは合図に徹する。screen-enter（1.03倍）はほぼ体感が無いので、
+ * 敷居を越えるところだけこちらを使う。
+ */
+@keyframes dive {
+  from {
+    opacity: 0;
+    transform: scale(1.16);
+    filter: blur(8px);
+  }
+}
+
+.dive {
+  animation: dive 760ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes unveil {
+  from {
+    opacity: 1;
+  }
+}
+
+.unveil {
+  animation: unveil 560ms ease-out both;
+}
+
+/*
+ * ターンの切り替わり。
+ *
+ * 中央でふっと現れて、少し沈みながら消える。時間が動いたことを示すのが役目なので、
+ * 派手に動かさず、短く終える。
+ */
+@keyframes turn-announce {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+    filter: blur(8px);
+  }
+  25% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+  75% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1) translateY(-12px);
+  }
+}
+
+.turn-announce {
+  animation: turn-announce 1600ms ease-out both;
+}
+
+/*
+ * 動きが苦手な人には出さない。演出のために体調を崩させる理由はない。
+ *
+ * どの動きも「動いた後の姿」を素の状態として書いてあるので、切っても完成形が残る。
+ * 新しい動きを足したら、ここにも足す。
+ */
+@media (prefers-reduced-motion: reduce) {
+  .turn-announce,
+  .line-in,
+  .pin-rise,
+  .at-in,
+  .waver,
+  .draw,
+  .pin-lift,
+  .pin-lift-x,
+  .band,
+  .fold-open,
+  .row-in,
+  .dive,
+  .unveil {
+    animation: none;
+  }
+}
+
+/*
+ * 伸びる向き。実装側は Tailwind の origin-* が同じ名前で同じことをするので、
+ * モックで書いた組み合わせをそのまま React へ持っていける。
+ */
+.origin-top {
+  transform-origin: 50% 0;
+}
+.origin-bottom {
+  transform-origin: 50% 100%;
+}
+.origin-left {
+  transform-origin: 0 50%;
+}
+
+/*
+ * 記録のせり上げ。実装は Tailwind の任意値で指定していて素のクラスを持たないが、
+ * モックには当てる先が要るのでここに置く。尺は本文の長さで変わるので、
+ * 使う側が animation-duration を上書きする。
+ */
+.briefing-crawl {
+  animation: briefing-crawl 24s linear forwards;
+}

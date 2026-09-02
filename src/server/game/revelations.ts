@@ -1,4 +1,11 @@
-export type RevelationSourceType = 'character' | 'location'
+/**
+ * 手掛かりの出どころ。
+ *
+ * victim は遺体と現場。喋らない相手なので会話では出てこないが、解禁の判定は
+ * 人物と同じ仕組みに乗せる——出どころが増えただけ、という扱いにしておくと、
+ * 判定役にも作者にも新しい規則を覚えさせずに済む。
+ */
+export type RevelationSourceType = 'character' | 'location' | 'victim'
 
 export type RevelationSource = {
   type: RevelationSourceType

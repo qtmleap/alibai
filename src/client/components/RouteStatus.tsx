@@ -8,7 +8,7 @@ import { Link } from '@tanstack/react-router'
  */
 
 const frame =
-  'mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-5 bg-sumi px-5 text-center text-kinari'
+  'mx-auto flex min-h-dvh-safe max-w-md flex-col items-center justify-center gap-5 bg-sumi px-5 text-center text-kinari'
 
 /** データが届くまでの間。SSR しない画面ではサーバがこれを描く。 */
 export const RoutePending = () => (

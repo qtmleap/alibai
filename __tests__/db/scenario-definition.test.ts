@@ -8,13 +8,13 @@ import {
   scenarioLieSchema,
   scenarioMemorySchema,
   scenarioMetaSchema,
-  scenarioQualitySchema,
   scenarioRelationshipSchema,
   scenarioRevelationSchema,
   scenarioRevelationSourceSchema,
   scenarioSecretSchema,
   scenarioSolutionSchema,
   scenarioTimelineEventSchema,
+  VICTIM_ID,
 } from '~/db/scenario-definition'
 
 const validScenario: ScenarioDefinition = {
@@ -26,7 +26,6 @@ const validScenario: ScenarioDefinition = {
     category: '学園ミステリー',
     difficulty: 2,
     estimatedMinutes: 10,
-    tags: ['theft', 'school'],
   },
   briefing: '放課後18時30分、美術室からコンクール提出予定の作品がなくなっていることが分かった。',
   floorPlan: null,
@@ -35,19 +34,16 @@ const validScenario: ScenarioDefinition = {
       id: 'painting-present-at-1800',
       statement: '18:00 の時点では作品は美術室にあった',
       kind: 'observation',
-      secret: false,
     },
     {
       id: 'b-seen-at-1810',
       statement: '18:10 に B は美術室前の廊下にいた',
       kind: 'observation',
-      secret: false,
     },
     {
       id: 'b-took-painting',
       statement: 'B が作品を持ち出した',
       kind: 'truth',
-      secret: true,
     },
   ],
   timeline: [
@@ -70,7 +66,6 @@ const validScenario: ScenarioDefinition = {
     {
       id: 'a',
       name: '美術部員 A',
-      role: 'witness',
       publicIntroduction: '美術部員。',
       personality: '真面目で慎重。',
       goals: ['知っていることには正直に答える'],
@@ -80,7 +75,6 @@ const validScenario: ScenarioDefinition = {
       memories: [
         {
           id: 'saw-b',
-          about: 'b-seen-at-1810',
           detail: '18:10ごろ、Bと廊下ですれ違った。',
         },
       ],
@@ -95,7 +89,6 @@ const validScenario: ScenarioDefinition = {
     {
       id: 'b',
       name: '美術部員 B',
-      role: 'suspect',
       publicIntroduction: '美術部員。',
       personality: '負けず嫌い。追及されると防御的になる。',
       goals: ['自分が作品を持ち出したことを隠す'],
@@ -117,7 +110,6 @@ const validScenario: ScenarioDefinition = {
       memories: [
         {
           id: 'took-painting',
-          about: 'b-took-painting',
           detail: '作品を鞄に入れて美術室から持ち出した。',
         },
       ],
@@ -137,7 +129,6 @@ const validScenario: ScenarioDefinition = {
       label: '廊下の入退室記録',
       description: '18:08から18:12の間にBのカードが美術室前で記録されている。',
       reveal: {
-        mode: 'conversation',
         condition: '入退室記録や廊下の人の動きについて具体的に尋ねる',
       },
       sources: [{ type: 'character', id: 'b' }],
@@ -150,13 +141,7 @@ const validScenario: ScenarioDefinition = {
     summary: 'Bが18:10ごろ美術室から作品を持ち出した。',
     method: '施錠前の美術室に入り、額縁ごと持ち去った。',
     motive: 'competition',
-    requiredFacts: ['b-seen-at-1810', 'b-took-painting'],
     secretKeywords: ['Bが作品を持ち出した'],
-  },
-  quality: {
-    expectedQuestionCount: { min: 4, max: 12 },
-    requiredEvidence: { min: 1 },
-    redHerrings: [],
   },
 }
 
@@ -273,17 +258,6 @@ describe('ScenarioDefinitionSchema: 正常系とトップレベル', () => {
 
     expect(ScenarioDefinitionSchema.safeParse(scenario).success).toBe(true)
   })
-
-  test('quality を省略すると既定値が入る', () => {
-    const scenario = makeScenario()
-    Reflect.deleteProperty(scenario, 'quality')
-
-    const result = ScenarioDefinitionSchema.safeParse(scenario)
-
-    expect(result.success).toBe(true)
-    if (!result.success) return
-    expect(result.data.quality.redHerrings).toEqual([])
-  })
 })
 
 describe('scenarioMetaSchema', () => {
@@ -294,12 +268,6 @@ describe('scenarioMetaSchema', () => {
     difficulty: 3,
     estimatedMinutes: 10,
   }
-
-  test('tags を省略すると空配列になる', () => {
-    const result = scenarioMetaSchema.parse(minimalMeta)
-
-    expect(result.tags).toEqual([])
-  })
 
   test('文字列の前後空白を除去する', () => {
     const result = scenarioMetaSchema.parse({ ...minimalMeta, title: '  題名  ' })
@@ -370,31 +338,9 @@ describe('scenarioMetaSchema', () => {
       expect(scenarioMetaSchema.safeParse({ ...minimalMeta, estimatedMinutes }).success).toBe(false)
     })
   }
-
-  test('tag は50文字を受理する', () => {
-    expect(scenarioMetaSchema.safeParse({ ...minimalMeta, tags: ['x'.repeat(50)] }).success).toBe(
-      true,
-    )
-  })
-
-  test('tag は51文字を拒否する', () => {
-    expect(scenarioMetaSchema.safeParse({ ...minimalMeta, tags: ['x'.repeat(51)] }).success).toBe(
-      false,
-    )
-  })
-
-  test('空白だけの tag を拒否する', () => {
-    expect(scenarioMetaSchema.safeParse({ ...minimalMeta, tags: ['   '] }).success).toBe(false)
-  })
 })
 
 describe('scenarioFactSchema', () => {
-  test('secret を省略すると false になる', () => {
-    const result = scenarioFactSchema.parse({ id: 'fact', statement: '事実' })
-
-    expect(result.secret).toBe(false)
-  })
-
   test('fact ID は100文字を受理する', () => {
     expect(scenarioFactSchema.safeParse({ id: 'x'.repeat(100), statement: '事実' }).success).toBe(
       true,
@@ -591,24 +537,6 @@ describe('character の構造', () => {
     )
   })
 
-  test('role は50文字を受理する', () => {
-    expect(
-      scenarioCharacterSchema.safeParse({ ...minimalCharacter, role: 'x'.repeat(50) }).success,
-    ).toBe(true)
-  })
-
-  test('role は51文字を拒否する', () => {
-    expect(
-      scenarioCharacterSchema.safeParse({ ...minimalCharacter, role: 'x'.repeat(51) }).success,
-    ).toBe(false)
-  })
-
-  test('role が空白だけなら拒否する', () => {
-    expect(scenarioCharacterSchema.safeParse({ ...minimalCharacter, role: '   ' }).success).toBe(
-      false,
-    )
-  })
-
   test('publicIntroduction が空白だけなら拒否する', () => {
     expect(
       scenarioCharacterSchema.safeParse({ ...minimalCharacter, publicIntroduction: '   ' }).success,
@@ -674,7 +602,6 @@ describe('character の secrets / lies / memories / relationships', () => {
     expect(
       scenarioLieSchema.safeParse({
         id: 'lie',
-        about: 'fact',
         claim: '嘘の主張',
         strategy: 'random',
       }).success,
@@ -685,7 +612,6 @@ describe('character の secrets / lies / memories / relationships', () => {
     expect(
       scenarioLieSchema.safeParse({
         id: 'lie',
-        about: 'fact',
         claim: '   ',
         strategy: 'maintain',
       }).success,
@@ -725,12 +651,6 @@ describe('scenarioEvidenceSchema', () => {
     label: '証拠',
     reveal: { condition: '証拠について尋ねる' },
   }
-
-  test('reveal.mode を省略すると conversation になる', () => {
-    const result = scenarioEvidenceSchema.parse(minimalEvidence)
-
-    expect(result.reveal.mode).toBe('conversation')
-  })
 
   test('supports を省略すると空配列になる', () => {
     const result = scenarioEvidenceSchema.parse(minimalEvidence)
@@ -772,15 +692,6 @@ describe('scenarioEvidenceSchema', () => {
     expect(
       scenarioEvidenceSchema.safeParse({ ...minimalEvidence, reveal: { condition: '   ' } })
         .success,
-    ).toBe(false)
-  })
-
-  test('未知の reveal.mode を拒否する', () => {
-    expect(
-      scenarioEvidenceSchema.safeParse({
-        ...minimalEvidence,
-        reveal: { mode: 'automatic', condition: '条件' },
-      }).success,
     ).toBe(false)
   })
 })
@@ -834,18 +745,6 @@ describe('scenarioSolutionSchema', () => {
     )
   })
 
-  test('requiredFacts が0件なら拒否する', () => {
-    expect(
-      scenarioSolutionSchema.safeParse({ ...minimalSolution, requiredFacts: [] }).success,
-    ).toBe(false)
-  })
-
-  test('requiredFacts の空IDを拒否する', () => {
-    expect(
-      scenarioSolutionSchema.safeParse({ ...minimalSolution, requiredFacts: [''] }).success,
-    ).toBe(false)
-  })
-
   test('secretKeywords が0件なら拒否する', () => {
     expect(
       scenarioSolutionSchema.safeParse({ ...minimalSolution, secretKeywords: [] }).success,
@@ -856,73 +755,6 @@ describe('scenarioSolutionSchema', () => {
     expect(
       scenarioSolutionSchema.safeParse({ ...minimalSolution, secretKeywords: ['   '] }).success,
     ).toBe(false)
-  })
-})
-
-describe('scenarioQualitySchema', () => {
-  test('空オブジェクトなら redHerrings が空配列になる', () => {
-    const result = scenarioQualitySchema.parse({})
-
-    expect(result.redHerrings).toEqual([])
-  })
-
-  test('expectedQuestionCount は min < max を受理する', () => {
-    const scenario = makeScenario()
-    scenario.quality.expectedQuestionCount = { min: 4, max: 12 }
-
-    expect(ScenarioDefinitionSchema.safeParse(scenario).success).toBe(true)
-  })
-
-  test('expectedQuestionCount は min = max を受理する', () => {
-    const scenario = makeScenario()
-    scenario.quality.expectedQuestionCount = { min: 5, max: 5 }
-
-    expect(ScenarioDefinitionSchema.safeParse(scenario).success).toBe(true)
-  })
-
-  test('expectedQuestionCount は min > max を拒否する', () => {
-    const scenario = makeScenario()
-    scenario.quality.expectedQuestionCount = { min: 13, max: 12 }
-
-    expectInvalidAt(scenario, 'quality.expectedQuestionCount')
-  })
-
-  test('expectedQuestionCount は0を受理する', () => {
-    expect(
-      scenarioQualitySchema.safeParse({ expectedQuestionCount: { min: 0, max: 0 } }).success,
-    ).toBe(true)
-  })
-
-  test('expectedQuestionCount の負数を拒否する', () => {
-    expect(
-      scenarioQualitySchema.safeParse({ expectedQuestionCount: { min: -1, max: 1 } }).success,
-    ).toBe(false)
-  })
-
-  test('expectedQuestionCount の小数を拒否する', () => {
-    expect(
-      scenarioQualitySchema.safeParse({ expectedQuestionCount: { min: 1.5, max: 2 } }).success,
-    ).toBe(false)
-  })
-
-  test('requiredEvidence.min は0を受理する', () => {
-    expect(scenarioQualitySchema.safeParse({ requiredEvidence: { min: 0 } }).success).toBe(true)
-  })
-
-  test('requiredEvidence.min の負数を拒否する', () => {
-    expect(scenarioQualitySchema.safeParse({ requiredEvidence: { min: -1 } }).success).toBe(false)
-  })
-
-  test('requiredEvidence.min の小数を拒否する', () => {
-    expect(scenarioQualitySchema.safeParse({ requiredEvidence: { min: 1.5 } }).success).toBe(false)
-  })
-
-  test('redHerrings の空IDを拒否する', () => {
-    expect(scenarioQualitySchema.safeParse({ redHerrings: [''] }).success).toBe(false)
-  })
-
-  test('notes が空白だけなら拒否する', () => {
-    expect(scenarioQualitySchema.safeParse({ notes: '   ' }).success).toBe(false)
   })
 })
 
@@ -1006,13 +838,6 @@ describe('semantic validation: fact / character / lie の参照整合性', () =>
     expectInvalidAt(scenario, 'characters.1.lies.0.about')
   })
 
-  test('memory.about の存在しない fact を拒否する', () => {
-    const scenario = makeScenario()
-    requiredAt(requiredAt(scenario.characters, 0).memories, 0).about = 'missing-fact'
-
-    expectInvalidAt(scenario, 'characters.0.memories.0.about')
-  })
-
   test('relationship の存在しない character を拒否する', () => {
     const scenario = makeScenario()
     requiredAt(requiredAt(scenario.characters, 0).relationships, 0).character = 'ghost'
@@ -1067,13 +892,6 @@ describe('semantic validation: fact / character / lie の参照整合性', () =>
     scenario.solution.culprit = 'ghost'
 
     expectInvalidAt(scenario, 'solution.culprit')
-  })
-
-  test('solution.requiredFacts の存在しない fact を拒否する', () => {
-    const scenario = makeScenario()
-    scenario.solution.requiredFacts.push('missing-fact')
-
-    expectInvalidAt(scenario, 'solution.requiredFacts.2')
   })
 })
 
@@ -1404,13 +1222,6 @@ describe('semantic validation: 秘匿キーワード漏洩', () => {
     expectInvalidAt(scenario, 'solution.secretKeywords.0')
   })
 
-  test('tags に秘匿キーワードが含まれていたら拒否する', () => {
-    const scenario = makeScenario()
-    scenario.meta.tags.push(requiredAt(scenario.solution.secretKeywords, 0))
-
-    expectInvalidAt(scenario, 'solution.secretKeywords.0')
-  })
-
   test('publicIntroduction に秘匿キーワードが含まれていたら拒否する', () => {
     const scenario = makeScenario()
     requiredAt(scenario.characters, 0).publicIntroduction =
@@ -1422,7 +1233,7 @@ describe('semantic validation: 秘匿キーワード漏洩', () => {
   test('英字は大文字小文字を無視して漏洩検出する', () => {
     const scenario = makeScenario()
     scenario.solution.secretKeywords = ['SECRET-ANSWER']
-    scenario.meta.tags.push('secret-answer')
+    scenario.meta.synopsis = `${scenario.meta.synopsis} secret-answer`
 
     expectInvalidAt(scenario, 'solution.secretKeywords.0')
   })
@@ -1472,5 +1283,66 @@ describe('ScenarioDefinitionSchema: evidence の sources', () => {
 
     expect(parsed.success).toBe(true)
     expect(parsed.success ? requiredAt(parsed.data.evidences, 0).sources : undefined).toEqual([])
+  })
+})
+
+describe('被害者を出どころにする', () => {
+  test('type: victim は id が victim なら通る', () => {
+    const scenario = makeScenario()
+    scenario.victim = { name: '被害者', introduction: '館の主', findings: [] }
+    const evidence = scenario.evidences[0]
+
+    if (evidence === undefined) {
+      throw new Error('この試験は証拠が1件以上ある前提で組んである。')
+    }
+
+    evidence.sources = [{ type: 'victim', id: VICTIM_ID }]
+
+    expect(ScenarioDefinitionSchema.safeParse(scenario).success).toBe(true)
+  })
+
+  test('被害者の居ない事件では使えない', () => {
+    const scenario = makeScenario()
+    scenario.victim = undefined
+    const evidence = scenario.evidences[0]
+
+    if (evidence === undefined) {
+      throw new Error('この試験は証拠が1件以上ある前提で組んである。')
+    }
+
+    evidence.sources = [{ type: 'victim', id: VICTIM_ID }]
+
+    expect(ScenarioDefinitionSchema.safeParse(scenario).success).toBe(false)
+  })
+
+  test('id は victim で固定', () => {
+    const scenario = makeScenario()
+    scenario.victim = { name: '被害者', introduction: '館の主', findings: [] }
+    const evidence = scenario.evidences[0]
+
+    if (evidence === undefined) {
+      throw new Error('この試験は証拠が1件以上ある前提で組んである。')
+    }
+
+    evidence.sources = [{ type: 'victim', id: 'ryoko' }]
+
+    expect(ScenarioDefinitionSchema.safeParse(scenario).success).toBe(false)
+  })
+
+  test('所見の解禁前提は実在する証拠しか指せない', () => {
+    const scenario = makeScenario()
+    scenario.victim = {
+      name: '被害者',
+      introduction: '館の主',
+      findings: [
+        {
+          id: 'draft',
+          statement: '草案が伏せてある。',
+          requires: { revelations: [], evidences: ['no-such-evidence'] },
+        },
+      ],
+    }
+
+    expect(ScenarioDefinitionSchema.safeParse(scenario).success).toBe(false)
   })
 })

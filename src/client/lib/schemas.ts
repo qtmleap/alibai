@@ -3,6 +3,8 @@ import { detectiveSchema } from '~/db/detective'
 import { floorPlanSchema } from '~/db/floor-plan'
 import { gameModeSchema, hintSchema } from '~/db/game-mode'
 import { llmProviderSchema, settableLlmRoleSchema } from '~/db/llm-catalog'
+import { investigablePlaceSchema } from '~/db/place'
+import { VICTIM_ID } from '~/db/scenario-definition'
 
 /**
  * サーバのレスポンスは fetch の時点では unknown。
@@ -54,9 +56,51 @@ export const scenarioDetailSchema = scenarioSummarySchema.omit({ characterCount:
    * 亡くなった人。characters には入らない——あちらは聞き込みの相手の一覧なので、
    * 混ぜると話しかけられる列に死者が並ぶ。
    */
-  victim: z.object({ name: z.string().nonempty(), introduction: z.string().nonempty() }).nullable(),
+  victim: z
+    .object({
+      name: z.string().nonempty(),
+      introduction: z.string().nonempty(),
+      /**
+       * 発見時刻と発見場所。事件の記録が既に語っている公開情報なので、支度の時点で届く。
+       *
+       * 死亡推定時刻はここに無い。あれは手に入れて初めて分かるもので、開示済みかどうかは
+       * サーバが判断してセッションの状態で運ぶ（`sessionStateSchema.estimatedDeathAt`）。
+       */
+      foundAt: z.string().nonempty().nullable(),
+      foundIn: z.string().nonempty().nullable(),
+      /**
+       * 死亡推定時刻が**あるかどうか**だけ。時刻そのものは届かない。
+       *
+       * 「まだ見つけていない」と「最初から無い」は別のことなので、盤面が描き分けるのに要る。
+       * 前者は点線と `?` で「ここに探すものがある」と誘うが、それを後者に出すと、
+       * 存在しないものを探せと言うことになる。
+       */
+      hasEstimatedDeathAt: z.boolean(),
+      /** 遺体を調べられる事件か。false なら聞き込みの相手に並べない。 */
+      investigable: z.boolean(),
+    })
+    .nullable(),
+  /**
+   * 調べられる場所。
+   *
+   * 喋らないので characters には並ばないが、選ぶという一手は人物と同じで、同じ画面で調べる。
+   * 既定を空にしてあるのは、場所を持たない事件と、この項目より前のサーバが
+   * 返してこない応答の両方を落とさないため。
+   */
+  places: z.array(investigablePlaceSchema).default([]),
   characters: z.array(characterSchema),
 })
+
+/**
+ * 調べられる場所。形と検証の正典は db/place.ts にあり、ここでは読み込むだけ
+ * （見取り図や難易度モードと同じ扱い）。
+ *
+ * 顔料を持たないのは、色の付いた相手は答え、灰のままの相手は答えない、という区別を
+ * 盤面の色だけで付けるため。アリバイ表にも列を持たない——場所は動かない。
+ */
+export type { investigablePlaceSchema }
+
+export type InvestigablePlace = z.infer<typeof investigablePlaceSchema>
 
 /**
  * プレイヤーが演じる探偵。名乗らずに始めることもできる。
@@ -84,6 +128,13 @@ export const turnStateSchema = z.object({
 export const discoverySchema = z.object({
   id: z.string().nonempty(),
   label: z.string().nonempty(),
+  /**
+   * 掴んだ証拠の中身。捜査メモが読む。
+   *
+   * 既定を null にしてあるのは、この列より前に焼かれたシナリオ行があるため。
+   * ラベルだけでは「何が分かったのか」が残らず、記録が名前の羅列になる。
+   */
+  description: z.string().nonempty().nullable().default(null),
 })
 
 export const revelationCardSchema = z.object({
@@ -96,6 +147,39 @@ export const revelationCardSchema = z.object({
     id: z.string().nonempty(),
   }),
 })
+
+/**
+ * 時刻表に引く線。
+ *
+ * 形は src/client/components/AlibiChart.tsx の `AlibiSegment` と揃えてある
+ * ——あちらが表示の正典なので、ここは受け取る形を写しているだけ。
+ * サーバは発見済みの手掛かりから引ける分しか返さないので、聞き込みが進むほど増える。
+ */
+export const alibiSegmentSchema = z.object({
+  who: z.string().nonempty(),
+  from: z.string().nonempty(),
+  to: z.string().nonempty(),
+  kind: z.enum(['solid', 'claim']),
+  // 空を許す（在所の分かっていない出来事がある）。上限は表の列幅に収まる長さ。
+  place: z.string().max(60),
+  fix: z.string().nonempty().optional(),
+})
+
+/**
+ * 食い違いの印。掴んだ証拠がある嘘を崩したとき、その嘘が言い張っていた時刻に立つ。
+ * 立つ条件が揃わないうちは来ないので、既定は「無し」。
+ *
+ * `between` は噛み合わない二人。線はこの二列のあいだに架かるので、
+ * 二人揃わないと印は描けない——だから長さ2で受ける。
+ */
+const clashSchema = z
+  .object({
+    at: z.string().nonempty(),
+    label: z.string().nonempty(),
+    between: z.tuple([z.string().nonempty(), z.string().nonempty()]),
+  })
+  .nullish()
+  .transform((value) => (value === null ? undefined : value))
 
 export const sessionStateSchema = z.object({
   sessionId: z.uuid(),
@@ -112,6 +196,18 @@ export const sessionStateSchema = z.object({
   finished: z.boolean(),
   discoveries: z.array(discoverySchema),
   revelations: z.array(revelationCardSchema),
+  /** 既定を空にしてあるのは、この機能より前のサーバが返さないため。 */
+  alibiSegments: z.array(alibiSegmentSchema).default([]),
+  /** 供述が噛み合わない区間。表の上に一本だけ立つ印なので、揃うまで来ない。 */
+  clash: clashSchema,
+  /**
+   * 開示済みの死亡推定時刻。まだ手に入れていなければ null で、盤面は「不明」を描く。
+   *
+   * どの証拠がこれを明かすのかという対応表はサーバに残り、ここへは来ない。
+   * 既定を null にしてあるのは、この項目より前のサーバが返してこないため
+   * ——古い応答では「まだ分かっていない」に倒れる（docs/design/deadline-window.md）。
+   */
+  estimatedDeathAt: z.string().nonempty().nullable().default(null),
   turn: turnStateSchema,
 })
 
@@ -121,6 +217,11 @@ export const judgementSchema = z.object({
   revealedRevelations: z.array(revelationCardSchema),
   contradictionPointedOut: z.boolean(),
   suggestedQuestions: z.array(z.string().nonempty()),
+  /** 増えた分ではなく、その時点で引ける線すべて。表はこれで置き換える。 */
+  alibiSegments: z.array(alibiSegmentSchema).default([]),
+  clash: clashSchema,
+  /** 線と同じく、増えた分ではなくその時点の姿。刻限が開いた回にだけ時刻が入る。 */
+  estimatedDeathAt: z.string().nonempty().nullable().default(null),
   questionCount: z.number().int(),
   turn: turnStateSchema,
 })
@@ -195,13 +296,23 @@ export const historyExchangeSchema = z.object({
    * 始まったセッションでは null。
    */
   topic: z.string().nonempty().nullable(),
+  /** この話題が証拠や気づきを引き出したか。話題の先頭の往復にだけ意味がある。 */
+  yielded: z.boolean(),
 })
+
+/**
+ * 話しかけた相手のID。
+ *
+ * 登場人物は uuid だが、被害者だけは決め打ちの `victim`（採番する先が一人しか無い）。
+ * ここを uuid で縛ると、遺体を調べたセッションが復元できずに画面ごと落ちる。
+ */
+const subjectIdSchema = z.union([z.uuid(), z.literal(VICTIM_ID)])
 
 export const sessionHistorySchema = z.object({
   sessionId: z.uuid(),
   histories: z.array(
     z.object({
-      characterId: z.uuid(),
+      characterId: subjectIdSchema,
       exchanges: z.array(historyExchangeSchema),
     }),
   ),
@@ -253,6 +364,8 @@ export type ScenarioDetail = z.infer<typeof scenarioDetailSchema>
 export type CreateSessionResponse = z.infer<typeof createSessionResponseSchema>
 export type Discovery = z.infer<typeof discoverySchema>
 export type RevelationCard = z.infer<typeof revelationCardSchema>
+export type AlibiSegmentData = z.infer<typeof alibiSegmentSchema>
+export type Clash = z.infer<typeof clashSchema>
 export type TurnState = z.infer<typeof turnStateSchema>
 export type SessionState = z.infer<typeof sessionStateSchema>
 export type Judgement = z.infer<typeof judgementSchema>

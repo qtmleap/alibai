@@ -18,10 +18,19 @@
   var probe = getComputedStyle(document.documentElement)
   var LIT = probe.getPropertyValue('--asagi-t').trim() ? '-t' : '-fg'
 
+  /*
+   * 話を聞く相手と、調べる相手を同じ袋に入れる。遺体も場所も喋らないが、
+   * 手を向ける先としては人物と同じ扱いなので、引く場所を分けると
+   * 画面ごとに「どっちの袋を見るか」の分岐が増える。
+   */
+  var PLACES = C.places === undefined ? [] : C.places
   var CAST_BY_KEY = {}
-  C.cast.concat([C.victim]).forEach((p) => {
+  C.cast.concat([C.victim], PLACES).forEach((p) => {
     CAST_BY_KEY[p.key] = p
   })
+
+  /** 喋らない相手か。訊くのではなく調べることになる。 */
+  var examines = (key) => key === C.victim.key || PLACES.some((p) => p.key === key)
 
   // ---- 時刻 ----
   var toMin = (hhmm) => {
@@ -36,6 +45,75 @@
 
   // 10分ごとの目盛り。表と突き合わせで同じものを使う。
   var TICKS = Array.from({ length: SPAN.len / 10 + 1 }, (_, i) => i * 10)
+
+  var topOf = (at) => (toMin(at) - SPAN.from) * PX_PER_MIN
+
+  /*
+   * 刻限の印（docs/design/deadline-window.md）。
+   *
+   * 遺体発見は事件の記録に書いてある公開情報なので常に実線で出す。死亡推定のほうは
+   * 手に入れた確度で描き分ける——同じ 18:50 でも、探偵が検死して出した数字と、
+   * 居合わせた誰かがそう言っているだけの数字は別物なので。
+   *
+   * 面は塗らない。窓は両端に返しの付いた線で示す。塗ると容疑者の帯と競う。
+   */
+  var deathMarks = (name) => {
+    var state = C.death[name] === undefined ? C.death.unknown : C.death[name]
+    var line = (top, cls, label, time) =>
+      '<span class="deadline' +
+      (cls ? ' ' + cls : '') +
+      '" style="top:' +
+      top +
+      'px"><span>' +
+      label +
+      '　<span class="t">' +
+      time +
+      '</span></span></span>'
+    var win = (top, height, cls, label, time, style) =>
+      '<span class="window' +
+      (cls ? ' ' + cls : '') +
+      '" style="top:' +
+      top +
+      'px;height:' +
+      height +
+      'px' +
+      (style || '') +
+      '"><span>' +
+      label +
+      '　<span class="t">' +
+      time +
+      '</span></span></span>'
+
+    var html = line(topOf(C.found), '', '遺体発見', C.found)
+    var top = state.from === undefined ? 0 : topOf(state.from)
+    var who = state.by === undefined ? undefined : CAST_BY_KEY[state.by]
+
+    if (state.kind === 'fixed') {
+      return html + line(topOf(state.at), '', '死亡推定', state.at)
+    }
+
+    if (state.kind === 'range') {
+      return html + win(top, topOf(state.to) - top, '', '死亡推定', state.from + '–' + state.to)
+    }
+
+    if (state.kind === 'claimed') {
+      return (
+        html +
+        line(topOf(state.at), 'claimed', '死亡推定', '? ' + state.at) +
+        '<span class="by" style="top:' +
+        topOf(state.at) +
+        'px;color:var(--' +
+        who.hue +
+        LIT +
+        ')">' +
+        esc(who.short) +
+        'の見立て</span>'
+      )
+    }
+
+    // 不明。どこか一点を指せないので、分かっている幅ぜんぶを点線の窓で囲う。
+    return html + win(0, topOf(C.found), 'unknown', '死亡推定', '?')
+  }
 
   /*
    * 罫と左の目盛り。アリバイ表と結果の突き合わせで同じ格子を敷くので、
@@ -101,9 +179,21 @@
     { who: 'makino', i: 4 },
     { who: 'kuroda', i: 3 },
     { who: 'sena', i: 2 },
+    // 遺体の検分もターンを1つ使う。人に訊くか現場を見るかは、同じ財布から出る。
+    { who: 'mizuno', i: 0 },
+    { who: 'choba', i: 0 },
+    { who: 'oku', i: 0 },
   ]
 
-  var play = (turn) => {
+  /*
+   * turn は台本の何手目か。who は支度から渡された相手で、あれば優先する。
+   * 「〇〇を調べる」と書いてある口から入って別の相手が開くと、選んだ意味が無い。
+   *
+   * 相手を探すために play を何度も呼ぶ画面があるので（端末の切り替え）、
+   * 上書きは呼び出し側が明示したときだけにする。ハッシュをここで読むと、
+   * その探索まで巻き添えで同じ相手を返すようになる。
+   */
+  var play = (turn, who) => {
     var n = Math.max(0, Math.min(PLAY.length, turn))
     var segs = []
     var log = []
@@ -122,9 +212,23 @@
       segments: segs,
       log: log,
       clash: clash,
-      current: n > 0 ? PLAY[n - 1].who : C.cast[0].key,
-      // 次に訊けそうなこと。台本の先読みなので、残りが無ければ空。
-      hints: n < PLAY.length ? [C.script[PLAY[n].who][PLAY[n].i].q, hintAlt(n)] : [],
+      current:
+        who !== undefined && CAST_BY_KEY[who] !== undefined
+          ? who
+          : n > 0
+            ? PLAY[n - 1].who
+            : C.cast[0].key,
+      /*
+       * 次に訊けそうなこと。台本の先読みなので、残りが無ければ空。
+       * 最後の一手では先読みが自分自身に当たるので、重なった分は落とす——
+       * 同じ問いが二行並ぶと、選べる道が二つあるように見えてしまう。
+       */
+      hints:
+        n < PLAY.length
+          ? [C.script[PLAY[n].who][PLAY[n].i].q, hintAlt(n)].filter(
+              (q, i, all) => all.indexOf(q) === i,
+            )
+          : [],
     }
   }
 
@@ -196,27 +300,49 @@
       html += '</span>'
     })
 
-    var dl = (toMin(C.deadline.at) - SPAN.from) * PX_PER_MIN
-    html +=
-      '<span class="deadline" style="top:' +
-      dl +
-      'px" data-mock-id="ALI_INT_13"><span>' +
-      esc(C.deadline.label) +
-      '　<span class="t">' +
-      C.deadline.at +
-      '</span></span></span>'
+    html += deathMarks(opts.death)
 
     /*
-     * 食い違い。牧野の申告と瀬名の証言が噛み合わない区間に一本だけ立てる。
+     * 食い違い。噛み合わない二人の列のあいだに一本だけ架ける。
      * 表の上でひとつだけの印なので、条件が揃うまで出さない。
+     *
+     * 誰と誰かと何時かは C.clash が持つ。ここが出すのは「何列目と何列目か」だけで、
+     * px は CSS の側（--gut-w / --col-n / --bar-mid）が列の実寸から出す——
+     * 幅を焼き込むと、人数や列幅が変わったときに線だけが元の場所に残る。
+     *
+     * 両端の目盛りは線の子にしない。親は draw で scaleX(0) から伸びるので、
+     * 中に入れると引いているあいだ目盛りまで一緒に潰れて走って見える。
      */
     if (opts.clash) {
-      const top = (toMin('18:36') - SPAN.from) * PX_PER_MIN
+      const cols = C.cast.concat([C.victim])
+      const ends = C.clash.between.map((key) => ({
+        col: cols.findIndex((p) => p.key === key),
+        hue: CAST_BY_KEY[key].hue,
+      }))
+      const ct = (toMin(C.clash.at) - SPAN.from) * PX_PER_MIN
       html +=
         '<span class="clash" style="top:' +
-        top +
-        'px; left:63px; width:217px" data-mock-id="ALI_INT_14">' +
-        '<i style="left:-3px"></i><i style="right:-3px"></i><span>食い違い</span></span>'
+        ct +
+        'px; --clash-a:' +
+        ends[0].col +
+        '; --clash-b:' +
+        ends[1].col +
+        '" data-mock-id="ALI_INT_14"><span>' +
+        esc(C.clash.label) +
+        '</span></span>' +
+        ends
+          .map(
+            (e) =>
+              '<i class="cpin" style="top:' +
+              ct +
+              'px; --clash-col:' +
+              e.col +
+              '; color:var(--' +
+              e.hue +
+              LIT +
+              ')"></i>',
+          )
+          .join('')
     }
     return html
   }
@@ -248,11 +374,107 @@
       if (s.kind === 'solid') last = at
     })
     if (last) html += '<span class="now" style="left:' + last + '"></span>'
-    return html
+    // 刻限は帯の一部。机の chart が deathMarks を内から呼ぶのと同じ扱いにする。
+    return html + railDeath(opts.death, 10)
   }
 
   // 帯のなかでの位置。端末側は px ではなく % で置く（幅が端末に依るため）。
   var pct = (hhmm) => ((toMin(hhmm) - SPAN.from) / SPAN.len) * 100
+
+  /*
+   * 端末の刻限の印（docs/design/deadline-window.md）。
+   *
+   * 描き分ける四状態は机（deathMarks）と同じで、変えるのは向きだけ。机は時刻が上から下へ
+   * 流れるので横一本の線になるが、端末は左から右なので縦の目盛りになる。一点を指す印
+   * （遺体発見・確定・第三者の見立て）は帯を縦に貫き、幅を持つ印（範囲・不明）は両端に
+   * 返しの付いた線を帯の下へ渡す。塗らないのは机と同じ理由で、面を足すと容疑者の帯と競う。
+   *
+   * inset は器が持つ左右の余白。聞き込みの帯（.rail）は 10px 内側に線を引いているので、
+   * % だけで置くと印が線からずれる（.pin が同じ手当てをしている）。告発の拡大軸は 0。
+   */
+  var railDeath = (name, inset) => {
+    var state = C.death[name] === undefined ? C.death.unknown : C.death[name]
+    var pad = inset === undefined ? 0 : inset
+    var at = (p) =>
+      'calc(' + pad + 'px + (100% - ' + pad * 2 + 'px) * ' + (p / 100).toFixed(4) + ')'
+    var wide = (p) => 'calc((100% - ' + pad * 2 + 'px) * ' + (p / 100).toFixed(4) + ')'
+
+    /*
+     * 札は印の子にしない。印は帯を貫く縦線、札は帯の下の一段と、縦の置き場所が別なので、
+     * 器（.rail と .rail-big）ごとの深さを CSS の側で決められるようにしておく。
+     *
+     * 揃え方で、指しているのが一点か幅かを言い分ける。一点の印は札の右端を印に合わせ
+     * （机の札が線の左に付くのと同じ）、窓の札は幅の真ん中へ置く。
+     * 端末は 390px しかないので、印が端に寄れば札は零れる。零れる側では折り返す——
+     * 遺体発見の 19:15 は軸の 92% に立つので、右端を揃えないと画面の外へ出る。
+     */
+    var lb = (p, label, time, tail, mid) =>
+      '<span class="lb' +
+      (p < 24 ? ' start' : mid && p < 72 ? '' : ' end') +
+      '" style="left:' +
+      at(p) +
+      '">' +
+      label +
+      '　<span class="t">' +
+      time +
+      '</span>' +
+      (tail === undefined ? '' : tail) +
+      '</span>'
+
+    var tick = (p, cls) =>
+      '<span class="deadline' + (cls ? ' ' + cls : '') + '" style="left:' + at(p) + '"></span>'
+
+    var win = (from, to, cls, time) => {
+      var a = pct(from)
+      var b = pct(to)
+      return (
+        '<span class="window' +
+        (cls ? ' ' + cls : '') +
+        '" style="left:' +
+        at(a) +
+        ';width:' +
+        wide(b - a) +
+        '"></span>' +
+        lb((a + b) / 2, '死亡推定', time, undefined, true)
+      )
+    }
+
+    var html = tick(pct(C.found)) + lb(pct(C.found), '遺体発見', C.found)
+    var who = state.by === undefined ? undefined : CAST_BY_KEY[state.by]
+
+    if (state.kind === 'fixed') {
+      return html + tick(pct(state.at)) + lb(pct(state.at), '死亡推定', state.at)
+    }
+
+    if (state.kind === 'range') {
+      return html + win(state.from, state.to, '', state.from + '–' + state.to)
+    }
+
+    if (state.kind === 'claimed') {
+      /*
+       * 誰の見立てかは、机では線の下へ別の一行として添えてある。端末にはその一段が無いので
+       * 同じ札の尾に続ける——顔料はその人のものなので、続けても言い分の出どころは残る。
+       */
+      return (
+        html +
+        tick(pct(state.at), 'claimed') +
+        lb(
+          pct(state.at),
+          '死亡推定',
+          '? ' + state.at,
+          '<span class="by" style="color:var(--' +
+            who.hue +
+            LIT +
+            ')">' +
+            esc(who.short) +
+            'の見立て</span>',
+        )
+      )
+    }
+
+    // 不明。どこか一点を指せないので、分かっている幅ぜんぶを点線の窓で囲う。
+    return html + win(C.span.from, C.found, 'unknown', '?')
+  }
 
   /*
    * 端末の告発で使う、拡大した時刻軸。
@@ -300,11 +522,16 @@
         '</span></span>'
     }
 
+    // 刻限の印。段の下、軸の上に置く（_phone.css の .rail-big .lb）。
+    html += railDeath(opts.death, 0)
+
+    /*
+     * 軸の両端だけ。ここには死亡推定を焼き込まない——盤面が最初から知っていることになる。
+     * 刻限は上の印が、手に入れた確度のぶんだけ言う。
+     */
     html +=
       '<div class="axis"><span class="t label">' +
       C.span.from +
-      '</span><span class="t label">' +
-      C.deadline.at +
       '</span><span class="t label">' +
       C.span.to +
       '</span></div>'
@@ -348,6 +575,11 @@
           )
         }
         var p = CAST_BY_KEY[t.who]
+        /*
+         * 遺体と場所の欄は名前を出さず「所見」にする。
+         * 名前を出すと、死んだ人や部屋が証言しているように読める。
+         */
+        var label = examines(t.who) ? '所見' : p.name
         var body = t.lines
           .map((line, i) => {
             var tail = t.last && i === t.lines.length - 1 ? '<span class="beat">▼</span>' : ''
@@ -362,7 +594,7 @@
           p.hue +
           LIT +
           ')">' +
-          esc(p.name) +
+          esc(label) +
           '</span>' +
           body +
           '</div>'
@@ -597,6 +829,8 @@
   window.Mock = {
     case: C,
     cast: CAST_BY_KEY,
+    places: PLACES,
+    examines: examines,
     lit: LIT,
     params: params,
     num: (k, d) => (params[k] === undefined ? d : Number(params[k])),
@@ -609,6 +843,11 @@
     total: PLAY.length,
     play: play,
     chart: chart,
+    // 刻限の印だけを単体で出す。四状態を並べる台紙（deadline-states.html）が使う。
+    deathMarks: deathMarks,
+    // 同じ四状態を、端末の横に寝た時刻軸へ移したもの。
+    railDeath: railDeath,
+    pxPerMin: PX_PER_MIN,
     chartHead: chartHead,
     rail: rail,
     railBig: railBig,

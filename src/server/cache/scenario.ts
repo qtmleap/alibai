@@ -1,12 +1,14 @@
 import { count, eq } from 'drizzle-orm'
 import type { Db } from '@/server/db/client'
-import type { HintItem } from '@/server/game/hints'
+import type { HintItem, HintSource } from '@/server/game/hints'
 import {
   eligibleRevelationCandidates,
   type RevelationCandidate,
   type RevelationEligibilityContext,
   type RevelationRule,
 } from '@/server/game/revelations'
+import { parseInvestigablePlaces } from '~/db/place'
+import { VICTIM_ID } from '~/db/scenario-definition'
 import { characters, evidences, revelations, scenarios } from '~/db/schema'
 
 /**
@@ -23,9 +25,14 @@ const SCENARIO_LIST_TTL_SECONDS = 60
 const JUDGE_RUBRIC_TTL_SECONDS = 3600
 
 const characterKey = (characterId: string) => `character:v2:${characterId}`
-const judgeRubricKey = (scenarioId: string) => `judge-rubric:${scenarioId}`
+/*
+ * 版を付けてある。ルーブリックは1時間キャッシュされるので、版が無いと
+ * 指示を直しても最大1時間は古い文面のまま判定が走る（デプロイ直後が一番危ない）。
+ */
+const judgeRubricKey = (scenarioId: string) => `judge-rubric:v2:${scenarioId}`
 const judgeRevelationsKey = (scenarioId: string) => `judge-revelations:${scenarioId}`
-const hintSubjectsKey = (scenarioId: string) => `hint-subjects:${scenarioId}`
+// 版を付けてある。数える相手の並びが変わっても、1時間の TTL を待たずに切り替わるように。
+const hintSubjectsKey = (scenarioId: string) => `hint-subjects:v2:${scenarioId}`
 const SCENARIO_LIST_KEY = 'scenarios:published'
 
 /**
@@ -186,7 +193,14 @@ export const loadJudgeRubric = async (
 - revealedRevelationIds: ユーザーメッセージ末尾の「今回判定可能なRevelation」に列挙された候補のうち、今回の会話で条件を満たしたIDだけを列挙する。候補外のIDを推測してはいけない。満たしていなければ空配列。
 - contradictionPointedOut: 探偵が過去の発言との矛盾を指摘できていたら true。
 - npcLied: NPCの返答が、その場しのぎの嘘や誤誘導を含んでいたら true。
-- suggestedQuestions: 会話の流れから次に指定するとよい話題を最大3件、プレイヤーが探偵へ渡す短い指示の形で提案する。
+- suggestedQuestions: 次に気になることを最大3件。**プレイヤーの頭に浮かぶ短い疑問の形**で書く。
+  「グラスの中身はなんだろう」「あの三十分は何をしていたのか」くらいの温度でよい。
+  誰に訊くかは書かなくてよい——それを決めるのがプレイヤーの仕事である。
+  「〜を尋ねてください」のような指示文にしない。
+  **プレイヤーがまだ知らないことを、知っている前提で書いてはいけない。** 材料にしてよいのは、
+  いま読んだやり取りに実際に出てきた言葉だけである。会話に出ていない物・人・時刻・手口を持ち出さない。
+  **下に並ぶ開示条件を言い換えて出してはいけない。** あれは答えの側で、そのまま渡せば探すという遊びが消える。
+  何が出てくるかを匂わせず、引っかかりだけを言葉にする。
 
 証拠の開示条件は以下の通り。与えられているのはIDと条件文だけで、それ以外の情報（真相・犯人など）は渡されていない。条件に明確に合致しない証拠は開示したと判定しないこと。
 
@@ -270,7 +284,11 @@ export const loadHintSubjects = async (
       .from(evidences)
       .where(eq(evidences.scenarioId, scenarioId)),
     db
-      .select({ floorPlan: scenarios.floorPlan })
+      .select({
+        floorPlan: scenarios.floorPlan,
+        investigable: scenarios.victimInvestigable,
+        places: scenarios.places,
+      })
       .from(scenarios)
       .where(eq(scenarios.id, scenarioId))
       .limit(1),
@@ -278,20 +296,51 @@ export const loadHintSubjects = async (
   ])
 
   const plan = scenarioRows[0]
+
+  /*
+   * 残り件数を数えるとき、被害者は人物として扱う。
+   *
+   * 画面でも聴く相手の並びに一人分として出るので、そこだけ別の枠で数えると
+   * 「人にあと2件」と出ているのに遺体から3件目が出てくる、という食い違いになる。
+   * 解禁の判定（RevelationSourceType）では victim のまま扱うので、混ざるのはここだけ。
+   */
+  const asHintSource = (source: { type: string; id: string }): HintSource =>
+    source.type === 'location'
+      ? { type: 'location', id: source.id }
+      : { type: 'character', id: source.id }
+
   const subjects: HintSubjects = {
     // revelation の source は解禁条件と前提条件も持っているが、数えるのに要るのは行き先だけ。
     items: [
-      ...revelationRows.map((row) => ({
-        id: row.id,
-        sources: row.sources.map((source) => ({ type: source.type, id: source.id })),
-      })),
-      ...evidenceRows.map((row) => ({ id: row.id, sources: row.sources })),
+      ...revelationRows.map((row) => ({ id: row.id, sources: row.sources.map(asHintSource) })),
+      ...evidenceRows.map((row) => ({ id: row.id, sources: row.sources.map(asHintSource) })),
     ],
-    roomIds:
-      plan === undefined || plan.floorPlan === null
-        ? []
-        : plan.floorPlan.rooms.map((room) => room.id),
-    characterIds: characterRows.map((row) => row.id),
+    /*
+     * 場所として数える相手。見取り図の部屋と、調べられる場所。
+     *
+     * 図の無い事件でも場所は置けるので、部屋だけを並べると、そこへ紐づいた証拠が
+     * easy の内訳から丸ごと落ちる（総数には入るのに）。同じ ID を持つ部屋と場所は
+     * 同じ場所なので、重ねずに一つだけ並べる。
+     */
+    roomIds: [
+      ...new Set([
+        ...(plan === undefined || plan.floorPlan === null
+          ? []
+          : plan.floorPlan.rooms.map((room) => room.id)),
+        ...parseInvestigablePlaces(plan?.places).map((place) => place.id),
+      ]),
+    ],
+    /*
+     * 遺体も数える相手として並べる。上で被害者を人物へ畳んでいるので、
+     * ここに載せないと easy の内訳だけ遺体由来の件数が落ちる（総数には入るのに）。
+     *
+     * 調べられない事件では並べない。聞き込みの相手に出てこない相手へ
+     * 「あと0件」と添えるのは、無いものを数えて見せることになる。
+     */
+    characterIds: [
+      ...characterRows.map((row) => row.id),
+      ...(plan?.investigable === true ? [VICTIM_ID] : []),
+    ],
   }
 
   await kv.put(key, JSON.stringify(subjects), { expirationTtl: JUDGE_RUBRIC_TTL_SECONDS })

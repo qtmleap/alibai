@@ -64,6 +64,104 @@
       "when": 1788157642204,
       "tag": "0008_scenario-victim-profiles",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1788194839194,
+      "tag": "0009_alibi-timeline-events",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1788216627374,
+      "tag": "0010_victim-findings",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1788231785231,
+      "tag": "0011_scenario-current-authoring-upgrade",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1788251670559,
+      "tag": "0012_evidence-detail-and-death-time",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "6",
+      "when": 1788253932764,
+      "tag": "0013_clash-materials",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "6",
+      "when": 1788259032946,
+      "tag": "0014_scenario-latest-authoring-upgrade",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "6",
+      "when": 1788259708851,
+      "tag": "0015_scenario-title-rethink",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "6",
+      "when": 1788259963969,
+      "tag": "0016_scenario-title-balance",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "6",
+      "when": 1788259988556,
+      "tag": "0017_scenario-title-balance-data",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "6",
+      "when": 1788262996112,
+      "tag": "0018_scenario-required-records",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "6",
+      "when": 1788361336006,
+      "tag": "0019_investigable-places",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "6",
+      "when": 1788362994843,
+      "tag": "0020_deadline-disclosure",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "6",
+      "when": 1788378860077,
+      "tag": "0021_scenario-investigation-upgrade",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "6",
+      "when": 1788379031994,
+      "tag": "0022_scenario-place-public-copy-safety",
+      "breakpoints": true
     }
   ]
 }

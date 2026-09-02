@@ -10,11 +10,14 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./_desk.css" />
+    <link rel="stylesheet" href="../_motion.css" />
     <link rel="stylesheet" href="../_mock.css" />
   </head>
   <body>
     <!-- 左のアリバイ表が主役。右は対話なので行長を締める——ここは幅を余らせているのではなく、読める行長を守っている。 -->
-    <div class="desk" data-mock-id="ALI_INT_01">
+    <!-- 八 入り込む。記録を読み終えて、その場に入る敷居。強く動かすのはこの一度だけ。 -->
+    <div class="desk dive" data-mock-id="ALI_INT_01">
+      <span class="enter-veil unveil"></span>
       <div class="top" data-mock-id="ALI_INT_02">
         <span class="ttl" id="ttl"></span>
         <div class="rgt">
@@ -37,20 +40,37 @@
         </div>
 
         <div class="work">
+          <!--
+            人は表の列見出しから選べるが、場所は表に列を持たないので選ぶ口が無い。
+            端末には切り替えがあるのに机だけ支度へ戻らされるのは筋が通らないので、
+            名札の右上に小さく置く。答えない相手なので顔料は持たせず、灰のまま。
+          -->
           <div class="talk-head" data-mock-id="ALI_INT_05">
             <div class="nm" id="who"></div>
             <div class="ps" id="pers"></div>
+            <div class="places" id="places"></div>
+          </div>
+
+          <!--
+            四 新事実発見。記録は聞き込み中に画面上にないので、増えたことを帯で被せて知らせる。
+            箱にはせず、二本の罫線と薄い覆いだけ。実装では 2.6 秒で引くが、
+            モックは静止画としても読まれるので出したまま置いてある。
+          -->
+          <div class="newfact" data-mock-id="ALI_INT_15">
+            <span class="k t">新事実</span>
+            <span class="v" id="newfact"></span>
           </div>
 
           <div class="log" id="log" data-mock-id="ALI_INT_06"></div>
 
           <div class="hint" id="hint" data-mock-id="ALI_INT_08">
-            <div class="hd"><span>訊けそうなこと</span><span>▲</span></div>
+            <div class="hd"><span id="hintHead"></span><span>▲</span></div>
           </div>
 
+          <!-- 文言は相手で変わる。人には訊き、遺体は調べる（下の script が差し替える）。 -->
           <div class="askbar">
-            <span class="box" data-mock-id="ALI_INT_10">何について訊く？</span>
-            <span class="btn" data-mock-id="ALI_INT_11">訊く</span>
+            <span class="box" id="askbox" data-mock-id="ALI_INT_10">何について訊く？</span>
+            <span class="btn" id="askbtn" data-mock-id="ALI_INT_11">訊く</span>
           </div>
         </div>
       </div>
@@ -62,8 +82,14 @@
       ;(function () {
         var C = Mock.case
         // 一枚だけ開いて撮ったときに白紙にならないよう、既定を中盤に置く。
-        var st = Mock.play(Mock.num('turn', 4))
+        var st = Mock.play(Mock.num('turn', 4), Mock.str('who', undefined))
         var me = Mock.cast[st.current]
+        /*
+          遺体か現場を調べているあいだ。喋る相手ではないので、文言も肩書も変わる。
+          場所はアリバイ表に列を持たないので、ここで開いても表の見出しは光らない——
+          机の上で場所へ相手を替える口は、まだ支度の名簿だけ。
+        */
+        var examining = Mock.examines(st.current)
 
         document.getElementById('ttl').textContent = C.title
         document.getElementById('turns').textContent = st.turn + ' / ' + C.turns + ' ターン'
@@ -73,18 +99,70 @@
 
         document.getElementById('head').innerHTML = Mock.chartHead({
           active: st.current,
-          activeLabel: '聞き込み中',
+          activeLabel: examining ? '検分中' : '聞き込み中',
         })
         document.getElementById('chart').innerHTML = Mock.chart({
           segments: st.segments,
           active: st.current,
           clash: st.clash,
           litFix: '19:08　受付',
+          // 刻限の状態は #death= で切り替える（docs/design/deadline-window.md）。
+          death: Mock.str('death', 'unknown'),
         })
 
         document.getElementById('who').textContent = me.name
         document.getElementById('who').style.color = 'var(--' + me.hue + Mock.lit + ')'
         document.getElementById('pers').textContent = me.role + '。' + me.persona
+
+        /*
+          場所への切り替え。出すのは調べているあいだだけで、人に訊いている最中は出さない。
+
+          切り替えに並べるのは「いまやっていることと同じ種類」に限る。訊くと調べるは
+          別の一手なので、会話の隅から片手間に移れる口があると、行為の切れ目がぼやける。
+          人へ戻る道は表の列見出しがいつでも持っているので、塞がりはしない。
+
+          いま開いているものは並べない——押しても何も起きない口を出さない。
+
+          このモックは台本の何手目かで画面を作るので、行き先はターン番号で指す
+          （端末の切り替えと同じ理由。who= を渡しても読む側が居ない画面がある）。
+        */
+        var lastTurnOf = function (key) {
+          var found = 0
+          for (var t = 1; t <= C.turns; t++) {
+            if (Mock.play(t).current === key) found = t
+          }
+          return found
+        }
+
+        document.getElementById('places').innerHTML = (examining ? Mock.places : [])
+          .filter(function (p) {
+            return p.key !== st.current
+          })
+          .map(function (p) {
+            var to = lastTurnOf(p.key)
+            return to === 0
+              ? ''
+              : '<a href="#turn=' + to + '" data-turn="' + to + '">' + Mock.esc(p.short) + '</a>'
+          })
+          .join('')
+
+        // ハッシュを書き換えるだけでは描き直されない。この台の他の画面と同じく読み込み直す。
+        Array.prototype.forEach.call(document.querySelectorAll('#places a'), function (el) {
+          el.addEventListener('click', function (e) {
+            e.preventDefault()
+            location.hash = 'turn=' + el.dataset.turn
+            location.reload()
+          })
+        })
+
+        document.getElementById('askbox').textContent = examining ? '何を調べる？' : '何について訊く？'
+        document.getElementById('askbtn').textContent = examining ? '調べる' : '訊く'
+        document.getElementById('hintHead').textContent = examining
+          ? '調べられそうなこと'
+          : '訊けそうなこと'
+        // 帯に出るのは直前に増えた一行。場所を調べていれば、証言ではなく所見から来る。
+        document.getElementById('newfact').textContent =
+          me.fact === undefined ? '牧野は午後六時三十五分に店を出たと述べた' : me.fact
 
         // 直近の三塊だけ残す。上は溢れるに任せ、切れ口は CSS の霞が引き受ける。
         document.getElementById('log').innerHTML = Mock.log(st.log.slice(-6))
@@ -98,8 +176,87 @@
             .join(''),
         )
 
-        // 列見出しを押すと、その人に相手を替える。
+        /*
+         * 一 目盛りが立つ／二 疑問。
+         *
+         * 塗りを内側の帯へ移してから伸ばす。字を含む .bar ごと拡大すると、
+         * 伸びているあいだ在所と時刻が縦に潰れる。
+         * 裏の取れた線は伸び上がり、申告だけの線は行き過ぎて戻り、淡いまま残る。
+         */
+        Array.prototype.forEach.call(document.querySelectorAll('#chart .bar'), function (bar) {
+          var solid = bar.classList.contains('solid')
+          var fill = document.createElement('span')
+          fill.className = 'fill origin-top ' + (solid ? 'pin-rise' : 'waver')
+          fill.style.background = bar.style.background
+          bar.style.background = ''
+          bar.insertBefore(fill, bar.firstChild)
+
+          // 時刻は帯より遅れて添う。先に線が立ち、それから時刻が出る。
+          var fix = bar.querySelector('.fix')
+          if (fix) {
+            fix.classList.add('line-in')
+            fix.style.animationDelay = '150ms'
+          }
+        })
+
+        /*
+         * 三 ひらめき。噛み合わない二人の列のあいだへ、線が左から引かれる。
+         *
+         * 引き終わって（180ms 待って 520ms）から、両端の目盛りが一度だけ伸びる。
+         * 縦組みの表は時刻が縦に流れるので、目盛りは横の短い棒——伸びる向きも横になる。
+         * 伸ばすのは目盛りだけで、在所そのものの帯には触らない。
+         * 札も同じ 700ms まで待つ。線が伸びきる前に端の字だけが宙に浮くのを避けるため。
+         */
+        var clash = document.querySelector('#chart .clash')
+        if (clash) {
+          clash.classList.add('draw', 'origin-left')
+          var note = clash.querySelector('span')
+          if (note) {
+            note.classList.add('line-in')
+            note.style.animationDelay = '700ms'
+          }
+        }
+        Array.prototype.forEach.call(document.querySelectorAll('#chart .cpin'), function (pin) {
+          pin.classList.add('pin-lift-x')
+          pin.style.animationDelay = '700ms'
+        })
+
+        /*
+         * 五 発話が続く。いま届いた返答だけ、一文ずつ置いていく。間は 0.8 秒。
+         * 読み返している古い塊まで動かすと、画面に入るたび全部が波打つ。
+         */
+        var turns = document.querySelectorAll('#log .turn')
+        var newest = turns[turns.length - 1]
+        if (newest) {
+          Array.prototype.forEach.call(newest.querySelectorAll('.txt'), function (line, index) {
+            line.classList.add('line-in')
+            line.style.animationDelay = 100 + index * 800 + 'ms'
+          })
+        }
+
+        /*
+         * 九 選択肢が開く。高さそのものを動かすので、grid の行を 0fr から開く。
+         * 中身を透かせるだけだと、下の入力欄が動かないまま文字だけ現れて飛んで見える。
+         */
+        var fold = document.createElement('span')
+        fold.className = 'fold fold-open'
+        var inner = document.createElement('span')
+        inner.className = 'fold-inner'
+        Array.prototype.forEach.call(document.querySelectorAll('#hint .q'), function (q) {
+          inner.appendChild(q)
+        })
+        fold.appendChild(inner)
+        document.getElementById('hint').appendChild(fold)
+
+        /*
+         * 列見出しを押すと、その人に相手を替える。
+         * 調べられない事件の被害者だけは押せる形にしない——押せるのに何も起きない列があると、
+         * 押し方を間違えたのだと思わせてしまう（AlibiChart の pickable と同じ考え）。
+         */
         Array.prototype.forEach.call(document.querySelectorAll('[data-who]'), function (el) {
+          if (el.dataset.who === C.victim.key && !C.victim.investigable) {
+            return
+          }
           el.addEventListener('click', function () {
             location.hash = 'turn=' + st.turn + '&who=' + el.dataset.who
             location.reload()

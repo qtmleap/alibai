@@ -10,6 +10,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./_desk.css" />
+    <link rel="stylesheet" href="../_motion.css" />
     <link rel="stylesheet" href="../_mock.css" />
     <style>
       /*
@@ -56,7 +57,7 @@
     </style>
   </head>
   <body>
-    <div class="desk" data-mock-id="ALI_ACC_01">
+    <div class="desk screen-enter" data-mock-id="ALI_ACC_01">
       <div class="top">
         <a class="back" href="./interrogation.html#turn=12" data-mock-id="ALI_ACC_02">←　聞き込みに戻る</a>
         <div class="rgt"><span id="turns"></span><span class="t" id="clock"></span></div>
@@ -121,7 +122,11 @@
         document.getElementById('bspan').textContent = C.span.from + ' – ' + C.span.to
 
         document.getElementById('head').innerHTML = Mock.chartHead({})
-        document.getElementById('chart').innerHTML = Mock.chart({ segments: st.segments })
+        // 刻限の状態は #death= で切り替える（docs/design/deadline-window.md）。
+        document.getElementById('chart').innerHTML = Mock.chart({
+          segments: st.segments,
+          death: Mock.str('death', 'unknown'),
+        })
 
         document.getElementById('suspects').innerHTML = C.cast
           .map(function (p) {

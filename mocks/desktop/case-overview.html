@@ -10,6 +10,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./_desk.css" />
+    <link rel="stylesheet" href="../_motion.css" />
     <link rel="stylesheet" href="../_mock.css" />
     <style>
       /*
@@ -63,6 +64,12 @@
       .work > .grp .cast { display: grid; grid-template-columns: 1fr 1fr; column-gap: 30px; }
       /* 上端の罫は一行目の二枡ぶん。既定の :first-child だけだと右が欠ける。 */
       .work > .grp .cast .r:nth-child(-n + 2) { border-top: 1px solid var(--keisen); }
+      /*
+        場所の束は名簿のすぐ下に続ける。霞は「記録が断ち切れている」ことを示す印なので、
+        二つ目の束には掛けない——掛けると名簿の下端に霧が下りて、行が消えかけて見える。
+      */
+      .work > .grp.more { padding-top: 14px; }
+      .work > .grp.more::before { content: none; }
       /* 名簿を選んだ直後に押すものなので、間を空けずすぐ下に置く。 */
       .work > .foot { margin-top: 0; padding-top: 18px; }
 
@@ -73,7 +80,7 @@
     </style>
   </head>
   <body>
-    <div class="desk" data-mock-id="ALI_OVW_01">
+    <div class="desk screen-enter" data-mock-id="ALI_OVW_01">
       <div class="top">
         <a class="back" href="./scenario-select.html" data-mock-id="ALI_OVW_02">←　事件を選ぶ</a>
         <div class="rgt">
@@ -116,6 +123,15 @@
             <div class="cast" id="cast" data-mock-id="ALI_OVW_06"></div>
           </div>
 
+          <!--
+            調べられる場所。人の名簿とは見出しで分ける——同じ一手を使うとはいえ、
+            「誰から聞くか」と「どこを見るか」は迷い方が違う。
+          -->
+          <div class="grp more" id="placeGrp" data-mock-id="ALI_OVW_11" hidden>
+            <span class="label">どこを調べるか</span>
+            <div class="cast" id="places"></div>
+          </div>
+
           <div class="foot">
             <a class="go" id="go" href="./interrogation.html#turn=1" data-mock-id="ALI_OVW_09"></a>
           </div>
@@ -146,38 +162,63 @@
         document.getElementById('head').innerHTML = Mock.chartHead({})
         document.getElementById('chart').innerHTML = Mock.chart({ segments: [] })
 
+        /*
+         * 名簿には亡くなった人も並べる。別枠にすると、その夜そこに居たのは誰かという
+         * 一覧が二つに割れる。喋らない相手には右端の札を「調べる」に替える——
+         * 押せる相手なのか名簿の上で分かるように。
+         */
+        var row = function (p, kind) {
+          // 所見も死因も無い事件では、遺体の行は押せないまま。押せるのに何も出ない行は作らない。
+          var canPick = kind !== 'victim' || C.victim.investigable
+          var tag = kind === 'cast' ? '' : canPick ? '調べる' : '被害者'
+          return (
+            '<button class="r" type="button" style="color:var(--' +
+            p.hue +
+            Mock.lit +
+            ')" data-mock-id="' +
+            (kind === 'place' ? 'ALI_OVW_12' : 'ALI_OVW_07') +
+            '" data-who="' +
+            p.key +
+            '"' +
+            (canPick ? '' : ' disabled') +
+            '>' +
+            '<span class="face' +
+            (kind === 'place' ? ' pl' : '') +
+            (pick === p.key ? ' on' : '') +
+            '">' +
+            p.face +
+            '</span>' +
+            '<span class="col2"><span class="nm">' +
+            Mock.esc(p.name) +
+            '</span><span class="ps">' +
+            Mock.esc(p.blurb) +
+            '</span></span>' +
+            (tag === '' ? '' : '<span class="role">' + tag + '</span>') +
+            '</button>'
+          )
+        }
+
         document.getElementById('cast').innerHTML = C.cast
-          .concat([C.victim])
           .map(function (p) {
-            var isVictim = p.key === C.victim.key
-            return (
-              '<button class="r" type="button" style="color:var(--' +
-              p.hue +
-              Mock.lit +
-              ')" data-mock-id="ALI_OVW_07" data-who="' +
-              p.key +
-              '"' +
-              (isVictim ? ' disabled' : '') +
-              '>' +
-              '<span class="face' +
-              (pick === p.key ? ' on' : '') +
-              '">' +
-              p.face +
-              '</span>' +
-              '<span class="col2"><span class="nm">' +
-              Mock.esc(p.name) +
-              '</span><span class="ps">' +
-              Mock.esc(p.blurb) +
-              '</span></span>' +
-              (isVictim ? '<span class="role">被害者</span>' : '') +
-              '</button>'
-            )
+            return row(p, 'cast')
           })
+          .concat([row(C.victim, 'victim')])
           .join('')
+
+        // 場所の無い事件では見出しごと出さない。空の見出しは「何か足りない」に見える。
+        if (Mock.places.length > 0) {
+          document.getElementById('placeGrp').hidden = false
+          document.getElementById('places').innerHTML = Mock.places
+            .map(function (p) {
+              return row(p, 'place')
+            })
+            .join('')
+        }
 
         var who = Mock.cast[pick]
         var go = document.getElementById('go')
-        go.textContent = who.name + 'に聞き込みをする'
+        // 遺体も場所も訊く相手ではないので、開始の文言が「調べる」に替わる。
+        go.textContent = who.name + (Mock.examines(pick) ? 'を調べる' : 'に聞き込みをする')
         go.href = './interrogation.html#turn=1&who=' + pick
 
         Array.prototype.forEach.call(document.querySelectorAll('[data-who]'), function (el) {

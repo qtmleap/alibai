@@ -1,15 +1,22 @@
 schemaVersion: 1
 id: storm-lighthouse-relief-slate
 meta:
-  title: 夕凪灯台、暴風の夜
+  title: "夕凪という名の嵐"
   synopsis: "午後八時五十分、暴風で補給船の接岸が不可能となった夕凪灯台の整備室で、主任灯台守の倉橋徹が死亡しているのが見つかりました。島にいるのは当直員の鳥越玲、通信担当の橋場圭、補助員の森下透の三人だけです。"
   category: クローズドサークル
   difficulty: 5
   estimatedMinutes: 15
-  tags: [灯台, 暴風, 記録, 時刻]
 victim:
   name: 倉橋徹
   introduction: 夕凪灯台主任灯台守
+  foundAt: 20:50
+  foundIn: 整備室
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 倉橋徹は整備室で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「補給報告の在庫差メモ」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -50,38 +57,30 @@ facts:
   - id: torigoe-copied-panel-reading
     statement: 鳥越玲は当直板の西設備欄に、制御盤に残っていた20時12分の自動計測値を転記した
     kind: truth
-    secret: true
   - id: torigoe-coat-wet-before
     statement: 鳥越玲の外套は19時台の東側巡回で既に濡れていた
     kind: truth
-    secret: true
   - id: hashiba-saw-torigoe-2021
     statement: 20時21分ごろ、橋場圭は整備室近くの内階段で鳥越玲とすれ違った
     kind: observation
   - id: kurahashi-death-2024
     statement: 20時24分ごろ、倉橋徹は整備室で襲われ死亡した
     kind: truth
-    secret: true
   - id: torigoe-killed-kurahashi
     statement: 鳥越玲は20時24分ごろ整備室で倉橋徹を襲い死亡させた
     kind: truth
-    secret: true
   - id: fuel-report-next-day
     statement: 倉橋徹は翌日の補給報告で、燃料在庫の不自然な不足を本部へ報告する予定だった
     kind: motive
-    secret: true
   - id: torigoe-hid-fuel-shortage
     statement: 鳥越玲は自分の記録ミスによる燃料在庫の不足を帳簿上で先送りしていた
     kind: motive
-    secret: true
   - id: hashiba-private-channel
     statement: 橋場圭は勤務中、規定外の個人的な無線受信をしていた
     kind: other
-    secret: true
   - id: morishita-slept-on-duty
     statement: 森下透は発電室当番中に短時間眠っていた
     kind: other
-    secret: true
   - id: body-found-2050
     statement: 20時50分、森下透が整備室で倉橋徹の死を発見した
     kind: observation
@@ -90,36 +89,50 @@ timeline:
     at: "18:40"
     participants: [torigoe, morishita]
     facts: [west-gate-sealed]
+    record: 封鎖確認票
     description: 暴風警戒により西側外扉が封鎖される。
+    location: 西外扉
   - id: east-round
     at: "19:25"
     participants: [torigoe]
     facts: [torigoe-coat-wet-before]
     description: 鳥越が東側巡回を行い、外套が雨で濡れる。
+    location: 東側
   - id: panel-reading
     at: "20:12"
     participants: []
     facts: [slate-entry-2012, slate-written-after-round, torigoe-copied-panel-reading]
+    record: 計測記録
     description: 西設備の自動計測値が制御盤に記録され、後に鳥越がその時刻を当直板へ転記する。
+    location: 制御盤
   - id: stair-sighting
     at: "20:21"
     participants: [torigoe, hashiba]
     facts: [hashiba-saw-torigoe-2021]
     description: 橋場が整備室近くの内階段で鳥越とすれ違う。
+    location: 内階段
   - id: kurahashi-death
     at: "20:24"
     participants: [torigoe]
     facts: [kurahashi-death-2024, torigoe-killed-kurahashi]
     description: 鳥越が整備室で倉橋を襲い、倉橋は死亡する。
+    location: 灯台内
   - id: discovery
     at: "20:50"
     participants: [morishita, torigoe, hashiba]
-    facts: [body-found-2050, west-seal-intact]
-    description: 森下が倉橋の死を発見し、西側外扉の封鎖も保たれていることが確認される。
+    facts: [body-found-2050]
+    description: 森下が整備室で倉橋の死を発見する。
+    location: 整備室
+  - id: west-seal-checked
+    at: "20:50"
+    participants: [morishita]
+    facts: [west-seal-intact]
+    record: 封鎖確認票
+    description: 森下が西側外扉を確認し、封鎖確認票が保たれていることを確かめる。
+    location: 西外扉
 characters:
   - id: torigoe
     name: 鳥越玲
-    role: suspect
     publicIntroduction: "実直に見える設備当直員。"
     personality: 実直に見える設備当直員。手順や記録を重視する話し方をし、数字を示して自分の説明を固めようとする。記録ミスを倉橋に見つけられたことを強く恐れている。
     goals:
@@ -148,10 +161,8 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: fuel-warning
-        about: fuel-report-next-day
         detail: 倉橋から「明日の補給報告では数字を直さず、そのまま本部へ出す」と告げられ、記録ミスが表に出ると悟った。
       - id: slate-habit
-        about: slate-written-after-round
         detail: 当直板は巡回から戻ってまとめて書くのが昔からの慣例で、記載時刻が筆記時刻ではないことを当然のように知っている。
     relationships:
       - character: hashiba
@@ -162,7 +173,6 @@ characters:
         attitude: 注意力が散漫だと思っている
   - id: hashiba
     name: 橋場圭
-    role: witness
     publicIntroduction: "灯台の通信担当。"
     personality: 観察力のある通信担当。時刻は通信時計で確認する癖がある一方、規定外の個人的な受信をしていたため通信記録を調べられるのを嫌がる。
     goals:
@@ -179,7 +189,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: stair-clock
-        about: hashiba-saw-torigoe-2021
         detail: 定時連絡の一分後に通信室を出たところで鳥越とすれ違ったので、20時21分だったことには自信がある。
     relationships:
       - character: torigoe
@@ -187,7 +196,6 @@ characters:
         attitude: 記録を盾にすると急に頑固になると思っている
   - id: morishita
     name: 森下透
-    role: witness
     publicIntroduction: "若い補助員。"
     personality: 若い補助員。素直だが自分の勤務態度に自信がなく、居眠りを知られるのを恐れている。設備の封鎖確認には橋場より詳しい。
     goals:
@@ -204,7 +212,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: intact-seal
-        about: west-seal-intact
         detail: 発見後に西側外扉を確認したとき、夕方に自分で貼った封鎖確認票が同じ位置のまま残っていた。
     relationships:
       - character: torigoe
@@ -252,7 +259,6 @@ evidences:
     label: 西側外扉の封鎖確認票
     description: 18時40分に封鎖された確認票が事件後も切れておらず、20時台に西側へ出たという説明と両立しない。
     reveal:
-      mode: conversation
       condition: 森下か鳥越に暴風時の西側外扉の運用と事件後の状態を尋ねたら開示する。
     sources:
       - type: character
@@ -265,7 +271,6 @@ evidences:
     label: 当直板の記入手順
     description: 点検時刻は現場で書くのではなく、巡回後に制御盤の表示やメモを見てまとめて転記する運用だった。
     reveal:
-      mode: conversation
       condition: 橋場か鳥越に当直板をいつどこで書くのか具体的に尋ねたら開示する。
     sources:
       - type: character
@@ -278,7 +283,6 @@ evidences:
     label: 外套の先行使用記録
     description: 鳥越の外套は19時台の東側巡回で既に濡れており、20時台に西側へ出た証明にはならない。
     reveal:
-      mode: conversation
       condition: 鳥越に外套がいつから濡れていたか尋ねるか、森下に19時台の巡回について確認したら開示する。
     sources:
       - type: character
@@ -291,7 +295,6 @@ evidences:
     label: 二十時二十一分の内階段目撃
     description: 橋場は通信時計を確認した直後、整備室近くの内階段で鳥越とすれ違っている。
     reveal:
-      mode: conversation
       condition: 橋場に20時20分前後の移動と誰に会ったか尋ねたら開示する。
     sources:
       - type: character
@@ -302,20 +305,20 @@ evidences:
     label: 補給報告の在庫差メモ
     description: 倉橋の翌日提出予定資料に、鳥越の担当分だけ燃料在庫の差を本部へ報告する注記がある。
     reveal:
-      mode: conversation
-      condition: 鳥越か森下に翌日の補給報告と燃料在庫の差について尋ねたら開示する。
+      condition: 鳥越か森下に翌日の補給報告と燃料在庫の差について尋ねたら開示する。または遺体・現場を調べ、「補給報告の在庫差メモ」に関わる資料を確認したら開示する。
     sources:
       - type: character
         id: torigoe
       - type: character
         id: morishita
+      - type: victim
+        id: victim
     supports: [torigoe-hid-fuel-shortage, fuel-report-next-day]
     contradicts: []
   - id: private-radio-log
     label: 規定外の受信履歴
     description: 橋場が個人的な受信をしていたことが分かるが、整備室の事件とは結びつかない。
     reveal:
-      mode: conversation
       condition: 橋場に業務外の無線受信について具体的に尋ねたら開示する。
     sources:
       - type: character
@@ -326,7 +329,6 @@ evidences:
     label: 発電室の巡回空白
     description: 森下が短時間眠っていたことが分かるが、西側外扉の封鎖確認や鳥越の位置とは独立している。
     reveal:
-      mode: conversation
       condition: 森下に発電室で記録が途切れた時間を追及したら開示する。
     sources:
       - type: character
@@ -338,18 +340,9 @@ solution:
   summary: 犯人は鳥越玲。当直板の「20:12 西設備確認」は現場でその時刻に書かれた記録ではなく、巡回後に制御盤の自動計測値などをまとめて転記する運用だった。しかも西側外扉の封鎖確認票は事件後も切れておらず、鳥越が20時台に西側へ出たという説明は成立しない。濡れた外套も19時台の東側巡回で既に濡れていた。20時21分には橋場が整備室近くの内階段で鳥越を目撃しており、鳥越は20時24分ごろ倉橋を襲った。倉橋は翌日、鳥越が先送りしていた燃料在庫の不足を本部へ報告する予定だった。当直板、外套、時刻という三つの一見独立した証拠が、実際にはどれも鳥越の西側滞在を証明していないことが核心である。
   method: 制御盤の過去の計測時刻を当直板へ転記し、以前から濡れていた外套も利用して西側巡回のアリバイを作ったうえで、整備室で倉橋を襲った
   motive: 翌日の本部報告で、自分が先送りしていた燃料在庫の不足と記録ミスが明るみに出るのを恐れたため
-  requiredFacts: [west-seal-intact, slate-written-after-round, torigoe-copied-panel-reading, torigoe-coat-wet-before, hashiba-saw-torigoe-2021, fuel-report-next-day, torigoe-killed-kurahashi]
   secretKeywords:
     - 犯人は鳥越
     - 鳥越が犯人
     - 鳥越が倉橋を襲
     - 私が倉橋を襲
     - 当直板でアリバイを偽装
-quality:
-  expectedQuestionCount:
-    min: 12
-    max: 24
-  requiredEvidence:
-    min: 3
-  redHerrings: [hashiba-private-channel, morishita-slept-on-duty]
-  notes: 灯台の記録と残置物から時刻を推定する実在の孤立事件の雰囲気を抽象化。複数のアリバイ材料が同じ誤った前提に依存していることを見抜く構造。

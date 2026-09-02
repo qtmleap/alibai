@@ -10,6 +10,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./_desk.css" />
+    <link rel="stylesheet" href="../_motion.css" />
     <link rel="stylesheet" href="../_mock.css" />
     <style>
       /* 読み飛ばしはリンク。下線と既定色は持ち込ませない。 */
@@ -34,15 +35,40 @@
       ;(function () {
         var C = Mock.case
         document.getElementById('no').textContent = '記録　' + C.no
-        Mock.readOut(
-          document.getElementById('crawl'),
-          C.brief
-            .map(function (p) {
-              return '<p>' + p + '</p>'
-            })
-            .join(''),
-          { scroller: document.querySelector('.brief .stage') },
-        )
+
+        var body = C.brief
+          .map(function (p) {
+            return '<p>' + p + '</p>'
+          })
+          .join('')
+
+        var crawl = document.getElementById('crawl')
+
+        /*
+         * 記録の見せ方は二つ。既定は一字ずつ送るほう（六 タイプ送り）で、
+         * #brief=crawl にすると本文そのものが下から流れる（七 記録のせり上げ）。
+         * 設定の画面が同じ鍵で二つを出し分けているので、名前を揃えてある。
+         */
+        if (Mock.str('brief', 'typewriter') === 'crawl') {
+          document.querySelector('.brief').classList.add('crawling')
+          crawl.innerHTML = body
+
+          /*
+           * せり上げは流し切ると本文が画面の外へ出るので、静止した姿は白紙になる。
+           * 撮るときと、動きが苦手な人には流さず、読める状態のまま置く。
+           */
+          var reduced =
+            window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+          if (Mock.str('done', '0') !== '1' && !reduced) {
+            crawl.classList.add('briefing-crawl')
+            // 1秒あたり14文字。黙読よりやや遅く、落ち着いて追える速さ。
+            var chars = C.brief.join('').length
+            crawl.style.animationDuration = Math.min(90, Math.max(12, Math.round(chars / 14))) + 's'
+          }
+        } else {
+          Mock.readOut(crawl, body, { scroller: document.querySelector('.brief .stage') })
+        }
+
         Mock.ready()
       })()
     </script>

@@ -65,12 +65,16 @@ export const BriefingScreen = ({ scenario, onRead }: Props) => {
   )
 
   return (
-    <div className="screen-enter relative flex h-dvh flex-col overflow-hidden bg-sumi text-kinari">
+    <div className="screen-enter relative flex h-dvh-safe flex-col overflow-hidden bg-sumi text-kinari">
       {/*
         器そのものを、この下の段だけ overflow-y-auto で送る。長い記録でも書いている先が
         霞の下へ潜らず、追いきれる。器の外（見出し・霞・読み飛ばし）は送らない。
         スクロールバーは出さない——見出しの視認性ではなく、罫線と余白で組む意匠に
         棒が一本混じるのが浮くため。
+
+        裾の余白は霞より厚く取る（端末 120 > 霞 90、デスクトップ 180 > 霞 150）。
+        送りは底へ貼り付けて追うので、余白が霞より薄いと、いま書いている行が
+        そのまま霞の下に入って読めなくなる。霞の高さを変えるならこの値も動かす。
       */}
       <div
         ref={stage}
@@ -81,7 +85,7 @@ export const BriefingScreen = ({ scenario, onRead }: Props) => {
           }
           stick.current = el.scrollHeight - el.scrollTop - el.clientHeight < 40
         }}
-        className="min-h-0 flex-1 overflow-y-auto px-[18px] pt-[30px] [scrollbar-width:none] lg:mx-auto lg:w-[640px] lg:px-0 lg:pt-[96px] lg:pb-[180px] [&::-webkit-scrollbar]:hidden"
+        className="min-h-0 flex-1 overflow-y-auto px-[18px] pt-[30px] pb-[120px] [scrollbar-width:none] lg:mx-auto lg:w-[640px] lg:px-0 lg:pt-[96px] lg:pb-[180px] [&::-webkit-scrollbar]:hidden"
       >
         {/*
           記録の見出し。端末では本文の頭に流れの中で置き、器と一緒に送る。デスクトップでは
@@ -107,7 +111,12 @@ export const BriefingScreen = ({ scenario, onRead }: Props) => {
             }
 
             return (
-              <p key={paragraph} className="mb-5 whitespace-pre-wrap last:mb-0 lg:mb-[30px]">
+              /*
+                最後の段落も下の余白を落とさない。器の裾は霞に食われる場所なので、
+                ここで詰めると読み終わりの一行だけ霞に寄る。段落の間合いは
+                最初から最後まで同じにしておく。
+              */
+              <p key={paragraph} className="mb-5 whitespace-pre-wrap lg:mb-[30px]">
                 {text}
               </p>
             )

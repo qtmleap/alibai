@@ -1,15 +1,33 @@
 schemaVersion: 1
 id: cave-lab-locator-cart
 meta:
-  title: 崩落洞窟、地下研究所の夜
+  title: "救助隊が来るまで地下にいる"
   synopsis: "午後九時二十七分、地下洞窟研究所の地図解析室で、調査主任の岩代圭吾が死亡しているのが見つかりました。午後八時四十分の落盤で唯一の坑道出口が塞がれ、救助隊が到着するまで外部との往来は不可能です。"
   category: クローズドサークル
   difficulty: 5
   estimatedMinutes: 18
-  tags: [洞窟, 落盤, 位置情報, 測量]
 victim:
   name: 岩代圭吾
   introduction: 地下洞窟研究所調査主任
+  foundAt: 21:27
+  foundIn: 地図解析室
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 岩代圭吾は地図解析室で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「試料ラベルと測量座標の不一致」に関わる資料が残されている。
+places:
+  - id: survey-zone
+    name: 自動測量区画
+    shortName: 測量区画
+    introduction: 測量カートの校正と位置タグ確認を行う研究区画
+    situation: カートと位置タグの充電台が壁沿いに並んでいる
+    findings:
+      - id: cart-tag-fastener
+        statement: 測量カートの収納ベルトには、小型の位置タグを固定できる留め具と新しい擦れ跡がある。
+      - id: cart-track-overlay
+        statement: 端末に残るカートの走行軌跡と位置タグの軌跡は、同じ時間帯に同じ経路を通っている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -41,15 +59,12 @@ facts:
   - id: kagawa-forged-sample-origin
     statement: 香川紗英は成果を大きく見せるため、一部の試料採取地点を実際より深部の区画として記録していた
     kind: motive
-    secret: true
   - id: iwashiro-found-forgery
     statement: 岩代圭吾は事件当日、香川紗英の測量座標と試料ラベルが一致しないことに気づいた
     kind: motive
-    secret: true
   - id: iwashiro-planned-retraction
     statement: 岩代圭吾は救助後、香川紗英の成果報告を撤回して調査機関へ訂正を提出する予定だった
     kind: motive
-    secret: true
   - id: locator-tag-removable
     statement: 安全用位置タグは作業ベストから取り外して別の物へ固定できる
     kind: physical
@@ -59,37 +74,30 @@ facts:
   - id: kagawa-tag-on-cart
     statement: 香川紗英は20時58分、位置タグを作業ベストから外して自動測量カートの収納ベルトへ固定した
     kind: truth
-    secret: true
   - id: tag-track-matches-cart
     statement: 21時00分から21時15分までの香川紗英の位置タグ軌跡は、自動測量カートの走行軌跡と時刻まで一致していた
     kind: physical
   - id: kagawa-left-survey-zone
     statement: 21時01分ごろ、香川紗英は位置タグを残したまま測量区画を離れた
     kind: truth
-    secret: true
   - id: tono-saw-kagawa-2107
     statement: 21時07分ごろ、遠野澪は地図解析室へ続く連絡通路で位置タグを付けていない香川紗英を見た
     kind: observation
   - id: kagawa-killed-iwashiro
     statement: 21時11分ごろ、香川紗英は地図解析室で岩代圭吾を襲い死亡させた
     kind: truth
-    secret: true
   - id: kagawa-recovered-tag
     statement: 21時17分ごろ、香川紗英は測量区画へ戻り、自動カートから位置タグを回収した
     kind: truth
-    secret: true
   - id: shindo-hid-sample
     statement: 新堂匠は共同管理の試料の一部を自分の研究用ケースへ移していた
     kind: other
-    secret: true
   - id: yuki-bypassed-sensor
     statement: 結城真は故障警報を避けるため、換気設備の一つのセンサーを手順外で無効化していた
     kind: other
-    secret: true
   - id: tono-edited-time-note
     statement: 遠野澪は自分の記録漏れを隠すため、夕方の巡回時刻を後から書き直していた
     kind: other
-    secret: true
   - id: body-found-2127
     statement: 21時27分、新堂匠が地図解析室で岩代圭吾の死を発見した
     kind: observation
@@ -99,47 +107,57 @@ timeline:
     at: "20:58"
     participants: [kagawa]
     facts: [locator-tag-removable, kagawa-tag-on-cart]
+    record: 軌跡比較
     description: 香川が位置タグを作業ベストから外し、自動測量カートへ固定する。
+    location: 研究所内
   - id: cart-loop-start
     at: "21:00"
     participants: []
     facts: [mapping-cart-auto-loop, tag-track-matches-cart]
+    record: 位置履歴
     description: 自動測量カートが無人で校正ルートの周回を始め、香川の位置タグも同じ軌跡を記録する。
+    location: 測量区画
   - id: kagawa-leaves
     at: "21:01"
     participants: [kagawa]
     facts: [kagawa-left-survey-zone]
     description: 香川が位置タグをカートに残したまま測量区画を離れる。
+    location: 測量区画
   - id: tono-sighting
     at: "21:07"
     participants: [kagawa, tono]
     facts: [tono-saw-kagawa-2107]
     description: 遠野が連絡通路で、位置タグを付けていない香川を目撃する。
+    location: 連絡通路
   - id: iwashiro-death
     at: "21:11"
     participants: [kagawa]
     facts: [kagawa-killed-iwashiro]
     description: 香川が地図解析室で岩代を襲い、岩代は死亡する。
+    location: 地図解析室
   - id: cart-loop-end
     at: "21:15"
     participants: []
     facts: [mapping-cart-auto-loop, tag-track-matches-cart]
+    record: 位置履歴
     description: 自動測量カートが校正ルートの周回を終える。
+    location: 測量区画
   - id: tag-recovered
     at: "21:17"
     participants: [kagawa]
     facts: [kagawa-recovered-tag]
     description: 香川が測量区画へ戻り、自動カートから位置タグを回収する。
+    location: 測量区画
   - id: discovery
     at: "21:27"
     participants: [shindo, kagawa, yuki, tono]
     facts: [body-found-2127]
     description: 新堂が地図解析室で岩代の死を発見する。
+    location: 地図解析室
 
 characters:
   - id: kagawa
     name: 香川紗英
-    role: suspect
     publicIntroduction: "洞窟測量を担当する技術者。"
     personality: 位置情報と測量値を絶対視する技術者。数字で説明できることには強気だが、成果の正確さを疑われると攻撃的になる。位置タグの連続軌跡を自分の在席証明として繰り返し示す。
     goals:
@@ -172,7 +190,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: retraction-threat
-        about: iwashiro-planned-retraction
         detail: 岩代から「救助されたら報告を取り下げ、採取地点の訂正を出す」と言われ、自分の調査成果が全部疑われると思った。
     relationships:
       - character: tono
@@ -183,7 +200,6 @@ characters:
         attitude: 試料の扱いが勝手で信用していない
   - id: shindo
     name: 新堂匠
-    role: suspect
     publicIntroduction: "研究成果への競争心が強い地質学者。"
     personality: 研究成果への競争心が強い地質学者。共同試料を個人ケースへ移したことを隠すため保管区画の話を避けるが、位置タグの仕組みには詳しくない。
     goals:
@@ -200,7 +216,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: cart-loop-sound
-        about: mapping-cart-auto-loop
         detail: 21時台、測量区画の自動カートが同じ区間を何度も往復する駆動音を聞いていた。
     relationships:
       - character: kagawa
@@ -208,7 +223,6 @@ characters:
         attitude: 座標の正確さにはうるさい人なので、採取地点の偽りが本当なら意外だと思う
   - id: yuki
     name: 結城真
-    role: suspect
     publicIntroduction: "実務優先の設備担当。"
     personality: 実務優先の設備担当。換気センサーを無効化した手順違反を隠したいが、安全用位置タグの受信設備も保守しており、タグが人そのものを認識しているわけではないと知っている。
     goals:
@@ -225,12 +239,10 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: tag-is-object
-        about: locator-tag-removable
         detail: 安全タグは単純な発信器なので、ベストから外せば人ではなくタグを付けた物の位置を追うだけだと保守上よく知っている。
     relationships: []
   - id: tono
     name: 遠野澪
-    role: witness
     publicIntroduction: "調査記録を担当する職員。"
     personality: 観察した順番を細かく記憶する記録担当。夕方の巡回時刻を書き直したことを隠したいが、21時07分の連絡通路で見た香川の姿は鮮明に覚えている。
     goals:
@@ -247,7 +259,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: kagawa-without-tag
-        about: tono-saw-kagawa-2107
         detail: 21時07分ごろ、胸元にいつもの黄色い位置タグがない香川が解析室側へ急いでいたので、落としたのかと思った。
     relationships: []
 
@@ -309,19 +320,18 @@ evidences:
     label: 位置タグと自動測量カートの軌跡比較
     description: 香川の位置タグと自動測量カートが、21時00分から15分まで同じ地点を同じ時刻に通過している。二つの軌跡は実質的に重なる。
     reveal:
-      mode: conversation
-      condition: 香川、結城、新堂のいずれかに位置タグの軌跡と自動測量カートの運行を比較できないか尋ねたら開示する。
+      condition: 香川、結城、新堂のいずれかに位置タグの軌跡と自動測量カートの運行を比較できないか尋ねたら開示する。または自動測量区画を調べ、カートの走行跡と位置タグの固定跡を照合したら開示する。
     sources:
       - { type: character, id: kagawa }
       - { type: character, id: yuki }
       - { type: character, id: shindo }
+      - { type: location, id: survey-zone }
     supports: [locator-tag-removable, mapping-cart-auto-loop, kagawa-tag-on-cart, tag-track-matches-cart]
     contradicts: ["lie:kagawa-location-alibi", "lie:kagawa-wore-tag"]
   - id: tagless-sighting
     label: 二十一時七分のタグなし目撃
     description: 遠野は21時07分ごろ、位置タグを胸元に付けていない香川を解析室側の連絡通路で見ている。
     reveal:
-      mode: conversation
       condition: 遠野に21時台の連絡通路で誰を見たか、位置タグの有無も含めて尋ねたら開示する。
     sources:
       - { type: character, id: tono }
@@ -331,18 +341,17 @@ evidences:
     label: 試料ラベルと測量座標の不一致
     description: 香川が深部採取として登録した試料のラベルが、実際の測量データでは浅い区画の座標と一致する。岩代の訂正予定も残る。
     reveal:
-      mode: conversation
-      condition: 香川か新堂に岩代が事件直前に照合していた試料採取地点について尋ね、測量座標との不一致を追及したら開示する。
+      condition: 香川か新堂に岩代が事件直前に照合していた試料採取地点について尋ね、測量座標との不一致を追及したら開示する。または遺体・現場を調べ、「試料ラベルと測量座標の不一致」に関わる資料を確認したら開示する。
     sources:
       - { type: character, id: kagawa }
       - { type: character, id: shindo }
+      - { type: victim, id: victim }
     supports: [kagawa-forged-sample-origin, iwashiro-found-forgery, iwashiro-planned-retraction]
     contradicts: []
   - id: shindo-private-case
     label: 新堂の個人ケースにある共同試料
     description: 共同管理の試料が新堂の個人ケースから見つかるが、解析室の事件とは独立した規約違反である。
     reveal:
-      mode: conversation
       condition: 新堂に共同試料を個人用に移していないか尋ね、否定を続けたら開示する。
     sources:
       - { type: character, id: shindo }
@@ -352,7 +361,6 @@ evidences:
     label: 結城の換気センサー無効化記録
     description: 結城が換気設備の一つのセンサーを手順外で無効化していたことが分かるが、事件とは別件である。
     reveal:
-      mode: conversation
       condition: 結城に換気センサーを無効化していないか尋ね、手順どおりだったという説明を検証したら開示する。
     sources:
       - { type: character, id: yuki }
@@ -362,7 +370,6 @@ evidences:
     label: 遠野の安全記録修正履歴
     description: 夕方の巡回時刻が遠野によって後から書き直されているが、21時07分の目撃とは無関係の記録漏れだった。
     reveal:
-      mode: conversation
       condition: 遠野に安全記録を後から修正していないか尋ね、編集履歴を検証したら開示する。
     sources:
       - { type: character, id: tono }
@@ -374,18 +381,9 @@ solution:
   summary: 犯人は香川紗英。試料採取地点を実際より深部として記録した偽装を岩代に見抜かれ、救助後に成果報告を撤回される予定だった。香川は20時58分に安全用位置タグを作業ベストから外して自動測量カートへ固定した。カートは21時00分から15分まで無人で校正ルートを周回し、香川のタグはカートと完全に同じ軌跡を記録した。香川本人は21時01分ごろ測量区画を離れ、21時07分には遠野がタグを付けていない香川を解析室側で目撃している。21時11分ごろ岩代を襲い、21時17分ごろ測量区画へ戻ってタグを回収した。位置履歴が示していたのは香川本人ではなく、カートに載せられた発信器だった。
   method: 安全用位置タグを無人の自動測量カートへ固定し、その移動軌跡を自分の在席記録に見せかけて解析室へ移動した
   motive: 試料採取地点の偽装が発覚し、救助後に成果報告を撤回され調査機関へ訂正されることを恐れたため
-  requiredFacts: [kagawa-forged-sample-origin, iwashiro-planned-retraction, locator-tag-removable, mapping-cart-auto-loop, kagawa-tag-on-cart, tag-track-matches-cart, kagawa-left-survey-zone, tono-saw-kagawa-2107, kagawa-killed-iwashiro]
   secretKeywords:
     - 犯人は香川
     - 香川が犯人
     - 香川が岩代を襲
     - 私が岩代を襲
     - 位置タグをカートで偽装
-quality:
-  expectedQuestionCount:
-    min: 13
-    max: 26
-  requiredEvidence:
-    min: 3
-  redHerrings: [shindo-hid-sample, yuki-bypassed-sensor, tono-edited-time-note]
-  notes: 位置情報という機械記録を「タグの場所」と「人の場所」に分ける。軌跡が自動測量カートと時刻まで一致すること、遠野がタグなしの香川本人を目撃していることの二段でアリバイを崩す。

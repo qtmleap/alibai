@@ -16,10 +16,10 @@ type Props = {
  * 消される。使う色は必ず文字列そのままで並べておく。
  */
 const PALETTE = [
-  'bg-asagi/15 text-asagi-fg',
-  'bg-fuji/15 text-fuji-fg',
-  'bg-suou/15 text-suou-fg',
-  'bg-karashi/15 text-karashi-fg',
+  'bg-sumi-2 text-asagi-fg',
+  'bg-sumi-2 text-fuji-fg',
+  'bg-sumi-2 text-suou-fg',
+  'bg-sumi-2 text-karashi-fg',
 ]
 
 /** 字だけに顔料を乗せたいとき（名前・目盛り・縦罫）。丸の下地は要らない。 */

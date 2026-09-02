@@ -2,6 +2,7 @@ import { and, eq } from 'drizzle-orm'
 import { loadPublishedScenarios, type PublishedScenario } from '@/server/cache/scenario'
 import type { Db } from '@/server/db/client'
 import { type FloorPlan, parseFloorPlan } from '~/db/floor-plan'
+import { type InvestigablePlace, parseInvestigablePlaces } from '~/db/place'
 import { characters, scenarios } from '~/db/schema'
 
 /**
@@ -23,8 +24,42 @@ export type ScenarioDetail = {
   briefing: string
   /** 事件が動いていた時間の幅。軸を引けないシナリオもあるので null あり。 */
   timeWindow: { start: string; end: string } | null
-  /** 亡くなった人。聞き込みの相手ではないので characters とは別に返す。 */
-  victim: { name: string; introduction: string } | null
+  /**
+   * 亡くなった人。聞き込みの相手ではないので characters とは別に返す。
+   *
+   * `investigable` は「遺体を調べられる事件か」。所見も死因も無いシナリオでは false で、
+   * 画面はこれを見て聞き込みの相手に並べるかどうかを決める。所見そのものは真相側にあり、
+   * ここには出てこない——調べて初めて分かるものなので。
+   */
+  /*
+    死亡推定時刻はここに出さない。あれは手に入れて初めて分かるもので、公開側の列に
+    あるからといって支度の画面へ渡してよいわけではない——渡せば、一手も打っていない
+    プレイヤーのブラウザが答えを持つことになる。開示はセッションの状態が運ぶ
+    （`GET /api/sessions/:id` の estimatedDeathAt）。
+  */
+  victim: {
+    name: string
+    introduction: string
+    foundAt: string | null
+    foundIn: string | null
+    /**
+     * 死亡推定時刻が**あるかどうか**だけ。時刻そのものは渡さない。
+     *
+     * 盤面が「まだ見つけていない」と「最初から無い」を描き分けるのに要ります。
+     * 値を伏せたまま有無だけ伝えるのは、残り件数のヒントが既に「探すものがある」と
+     * 言っているのと同じ粒度なので、これ以上は漏れません。
+     */
+    hasEstimatedDeathAt: boolean
+    investigable: boolean
+  } | null
+  /**
+   * 調べられる場所。喋らないので characters には並ばないが、選ぶ一手は人物と同じ。
+   *
+   * ここに出るのは調べる前から見せてよいものだけ（名前・短縮名・紹介・佇まい）。
+   * 所見は真相側にあり、調べて初めて出る——遺体の `investigable` と同じ考え方で、
+   * そもそも所見を持たない場所はシナリオに書けないので、載っている場所は必ず調べられる。
+   */
+  places: InvestigablePlace[]
   /** 既定値を埋めたあとの形。列そのものの型（入力側）ではない。 */
   floorPlan: FloorPlan | null
   difficulty: number
@@ -46,6 +81,14 @@ export const normalizePublicIntroduction = (value: string): string => {
     ? PUBLIC_INTRODUCTION_FALLBACK
     : trimmed
 }
+
+/**
+ * characters.id はシナリオ投入時に独立に採番される UUID。
+ * UUID の辞書順を表示順として使えば、作者が characters 配列へ書いた順序（犯人を
+ * 最初に設計しがちな LLM の癖）を公開 UI へ持ち込まず、同じ DB の間は順序も安定する。
+ */
+export const sortCharactersById = <T extends { id: string }>(characters: T[]): T[] =>
+  [...characters].sort((left, right) => left.id.localeCompare(right.id))
 
 /** 公開シナリオの一覧。読みは多いが滅多に書き換わらないので KV から返す。 */
 export const listScenarios = (kv: KVNamespace, db: Db): Promise<PublishedScenario[]> =>
@@ -79,12 +122,17 @@ export const findScenarioDetail = async (
       // そもそもプレイヤーが読むのはシナリオを選んだ後で十分。
       briefing: scenarios.briefing,
       floorPlan: scenarios.floorPlan,
+      places: scenarios.places,
       // 時刻軸の両端。コンパイル時に timeline から焼いた値で、真相そのものは含まない
       // （db/time-window.ts）。ここで scenario_truths を引かずに済むのはそのため。
       timeStart: scenarios.timeStart,
       timeEnd: scenarios.timeEnd,
       victimName: scenarios.victimName,
       victimIntroduction: scenarios.victimIntroduction,
+      victimFoundAt: scenarios.victimFoundAt,
+      victimFoundIn: scenarios.victimFoundIn,
+      victimEstimatedDeathAt: scenarios.victimEstimatedDeathAt,
+      victimInvestigable: scenarios.victimInvestigable,
       difficulty: scenarios.difficulty,
       estimatedMinutes: scenarios.estimatedMinutes,
     })
@@ -98,19 +146,21 @@ export const findScenarioDetail = async (
     return undefined
   }
 
-  const characterRows = (
-    await db
-      .select({
-        id: characters.id,
-        name: characters.name,
-        publicIntroduction: characters.publicIntroduction,
-      })
-      .from(characters)
-      .where(eq(characters.scenarioId, scenarioId))
-  ).map((character) => ({
-    ...character,
-    publicIntroduction: normalizePublicIntroduction(character.publicIntroduction),
-  }))
+  const characterRows = sortCharactersById(
+    (
+      await db
+        .select({
+          id: characters.id,
+          name: characters.name,
+          publicIntroduction: characters.publicIntroduction,
+        })
+        .from(characters)
+        .where(eq(characters.scenarioId, scenarioId))
+    ).map((character) => ({
+      ...character,
+      publicIntroduction: normalizePublicIntroduction(character.publicIntroduction),
+    })),
+  )
 
   /*
     図面はここで読み替えてから返す。
@@ -126,6 +176,12 @@ export const findScenarioDetail = async (
     ...scenario,
     // 読み替えられない図面は、図なしとして返す。ここで投げると事件そのものが開けなくなる。
     floorPlan: floorPlan === undefined ? null : floorPlan,
+    /*
+      場所も図面と同じ扱いで読み替える。JSON 列なので、この列より前に焼かれた行や
+      形の変わった行が入り得る。読めないものは場所なしとして返す
+      （SSR の loader は zod を通らずこの戻り値をそのまま描画へ渡す）。
+    */
+    places: parseInvestigablePlaces(scenario.places),
     // 片端しか無い行は軸を引けない。両方揃ったときだけ幅として渡す。
     timeWindow:
       scenario.timeStart === null || scenario.timeEnd === null
@@ -136,7 +192,14 @@ export const findScenarioDetail = async (
     victim:
       scenario.victimName === null || scenario.victimIntroduction === null
         ? null
-        : { name: scenario.victimName, introduction: scenario.victimIntroduction },
+        : {
+            name: scenario.victimName,
+            introduction: scenario.victimIntroduction,
+            foundAt: scenario.victimFoundAt,
+            foundIn: scenario.victimFoundIn,
+            hasEstimatedDeathAt: scenario.victimEstimatedDeathAt !== null,
+            investigable: scenario.victimInvestigable,
+          },
     characters: characterRows,
   }
 }

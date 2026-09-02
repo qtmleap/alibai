@@ -30,6 +30,11 @@ type Board = {
   segments: AlibiSegment[]
   span: { from: string; to: string }
   deadline: { at: string; label: string }
+  /**
+   * 告発で指した時刻。端末はアリバイ表を持てないので、真相との隔たりをこれ一つで見せる。
+   * 表と同じく、まだサーバから降ってこない。
+   */
+  accusedAt?: string
   /** 実際にそこにいた時間。解決した回だけ表に重ねる。 */
   truth: { who: string; from: string; to: string; note?: string }[]
 }
@@ -76,6 +81,25 @@ const clockOf = (value: string): string => {
 }
 
 /**
+ * 作中の時刻を分に直す。読めなければ 0——目盛りが左端へ寄るだけで、他の面は壊れない。
+ */
+const minutesOf = (value: string): number => {
+  const found = CLOCK.exec(value)
+  const hour = found?.[1]
+  const minute = found?.[2]
+
+  return hour === undefined || minute === undefined ? 0 : Number(hour) * 60 + Number(minute)
+}
+
+/** 事件の幅のどこに当たるか。0〜100 で返す。 */
+const ratioOf = (span: { from: string; to: string }, at: string): number => {
+  const from = minutesOf(span.from)
+  const width = minutesOf(span.to) - from
+
+  return width <= 0 ? 0 : ((minutesOf(at) - from) / width) * 100
+}
+
+/**
  * 読める行だけを拾う。
  *
  * 並べ替えはしない。日をまたぐ事件があるので hh:mm で並べると 05:35 が先頭へ来る。
@@ -111,14 +135,32 @@ const subOf = (solved: boolean, culpritFound: boolean, culpritName: string): str
 }
 
 /** 下端の操作。押してほしいほうにだけ枠と明朝を与える。 */
+const FOOT =
+  'flex-1 border p-[10px] text-center text-[12px] leading-[1.75] lg:p-[11px] lg:text-[13px] lg:leading-[1.8]'
+
 const footOf = (main: boolean): string =>
   main
-    ? 'flex-1 border border-nezumi p-[11px] text-center font-mincho text-[13px] text-kinari tracking-[0.16em]'
-    : 'flex-1 border border-keisen p-[11px] text-center text-[13px] text-nezumi'
+    ? `${FOOT} border-nezumi font-mincho text-kinari tracking-[0.16em]`
+    : `${FOOT} border-keisen text-nezumi`
 
-/** 判定・記録の1行。項目名と値を罫線で区切って並べるだけにする。 */
-const Row = ({ label, children }: { label: string; children: ReactNode }) => (
-  <div className="flex items-baseline justify-between gap-4 border-keisen border-b py-[7px] text-[12.5px] leading-[1.75] lg:py-[9px] lg:text-[13.5px] lg:leading-[1.8]">
+/**
+ * 上から順に出すときの刻み。
+ *
+ * 一度に出すと読む順が決まらず、遅すぎると結果を待たされている気分になる。
+ */
+const ROW_STAGGER_MS = 200
+
+/**
+ * 判定・記録の1行。項目名と値を罫線で区切って並べるだけにする。
+ *
+ * `at` は上から何番目か。渡さなければ他と一緒に出る——順に読ませたいのは
+ * 判定の三行だけで、記録は表として一度に見えたほうが早い。
+ */
+const Row = ({ label, at = 0, children }: { label: string; at?: number; children: ReactNode }) => (
+  <div
+    className="row-in flex items-baseline justify-between gap-4 border-keisen border-b py-[7px] text-[12.5px] leading-[1.75] lg:py-[9px] lg:text-[13.5px] lg:leading-[1.8]"
+    style={{ animationDelay: `${at * ROW_STAGGER_MS}ms` }}
+  >
     <span className="text-nezumi">{label}</span>
     <span className="text-right">{children}</span>
   </div>
@@ -129,12 +171,45 @@ const Mark = ({ correct }: { correct: boolean }) => (
   <span className={correct ? 'text-byakuroku' : ''}>{correct ? '正解' : '誤り'}</span>
 )
 
-/** 節。見出しは小さな等幅ラベル、中身は罫線で区切った表。箱は作らない。 */
-const Group = ({ label, children }: { label: string; children: ReactNode }) => (
-  <section className="mt-[22px] lg:mt-5">
+/**
+ * 節。見出しは小さな等幅ラベル、中身は罫線で区切った表。箱は作らない。
+ *
+ * `lead` を落とすと端末での上の間合いだけが消える。真上に目盛りが来る節は、
+ * 目盛りの下にはみ出した札のぶんだけもう空いているので、二重に空けない。
+ */
+const Group = ({
+  label,
+  lead = true,
+  children,
+}: {
+  label: string
+  lead?: boolean
+  children: ReactNode
+}) => (
+  <section className={lead ? 'mt-[22px] lg:mt-5' : 'lg:mt-5'}>
     <h2 className={`${LEGEND} block pb-0 lg:pb-[7px]`}>{label}</h2>
     <div className="mt-[6px] lg:mt-[9px]">{children}</div>
   </section>
+)
+
+/**
+ * 指した時刻の一本。真相は白緑、自分の一手は朱——朱が出るのは告発だけ、という規則のまま。
+ * 札は線の上下へ逃がす。線の脇に置くと、二つが近いときに重なって読めない。
+ */
+const Tick = ({ at, label, truth }: { at: number; label: string; truth: boolean }) => (
+  <span
+    aria-hidden="true"
+    className={`absolute top-[14px] h-[25px] w-[1.5px] ${truth ? 'bg-byakuroku' : 'bg-shu'}`}
+    style={{ left: `${at}%` }}
+  >
+    <span
+      className={`-translate-x-1/2 absolute left-1/2 whitespace-nowrap font-mono text-[10px] leading-[1.75] tabular-nums ${
+        truth ? '-top-[15px] text-byakuroku' : '-bottom-4 text-shu'
+      }`}
+    >
+      {label}
+    </span>
+  </span>
 )
 
 /**
@@ -180,7 +255,7 @@ export const ResultScreen = ({ accuseResult, board, onRetry, onRestart }: Props)
   const deadlineAt: string | undefined = board === undefined ? undefined : board.deadline.at
 
   return (
-    <div className="screen-enter flex min-h-dvh flex-col bg-sumi text-kinari lg:h-dvh lg:overflow-hidden">
+    <div className="screen-enter flex min-h-dvh-safe flex-col bg-sumi text-kinari lg:h-dvh-safe lg:overflow-hidden">
       {/* 上部バーは薄く、机の面を最大に取る。端末では判決そのものが見出しになるので畳む。 */}
       <header className="hidden h-[46px] shrink-0 items-center justify-between gap-5 border-keisen border-b px-[22px] lg:flex">
         <span className="font-mincho text-[14px] tracking-[0.06em]">
@@ -219,61 +294,103 @@ export const ResultScreen = ({ accuseResult, board, onRetry, onRestart }: Props)
               解決したときだけ、申告と実際を重ねて見せる。迷宮入りで実線を引くと、
               そこに真相がまるごと描かれてしまう——伏せているのは文章だけではない。
             */}
-            <AlibiChart
-              people={headingOf(board.people, truth.culpritCharacterId, solved)}
-              segments={board.segments}
-              span={board.span}
-              deadline={board.deadline}
-              truth={solved ? board.truth : undefined}
-            />
+            {/*
+              事件の幅が長いと表は画面より背が高くなる。縮めずにここで送る（聞き込みと同じ）。
+              線の意味は表のすぐ下に置く。床へ落とすと、表と註のあいだが空きすぎて対応が切れる。
+            */}
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <AlibiChart
+                people={headingOf(board.people, truth.culpritCharacterId, solved)}
+                segments={board.segments}
+                span={board.span}
+                /*
+                  結果は答え合わせが済んだ後なので、刻限は一本の実線に落ちる。
+                  窓（まだ分かっていない幅）はここには残らない——残っていたら、
+                  それは答え合わせが終わっていないということ。
+                */
+                deadline={{
+                  label: board.deadline.label,
+                  death: { kind: 'fixed', at: board.deadline.at },
+                }}
+                truth={solved ? board.truth : undefined}
+              />
 
-            {solved ? (
-              <Legend
-                keys={[
-                  { dashed: true, label: '申告' },
-                  { dashed: false, label: '実際' },
-                ]}
-              />
-            ) : (
-              <Legend
-                keys={[
-                  { dashed: false, label: '裏付けあり' },
-                  { dashed: true, label: '本人の申告のみ' },
-                ]}
-              />
-            )}
+              {solved ? (
+                <Legend
+                  keys={[
+                    { dashed: true, label: '申告' },
+                    { dashed: false, label: '実際' },
+                  ]}
+                />
+              ) : (
+                <Legend
+                  keys={[
+                    { dashed: false, label: '裏付けあり' },
+                    { dashed: true, label: '本人の申告のみ' },
+                  ]}
+                />
+              )}
+            </div>
           </aside>
         )}
 
-        <section className="flex min-h-0 flex-1 flex-col px-[18px] pt-6 pb-6 lg:px-[34px] lg:pt-6 lg:pb-[22px]">
+        <section className="flex min-h-0 flex-1 flex-col px-[18px] pt-[34px] pb-6 lg:px-[34px] lg:pt-6 lg:pb-[22px]">
           <div className="shrink-0">
             <p
-              className={`text-center font-bold font-mincho text-[27px] tracking-[0.16em] leading-[1.4] lg:text-left lg:text-[30px] ${
+              className={`text-center font-bold font-mincho text-[27px] tracking-[0.16em] leading-[1.75] lg:text-left lg:text-[30px] lg:leading-[1.4] ${
                 solved ? 'text-byakuroku lg:text-kinari' : 'text-kinari'
               }`}
             >
               {solved ? '事件解決' : '迷宮入り'}
             </p>
             {/* 端末では出さない。判定の節がすぐ下にあるので、この一行を挟むと二度言うことになる。 */}
-            <p className="mt-[6px] hidden text-[12.5px] text-nezumi-dim lg:block lg:text-left">
+            <p className="mt-[6px] hidden text-[12.5px] text-nezumi-dim leading-[1.8] lg:block lg:text-left">
               {subOf(solved, correct, truth.culpritName)}
             </p>
           </div>
 
           {/*
+            指した時刻。端末にはアリバイ表を置けないので、真相と自分の一手だけを一本の線に落とす。
+            迷宮入りでは真相の目盛りを引かない——ここに立てれば、伏せたはずの刻限がそのまま出る。
+          */}
+          {board?.accusedAt === undefined ? null : (
+            <section className="mt-[22px] shrink-0 lg:hidden">
+              <h2 className={`${LEGEND} block`}>指した時刻</h2>
+              <div className="relative mt-[6px] h-[52px]">
+                <span
+                  aria-hidden="true"
+                  className="absolute top-[26px] right-0 left-0 h-px bg-keisen"
+                />
+                {solved ? (
+                  <Tick
+                    at={ratioOf(board.span, board.deadline.at)}
+                    label={`真相 ${board.deadline.at}`}
+                    truth={true}
+                  />
+                ) : null}
+                <Tick
+                  at={ratioOf(board.span, board.accusedAt)}
+                  label={`指した ${board.accusedAt}`}
+                  truth={false}
+                />
+              </div>
+            </section>
+          )}
+
+          {/*
             何を外したかは返す。返さないと、次の一手が推理ではなく当てずっぽうになる。
             返さないのは「では正解は何だったのか」だけ——犯人の名は当てた回にしか出さない。
           */}
-          <Group label="判定">
+          <Group label="判定" lead={board?.accusedAt === undefined}>
             <div className="border-keisen border-t">
-              <Row label="犯人">
+              <Row label="犯人" at={0}>
                 {correct ? `${truth.culpritName}　` : ''}
                 <Mark correct={correct} />
               </Row>
-              <Row label="殺害方法">
+              <Row label="殺害方法" at={1}>
                 <Mark correct={result.methodCorrect} />
               </Row>
-              <Row label="動機">
+              <Row label="動機" at={2}>
                 {result.motiveCorrect ? (
                   <Mark correct={true} />
                 ) : (
@@ -312,7 +429,9 @@ export const ResultScreen = ({ accuseResult, board, onRetry, onRestart }: Props)
                     {timeline.map((entry) => (
                       <li
                         key={`${entry.time}-${entry.event}`}
-                        className="flex items-baseline gap-[11px] border-keisen border-b py-[7px] text-[12px] leading-[1.75] lg:gap-4 lg:border-0 lg:py-1 lg:text-[13.5px] lg:leading-[1.7]"
+                        // 端末では行を揃えない。等幅の時刻を直に並べるので、
+                        // ベースラインで組むと等幅ぶんだけ行の背が伸びる。
+                        className="flex gap-[11px] border-keisen border-b py-[7px] text-[12px] leading-[1.75] lg:items-baseline lg:gap-4 lg:border-0 lg:py-1 lg:text-[13.5px] lg:leading-[1.7]"
                       >
                         <span
                           className={`${AT} shrink-0 text-[12px] text-nezumi-dim lg:text-[11.5px]`}
@@ -333,14 +452,20 @@ export const ResultScreen = ({ accuseResult, board, onRetry, onRestart }: Props)
                 )}
               </div>
             ) : (
-              <p className="border-keisen border-b py-[7px] text-[12px] text-nezumi leading-[1.75] lg:border-0 lg:py-0 lg:font-mincho lg:text-[13.5px] lg:leading-[1.7] lg:tracking-[0.04em]">
-                真相は伏せたままです。もう一度この事件を開けば、聞き取った証言はそのまま残ります。
-              </p>
+              // 端末では真相の時系列と同じ組み——上下を罫線で挟んだ一行。机では罫線を持たない。
+              <div className="border-keisen border-t lg:border-0">
+                <p className="border-keisen border-b py-[7px] text-[12px] text-nezumi leading-[1.75] lg:border-0 lg:py-0 lg:font-mincho lg:text-[13.5px] lg:leading-[1.7] lg:tracking-[0.04em]">
+                  真相は伏せたままです。もう一度この事件を開けば、聞き取った証言はそのまま残ります。
+                </p>
+              </div>
             )}
           </Group>
 
-          {/* 迷宮入りのときは、押してほしいのが「もう一度」のほう。 */}
-          <div className="mt-auto flex shrink-0 gap-3 pt-6 lg:pt-[22px]">
+          {/*
+            迷宮入りのときは、押してほしいのが「もう一度」のほう。
+            端末では中身に続けて置く。床へ貼ると、読み終えた場所から押す場所までが遠くなる。
+          */}
+          <div className="mt-[22px] flex shrink-0 gap-[10px] lg:mt-auto lg:gap-3 lg:pt-[22px]">
             {onRetry === undefined ? null : (
               <button type="button" onClick={onRetry} className={footOf(!solved)}>
                 この事件をもう一度

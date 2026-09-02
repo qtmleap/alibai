@@ -1,15 +1,22 @@
 schemaVersion: 1
 id: glasshouse-dawn-irrigation
 meta:
-  title: 緑苑植物園、開園前の事件
+  title: "花が起きる前に"
   synopsis: "午前六時三十分、市立緑苑植物園の標本庫で、主任研究員の木島祥子が死亡しているのが見つかりました。開園前の園内にいたのは、研究助手の楢原彩、支援企業の担当者・水沢浩司、園芸員の大西蒼太の三人です。"
   category: 植物園ミステリ
   difficulty: 2
   estimatedMinutes: 10
-  tags: [植物園, 朝, 作業記録]
 victim:
   name: 木島祥子
   introduction: 市立緑苑植物園主任研究員
+  foundAt: 06:30
+  foundIn: 標本庫
+  causeOfDeath: 事件性のある外傷による死亡
+  findings:
+    - id: victim-state
+      statement: 木島祥子は標本庫で倒れており、その場で死亡が確認されている。
+    - id: victim-motive-material
+      statement: 遺体のそばには「木島の希少植物管理ノート」に関わる資料が残されている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -38,92 +45,90 @@ facts:
   - id: narahara-sold-cuttings
     statement: 楢原彩は希少植物の挿し穂を無断で持ち出し、収集家へ販売していた
     kind: motive
-    secret: true
   - id: kijima-found-missing-tags
     statement: 木島祥子は事件前日、増殖記録と鉢の管理札の数が合わないことから楢原彩の持ち出しを疑った
     kind: motive
-    secret: true
   - id: kijima-confronted-narahara
     statement: 5時45分ごろ、木島祥子は楢原彩に持ち出しを問いただし、開園後に園長へ報告すると告げた
     kind: motive
-    secret: true
   - id: mizusawa-demanded-naming-rights
     statement: 水沢浩司は寄付継続の条件として新温室へ企業名を付けるよう木島祥子へ強く求め、拒否されていた
     kind: motive
-    secret: true
   - id: manual-water-zero
     statement: 5時50分から6時20分まで、東温室の手灌水用水道は使用量がゼロだった
     kind: physical
-    secret: true
   - id: narahara-left-east-house
     statement: 5時52分ごろ、楢原彩は東温室を離れた
     kind: truth
-    secret: true
   - id: onishi-saw-narahara-0605
     statement: 6時05分ごろ、大西蒼太は標本庫へ向かう通路で楢原彩を見た
     kind: observation
   - id: narahara-killed-kijima-0608
     statement: 6時08分ごろ、楢原彩は標本庫で木島祥子を襲い死亡させた
     kind: truth
-    secret: true
   - id: narahara-returned-east-0615
     statement: 6時15分ごろ、楢原彩は東温室へ戻った
     kind: truth
-    secret: true
   - id: auto-misting-ran-0600
     statement: 6時00分から6時04分まで、東温室では自動ミスト装置だけが予定どおり作動した
     kind: physical
   - id: onishi-falsified-overtime
     statement: 大西蒼太は前月の残業時間を実際より多く申請していた
     kind: other
-    secret: true
   - id: body-found-0630
     statement: 6時30分、水沢浩司が標本庫で木島祥子の死を発見した
     kind: observation
   - id: missing-cuttings-list
     statement: 木島祥子のノートには、管理記録から消えた希少植物の挿し穂と楢原彩の担当日が一覧にされていた
     kind: physical
-    secret: true
 timeline:
   - id: confrontation
     at: "05:45"
     participants: [narahara]
     facts: [kijima-found-missing-tags, kijima-confronted-narahara]
     description: 木島が希少植物の持ち出しを楢原へ問いただし、開園後の報告を告げる。
+    location: 植物園内
   - id: narahara-leaves
     at: "05:52"
     participants: [narahara]
     facts: [narahara-left-east-house, manual-water-zero]
+    record: 水道メーター
     description: 楢原が東温室を離れる。手灌水用水道は使われていない。
+    location: 東温室
   - id: auto-misting
     at: "06:00"
     participants: []
     facts: [auto-misting-ran-0600]
+    record: ミスト記録
     description: 東温室で自動ミスト装置が予定どおり作動する。
+    location: 東温室
   - id: corridor-sighting
     at: "06:05"
     participants: [narahara, onishi]
     facts: [onishi-saw-narahara-0605]
     description: 大西が標本庫へ向かう通路で楢原を目撃する。
+    location: 通路
   - id: kijima-death
     at: "06:08"
     participants: [narahara]
     facts: [narahara-killed-kijima-0608]
     description: 楢原が標本庫で木島を襲い、木島は死亡する。
+    location: 標本庫
   - id: narahara-returns
     at: "06:15"
     participants: [narahara]
     facts: [narahara-returned-east-0615]
     description: 楢原が東温室へ戻る。
+    location: 東温室
   - id: discovery
     at: "06:30"
     participants: [mizusawa, narahara, onishi]
     facts: [body-found-0630]
     description: 水沢が標本庫で木島の死を発見する。
+    location: 標本庫
 characters:
   - id: narahara
     name: 楢原彩
-    role: suspect
     publicIntroduction: "植物園の研究助手。"
     personality: 植物の扱いは繊細で、記録にも几帳面な研究助手。希少種への愛着は強いが、自分の持ち出しを「余った挿し穂の有効利用」と正当化している。作業手順を細かく話して信用を得ようとする。
     goals:
@@ -152,7 +157,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: missing-tags
-        about: kijima-confronted-narahara
         detail: 木島が欠けた管理札の一覧を見せ「開園したら園長に話す」と言ったとき、胸が締めつけられた。
     relationships:
       - character: onishi
@@ -160,7 +164,6 @@ characters:
         attitude: 設備には詳しいが口が軽いと思っている
   - id: mizusawa
     name: 水沢浩司
-    role: suspect
     publicIntroduction: "丁寧な言葉を崩さない企業担当者。"
     personality: 丁寧な言葉を崩さない企業担当者。寄付を交渉材料に使ったことを表へ出したくなく、木島との関係を必要以上に穏便だったように話す。
     goals:
@@ -177,12 +180,10 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: naming-rights-rejection
-        about: mizusawa-demanded-naming-rights
         detail: 木島に「研究施設にスポンサー名を付けるつもりはありません」ときっぱり断られた場面を覚えている。
     relationships: []
   - id: onishi
     name: 大西蒼太
-    role: witness
     publicIntroduction: "朝が早い仕事に慣れた園芸員。"
     personality: 朝が早い仕事に慣れた園芸員。設備の数値には正確だが、自分の残業申請の水増しが見つかるのを恐れている。人間関係の揉め事には首を突っ込みたくない。
     goals:
@@ -199,7 +200,6 @@ characters:
         strategy: maintain-until-contradicted
     memories:
       - id: corridor-narahara
-        about: onishi-saw-narahara-0605
         detail: 6時05分ごろ、東温室にいるはずの楢原が標本庫の方へ歩いていくのを見て、作業変更かなと思った。
     relationships:
       - character: narahara
@@ -247,7 +247,6 @@ evidences:
     label: 東温室の手灌水用水道メーター
     description: 5時50分から6時20分まで手灌水の使用量はゼロ。6時から6時04分の自動ミストだけが別系統で作動している。
     reveal:
-      mode: conversation
       condition: 楢原に手灌水の具体的な手順を尋ねるか、大西にその時間帯の水道使用量を確認したら開示する。
     sources:
       - type: character
@@ -260,7 +259,6 @@ evidences:
     label: 六時五分の標本庫通路の目撃
     description: 大西は6時05分ごろ、標本庫へ向かう楢原を見ている。
     reveal:
-      mode: conversation
       condition: 大西に6時前後に温室以外で誰を見たか尋ねたら開示する。
     sources:
       - type: character
@@ -271,20 +269,20 @@ evidences:
     label: 木島の希少植物管理ノート
     description: 消えた挿し穂と楢原の担当日が一覧化され、管理札の欠落も記録されている。
     reveal:
-      mode: conversation
-      condition: 楢原に希少植物の管理札が足りない理由を尋ねるか、大西に木島が前日から調べていた記録を尋ねたら開示する。
+      condition: 楢原に希少植物の管理札が足りない理由を尋ねるか、大西に木島が前日から調べていた記録を尋ねたら開示する。または遺体・現場を調べ、「木島の希少植物管理ノート」に関わる資料を確認したら開示する。
     sources:
       - type: character
         id: narahara
       - type: character
         id: onishi
+      - type: victim
+        id: victim
     supports: [narahara-sold-cuttings, kijima-found-missing-tags, missing-cuttings-list]
     contradicts: []
   - id: sponsor-email
     label: 命名権を条件にした寄付メール
     description: 水沢が寄付継続と新温室の企業名表示を結びつけて要求したメール。事件時刻の行動とは関係しない。
     reveal:
-      mode: conversation
       condition: 水沢に寄付へ条件を付けていないか尋ね、圧力を否定したら開示する。
     sources:
       - type: character
@@ -295,7 +293,6 @@ evidences:
     label: 大西の残業申請と入退室記録
     description: 申請時間の一部に施設内へいなかった記録があり、残業水増しは分かるが事件当朝の目撃とは両立する。
     reveal:
-      mode: conversation
       condition: 大西に勤怠上の問題がないか尋ね、申請をごまかしていないと否定したら開示する。
     sources:
       - type: character
@@ -307,18 +304,9 @@ solution:
   summary: 犯人は楢原彩。希少植物の挿し穂を無断で販売していたことを木島に見抜かれ、開園後に園長へ報告すると告げられた。楢原は「5時50分から6時20分まで東温室で手灌水していた」と主張するが、その時間帯の手灌水用水道の使用量はゼロで、動いていたのは自動ミストだけだった。楢原は5時52分ごろ東温室を離れ、6時05分には大西が標本庫方向へ向かう姿を目撃している。6時08分ごろ木島を襲い、6時15分ごろ東温室へ戻った。水沢の寄付条件と大西の残業水増しは、それぞれ別の隠し事である。
   method: 手灌水を続けていたという作業アリバイを作り、実際には東温室を離れて標本庫で木島を襲った後に戻った
   motive: 希少植物の無断持ち出しと販売が園長へ報告され、研究職を失うことを恐れたため
-  requiredFacts: [narahara-sold-cuttings, kijima-confronted-narahara, manual-water-zero, narahara-left-east-house, onishi-saw-narahara-0605, narahara-killed-kijima-0608, narahara-returned-east-0615]
   secretKeywords:
     - 犯人は楢原
     - 楢原が犯人
     - 楢原が木島を襲
     - 私が木島を襲
     - 手灌水をアリバイに殺
-quality:
-  expectedQuestionCount:
-    min: 8
-    max: 17
-  requiredEvidence:
-    min: 2
-  redHerrings: [mizusawa-demanded-naming-rights, onishi-falsified-overtime]
-  notes: 核心は「作業をしていた」という証言を、その作業なら必ず残る水使用量で検証すること。大西の目撃を第二経路にして、設備ログだけに依存しない。

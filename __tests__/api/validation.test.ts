@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import app from '@/server/index'
+import { MAX_TOPIC_CHARS } from '@/shared/turns'
 
 /**
  * bun test は Workers ランタイムの外で動くので、バインディング（DO / KV / Hyperdrive）を
@@ -120,21 +121,21 @@ describe('POST /api/sessions/:id/ask', () => {
     expect(res.status).toBe(400)
   })
 
-  test('話題が501文字なら 400', async () => {
+  test('話題が上限を1文字でも超えれば 400', async () => {
     const res = await postJson(`/api/sessions/${SESSION_ID}/ask`, {
       sessionId: SESSION_ID,
       characterId: CHARACTER_ID,
-      topic: 'あ'.repeat(501),
+      topic: 'あ'.repeat(MAX_TOPIC_CHARS + 1),
     })
 
     expect(res.status).toBe(400)
   })
 
-  test('500文字ちょうどはバリデーションを通過する（境界の内側）', async () => {
+  test('上限ちょうどはバリデーションを通過する（境界の内側）', async () => {
     const res = await postJson(`/api/sessions/${SESSION_ID}/ask`, {
       sessionId: SESSION_ID,
       characterId: CHARACTER_ID,
-      topic: 'あ'.repeat(500),
+      topic: 'あ'.repeat(MAX_TOPIC_CHARS),
     })
 
     // バインディングが無いのでこの先は進めない。ここで見たいのは
@@ -147,6 +148,28 @@ describe('POST /api/sessions/:id/ask', () => {
       sessionId: '11111111-1111-4111-8111-111111111111',
       characterId: CHARACTER_ID,
       topic: 'アリバイについて',
+    })
+
+    expect(res.status).toBe(400)
+  })
+
+  test('調べられる場所も相手として受ける', async () => {
+    // 人物は uuid、遺体は victim、場所は作者が書いたローカルID。同じ口へ来る。
+    const res = await postJson(`/api/sessions/${SESSION_ID}/ask`, {
+      sessionId: SESSION_ID,
+      characterId: 'choba',
+      topic: '帳面を見てみる',
+    })
+
+    expect(res.status).not.toBe(400)
+  })
+
+  test('相手の形をしていない文字列は 400', async () => {
+    // uuid でも victim でも、場所の ID の形でもないもの。
+    const res = await postJson(`/api/sessions/${SESSION_ID}/ask`, {
+      sessionId: SESSION_ID,
+      characterId: '帳場',
+      topic: '帳面を見てみる',
     })
 
     expect(res.status).toBe(400)

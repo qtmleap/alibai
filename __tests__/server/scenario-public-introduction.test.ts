@@ -13,3 +13,18 @@ describe('normalizePublicIntroduction', () => {
     expect(normalizePublicIntroduction('   ')).toBe('この事件の関係者。')
   })
 })
+
+import { sortCharactersById } from '@/server/read/scenarios'
+
+test('sortCharactersById > UUID順で決定的に並べ、元配列は変更しない', () => {
+  const input = [
+    { id: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', name: 'C', publicIntroduction: 'C' },
+    { id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', name: 'A', publicIntroduction: 'A' },
+    { id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', name: 'B', publicIntroduction: 'B' },
+  ]
+
+  const sorted = sortCharactersById(input)
+
+  expect(sorted.map((character) => character.name)).toEqual(['A', 'B', 'C'])
+  expect(input.map((character) => character.name)).toEqual(['C', 'A', 'B'])
+})

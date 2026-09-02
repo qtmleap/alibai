@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import { compileScenario } from '~/db/compile-scenario'
 import { parseFloorPlan } from '~/db/floor-plan'
 import { TSUKIMISOU_PLAN } from '~/db/floor-plans/tsukimisou'
-import type { ScenarioDefinitionInput } from '~/db/scenario-definition'
+import { type ScenarioDefinitionInput, VICTIM_ID } from '~/db/scenario-definition'
 import { loadScenarioYaml } from '~/db/scenario-file'
 
 const TSUKIMISOU_SCENARIO = await loadScenarioYaml('tsukimisou')
@@ -149,9 +149,9 @@ describe('compileScenario: 月見荘のコンパイル', () => {
 
   test('公開状態と件数', () => {
     expect(compiled.scenario.isPublished).toBe(true)
-    expect(compiled.scenario.title).toBe('月見荘、十七回忌の夜')
+    expect(compiled.scenario.title).toBe('十七回忌の客')
     expect(compiled.characters).toHaveLength(3)
-    expect(compiled.evidences).toHaveLength(6)
+    expect(compiled.evidences).toHaveLength(9)
     expect(compiled.revelations).toHaveLength(2)
   })
 
@@ -221,6 +221,11 @@ describe('compileScenario: プロンプトを壊さない不変条件', () => {
       if (source.type === 'character') {
         expect(characterIds.has(source.id)).toBe(true)
         expect(roomIds.has(source.id)).toBe(false)
+      } else if (source.type === 'victim') {
+        // 被害者は一人しか居ないので採番しない。決め打ちのIDのまま焼かれる。
+        expect(source.id).toBe(VICTIM_ID)
+        expect(characterIds.has(source.id)).toBe(false)
+        expect(roomIds.has(source.id)).toBe(false)
       } else {
         expect(roomIds.has(source.id)).toBe(true)
         expect(characterIds.has(source.id)).toBe(false)
@@ -263,7 +268,7 @@ describe('compileScenario: プロンプトを壊さない不変条件', () => {
     const timeline = compiled.truth.timeline
 
     expect(Array.isArray(timeline)).toBe(true)
-    expect(timeline).toHaveLength(9)
+    expect(timeline).toHaveLength(10)
     expect(timeline).toEqual(
       expect.arrayContaining([
         { time: '19:00', event: '夕食会が始まる。涼子・深川・美月・桐生の4人が同席。' },
@@ -499,5 +504,68 @@ describe('compileScenario: 被害者', () => {
 
     expect(result.scenario.timeStart).not.toBeNull()
     expect(result.scenario.timeEnd).not.toBeNull()
+  })
+})
+
+describe('被害者の所見', () => {
+  test('解禁の前提は uuid へ採番される', () => {
+    // ローカルIDのまま焼くと、DOが持つ uuid と突き合わない＝前提が永久に満たされない。
+    const evidenceIds = new Set(compiled.evidences.map((evidence) => evidence.id))
+    const required = compiled.truth.victimFindings.flatMap((finding) => finding.requires.evidences)
+
+    expect(required.length).toBeGreaterThan(0)
+
+    for (const id of required) {
+      expect(evidenceIds.has(id)).toBe(true)
+    }
+  })
+
+  test('遺体を調べられる事件として焼かれる', () => {
+    expect(compiled.scenario.victimInvestigable).toBe(true)
+    expect(compiled.scenario.victimFoundAt).toBe('20:30')
+    expect(compiled.truth.victimCauseOfDeath).not.toBeNull()
+  })
+})
+
+describe('死亡推定時刻を明かす印', () => {
+  test('印を立てた証拠だけが true で焼かれる', () => {
+    const marked = compiled.evidences.filter((evidence) => evidence.revealsDeathTime)
+
+    // 検死の一件と、医師の見立ての一件。どちらの道からでも刻限へ辿り着ける。
+    expect(marked.map((evidence) => evidence.label)).toEqual([
+      '遺体に残る中毒の徴候と、その進み具合',
+      '桐生が医師として述べた死亡推定時刻',
+    ])
+  })
+
+  test('印の無い証拠は false。時刻は公開側の列にだけ載る', () => {
+    const unmarked = compiled.evidences.filter((evidence) => !evidence.revealsDeathTime)
+
+    expect(unmarked.length).toBeGreaterThan(0)
+    // 時刻そのものは印と別の場所。サーバが両方を突き合わせて初めて盤面へ出る。
+    expect(compiled.scenario.victimEstimatedDeathAt).toBe('20:15')
+  })
+
+  test('死亡推定時刻を持たない事件では印を立てられない', () => {
+    const definition = makeMinimal()
+    const result = compileScenario(
+      {
+        ...definition,
+        victim: { name: '水野英治', introduction: '青雨堂店主' },
+        evidences: [
+          {
+            id: 'coroner-note',
+            label: '検死の覚え書き',
+            reveal: { condition: '遺体を調べたら開示する。' },
+            revealsDeathTime: true,
+          },
+        ],
+      },
+      { isPublished: true, newId: sequentialIds() },
+    )
+
+    expect(result.ok).toBe(false)
+    // 開けるべき時刻がどこにも無いまま印だけが立つと、掴んでも盤面が変わらない。
+    expect(result.ok ? [] : result.issues.join('\n')).toContain('revealsDeathTime')
   })
 })

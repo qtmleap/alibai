@@ -1,8 +1,18 @@
 import { createFileRoute, Outlet } from '@tanstack/react-router'
+import { z } from 'zod'
 import { InterrogationProvider } from '@/client/hooks/InterrogationContext'
 import { useInterrogation } from '@/client/hooks/useInterrogation'
 import { fetchScenarioDetail, fetchSessionHistory, fetchSessionState } from '@/client/lib/api'
 import { restoreConversations } from '@/client/lib/restore'
+
+/**
+ * 支度で選んだ「まず誰から」。付いていなければ、最後に話した相手から再開する。
+ *
+ * uuid で縛らないのは、遺体（`victim`）も選べるため。壊れた値が来ても弾かず、
+ * 画面側で存在しない相手として無視する——URLを手で書き換えた人にエラー画面を出す
+ * ほどのことではない。
+ */
+const searchSchema = z.object({ first: z.string().nonempty().optional() })
 
 /**
  * 1プレイぶんのレイアウト（聞き込み・推理・リザルト）。
@@ -17,6 +27,11 @@ import { restoreConversations } from '@/client/lib/restore'
  */
 export const Route = createFileRoute('/sessions/$sessionId')({
   ssr: false,
+  validateSearch: (search) => {
+    const parsed = searchSchema.safeParse(search)
+
+    return parsed.success ? parsed.data : {}
+  },
   loader: async ({ params }) => {
     const state = await fetchSessionState(params.sessionId)
     // 記録とシナリオは互いに依存しないので並べて取る。
@@ -37,6 +52,9 @@ function PlaySession() {
     discoveries: state.discoveries,
     revelations: state.revelations,
     hint: state.hint,
+    alibiSegments: state.alibiSegments,
+    clash: state.clash,
+    estimatedDeathAt: state.estimatedDeathAt,
     questionCount: state.questionCount,
     turn: state.turn,
   })

@@ -1,0 +1,16 @@
+UPDATE scenarios SET title = '霧航船しおかぜ号の謎' WHERE title = 'しおかぜは霧を抜けない';
+UPDATE scenarios SET title = '旧南央裁判所殺人事件' WHERE title = '旧南央裁判所には、もう裁判がない';
+UPDATE scenarios SET title = '世代船アステリア事件' WHERE title = '星のない船で暮らす';
+UPDATE scenarios SET title = '零時放送レイライン' WHERE title = 'ラジオ局には朝がない';
+UPDATE scenarios SET title = '白夜第六基地の三人' WHERE title = '第六基地に夜は来ない';
+UPDATE scenarios SET title = '青雨堂、雨宿りの客' WHERE title = '雨の日には古書を買わない';
+UPDATE scenarios SET title = '北岳観測所殺人事件' WHERE title = '星の見えない観測所';
+UPDATE scenarios SET title = '白環館の雪' WHERE title = '白環館には冬しかない';
+UPDATE scenarios SET title = '白燕座、幕間' WHERE title = '幕が下りても帰れない';
+UPDATE scenarios SET title = '深夜水族館の謎' WHERE title = '夜の水槽に客はいない';
+UPDATE scenarios SET title = '増水発電所' WHERE title = '発電所は雨を止められない';
+UPDATE scenarios SET title = '青凪荘の客' WHERE title = '船の来ない島で';
+UPDATE scenarios SET title = '調査船みなも号事件' WHERE title = 'みなもは港へ帰れない';
+UPDATE scenarios SET title = '山中研究会殺人録' WHERE title = '研究会はまだ終わらない';
+UPDATE scenarios SET title = '霧岳ロープウェイ殺人事件' WHERE title = '山頂駅には下りがない';
+UPDATE scenarios SET title = '湾岸データセンター、異常なし' WHERE title = '台風の日もサーバは眠らない';
