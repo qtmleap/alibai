@@ -16,18 +16,6 @@
     <style>
       .int-head a { text-decoration: none; color: inherit; }
       .int-head .row1 .acc { color: var(--nezumi); flex: none; }
-
-      /*
-        _phone.css の帯は 34px で、両端の時刻と目盛りが同じ高さの帯を奪い合う。
-        白紙のうちは気づかないが、18:23 のように端寄りの時刻が確定した途端、
-        印が「18:20」の字を貫く。帯を一段深くして、見出しの下に印の道を作る。
-      */
-      .rail { height: 46px; }
-      .rail .cap, .rail .cap2 { top: 0; }
-      /* 線も明示的に置く。flex の中央任せだと、帯を深くした途端に印とずれる。 */
-      .rail .line { top: 28px; }
-      .rail .pin { top: 22px; }
-      .rail .now { top: 18px; height: 22px; }
     </style>
   </head>
   <body>
@@ -146,7 +134,11 @@
         })
 
         var rail = document.getElementById('rail')
-        rail.innerHTML = Mock.rail({ segments: st.segments })
+        // 刻限の状態は #death= で切り替える（docs/design/deadline-window.md）。
+        rail.innerHTML = Mock.rail({
+          segments: st.segments,
+          death: Mock.str('death', 'unknown'),
+        })
 
         /*
           一 目盛りが立つ／二 疑問。
