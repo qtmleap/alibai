@@ -540,6 +540,17 @@ export const InterrogationScreen = ({
    * ログに出す名前は、遺体も場所も「所見」にする。喋ったのではなく探偵が見たものなので、
    * 名前を出すと死者や部屋が証言しているように読める。
    */
+  /*
+   * easy のときだけ、その場所からあと何件見つかるかが引ける。
+   *
+   * 場所は表に列を持たないので、人物のように見出しへ出せない。見取り図を持つ事件では
+   * 図の部屋が同じ数を出すが、図に無い場所（青雨堂の帳場・奥の間など）はここが唯一の
+   * 出しどころになる。数えているのは `hint.rooms`——サーバが部屋IDと場所IDを
+   * 同じ袋に入れて返すので、場所も同じ引き方で取れる。
+   */
+  const remainingAt = (placeId: string) =>
+    hint.mode === 'easy' ? hint.rooms.find((entry) => entry.id === placeId)?.remaining : undefined
+
   const subjects = [
     ...scenario.characters.map((character, index) => ({
       id: character.id,
@@ -550,6 +561,11 @@ export const InterrogationScreen = ({
       edge: edgeOf(index),
       /** 訊く相手か、調べる相手か。切り替えに並べる相手を選り分けるのに使う。 */
       examine: false,
+      /*
+       * 切り替えに添える残り件数。人物と遺体は表の列見出しが同じ数を出すので持たせない
+       * ——二箇所に同じ数が並ぶと、片方が古い値に見える。
+       */
+      remaining: undefined,
     })),
     ...(scenario.victim === null || !scenario.victim.investigable
       ? []
@@ -562,6 +578,7 @@ export const InterrogationScreen = ({
             ink: inkOf(scenario.characters.length),
             edge: edgeOf(scenario.characters.length),
             examine: true,
+            remaining: undefined,
           },
         ]),
     ...places.map((place) => ({
@@ -577,6 +594,7 @@ export const InterrogationScreen = ({
       ink: 'text-nezumi-t',
       edge: 'border-nezumi',
       examine: true,
+      remaining: remainingAt(place.id),
     })),
   ]
 
@@ -767,6 +785,9 @@ export const InterrogationScreen = ({
                 className={`${switchClass} text-nezumi-dim hover:text-nezumi`}
               >
                 {subject.name}
+                {subject.remaining === undefined ? null : (
+                  <span className="ml-1.5">あと {subject.remaining}</span>
+                )}
               </button>
             ))}
           </nav>
