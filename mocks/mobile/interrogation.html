@@ -101,8 +101,13 @@
           (examining ? '調べられそうなこと' : '訊けそうなこと') + '<span>▲</span>'
 
         /*
-          相手を替える口。遺体を調べられる事件では被害者も、場所があれば場所も並ぶ。
-          調べられない事件では並べない——押せるのに何も出ない相手を出さない。
+          相手を替える口。並べるのは「いまやっていることと同じ種類」だけ——
+          人に訊いているあいだは人、遺体や現場を調べているあいだは調べられる相手。
+
+          訊くと調べるは別の一手なので、混ぜて並べると行為の切れ目がぼやける。
+          種類をまたぐときは支度の名簿へ戻る。
+
+          調べられない事件では遺体を並べない——押せるのに何も出ない相手を出さない。
 
           このモックは台本の何手目かで画面を作るので、行き先はターン番号で指す。
           その相手が最後に出てくる手へ跳ばす（who= を渡しても読む側が居ない）。
@@ -115,8 +120,11 @@
           return found
         }
 
-        document.getElementById('swap').innerHTML = C.cast
-          .concat(C.victim.investigable ? [C.victim] : [], Mock.places)
+        var swapTargets = examining
+          ? (C.victim.investigable ? [C.victim] : []).concat(Mock.places)
+          : C.cast
+
+        document.getElementById('swap').innerHTML = swapTargets
           .filter(function (p) {
             return p.key !== st.current
           })
