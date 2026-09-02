@@ -1,0 +1,1 @@
+ALTER TABLE `evidences` ADD `reveals_death_time` integer DEFAULT false NOT NULL;
