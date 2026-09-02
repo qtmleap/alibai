@@ -13,6 +13,7 @@ import { fetchSessionState } from '@/client/lib/api'
 import { formatSeconds } from '@/client/lib/format'
 import { settledSentences } from '@/client/lib/paragraphs'
 import type { InvestigablePlace, ScenarioDetail, SessionState } from '@/client/lib/schemas'
+import { MAX_TOPIC_CHARS } from '@/shared/turns'
 import { VICTIM_ID } from '~/db/scenario-definition'
 
 /**
@@ -1082,7 +1083,7 @@ export const InterrogationScreen = ({
                       handleAsk()
                     }
                   }}
-                  maxLength={500}
+                  maxLength={MAX_TOPIC_CHARS}
                   placeholder={examining ? '何を調べる？' : '何について訊く？'}
                   aria-label="訊きたいこと"
                   disabled={isAsking}

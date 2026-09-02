@@ -23,7 +23,7 @@ import { streamNpcReply } from '@/server/llm/actor'
 import { gradeDeduction } from '@/server/llm/deduction'
 import { composeExaminationFocus, streamExamination } from '@/server/llm/examiner'
 import { createFilterState, FALLBACK_REPLY, feedChunk, finalizeFilter } from '@/server/llm/filter'
-import { generateQuestion, type TopicExchange } from '@/server/llm/interviewer'
+import { streamQuestion, type TopicExchange } from '@/server/llm/interviewer'
 import { judgeTurn } from '@/server/llm/judge'
 import { chooseLlm, type LlmChoice } from '@/server/llm/provider'
 import { toUsageRow } from '@/server/llm/usage'
@@ -32,6 +32,7 @@ import {
   clampLimits,
   EXAMINATION_MODEL_CALLS,
   EXCHANGES_PER_TOPIC,
+  MAX_TOPIC_CHARS,
   modelCallsPerTopic,
   type SessionLimits,
   turnStateOf,
@@ -591,7 +592,7 @@ const askSchema = z.object({
    * プレイヤーが指定する話題。「アリバイについて」「被害者との関係を」のような指示で、
    * 実際にNPCへ投げる質問は探偵役のモデルがここから組み立てる。
    */
-  topic: z.string().nonempty().max(500),
+  topic: z.string().nonempty().max(MAX_TOPIC_CHARS),
   /**
    * プレイヤーが設定画面で選んだモデル。送られてこなければデプロイ設定のまま。
    *
@@ -818,27 +819,65 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
       (_value, index) => index,
     )
 
+    /*
+      探偵の一手。聞き込みなら相手への質問、検分なら「何を確かめるか」の独り言。
+      検分でも質問を作らせると「涼子さん、〜はありますか？」と死者に話しかける画になる。
+
+      聞き込みの側だけ書けたところから流す。検分の独り言は一文が短く、
+      流しても字が出きってしまうので、組み上がってから一度に置く。
+
+      question-start を送るのは最初の断片が届いてから。先に送ると、モデルが
+      何も返さなかった回に中身の無い行だけが画面へ残る。
+    */
+    const askRound = async () => {
+      if (examining) {
+        const focus = await composeExaminationFocus({
+          env,
+          choice: choices.actor,
+          detective,
+          topic: askInput.topic,
+          exchanges: collected.exchanges,
+        })
+
+        if (focus.focus.length > 0) {
+          await stream.writeSSE({ event: 'question-start', data: '' })
+          await stream.writeSSE({ event: 'question', data: focus.focus })
+        }
+
+        return { ...focus, question: focus.focus }
+      }
+
+      const asking = streamQuestion({
+        env,
+        choice: choices.actor,
+        detective,
+        characterName: subject.name,
+        topic: askInput.topic,
+        exchanges: collected.exchanges,
+      })
+      const asked = { started: false }
+
+      for await (const chunk of asking.textStream) {
+        if (!asked.started) {
+          asked.started = true
+          await stream.writeSSE({ event: 'question-start', data: '' })
+        }
+
+        await stream.writeSSE({ event: 'question', data: chunk })
+      }
+
+      const [text, usage, response, providerMetadata] = await Promise.all([
+        asking.text,
+        asking.usage,
+        asking.response,
+        asking.providerMetadata,
+      ])
+
+      return { question: text.trim(), usage, providerMetadata, model: response.modelId }
+    }
+
     for (const _round of rounds) {
-      /*
-        探偵の一手。聞き込みなら相手への質問、検分なら「何を確かめるか」の独り言。
-        検分でも質問を作らせると「涼子さん、〜はありますか？」と死者に話しかける画になる。
-      */
-      const interviewer = examining
-        ? await composeExaminationFocus({
-            env,
-            choice: choices.actor,
-            detective,
-            topic: askInput.topic,
-            exchanges: collected.exchanges,
-          }).then((result) => ({ ...result, question: result.focus }))
-        : await generateQuestion({
-            env,
-            choice: choices.actor,
-            detective,
-            characterName: subject.name,
-            topic: askInput.topic,
-            exchanges: collected.exchanges,
-          })
+      const interviewer = await askRound()
 
       collected.usages.push(
         toUsageRow({
@@ -857,8 +896,6 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
       if (interviewer.question.length === 0) {
         break
       }
-
-      await stream.writeSSE({ event: 'question', data: interviewer.question })
 
       const result = examining
         ? streamExamination({
@@ -943,14 +980,20 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
 
     // ここから先は永続化。DOは作業領域であって、正典はPostgres。
     // 失敗しても流し終えた会話は返す。記録の取りこぼしでプレイを止めない。
-    const persisted: { questionCount: number | undefined } = { questionCount: undefined }
+    const persisted: { questionCount: number | undefined; round: number | undefined } = {
+      questionCount: undefined,
+      round: undefined,
+    }
 
     try {
-      persisted.questionCount = await session.appendTopic(
+      const appended = await session.appendTopic(
         askInput.characterId,
         askInput.topic,
         collected.exchanges,
       )
+
+      persisted.questionCount = appended.questionCount
+      persisted.round = appended.round
 
       /*
         会話ログとコストは別のテーブルへ、同時に書く。ここは Judge の手前なので、
@@ -1033,6 +1076,15 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
         contradictionPointedOut: judgement.contradictionPointedOut,
         npcLied: judgement.npcLied,
       })
+
+      // 実りのあった話題に印を付ける。会話ログを遡ったときに、どこが効いたのかが
+      // 分かるようにするためのもの。往復番号が要るので、記録そのものが落ちていた
+      // 回は印も付けない。
+      const yielded = judgement.revealedEvidenceIds.length > 0 || revealedRevelationIds.length > 0
+
+      if (yielded && persisted.round !== undefined) {
+        await session.markTopicYield(askInput.characterId, persisted.round)
+      }
 
       await Promise.all([
         judgement.revealedEvidenceIds.length === 0

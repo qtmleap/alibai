@@ -31,6 +31,12 @@ export type ChatTurn = {
    * 同じ話題から生まれた行はすべて同じ値を持たせ、塊のまま並ぶようにする。
    */
   askedAt: number
+  /**
+   * その話題が証拠や気づきを引き出したか。role が 'topic' の行にだけ意味がある。
+   *
+   * 投げた時点では分からず、判定が返ってきて初めて決まるので、後から立てる。
+   */
+  notable?: boolean
 }
 
 /**
@@ -119,6 +125,57 @@ export const useInterrogation = (seed: InterrogationSeed) => {
     })
   }
 
+  /**
+   * 探偵の質問の断片を継ぎ足す。
+   *
+   * 宛先は末尾ではなく1つ手前。質問が始まった時点で「質問」と「返答」を対で積むので、
+   * 質問が書かれているあいだ、末尾には返答待ちの空の行が居る。
+   */
+  const appendQuestionDelta = (characterId: string, delta: string) => {
+    setConversations((prev) => {
+      const current = prev[characterId]
+      const turns = current === undefined ? [] : current
+      const index = turns.length - 2
+      const target = turns[index]
+
+      if (target === undefined || target.role !== 'user') {
+        return prev
+      }
+
+      return {
+        ...prev,
+        [characterId]: [
+          ...turns.slice(0, index),
+          { ...target, text: target.text + delta },
+          ...turns.slice(index + 1),
+        ],
+      }
+    })
+  }
+
+  /**
+   * その話題が何かを引き出したことを、会話ログの上でも印にする。
+   *
+   * 話題の行は askedAt で一意に指せる。同じ話題から生まれた行は同じ値を持つが、
+   * そのうち role が 'topic' のものは1つだけなので。
+   */
+  const markTopicNotable = (characterId: string, askedAt: number) => {
+    setConversations((prev) => {
+      const current = prev[characterId]
+
+      if (current === undefined) {
+        return prev
+      }
+
+      return {
+        ...prev,
+        [characterId]: current.map((turn) =>
+          turn.role === 'topic' && turn.askedAt === askedAt ? { ...turn, notable: true } : turn,
+        ),
+      }
+    })
+  }
+
   const ask = (params: { sessionId: string; characterId: string; topic: string }) => {
     const topic = params.topic.trim()
 
@@ -143,15 +200,20 @@ export const useInterrogation = (seed: InterrogationSeed) => {
     askTopic(
       { sessionId: params.sessionId, characterId: params.characterId, topic },
       {
-        // 探偵の質問が届いたら、そこから次の往復が始まる。空の吹き出しを添えて
-        // 置くことで、返答が流れ始めるまでの待ちがそのまま目印になる。
-        onQuestion: (question) =>
+        // 探偵が質問を書き始めたら、そこから次の往復が始まる。返答用の空の行も
+        // 一緒に積む。中身が届くまでのあいだ、それが待ちの目印になる。
+        onQuestionStart: () =>
           appendTurns(params.characterId, [
-            { role: 'user', text: question, askedAt },
+            { role: 'user', text: '', askedAt },
             { role: 'assistant', text: '', askedAt },
           ]),
+        onQuestion: (chunk) => appendQuestionDelta(params.characterId, chunk),
         onDelta: (chunk) => appendAssistantDelta(params.characterId, chunk),
         onJudgement: (judgement) => {
+          if (judgement.revealedEvidences.length > 0 || judgement.revealedRevelations.length > 0) {
+            markTopicNotable(params.characterId, askedAt)
+          }
+
           setDiscoveries((prev) => mergeById(prev, judgement.revealedEvidences))
           setRevelations((prev) => mergeById(prev, judgement.revealedRevelations))
           setSuggestedQuestions((prev) => ({

@@ -270,6 +270,8 @@ export const historyExchangeSchema = z.object({
    * 始まったセッションでは null。
    */
   topic: z.string().nonempty().nullable(),
+  /** この話題が証拠や気づきを引き出したか。話題の先頭の往復にだけ意味がある。 */
+  yielded: z.boolean(),
 })
 
 /**

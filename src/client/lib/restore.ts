@@ -26,7 +26,14 @@ export const restoreConversations = (history: SessionHistory): Record<string, Ch
             const topic: Line[] =
               exchange.topic === null
                 ? []
-                : [{ role: 'topic', text: exchange.topic, askedAt: exchange.askedAt }]
+                : [
+                    {
+                      role: 'topic',
+                      text: exchange.topic,
+                      askedAt: exchange.askedAt,
+                      notable: exchange.yielded,
+                    },
+                  ]
 
             const question: Line = {
               role: 'user',
