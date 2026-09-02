@@ -66,6 +66,8 @@ body {
 
 body {
   font-family: var(--font-gothic);
+  /* iOS は user-scalable=no を無視するので、ダブルタップの拡大はここで止める。 */
+  touch-action: manipulation;
 }
 
 /*
