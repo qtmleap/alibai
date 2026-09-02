@@ -32,6 +32,7 @@ import {
   clampLimits,
   EXAMINATION_MODEL_CALLS,
   EXCHANGES_PER_TOPIC,
+  MAX_TOPIC_CHARS,
   modelCallsPerTopic,
   type SessionLimits,
   turnStateOf,
@@ -591,7 +592,7 @@ const askSchema = z.object({
    * プレイヤーが指定する話題。「アリバイについて」「被害者との関係を」のような指示で、
    * 実際にNPCへ投げる質問は探偵役のモデルがここから組み立てる。
    */
-  topic: z.string().nonempty().max(500),
+  topic: z.string().nonempty().max(MAX_TOPIC_CHARS),
   /**
    * プレイヤーが設定画面で選んだモデル。送られてこなければデプロイ設定のまま。
    *
