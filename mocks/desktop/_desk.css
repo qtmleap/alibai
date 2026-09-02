@@ -464,6 +464,67 @@ select {
   border-left: 1px dotted var(--nezumi-dim);
 }
 
+/* ---- 刻限の四状態を並べる台紙（deadline-states.html）。画面ではない ---- */
+.states {
+  padding: 40px 50px 60px;
+}
+.states h1 {
+  margin: 0;
+  font-family: var(--mincho);
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+}
+.states .lead {
+  margin: 10px 0 34px;
+  font-size: 12px;
+  color: var(--nezumi);
+}
+.states .row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 30px;
+}
+.states .shd {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--keisen);
+  font-family: var(--mincho);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+}
+.states .shd .hash {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--nezumi-dim);
+  letter-spacing: 0.02em;
+}
+/*
+ * 印を置く枠。表と同じ尺で、格子だけを薄く敷く。
+ * 相対配置にしておかないと、中の .deadline / .window が行き場を失う。
+ */
+.states .stage {
+  position: relative;
+  margin-top: 22px;
+  border-top: 1px solid var(--keisen-faint);
+  border-bottom: 1px solid var(--keisen-faint);
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 99px,
+    var(--keisen-faint) 99px,
+    var(--keisen-faint) 100px
+  );
+}
+.states .swhy {
+  margin: 26px 0 0;
+  font-size: 11.5px;
+  line-height: 1.9;
+  color: var(--nezumi);
+}
+
 /* 食い違い。表の上でひとつだけ立つ印。
  *
  * 架ける先は列の番号で受け取る（--clash-a / --clash-b）。左端は a 列の帯の芯、

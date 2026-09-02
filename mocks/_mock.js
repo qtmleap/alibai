@@ -742,6 +742,9 @@
     total: PLAY.length,
     play: play,
     chart: chart,
+    // 刻限の印だけを単体で出す。四状態を並べる台紙（deadline-states.html）が使う。
+    deathMarks: deathMarks,
+    pxPerMin: PX_PER_MIN,
     chartHead: chartHead,
     rail: rail,
     railBig: railBig,

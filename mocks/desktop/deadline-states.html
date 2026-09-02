@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<title>AlibAI — 刻限の四状態</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500&family=Roboto+Mono:wght@400&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="./_desk.css" />
+<link rel="stylesheet" href="../_mock.css" />
+</head>
+<body>
+  <!--
+    刻限の四状態を並べて見るための台紙。画面ではありません。
+    印そのものは Mock.deathMarks が出すので、アリバイ表に出るものと同じ実体です。
+    ここで比べたいのは「同じ 18:50 が、どう手に入ったかで別物に見えるか」の一点。
+  -->
+  <div class="states">
+    <h1>刻限の四状態</h1>
+    <p class="lead">
+      遺体発見は事件の記録に書いてある公開情報なので、どの状態でも実線で出ます。
+      死亡推定のほうは、手に入れた確度で描き分けます。
+    </p>
+    <div class="row" id="row"></div>
+  </div>
+
+  <script src="../_case.js"></script>
+  <script src="../_mock.js"></script>
+  <script>
+    ;(function () {
+      var C = Mock.case
+      var STATES = [
+        {
+          key: 'fixed',
+          name: '一　確定',
+          why: '探偵の検死か物証から出たもの。実線で、時刻をそのまま出す。',
+        },
+        {
+          key: 'range',
+          name: '二　範囲',
+          why: 'ここからここまで、としか言えないとき。両端に返しの付いた線で示す。塗ると容疑者の帯と競う。',
+        },
+        {
+          key: 'unknown',
+          name: '三　不明',
+          why: 'まだ何も無い。分かっている幅ぜんぶを点線で囲い、時刻の代わりに ? を置く。空白にはしない——何も無いのと、まだ分かっていないのは別のこと。',
+        },
+        {
+          key: 'claimed',
+          name: '四　第三者の推定',
+          why: 'そう言っている人がいるだけのもの。点線と ?、そして誰の見立てかをその人の顔料で添える。一と見比べると、同じ 18:50 が別物だと分かる。',
+        },
+      ]
+      // 表と同じ尺で敷く。ここだけ別の縮尺にすると、比べたものが実物と違う。
+      var height = (Mock.toMin(C.span.to) - Mock.toMin(C.span.from)) * Mock.pxPerMin
+
+      document.getElementById('row').innerHTML = STATES.map(function (s) {
+        return (
+          '<div class="state">' +
+          '<div class="shd">' +
+          Mock.esc(s.name) +
+          '<span class="hash">#death=' +
+          s.key +
+          '</span></div>' +
+          '<div class="stage" style="height:' +
+          height +
+          'px">' +
+          Mock.deathMarks(s.key) +
+          '</div>' +
+          '<p class="swhy">' +
+          Mock.esc(s.why) +
+          '</p>' +
+          '</div>'
+        )
+      }).join('')
+    })()
+  </script>
+</body>
+</html>
