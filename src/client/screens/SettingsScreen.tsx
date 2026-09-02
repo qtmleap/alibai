@@ -129,11 +129,15 @@ export const SettingsScreen = ({
         {/*
           戻り口だけは机で等幅をやめる。ここは節の見出しではなく道しるべで、
           字間を空けた小さい等幅にすると、760px の柱の頭で読点のように見える。
+
+          机での行の高さ 2.1 は、12px の字に対する数ではなく 25.2px という高さの言い換え
+          ——この一行だけ地の字（14px・行1.8）の行に乗るので、1.8 のままだと 22px に痩せて、
+          下に続く節がまるごと 3px 持ち上がる。
         */}
         <button
           type="button"
           onClick={onBack}
-          className="block font-mono text-[9.5px] text-nezumi-dim leading-[1.75] tracking-[0.24em] lg:font-gothic lg:text-[12px] lg:leading-[1.8] lg:tracking-normal"
+          className="block font-mono text-[9.5px] text-nezumi-dim leading-[1.75] tracking-[0.24em] lg:font-gothic lg:text-[12px] lg:leading-[2.1] lg:tracking-normal"
         >
           ← 事件を選ぶ
         </button>
@@ -305,7 +309,12 @@ const ChoiceRow = <T extends string>({
   onChange: (next: T) => void
 }) => (
   <div className="flex flex-col gap-[7px] lg:grid lg:grid-cols-[248px_1fr] lg:items-center lg:gap-5 lg:border-keisen lg:border-b lg:py-[14px]">
-    <div>
+    {/*
+      端末では名前・説明・二択が同じ間合いで積む。役割の行と違って説明が操作の直前に来るので、
+      名前に貼り付けると「打鍵音」と「一段落ずつのときだけ鳴ります」が一かたまりに見える。
+      机では名前と説明が左の柱にまとまるので、その 7px は畳む。
+    */}
+    <div className="flex flex-col gap-[7px] lg:block">
       <div className="text-[13px] leading-[1.75] lg:text-[13.5px] lg:leading-[1.8]">{name}</div>
       <div
         className={`text-[10.5px] text-nezumi-dim leading-[1.6] lg:block lg:text-[11px] ${
@@ -324,7 +333,9 @@ const ChoiceRow = <T extends string>({
           disabled={!pickable}
           aria-pressed={pickable && choice.key === value}
           onClick={() => onChange(choice.key)}
-          className={`flex-1 border-b py-[7px] text-center text-[11.5px] lg:py-[9px] lg:text-[12.5px] ${choiceClass(
+          // 行の高さは地の字のもの（端末 1.75・机 1.8）。既定のままだと二択の帯が 3〜4px 痩せて、
+          // 選んだものの下線が上がる——選択を言うのがこの下線なので、そこだけずれると目につく。
+          className={`flex-1 border-b py-[7px] text-center text-[11.5px] leading-[1.75] lg:py-[9px] lg:text-[12.5px] lg:leading-[1.8] ${choiceClass(
             pickable,
             pickable && choice.key === value,
           )}`}

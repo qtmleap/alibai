@@ -1,5 +1,4 @@
 import { useId, useState } from 'react'
-import { Button } from '@/client/components/ui/button'
 import { Input } from '@/client/components/ui/input'
 import { Textarea } from '@/client/components/ui/textarea'
 import {
@@ -33,7 +32,7 @@ import {
  * display は呼び出し側で決める——「探偵」の見出しは机だけに出すが、他は常に出すため。
  */
 const LEGEND =
-  'font-mono text-[9.5px] leading-[1.75] tracking-[0.24em] text-nezumi-dim lg:text-[10px]'
+  'font-mono text-[9.5px] leading-[1.75] tracking-[0.24em] text-nezumi-dim lg:text-[10px] lg:leading-[1.8]'
 
 type Props = {
   scenario: ScenarioDetail
@@ -134,7 +133,12 @@ export const DetectiveSetupScreen = ({
   const rosterVisibleOnPhone = draft === undefined
 
   return (
-    <div className="screen-enter mx-auto flex min-h-dvh-safe max-w-md flex-col bg-sumi text-kinari lg:mx-0 lg:grid lg:h-dvh-safe lg:max-w-none lg:grid-cols-[1fr_628px] lg:gap-0 lg:overflow-hidden">
+    /*
+      地の行送りは画面ごとに持つ。端末は 13px/1.75、机は 14px/1.8——
+      これを敷かないと、寸法を書いていない字（戻る・つくる・編集/削除・選択肢）が
+      軒並み 1.5 で組まれ、行が積み上がるほど下がずれていく。
+    */
+    <div className="screen-enter mx-auto flex min-h-dvh-safe max-w-md flex-col bg-sumi text-[13px] text-kinari leading-[1.75] lg:mx-0 lg:grid lg:h-dvh-safe lg:max-w-none lg:grid-cols-[1fr_628px] lg:gap-0 lg:overflow-hidden lg:text-[14px] lg:leading-[1.8]">
       {/* ---- 左：名簿 ---- */}
       <div
         className={`${rosterVisibleOnPhone ? 'flex' : 'hidden'} min-h-0 flex-1 flex-col px-[18px] pt-[26px] pb-6 lg:flex lg:flex-none lg:overflow-y-auto lg:border-keisen lg:border-r lg:px-0 lg:py-0 lg:pt-[34px] lg:pr-[34px] lg:pb-[26px] lg:pl-[22px]`}
@@ -162,7 +166,7 @@ export const DetectiveSetupScreen = ({
           <span className={`hidden lg:block lg:pb-[7px] ${LEGEND}`}>探偵</span>
 
           {store.profiles.length === 0 ? (
-            <p className="text-[11px] text-nezumi-dim leading-[1.7] lg:text-[11.5px]">
+            <p className="text-[11px] text-nezumi-dim leading-[1.7] lg:text-[11.5px] lg:leading-[1.8]">
               まだ探偵がいません。作るか、名乗らずに始めることもできます。
             </p>
           ) : (
@@ -184,7 +188,7 @@ export const DetectiveSetupScreen = ({
                     <button
                       type="button"
                       onClick={() => update(setActiveDetective(store, profile.id))}
-                      className="flex min-w-0 flex-1 flex-col text-left"
+                      className="flex min-w-0 flex-1 flex-col gap-px text-left lg:gap-0"
                     >
                       <span
                         className={`text-[13px] leading-[1.75] lg:text-[13.5px] lg:leading-[1.5] ${
@@ -240,7 +244,7 @@ export const DetectiveSetupScreen = ({
             type="button"
             onClick={goToCase}
             disabled={selected === undefined}
-            className={`block w-full border py-[13px] text-center font-mincho text-[14px] tracking-[0.2em] lg:py-[13px] lg:text-[15px] ${
+            className={`block w-full border py-[11px] text-center font-mincho text-[14px] tracking-[0.2em] lg:py-[13px] lg:text-[15px] ${
               selected === undefined ? 'border-keisen text-nezumi-dim' : 'border-nezumi text-kinari'
             }`}
           >
@@ -275,12 +279,13 @@ export const DetectiveSetupScreen = ({
       >
         {draft === undefined ? (
           selected === undefined ? (
-            <p className="hidden text-[11.5px] text-nezumi-dim leading-[1.7] lg:block">
+            <p className="hidden text-[11.5px] text-nezumi-dim leading-[1.7] lg:mt-2 lg:block lg:leading-[1.8]">
               探偵を作ると、ここにその人の姿が出ます。
             </p>
           ) : (
             <div className="hidden lg:block">
-              <span className={`block ${LEGEND}`}>この人として調べます</span>
+              {/* ここだけ行内に置く。姿見は箱の外に一行を作るので、地の行送りぶんの高さが要る。 */}
+              <span className={LEGEND}>この人として調べます</span>
               <div className="mt-[10px] font-bold font-mincho text-[24px] leading-[1.5] tracking-[0.06em]">
                 {selected.name}
               </div>
@@ -308,8 +313,8 @@ export const DetectiveSetupScreen = ({
             </h2>
 
             {/* 入力欄は枠で囲わず下線だけで受ける（Input が持っている）。書く場所が分かれば充分。 */}
-            <div className="mt-5 flex flex-col gap-5 lg:mt-6 lg:gap-6">
-              <label className="flex flex-col gap-1" htmlFor={nameId}>
+            <div className="mt-4 flex flex-col gap-4 lg:mt-6 lg:gap-6">
+              <label className="flex flex-col gap-1.5 lg:gap-[7px]" htmlFor={nameId}>
                 <span className={`block ${LEGEND}`}>名前</span>
                 <Input
                   id={nameId}
@@ -326,23 +331,27 @@ export const DetectiveSetupScreen = ({
                 聞き込みの相手（NPC）が呼びかけを決められない。選ばせておけば、
                 老人が十代の少女に「お嬢さん」と話しかけるところまで確実に効く。
               */}
-              <fieldset className="flex flex-col gap-2">
-                <legend className={LEGEND}>年ごろ</legend>
+              {/*
+                legend は fieldset の中で flex の項目にならないので、gap が一切効かない。
+                欄の名前と中身の間合いは legend 自身の下余白で取る。
+              */}
+              <fieldset className="flex flex-col">
+                <legend className={`mb-1.5 lg:mb-[7px] ${LEGEND}`}>年ごろ</legend>
                 <AgeChoices
                   value={draft.ageGroup}
                   onChange={(ageGroup) => updateDraft({ ageGroup })}
                 />
               </fieldset>
 
-              <fieldset className="flex flex-col gap-2">
-                <legend className={LEGEND}>性別</legend>
+              <fieldset className="flex flex-col">
+                <legend className={`mb-1.5 lg:mb-[7px] ${LEGEND}`}>性別</legend>
                 <GenderChoices
                   value={draft.gender}
                   onChange={(gender) => updateDraft({ gender })}
                 />
               </fieldset>
 
-              <label className="flex flex-col gap-1" htmlFor={appearanceId}>
+              <label className="flex flex-col gap-1.5 lg:gap-[7px]" htmlFor={appearanceId}>
                 <span className={`block ${LEGEND}`}>容姿</span>
                 {/* rows で決めた高さのまま置く。書くほどに欄が伸びると、下のボタンが逃げていく。 */}
                 <Textarea
@@ -357,12 +366,29 @@ export const DetectiveSetupScreen = ({
               </label>
             </div>
 
-            <div className="mt-auto pt-6">
-              <Button size="block" onClick={handleSaveDraft} disabled={!canSave}>
+            {/*
+              端末では下端に貼りつけるが、机では最後の欄の直後に置く。
+              用紙は上から書いていくもので、机の高さぶん下に飛ばすと、
+              書き終えた場所と保存の間に用のない空白が空く。
+            */}
+            <div className="mt-auto pt-[22px] lg:mt-0">
+              {/*
+                左の「事件に向かう」と同じ一手なので、同じ枠で組む。shadcn の Button は
+                字がゴシックの 14px で、この画面の主ボタン（明朝・字間ひろめ）と別物になる
+                ——合わない所は素の要素のまま置く。押せないあいだは枠ごと沈める。
+              */}
+              <button
+                type="button"
+                onClick={handleSaveDraft}
+                disabled={!canSave}
+                className={`block w-full border py-[11px] text-center font-mincho text-[14px] tracking-[0.2em] lg:py-[13px] lg:text-[15px] ${
+                  canSave ? 'border-nezumi text-kinari' : 'border-keisen text-nezumi-dim'
+                }`}
+              >
                 保存する
-              </Button>
+              </button>
               {!canSave && (
-                <p className="mt-2 text-center text-[11.5px] text-nezumi-dim">
+                <p className="mt-[11px] text-center text-[11px] text-nezumi-dim leading-[1.7] lg:mt-2 lg:text-[11.5px] lg:leading-[1.8]">
                   名前が決まると保存できます。
                 </p>
               )}
@@ -370,7 +396,7 @@ export const DetectiveSetupScreen = ({
               <button
                 type="button"
                 onClick={() => setDraft(undefined)}
-                className="mt-[11px] block w-full text-center text-[12px] text-nezumi-dim"
+                className="mt-[11px] block w-full text-center text-[11.5px] text-nezumi lg:text-[12px] lg:text-nezumi-dim"
               >
                 やめる
               </button>

@@ -199,8 +199,11 @@ export const AccusationScreen = ({
               </span>
             </div>
 
-            {/* 事件の幅が長いと表は画面より背が高くなる。縮めずにここで送る（聞き込みと同じ）。 */}
-            <div className="min-h-0 flex-1 overflow-y-auto">
+            {/*
+              事件の幅が長いと表は画面より背が高くなる。縮めずにここで送る（聞き込みと同じ）。
+              伸ばしはしない——余りを食わせると、下の註が表から離れて床に貼りつく。
+            */}
+            <div className="min-h-0 overflow-y-auto pb-[9px]">
               <AlibiChart
                 people={people}
                 segments={segments}
@@ -209,8 +212,12 @@ export const AccusationScreen = ({
               />
             </div>
 
-            {/* 線の意味はここで一度だけ言う。表の中に註を足すと、供述より註が目立つ。 */}
-            <div className="mt-4 flex items-center gap-5 text-[10.5px] text-nezumi-dim leading-[1.4]">
+            {/*
+              線の意味はここで一度だけ言う。表の中に註を足すと、供述より註が目立つ。
+              表の下端から註までは 16px。うち 9px は上の送り箱が内へ持っている
+              ——最後の時刻は罫線に載るので、字の下半分が表の枠から出る。
+            */}
+            <div className="mt-[7px] flex items-center gap-5 text-[10.5px] text-nezumi-dim leading-[1.4]">
               <span className="inline-flex items-center gap-[6px]">
                 <span aria-hidden="true" className="h-[3px] w-[14px] bg-nezumi" />
                 <span className="text-nezumi">実線</span>　裏付けあり

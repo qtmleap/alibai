@@ -71,6 +71,22 @@ export const scenarioDetailSchema = scenarioSummarySchema.omit({ characterCount:
 })
 
 /**
+ * 調べられる場所。
+ *
+ * 喋らないので聞き込みの相手ではないが、選ぶという一手は人物と同じで、同じ画面で調べる。
+ * 顔料を持たせないのは、色の付いた相手は答え、灰のままの相手は答えない、という区別を
+ * 盤面の色だけで付けるため。
+ *
+ * まだAPIが返さないので zod の schema は持たない——支度と聞き込みが同じ形を見るための型だけ。
+ * `scenarioDetailSchema` に載った時点で、ここは z.infer に置き換わる。
+ */
+export type InvestigablePlace = {
+  id: string
+  name: string
+  introduction: string
+}
+
+/**
  * プレイヤーが演じる探偵。名乗らずに始めることもできる。
  * 形と検証の正典は db/detective.ts にあり、ここでは読み込むだけ（見取り図と同じ扱い）。
  * 年ごろと性別は列挙なので、画面の選択肢とAPIが受ける値が食い違わない。

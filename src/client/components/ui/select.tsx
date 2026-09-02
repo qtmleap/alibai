@@ -36,7 +36,10 @@ function SelectTrigger({
     >
       {children}
       <SelectPrimitive.Icon asChild>
-        <ChevronDownIcon className="size-4 opacity-50" />
+        {/* 山形の線ではなく塗りの三角。線の細さだと墨の上で消える。 */}
+        <span aria-hidden="true" className="text-[8px] text-nezumi-dim leading-none lg:text-[9px]">
+          ▼
+        </span>
       </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
   )

@@ -20,6 +20,8 @@
   --color-keisen-faint: #262231;
   --color-kinari: #e9e4d9;
   --color-nezumi: #8e8896;
+  /* 顔料を持たない側の字。答える相手より一段落とすときに使う。 */
+  --color-nezumi-t: #aaa4b2;
   --color-nezumi-dim: #625d6c;
 
   /*
@@ -66,6 +68,9 @@ body {
 
 body {
   font-family: var(--font-gothic);
+  /* subpixel のままだと墨の上で字の縁に青と橙が滲む。 */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   /* iOS は user-scalable=no を無視するので、ダブルタップの拡大はここで止める。 */
   touch-action: manipulation;
   /*

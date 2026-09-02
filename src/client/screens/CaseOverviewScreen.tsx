@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { type ReactNode, useState } from 'react'
 import { AlibiChart, type AlibiPerson } from '@/client/components/AlibiChart'
-import { CharacterAvatar, inkOf } from '@/client/components/CharacterAvatar'
+import { CharacterAvatar, initialOf, inkOf } from '@/client/components/CharacterAvatar'
 import { TimeRail } from '@/client/components/TimeRail'
 import {
   AlertDialog,
@@ -17,7 +17,7 @@ import { Button } from '@/client/components/ui/button'
 import { createSession, describeError } from '@/client/lib/api'
 import { activeDetective, loadDetectiveStore, toDetective } from '@/client/lib/detective-store'
 import { loadGameMode } from '@/client/lib/game-mode-store'
-import type { CreateSessionResponse, ScenarioDetail } from '@/client/lib/schemas'
+import type { CreateSessionResponse, InvestigablePlace, ScenarioDetail } from '@/client/lib/schemas'
 import { railSpanMinutes } from '@/client/lib/time-rail'
 import { VICTIM_ID } from '~/db/scenario-definition'
 
@@ -68,8 +68,88 @@ const paragraphsOf = (briefing: string): string[] =>
     .map((paragraph) => paragraph.trim())
     .filter((paragraph) => paragraph.length > 0)
 
+/**
+ * 場所の印。
+ *
+ * 人の丸に対して角を立て、塗らずに罫線で囲う。名簿では人と場所が同じ組みで並ぶので、
+ * 色を抜いただけでは「暗い人物」に見える。塗った四角にすると今度は箱になるので、
+ * 線だけで区画を示す。
+ */
+const PlaceMark = ({ name, active }: { name: string; active: boolean }) => (
+  <span
+    aria-hidden="true"
+    className={`flex size-9 shrink-0 items-center justify-center rounded-[2px] border border-keisen font-bold font-mincho text-nezumi text-sm ${
+      active ? 'ring-[1.5px] ring-current' : ''
+    }`}
+  >
+    {initialOf(name)}
+  </span>
+)
+
+type RowProps = {
+  /** 左端の印。人は丸、場所は角。 */
+  mark: ReactNode
+  name: string
+  /** 名前に乗る顔料。場所は色を持たないので地の色のまま。 */
+  nameInk: string
+  introduction: string
+  /** 右端の札。喋らない相手にだけ出して、聞き込みではないことを名簿の上で示す。 */
+  tag?: string
+  active: boolean
+  disabled?: boolean
+  /**
+   * 上端の罫。机の上では二列に畳むので、一行目の二枡にだけ引く。
+   * ul 側に引くと列の隙間まで一本で繋がり、二枡ぶんの見出し罫にならない。
+   */
+  topRule: boolean
+  onClick: () => void
+}
+
+/** 名簿の一行。人物・遺体・場所を同じ組みで並べる——選ぶ一手は同じで、押した先だけが違う。 */
+const NameRow = ({
+  mark,
+  name,
+  nameInk,
+  introduction,
+  tag,
+  active,
+  disabled = false,
+  topRule,
+  onClick,
+}: RowProps) => (
+  <li className={`border-keisen border-b ${topRule ? 'lg:border-t' : ''}`}>
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      aria-pressed={active}
+      className="flex w-full items-center gap-2.5 py-[7px] text-left lg:gap-3 lg:py-2.5"
+    >
+      {mark}
+      <span className="flex min-w-0 flex-col gap-px lg:gap-0">
+        <span className={`text-[13px] leading-[1.75] lg:text-[13.5px] lg:leading-[1.5] ${nameInk}`}>
+          {name}
+        </span>
+        <span className="text-[10.5px] text-nezumi-dim leading-[1.6] lg:text-[11.5px]">
+          {introduction}
+        </span>
+      </span>
+      {tag !== undefined && (
+        <span className="ml-auto shrink-0 text-[10px] text-nezumi-dim tracking-[0.1em] lg:text-[10.5px]">
+          {tag}
+        </span>
+      )}
+    </button>
+  </li>
+)
+
 type Props = {
   scenario: ScenarioDetail
+  /**
+   * 調べられる場所。事件によっては一つも無いので既定は空——空の見出しは
+   * 「何か足りない」に見えるので、無いときは節ごと出さない。
+   */
+  places?: InvestigablePlace[]
   /**
    * 進行中のセッション。聞き込みから戻ってきたときだけ入る。
    * これがあるあいだは新しいセッションを立てない——立てると計時がやり直しになり、
@@ -111,6 +191,7 @@ type Props = {
  */
 export const CaseOverviewScreen = ({
   scenario,
+  places = [],
   activeSessionId,
   onStart,
   onResume,
@@ -145,10 +226,17 @@ export const CaseOverviewScreen = ({
    */
   const investigable = scenario.victim?.investigable === true
 
+  const chosenPlace = places.find((place) => place.id === firstTarget)
+  const chosenCharacter = scenario.characters.find((character) => character.id === firstTarget)
+  /** 開始の文言のための相手。場所と遺体は「調べる」、人は「聞き込みをする」。 */
   const chosen =
-    scenario.victim !== null && firstTarget === VICTIM_ID
-      ? { name: scenario.victim.name, examine: true }
-      : scenario.characters.find((character) => character.id === firstTarget)
+    chosenPlace !== undefined
+      ? { name: chosenPlace.name, examine: true }
+      : scenario.victim !== null && firstTarget === VICTIM_ID
+        ? { name: scenario.victim.name, examine: true }
+        : chosenCharacter === undefined
+          ? undefined
+          : { name: chosenCharacter.name, examine: false }
 
   const paragraphs = paragraphsOf(scenario.briefing)
 
@@ -189,7 +277,7 @@ export const CaseOverviewScreen = ({
       ? '準備中…'
       : chosen === undefined
         ? '聞き込みを始める'
-        : 'examine' in chosen
+        : chosen.examine
           ? `${chosen.name}を調べる`
           : `${chosen.name}に聞き込みをする`
 
@@ -345,32 +433,24 @@ export const CaseOverviewScreen = ({
         <div className="lg:relative lg:mt-6 lg:flex-none lg:border-keisen lg:border-t lg:pt-[18px] lg:before:pointer-events-none lg:before:absolute lg:before:inset-x-0 lg:before:bottom-full lg:before:h-[46px] lg:before:bg-gradient-to-t lg:before:from-sumi lg:before:to-transparent lg:before:content-['']">
           <h2 className={`${LEGEND} pb-2 lg:pb-[7px]`}>まず誰から話を聞くか</h2>
           {/* 一列に積むと四人で三百px を占め、記録が二行しか残らない。机の上だけ二列に畳む。 */}
-          <ul className="flex flex-col border-keisen border-t lg:grid lg:grid-cols-2 lg:gap-x-[30px]">
+          <ul className="flex flex-col border-keisen border-t lg:grid lg:grid-cols-2 lg:gap-x-[30px] lg:border-t-0">
             {scenario.characters.map((character, index) => (
-              <li key={character.id} className="border-keisen border-b">
-                <button
-                  type="button"
-                  onClick={() => setFirstTarget(character.id)}
-                  aria-pressed={character.id === firstTarget}
-                  className="flex w-full items-center gap-2.5 py-[7px] text-left lg:gap-3 lg:py-2.5"
-                >
+              <NameRow
+                key={character.id}
+                mark={
                   <CharacterAvatar
                     name={character.name}
                     index={index}
                     active={character.id === firstTarget}
                   />
-                  <span className="flex min-w-0 flex-col gap-px">
-                    <span
-                      className={`text-[13px] leading-[1.75] lg:text-[13.5px] lg:leading-[1.5] ${inkOf(index)}`}
-                    >
-                      {character.name}
-                    </span>
-                    <span className="text-[10.5px] text-nezumi-dim leading-[1.6] lg:text-[11.5px]">
-                      {character.publicIntroduction}
-                    </span>
-                  </span>
-                </button>
-              </li>
+                }
+                name={character.name}
+                nameInk={inkOf(index)}
+                introduction={character.publicIntroduction}
+                active={character.id === firstTarget}
+                topRule={index < 2}
+                onClick={() => setFirstTarget(character.id)}
+              />
             ))}
 
             {/*
@@ -381,40 +461,62 @@ export const CaseOverviewScreen = ({
               右端のラベルを「調べる」に替える——押せる相手なのか、名簿の上で分かるように。
             */}
             {scenario.victim !== null && (
-              <li className="border-keisen border-b">
-                <button
-                  type="button"
-                  disabled={!investigable}
-                  onClick={() => setFirstTarget(VICTIM_ID)}
-                  aria-pressed={firstTarget === VICTIM_ID}
-                  className="flex w-full items-center gap-2.5 py-[7px] text-left lg:gap-3 lg:py-2.5"
-                >
+              <NameRow
+                mark={
                   <CharacterAvatar
                     name={scenario.victim.name}
                     index={scenario.characters.length}
                     active={firstTarget === VICTIM_ID}
                   />
-                  <span className="flex min-w-0 flex-col gap-px">
-                    <span
-                      className={`text-[13px] leading-[1.75] lg:text-[13.5px] lg:leading-[1.5] ${inkOf(scenario.characters.length)}`}
-                    >
-                      {scenario.victim.name}
-                    </span>
-                    <span className="text-[10.5px] text-nezumi-dim leading-[1.6] lg:text-[11.5px]">
-                      {scenario.victim.introduction}
-                    </span>
-                  </span>
-                  <span className="ml-auto shrink-0 text-[10px] text-nezumi-dim tracking-[0.1em] lg:text-[10.5px]">
-                    {investigable ? '調べる' : '被害者'}
-                  </span>
-                </button>
-              </li>
+                }
+                name={scenario.victim.name}
+                nameInk={inkOf(scenario.characters.length)}
+                introduction={scenario.victim.introduction}
+                tag={investigable ? '調べる' : '被害者'}
+                active={firstTarget === VICTIM_ID}
+                disabled={!investigable}
+                topRule={scenario.characters.length < 2}
+                onClick={() => setFirstTarget(VICTIM_ID)}
+              />
             )}
           </ul>
         </div>
 
-        {/* 名簿を選んだ直後に押すものなので、間を空けずすぐ下に置く。 */}
-        <div className="flex-none lg:mt-0 lg:pt-[18px]">
+        {/*
+          調べられる場所。人の名簿とは見出しで分ける——同じ一手を使うとはいえ、
+          「誰から聞くか」と「どこを見るか」は迷い方が違う。
+
+          霞は「記録が断ち切れている」ことを示す印なので、二つ目の束には掛けない。
+          掛けると名簿の下端に霧が下りて、行が消えかけて見える。
+        */}
+        {places.length > 0 && (
+          <div className="lg:mt-6 lg:flex-none lg:border-keisen lg:border-t lg:pt-[14px]">
+            <h2 className={`${LEGEND} pb-2 lg:pb-[7px]`}>どこを調べるか</h2>
+            <ul className="flex flex-col border-keisen border-t lg:grid lg:grid-cols-2 lg:gap-x-[30px] lg:border-t-0">
+              {places.map((place, index) => (
+                <NameRow
+                  key={place.id}
+                  mark={<PlaceMark name={place.name} active={place.id === firstTarget} />}
+                  name={place.name}
+                  /* 場所は顔料を持たない。地の色より一段落として、答える相手と分ける。 */
+                  nameInk="text-nezumi"
+                  introduction={place.introduction}
+                  tag="調べる"
+                  active={place.id === firstTarget}
+                  topRule={index < 2}
+                  onClick={() => setFirstTarget(place.id)}
+                />
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/*
+          押す物は端末の下端へ落とす。名簿の直後に置くと、人数や肩書きの行数で
+          ボタンの高さが毎回変わり、親指の行き先が定まらない。
+          机の上では名簿を選んだ直後に押すものなので、間を空けずすぐ下に置く。
+        */}
+        <div className="mt-auto flex flex-none flex-col gap-[11px] lg:mt-0 lg:block lg:pt-[18px]">
           {error !== undefined && <p className="text-nezumi text-sm">{error}</p>}
 
           <div className="contents lg:block">

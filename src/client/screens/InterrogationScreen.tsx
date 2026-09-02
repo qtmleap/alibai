@@ -12,7 +12,7 @@ import { usePacedReveal } from '@/client/hooks/usePacedReveal'
 import { fetchSessionState } from '@/client/lib/api'
 import { formatSeconds } from '@/client/lib/format'
 import { settledSentences } from '@/client/lib/paragraphs'
-import type { ScenarioDetail, SessionState } from '@/client/lib/schemas'
+import type { InvestigablePlace, ScenarioDetail, SessionState } from '@/client/lib/schemas'
 import { VICTIM_ID } from '~/db/scenario-definition'
 
 /**
@@ -31,6 +31,11 @@ type Alibi = {
 
 type Props = {
   scenario: ScenarioDetail
+  /**
+   * 調べられる場所。人と同じ一手を使い、同じ画面で調べる相手として並ぶ。
+   * 事件によっては一つも無いので既定は空。
+   */
+  places?: InvestigablePlace[]
   /** 進行中のセッション。画面が使うのはIDだけ。 */
   sessionId: string
   /** このセッションで名乗った探偵の名前。名乗らずに始めたなら null。 */
@@ -48,6 +53,7 @@ const SESSION_POLL_INTERVAL_MS = 5000
 
 /** 参照が毎回変わらないよう、既定は外に置く。 */
 const EMPTY_ALIBI: Alibi = { segments: [] }
+const NO_PLACES: InvestigablePlace[] = []
 
 /** 顔料の割り当ては登場順。CharacterAvatar の PALETTE と同じ並びを崩さない。 */
 const HUES: AlibiPerson['hue'][] = ['asagi', 'fuji', 'suou', 'karashi']
@@ -212,7 +218,15 @@ const tintTimes = (text: string, inks: Map<number, string>): Piece[] => {
 /* ---- 会話の塊 ---- */
 
 /** who は登場順の添字。探偵は列を持たないので -1。 */
-type Block = { id: string; who: number; name: string; lines: { id: string; text: string }[] }
+type Block = {
+  id: string
+  who: number
+  name: string
+  /** 名前の色と縦罫。人は登場順の顔料、場所は灰、探偵は罫線と同じ色。 */
+  ink: string
+  edge: string
+  lines: { id: string; text: string }[]
+}
 
 /**
  * 相手ごとに分かれている会話を、一本の時系列に並べ直して塊にまとめる。
@@ -221,8 +235,8 @@ type Block = { id: string; who: number; name: string; lines: { id: string; text:
  * 相手を切り替えても読んでいた場所が消えない。
  */
 const buildBlocks = (
-  /** 話題を投げられる相手。被害者を含むので ScenarioDetail['characters'] より広い。 */
-  characters: { id: string; logName: string }[],
+  /** 話題を投げられる相手。被害者と場所を含むので ScenarioDetail['characters'] より広い。 */
+  characters: { id: string; logName: string; ink: string; edge: string }[],
   conversations: Record<string, ChatTurn[]>,
   askerName: string,
   /** 今まさに返答が流れてきている相手。書きかけの一文を伏せるのに要る。 */
@@ -240,6 +254,8 @@ const buildBlocks = (
           seq,
           index,
           name: character.logName,
+          ink: character.ink,
+          edge: character.edge,
           streaming: seq === streamingSeq && turn.role === 'assistant',
         }))
         // 話題はプレイヤーの指示であって発言ではない。探偵が投げた質問のほうが残る。
@@ -274,7 +290,14 @@ const buildBlocks = (
       continue
     }
 
-    blocks.push({ id, who, name: who === -1 ? askerName : item.name, lines })
+    blocks.push({
+      id,
+      who,
+      name: who === -1 ? askerName : item.name,
+      ink: who === -1 ? 'text-nezumi-dim' : item.ink,
+      edge: who === -1 ? 'border-keisen' : item.edge,
+      lines,
+    })
   }
 
   return blocks
@@ -337,6 +360,7 @@ const railPins = (
  */
 export const InterrogationScreen = ({
   scenario,
+  places = NO_PLACES,
   sessionId,
   detectiveName,
   interrogation,
@@ -374,6 +398,7 @@ export const InterrogationScreen = ({
   const subjectIds = [
     ...scenario.characters.map((character) => character.id),
     ...(scenario.victim?.investigable === true ? [VICTIM_ID] : []),
+    ...places.map((place) => place.id),
   ]
 
   const [activeCharacterId, setActiveCharacterId] = useState(() =>
@@ -497,13 +522,16 @@ export const InterrogationScreen = ({
   }
 
   /*
-   * 話題を投げられる相手。遺体を調べられる事件では、被害者もここに並ぶ。
+   * 話題を投げられる相手。遺体を調べられる事件では被害者が、調べられる場所があれば
+   * そこも並ぶ。
    *
    * 顔料の添字はアリバイ表の列と揃える（被害者は登場人物の次）。ずらすと、
    * 表の列と会話の縦罫が違う色になって、同じ相手だと分からなくなる。
+   * 場所だけは顔料を持たない——色の付いた相手は答え、灰のままの相手は答えない、
+   * という区別を盤面の色だけで付けるため。表にも列を持たない。
    *
-   * ログに出す名前だけは被害者を「所見」にする。喋ったのではなく探偵が見たものなので、
-   * 名前を出すと死者が証言しているように読める。
+   * ログに出す名前は、遺体も場所も「所見」にする。喋ったのではなく探偵が見たものなので、
+   * 名前を出すと死者や部屋が証言しているように読める。
    */
   const subjects = [
     ...scenario.characters.map((character, index) => ({
@@ -511,7 +539,8 @@ export const InterrogationScreen = ({
       name: character.name,
       logName: character.name,
       introduction: character.publicIntroduction,
-      index,
+      ink: inkOf(index),
+      edge: edgeOf(index),
     })),
     ...(scenario.victim === null || !scenario.victim.investigable
       ? []
@@ -521,15 +550,24 @@ export const InterrogationScreen = ({
             name: scenario.victim.name,
             logName: '所見',
             introduction: `被害者・${scenario.victim.introduction}`,
-            index: scenario.characters.length,
+            ink: inkOf(scenario.characters.length),
+            edge: edgeOf(scenario.characters.length),
           },
         ]),
+    ...places.map((place) => ({
+      id: place.id,
+      name: place.name,
+      logName: '所見',
+      introduction: `現場・${place.introduction}`,
+      ink: 'text-nezumi-t',
+      edge: 'border-nezumi',
+    })),
   ]
 
-  const activeIndex = subjects.findIndex((subject) => subject.id === activeCharacterId)
-  const activeCharacter = subjects[activeIndex]
-  /** 遺体を調べているあいだ。訊くのではなく見るので、文言が変わる。 */
-  const examining = activeCharacterId === VICTIM_ID
+  const activeCharacter = subjects.find((subject) => subject.id === activeCharacterId)
+  /** 遺体か場所を調べているあいだ。訊くのではなく見るので、文言が変わる。 */
+  const examining =
+    activeCharacterId === VICTIM_ID || places.some((place) => place.id === activeCharacterId)
   const activeSuggestions = suggestedQuestions[activeCharacterId]
   const suggestionsToShow = activeSuggestions === undefined ? [] : activeSuggestions
   const isAsking = askingCharacterId !== undefined
@@ -672,31 +710,37 @@ export const InterrogationScreen = ({
     </div>
   )
 
-  /** 相手の見出し。机では会話の上に、端末では上部バーの中に置く。 */
-  const nameplate = (nameClass: string, introClass: string, switchClass: string) => (
+  /**
+   * 相手の見出し。机では会話の上に、端末では上部バーの中に置く。
+   *
+   * `switchClass` を渡さない側には相手を替える並びを出さない。机では表の列見出しが
+   * その口を持っているので、名前の隣にもう一組並べると同じ操作が二つ立つ。
+   */
+  const nameplate = (nameClass: string, introClass: string, switchClass?: string) => (
     <>
       <div className="flex items-baseline justify-between gap-3">
-        <span className={`${nameClass} ${activeIndex === -1 ? 'text-kinari' : inkOf(activeIndex)}`}>
+        <span
+          className={`${nameClass} ${activeCharacter === undefined ? 'text-kinari' : activeCharacter.ink}`}
+        >
           {activeCharacter === undefined ? '' : activeCharacter.name}
         </span>
-        {/*
-          相手を替える口。モックは表の列見出しを押させるが、AlibiChart は
-          押せる見出しを持たないので、名前の隣に控えめに並べておく。
-        */}
-        <nav aria-label="話す相手" className="flex shrink-0 items-baseline gap-3">
-          {subjects
-            .filter((subject) => subject.id !== activeCharacterId)
-            .map((subject) => (
-              <button
-                key={subject.id}
-                type="button"
-                onClick={() => setActiveCharacterId(subject.id)}
-                className={`${switchClass} text-nezumi-dim hover:text-nezumi`}
-              >
-                {subject.name}
-              </button>
-            ))}
-        </nav>
+        {/* 端末には表の列見出しが無いので、切り替えられる場所はここだけになる。 */}
+        {switchClass === undefined ? null : (
+          <nav aria-label="話す相手" className="flex shrink-0 items-baseline gap-2.5">
+            {subjects
+              .filter((subject) => subject.id !== activeCharacterId)
+              .map((subject) => (
+                <button
+                  key={subject.id}
+                  type="button"
+                  onClick={() => setActiveCharacterId(subject.id)}
+                  className={`${switchClass} text-nezumi-dim hover:text-nezumi`}
+                >
+                  {subject.name}
+                </button>
+              ))}
+          </nav>
+        )}
       </div>
       <p className={introClass}>
         {activeCharacter === undefined ? '' : activeCharacter.introduction}
@@ -729,19 +773,33 @@ export const InterrogationScreen = ({
             className="min-w-0 truncate font-mincho lg:text-[14px] lg:text-kinari lg:tracking-[0.06em]"
           >
             <span className="lg:hidden">←　概要に戻る</span>
-            <span className="hidden lg:inline">←　{scenario.title}</span>
+            {/* 机では題字そのものが戻り口。矢印は置かない——上部バーに立つのは題字と計器だけ。 */}
+            <span className="hidden lg:inline">{scenario.title}</span>
           </button>
 
-          <div className="flex shrink-0 items-center gap-2 lg:gap-[22px]">
-            {/*
-              ターン数は回数なので地の書体のまま。等幅にしてよいのは経過時間のほうで、
-              「等幅ならそれは時計が刻んだもの」という規則をここでも守る。
-            */}
-            <span>
-              {turn === undefined ? '' : `${turn.turn} / ${turn.maxTurns}`}
-              <span className="hidden lg:inline"> ターン</span>
+          {/*
+            端末では計器が題字と告発のあいだに座る（display:contents で三つを均す）。
+            机では計器と告発をひと組にして右端へ寄せる。
+          */}
+          <div className="contents lg:flex lg:shrink-0 lg:items-center lg:gap-[22px]">
+            <span className="flex shrink-0 items-center gap-2 lg:gap-[22px]">
+              {/*
+                ターン数は回数なので地の書体のまま。等幅にしてよいのは経過時間のほうで、
+                「等幅ならそれは時計が刻んだもの」という規則をここでも守る。
+
+                机は「4 / 15 ターン」、端末は「4/15」。幅の無い側では斜線の左右まで詰めて、
+                題字と告発のあいだに計器が座れるようにする。
+              */}
+              {turn === undefined ? null : (
+                <span>
+                  <span className="lg:hidden">{`${turn.turn}/${turn.maxTurns}`}</span>
+                  <span className="hidden lg:inline">{`${turn.turn} / ${turn.maxTurns} ターン`}</span>
+                </span>
+              )}
+              {displayedElapsed === undefined ? null : (
+                <span className="at">{displayedElapsed}</span>
+              )}
             </span>
-            {displayedElapsed === undefined ? null : <span className="at">{displayedElapsed}</span>}
             {/*
               計器と並ぶので、唯一の操作には枠を与える。朱はまだ出さない——
               朱は押した先、告発の画面の色。
@@ -783,9 +841,17 @@ export const InterrogationScreen = ({
             二時間近い事件では画面に収まらない。縮めると目盛りの間隔が事件ごとに変わって
             「同じ長さの線＝同じ長さの時間」が崩れるので、縮めずにここで送る。
             凡例と資料への入口は送らない——下端に据えておきたいものなので、枠の外に置く。
+
+            伸びはしない（flex-1 を持たない）。余りを飲ませると、短い事件で凡例が
+            表から離れて画面の下端まで落ちる。溢れたときだけ縮んで、中を送る。
           */}
           {timeWindow === null ? null : (
-            <div className="min-h-0 flex-1 overflow-y-auto">
+            /*
+              下の 8px は、最後の目盛り（19:20）が表の外へ半分はみ出すぶんの逃げ場。
+              送り箱はそこで切るので、空けておかないと終わりの時刻が半分に欠ける。
+              そのぶん凡例の間合いを詰めてあるので、表の下端から凡例までは 16px のまま。
+            */
+            <div className="min-h-0 shrink overflow-y-auto pb-2">
               <AlibiChart
                 people={people}
                 segments={alibi.segments}
@@ -803,7 +869,7 @@ export const InterrogationScreen = ({
             </div>
           )}
 
-          <div className="mt-4 flex items-center gap-5 text-[10.5px] text-nezumi-dim leading-[1.4]">
+          <div className="mt-2 flex items-center gap-5 text-[10.5px] text-nezumi-dim leading-[1.4]">
             <span className="inline-flex items-center gap-1.5">
               <span aria-hidden="true" className="h-[3px] w-3.5 bg-nezumi" />
               <span>
@@ -863,7 +929,6 @@ export const InterrogationScreen = ({
             {nameplate(
               'font-mincho text-[20px] tracking-[0.08em]',
               'mt-[3px] text-[12px] text-nezumi-dim',
-              'text-[12px]',
             )}
           </div>
 
@@ -886,14 +951,10 @@ export const InterrogationScreen = ({
                 {blocks.map((block) => (
                   <div
                     key={block.id}
-                    className={`flex flex-col gap-[7px] border-l pl-2.5 lg:gap-2 lg:pl-[14px] ${
-                      block.who === -1 ? 'border-keisen' : edgeOf(block.who)
-                    }`}
+                    className={`flex flex-col gap-[7px] border-l pl-2.5 lg:gap-2 lg:pl-[14px] ${block.edge}`}
                   >
                     <span
-                      className={`text-[10px] tracking-[0.1em] lg:text-[10.5px] lg:tracking-[0.12em] ${
-                        block.who === -1 ? 'text-nezumi-dim' : inkOf(block.who)
-                      }`}
+                      className={`text-[10px] tracking-[0.1em] lg:text-[10.5px] lg:tracking-[0.12em] ${block.ink}`}
                     >
                       {block.name}
                     </span>
@@ -919,7 +980,9 @@ export const InterrogationScreen = ({
 
                 {isAsking && (
                   <div
-                    className={`flex flex-col gap-[7px] border-l pl-2.5 lg:gap-2 lg:pl-[14px] ${edgeOf(activeIndex)}`}
+                    className={`flex flex-col gap-[7px] border-l pl-2.5 lg:gap-2 lg:pl-[14px] ${
+                      activeCharacter === undefined ? 'border-keisen' : activeCharacter.edge
+                    }`}
                   >
                     {/* role="status" は暗黙に aria-live="polite" なので、待ち状態が読み上げにも伝わる */}
                     <span role="status" aria-label="返答を待っています" className="flex gap-1 py-1">
@@ -951,7 +1014,8 @@ export const InterrogationScreen = ({
                 aria-expanded={hintsOpen}
                 className="flex w-full items-center justify-between py-[7px] text-[11px] text-nezumi-dim lg:py-[9px] lg:text-[12px]"
               >
-                <span>訊けそうなこと</span>
+                {/* 喋らない相手に向けているあいだは、訊くのではなく調べる。 */}
+                <span>{examining ? '調べられそうなこと' : '訊けそうなこと'}</span>
                 <span aria-hidden="true">{hintsOpen ? '▲' : '▼'}</span>
               </button>
               {/*
