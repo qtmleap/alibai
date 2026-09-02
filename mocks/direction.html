@@ -397,6 +397,8 @@
   /* 線を引き終わる 700ms（draw の 180ms 遅れ＋520ms）を待ってから、端を置いて伸ばす。 */
   .play .spark .cpin { animation: line-in 360ms 700ms ease-out both; }
   .play .spark .cpin i { animation: pin-lift-x 620ms 700ms ease-out both; }
+  /* 縦向き——時が横に流れる軸で使う。いま出番はなく、下の横向きと対にして
+     「目盛りの向きは軸の向きで決まる」を語彙の側で示すために置いてある。 */
   @keyframes pin-lift { 55% { transform: scaleY(1.5); } }
   /* 横向きの片割れ。目盛りは時刻の軸に垂直に立つので、軸が縦に流れる
      アリバイ表では目盛りが横の短い棒になり、伸びる向きもこちらへ直交する。 */

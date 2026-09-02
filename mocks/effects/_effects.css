@@ -355,6 +355,8 @@ body {
 .play .spark .cpin i {
   animation: pin-lift-x 620ms 700ms ease-out both;
 }
+/* 縦向き——時が横に流れる軸で使う。いま出番はなく、下の横向きと対にして
+   「目盛りの向きは軸の向きで決まる」を語彙の側で示すために置いてある。 */
 @keyframes pin-lift {
   55% {
     transform: scaleY(1.5);
