@@ -49,6 +49,7 @@ function Interrogation() {
   return (
     <InterrogationScreen
       scenario={scenario}
+      places={scenario.places}
       sessionId={state.sessionId}
       detectiveName={state.detectiveName}
       interrogation={interrogation}

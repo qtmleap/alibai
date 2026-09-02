@@ -568,7 +568,12 @@ export const InterrogationScreen = ({
       id: place.id,
       name: place.name,
       logName: '所見',
-      introduction: `現場・${place.introduction}`,
+      /*
+       * 名札の下に出すのは佇まいのほう。introduction は名簿に出す紹介で、
+       * ここへ持ってくると「青雨堂の一階。レジと帳面」と、目の前にあるものではなく
+       * 場所の説明が並ぶ。モックが persona に置いているのは situation にあたる。
+       */
+      introduction: `現場・${place.situation}`,
       ink: 'text-nezumi-t',
       edge: 'border-nezumi',
       examine: true,

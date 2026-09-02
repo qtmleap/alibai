@@ -258,6 +258,53 @@ characters:
         attitude: 苦手意識がある        # 省略可
 ```
 
+### `places` — 話を聞けない相手（その二）
+
+現場そのものを調べさせられます。喋らないという点では遺体と同じで、プレイヤーから見れば
+「誰に訊くか」の選択肢が人物と遺体と場所の三択になります。省略できます（既定は空）。
+
+```yaml
+places:
+  - id: choba                                    # 英小文字始まり
+    name: 帳場                                    # 20字まで
+    shortName: 帳場                               # 8字まで。端末の切り替えに並ぶ
+    introduction: 青雨堂の一階。レジと帳面           # 60字まで。支度の名簿に出る紹介
+    situation: 閉店の片づけが、途中で止まっている     # 60字まで。調べているあいだ名札の下に出る
+    findings:                                     # 1件以上。遺体の findings と同じ組み
+      - id: ledger-stops-1844
+        statement: 帳場の帳面は18時44分の記入で止まっていて、その先が書かれていない。
+```
+
+`findings` を1件以上必須にしてあるのは、**名簿に並んだ場所は必ず調べられる**ようにするためです。
+押せるのに何も出ない相手を出さない、という決まりがここにも効いています。
+
+**IDの決まり**は `[a-z][a-z0-9-]*`。`victim` と uuid の形は使えません。人物・遺体・場所の三者が
+`ask` の同じ一つの口へ来るので、IDの形だけで誰を指したのかが決まる必要があるためです。
+
+**見取り図がある事件では、部屋のIDと揃えてください。** 同じ場所を指すなら一つのIDで、
+`sources: { type: location }` が図の部屋と調べる相手の両方に当たります。図が無くても場所は置けます。
+
+`situation` は所見ではありません。名簿にも名札にも出る公開情報なので、秘匿キーワードの検査対象です。
+`findings` は調べて初めて出るものなので対象外。ここを取り違えて `situation` に手掛かりを書くと、
+一手も使わないうちに漏れます。
+
+**場所を置いたら、その場所を出どころにした証拠か啓示を最低ひとつ置いてください。**
+
+```yaml
+evidences:
+  - id: debt-ledger
+    label: 貸し借りの覚え書き
+    sources:
+      - type: location
+        id: choba
+```
+
+無いと、増やした一手が空振りになります。開示条件にも「または帳場を調べ、帳面の途切れに行き当たったら
+開示する」のような節を足しておくこと。
+
+場所を調べるのも質問1回ぶんを使います。三択になるぶん、場所を増やしすぎると聞き込みが痩せるので、
+事件の芯に関わるものだけに絞ってください。遺体と同じで、場所は**逃げも黙秘もしない情報源**です。
+
 ### `publicIntroduction` と `personality`
 
 `publicIntroduction` は**プレイヤーへ事件開始前から見せる人物紹介**です。名前と一緒に概要画面・聞き込み画面へ表示されます。
@@ -459,11 +506,12 @@ solution:
 
 - `knowledge` / `secrets[].fact` / `lies[].about` / `timeline[].facts` / `supports` / `relatedFacts` → `facts[].id`
 - `relationships[].character` / `timeline[].participants` / `timeline[].witnesses` / `culprit` / `type: character` のソース → `characters[].id`
-- `type: location` のソースと `subject.type: location`、`timeline[].room`、`victim.foundRoom` → `floorPlan` の部屋 ID
+- `type: location` のソースと `subject.type: location` → `floorPlan` の部屋 ID **または** `places[].id`（図の無い事件でも場所は出どころになる）
+- `timeline[].room`、`victim.foundRoom` → `floorPlan` の部屋 ID
 - `subject.type: event` → `timeline[].id`
 - `requires.evidences` → `evidences[].id`、`requires.revelations` → `revelations[].id`
 - `contradicts` の `lie:` → 実在する `lies[].id`
-- `victim.findings[].requires` → `evidences[].id` / `revelations[].id`
+- `victim.findings[].requires` / `places[].findings[].requires` → `evidences[].id` / `revelations[].id`
 - `type: victim` のソース → その事件に `victim` があること（`id` は `victim` 固定）
 
 **ID が重複しないこと** — `facts` / `timeline` / `characters` / `evidences` / `revelations`、および全人物を通した `lies`、人物内の `memories`。

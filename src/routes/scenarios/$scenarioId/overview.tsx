@@ -35,6 +35,7 @@ function CaseOverview() {
   return (
     <CaseOverviewScreen
       scenario={scenario}
+      places={scenario.places}
       activeSessionId={session}
       // replace で入るのは、戻るボタンで「聞き込みを始める」に着地させないため。
       // あれをもう一度押すと、別のセッションが立って計時がやり直しになる。
