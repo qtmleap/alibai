@@ -40,10 +40,6 @@
 * {
   box-sizing: border-box;
 }
-/* 出し入れは hidden で切り替える。display を持つ要素にも効かせておく。 */
-[hidden] {
-  display: none !important;
-}
 html,
 body {
   height: 100%;
@@ -519,6 +515,10 @@ textarea {
   display: flex;
   flex-direction: column;
   border-top: 1px solid var(--keisen);
+}
+/* 台本を使い切ったら畳みごと下ろす。display を持つので hidden だけでは消えない。 */
+.hint[hidden] {
+  display: none;
 }
 .hint .head {
   display: flex;

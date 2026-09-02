@@ -407,15 +407,11 @@ export const InterrogationScreen = ({
    */
   const enteredTurn = useRef(turn === undefined ? undefined : turn.turn)
   const logRef = useRef<HTMLDivElement>(null)
+  /** 巻き取りの基準になる中身。伸び縮みを見るのは器ではなくこちら。 */
+  const logContentRef = useRef<HTMLDivElement>(null)
 
   /** 会話がいま指している目盛り。直前に増えた一本を、次が来るまで太らせる。 */
   const litFix = useLitFix(alibi.segments)
-
-  /** これまでに流れ込んだ字数。返答が一文字伸びるたびに増える。 */
-  const logLength = Object.values(conversations).reduce(
-    (sum, turns) => turns.reduce((count, turn) => count + turn.text.length, sum),
-    0,
-  )
 
   /*
    * 増えた手掛かりを一つだけ帯に出す。二つ以上増えた回でも重ねない——
@@ -447,15 +443,28 @@ export const InterrogationScreen = ({
    *
    * 溢れていないあいだは mt-auto が下へ寄せてくれるが、溢れた先は
    * 巻き取らないと上端（いちばん古い発言）で止まったままになる。
-   * 返答が流れているあいだも追いかけたいので、字数が動くたびに巻き取る。
+   *
+   * 見るのは受け取った字数ではなく、中身が実際に占めている高さ。
+   * 返答は届いた順のまま usePacedReveal が一文ずつ間を置いて通すので、
+   * 字数が増えた時点ではまだ画面に出ていない行がある。そこで巻き取っても、
+   * 後から出てくる行のぶんだけ下端から浮く。待ちの点も同じように出入りする。
    */
   useEffect(() => {
     const box = logRef.current
+    const content = logContentRef.current
 
-    if (box !== null && logLength > 0) {
-      box.scrollTop = box.scrollHeight
+    if (box === null || content === null) {
+      return
     }
-  }, [logLength])
+
+    const observer = new ResizeObserver(() => {
+      box.scrollTop = box.scrollHeight
+    })
+
+    observer.observe(content)
+
+    return () => observer.disconnect()
+  }, [])
 
   // 経過時間・質問数はローカルでも積み上げているが、サーバの値を定期的に取りに行くことで
   // /api/sessions/:id の実装がちゃんと動いているかもこの画面で確認できる。
@@ -867,7 +876,7 @@ export const InterrogationScreen = ({
               ref={logRef}
               className="flex min-h-0 flex-1 flex-col overflow-y-auto p-3 lg:p-0 lg:pt-5"
             >
-              <div className="mt-auto flex flex-col gap-[15px] lg:gap-5">
+              <div ref={logContentRef} className="mt-auto flex flex-col gap-[15px] lg:gap-5">
                 {blocks.length === 0 && (
                   <p className="text-center text-nezumi-dim text-sm leading-relaxed">
                     話題を投げると、{askerName}が代わりに聞き込みます。
