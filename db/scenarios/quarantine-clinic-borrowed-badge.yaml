@@ -11,12 +11,24 @@ victim:
   introduction: 白嶺診療所事務長
   foundAt: 21:40
   foundIn: 事務室
+  estimatedDeathAt: "21:08"
   causeOfDeath: 事件性のある外傷による死亡
   findings:
     - id: victim-state
       statement: 星名悟は事務室で倒れており、その場で死亡が確認されている。
     - id: victim-motive-material
       statement: 遺体のそばには「本部報告予定の確認メモ」に関わる資料が残されている。
+places:
+  - id: badge-reader
+    name: 検査廊下の認証端末
+    shortName: 認証端末
+    introduction: 防護区画を通る管理バッジの認証端末
+    situation: 認証端末の画面が待機表示のまま残っている
+    findings:
+      - id: reader-records-badge
+        statement: 端末が保存しているのは通過したバッジ番号で、装着者の顔や氏名を記録する機能はない。
+      - id: orange-badge-entry
+        statement: 21時18分には橙色の管理バッジが検査廊下を通過した記録が残っている。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -176,6 +188,8 @@ characters:
     memories:
       - id: orange-badge-corridor
         detail: 21時18分、橙色バッジを胸につけたまま検査廊下を通った。防護服姿なので相原には星名と間違われても不思議ではないと思った。
+      - id: death-estimate-memory
+        detail: 検査担当として発見時の確認値を取り、星名の死亡は21時08分ごろと見積もられることを把握している。
     relationships:
       - character: sera
         relation: 看護主任
@@ -257,12 +271,13 @@ evidences:
     label: 二十一時十八分の認証記録
     description: 記録されているのは橙色バッジの通過であり、使用者の顔や氏名を直接確認した記録ではない。
     reveal:
-      condition: 相原か久我に21時18分の認証記録が何を識別しているのか尋ねたら開示する。
+      condition: 相原か久我に21時18分の認証記録が何を識別しているのか尋ねたら開示する。または検査廊下の認証端末を調べ、記録がバッジ番号だけで使用者を識別しないと確認したら開示する。
     sources:
       - type: character
         id: aihara
       - type: character
         id: kuga
+      - { type: location, id: badge-reader }
     supports: [orange-badge-passed-2118, aihara-saw-orange-suit]
     contradicts: ["lie:sera-badge-proves-hoshina"]
   - id: kuga-corridor-admission
@@ -309,6 +324,17 @@ evidences:
         id: aihara
     supports: [aihara-left-monitor]
     contradicts: ["lie:aihara-never-left"]
+  - id: death-estimate
+    label: 診療所の死亡推定
+    description: 診療所の検査機器で発見時の状態を確認すると、星名の死亡は21時08分ごろと見積もられる。21時18分のバッジ通過より前である。
+    reveal:
+      condition: 遺体を調べて検査機器の確認値を見るか、久我に発見時に取った検査値と死亡推定について尋ねたら開示する。
+    sources:
+      - { type: victim, id: victim }
+      - { type: character, id: kuga }
+    supports: [hoshina-death-2108]
+    contradicts: []
+    revealsDeathTime: true
 solution:
   culprit: sera
   summary: 犯人は世良美冬。21時18分の認証記録は星名本人の生存証明ではない。その時刻に橙色バッジを着けて検査廊下を通ったのは、20時55分に星名からバッジを借りた久我だった。防護服姿の顔を見分けられなかった相原は、バッジの色だけで星名だと思い込んだ。さらに世良はバッジ貸与をその場で了承しており、使用者が久我であり得ることを知りながら、21時18分の記録を星名の生存根拠として説明していた。星名は実際には21時08分ごろ事務室で世良に襲われている。翌朝、世良が独断変更した同意書管理手順が本部へ報告される予定だったことが動機となった。

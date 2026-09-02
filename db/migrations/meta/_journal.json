@@ -148,6 +148,20 @@
       "when": 1788362994843,
       "tag": "0020_deadline-disclosure",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "6",
+      "when": 1788378860077,
+      "tag": "0021_scenario-investigation-upgrade",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "6",
+      "when": 1788379031994,
+      "tag": "0022_scenario-place-public-copy-safety",
+      "breakpoints": true
     }
   ]
 }

@@ -17,6 +17,17 @@ victim:
       statement: 冬木圭介は編集室で倒れており、その場で死亡が確認されている。
     - id: victim-motive-material
       statement: 遺体のそばには「未公開音源の複製履歴」に関わる資料が残されている。
+places:
+  - id: patch-bay
+    name: 第2ブース監視席
+    shortName: 監視席
+    introduction: 録音入力を切り替えるパッチ盤と収録端末の席
+    situation: パッチ盤と収録端末の電源が残っている
+    findings:
+      - id: recorder-loop-route
+        statement: 第2ブースの録音入力は生マイクではなく、四十七秒の音声素材を繰り返す経路へ切り替えられている。
+      - id: waveform-identical
+        statement: 収録波形は空調音や小さな物音まで四十七秒ごとに同じ形を繰り返している。
 briefing: |-
   ——事件の記録を読み上げます。
 
@@ -313,10 +324,11 @@ evidences:
     label: 四十七秒ごとに一致する収録波形
     description: 空調音や小さな物音まで含めた波形が四十七秒周期で完全一致し、同じ室内音が繰り返し再生されていたと分かる。
     reveal:
-      condition: 真鍋か牧村に収録ファイルが本当に生マイク入力だったか、波形の反復と入力経路を含めて尋ねたら開示する。
+      condition: 真鍋か牧村に収録ファイルが本当に生マイク入力だったか、波形の反復と入力経路を含めて尋ねたら開示する。または第2ブースの監視席を調べ、録音入力と波形の反復を確認したら開示する。
     sources:
       - { type: character, id: manabe }
       - { type: character, id: makimura }
+      - { type: location, id: patch-bay }
     supports: [manabe-made-roomtone-loop, loop-routed-to-recorder, recording-repeats-identically]
     contradicts: ["lie:manabe-booth-alibi", "lie:manabe-live-input"]
   - id: equipment-corridor-sighting

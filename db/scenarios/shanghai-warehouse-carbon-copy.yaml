@@ -167,6 +167,8 @@ characters:
     memories:
       - id: chen-blank-box
         detail: 周の署名はあったのに、時刻の四角だけ白いままだったのが妙に印象に残っている。
+      - id: death-estimate-memory
+        detail: 発見後の検視内容を業務メモへ写しており、周の死亡は21時52分ごろと見積もられていたことを覚えている。
     relationships:
       - character: lin
         relation: 上司
@@ -267,6 +269,17 @@ evidences:
       - { type: character, id: wang }
     supports: [wang-stole-cargo]
     contradicts: ["lie:wang-no-cargo-theft"]
+  - id: death-estimate
+    label: 当夜の検視メモ
+    description: 発見後に作られた検視メモでは、周の死亡は21時52分ごろと見積もられている。上紙へ22時05分が書き足されるより前である。
+    reveal:
+      condition: 遺体を調べて当夜の検視内容を確認するか、陳に発見後に控えた検視メモの時刻を尋ねたら開示する。
+    sources:
+      - { type: victim, id: victim }
+      - { type: character, id: chen }
+    supports: [lin-killed-zhou]
+    contradicts: []
+    revealsDeathTime: true
 solution:
   culprit: lin
   summary: 犯人は林雪梅。帳簿外の絹荷を周に見抜かれ、21時52分ごろ事務室で周を襲った。周はその前に翌朝の搬出用として時刻欄が空白の伝票へ署名していたため、林は22時05分になって上紙へ時刻だけを書き足し、周がその時刻まで生きていたように見せた。だが三枚綴りの複写伝票では、同時に書かれた文字なら控えにも写る。署名は三枚にあるのに時刻は上紙だけで、陳も21時40分に時刻欄が空白だったと記録している。

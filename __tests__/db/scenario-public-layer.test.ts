@@ -15,6 +15,9 @@ const titleSpoilerPattern =
 const publicIntroductionSpoilerPattern =
   /(アリバイ|秘密|隠し|不正|証拠として|人物識別|思い込み|標準時|時系列|休憩延長|記録から外|機器表示|杖の音|絶対視|バッジ)/
 
+const placePublicSpoilerPattern =
+  /(自動施錠|閉じるだけで|反射|映り込|重量センサー|人物を識別|送信者を識別|十一分|時刻のずれ|自律飛行|繰り返す経路|実行ログ|電源履歴|通過履歴|新しい打痕|台紙片)/
+
 const scenarioFiles = async (): Promise<string[]> =>
   (await readdir(SCENARIO_DIR)).filter((name) => name.endsWith('.yaml')).sort()
 
@@ -42,6 +45,13 @@ describe('scenario public layer', () => {
       for (const character of scenario.characters) {
         if (publicIntroductionSpoilerPattern.test(character.publicIntroduction)) {
           violations.push(`${file}: publicIntroduction:${character.name}`)
+        }
+      }
+
+      for (const place of scenario.places) {
+        const publicPlaceText = `${place.name}\n${place.shortName}\n${place.introduction}\n${place.situation}`
+        if (placePublicSpoilerPattern.test(publicPlaceText)) {
+          violations.push(`${file}: place:${place.id}`)
         }
       }
     }
