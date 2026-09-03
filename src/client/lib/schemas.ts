@@ -4,7 +4,7 @@ import { floorPlanSchema } from '~/db/floor-plan'
 import { gameModeSchema, hintSchema } from '~/db/game-mode'
 import { llmProviderSchema, settableLlmRoleSchema } from '~/db/llm-catalog'
 import { investigablePlaceSchema } from '~/db/place'
-import { VICTIM_ID } from '~/db/scenario-definition'
+import { placeIdSchema, VICTIM_ID } from '~/db/scenario-definition'
 
 /**
  * サーバのレスポンスは fetch の時点では unknown。
@@ -303,10 +303,15 @@ export const historyExchangeSchema = z.object({
 /**
  * 話しかけた相手のID。
  *
- * 登場人物は uuid だが、被害者だけは決め打ちの `victim`（採番する先が一人しか無い）。
- * ここを uuid で縛ると、遺体を調べたセッションが復元できずに画面ごと落ちる。
+ * 登場人物は uuid、被害者は決め打ちの `victim`、場所は作者が書いたローカルID。
+ * 三者は形で見分けられるので、どれを指しているかは常に決まる（`placeIdSchema`）。
+ *
+ * ここを狭く縛ると、その相手を含むセッションが復元できずに**画面ごと落ちる**。
+ * 履歴は聞き込みの画面へ入った瞬間に読むので、一手も打たないうちに落ちる。
+ * 実際、場所を足したとき `victim` までしか許しておらず、場所を持つ事件が
+ * 開いた時点で必ず落ちた。相手を増やしたらここも必ず増やすこと。
  */
-const subjectIdSchema = z.union([z.uuid(), z.literal(VICTIM_ID)])
+const subjectIdSchema = z.union([z.uuid(), z.literal(VICTIM_ID), placeIdSchema])
 
 export const sessionHistorySchema = z.object({
   sessionId: z.uuid(),
