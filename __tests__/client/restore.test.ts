@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { restoreConversations } from '@/client/lib/restore'
 import type { SessionHistory } from '@/client/lib/schemas'
+import { sessionHistorySchema } from '@/client/lib/schemas'
 
 const history = (histories: SessionHistory['histories']): SessionHistory => ({
   sessionId: '8571c162-a7d4-4be9-a14c-2d4ea2780d4f',
@@ -143,5 +144,36 @@ describe('restoreConversations', () => {
     )
 
     expect(Object.keys(result)).toEqual(['a'])
+  })
+})
+
+/*
+ * 相手のIDは三種類ある。uuid の人物、決め打ちの `victim`、そして作者が書いた場所の
+ * ローカルID。履歴は聞き込みの画面へ入った瞬間に読むので、ここで受けそこねると
+ * 一手も打たないうちに画面ごと落ちる——実際、場所を足したときに `victim` までしか
+ * 許しておらず、場所を持つ事件が開いた時点で必ず落ちた。
+ */
+describe('sessionHistorySchema の相手ID', () => {
+  const body = (characterId: string) => ({
+    sessionId: '8571c162-a7d4-4be9-a14c-2d4ea2780d4f',
+    histories: [{ characterId, exchanges: [] }],
+  })
+
+  test('人物の uuid を受ける', () => {
+    expect(
+      sessionHistorySchema.safeParse(body('7f97837b-ef8f-46ff-a199-377926e8fb75')).success,
+    ).toBe(true)
+  })
+
+  test('遺体の victim を受ける', () => {
+    expect(sessionHistorySchema.safeParse(body('victim')).success).toBe(true)
+  })
+
+  test('場所のローカルIDを受ける', () => {
+    expect(sessionHistorySchema.safeParse(body('choba')).success).toBe(true)
+  })
+
+  test('三者のどれでもない文字列は弾く', () => {
+    expect(sessionHistorySchema.safeParse(body('帳場')).success).toBe(false)
   })
 })
