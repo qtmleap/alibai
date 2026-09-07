@@ -29,7 +29,11 @@ type Board = {
   people: AlibiPerson[]
   segments: AlibiSegment[]
   span: { from: string; to: string }
-  deadline: { at: string; label: string }
+  /**
+   * 死亡推定の刻限。`foundAt`（遺体発見）は迷宮入りのときだけ盤面に出す——
+   * 解決した回は真相の実線一本で足り、発見時刻まで並べると線が二重に立つ。
+   */
+  deadline: { at: string; label: string; foundAt?: string }
   /**
    * 告発で指した時刻。端末はアリバイ表を持てないので、真相との隔たりをこれ一つで見せる。
    * 表と同じく、まだサーバから降ってこない。
@@ -304,13 +308,14 @@ export const ResultScreen = ({ accuseResult, board, onRetry, onRestart }: Props)
                 segments={board.segments}
                 span={board.span}
                 /*
-                  結果は答え合わせが済んだ後なので、刻限は一本の実線に落ちる。
-                  窓（まだ分かっていない幅）はここには残らない——残っていたら、
-                  それは答え合わせが終わっていないということ。
+                  刻限は答え合わせの結果そのもの。解決した回だけ一本の実線に落ちる——
+                  迷宮入りでは死亡推定を確定させていないので、盤面と同じ点線の窓のまま。
+                  真相の 18:50 をここに実線で引いてしまうと、外れた回にも答えを見せることになる。
                 */
                 deadline={{
-                  label: board.deadline.label,
-                  death: { kind: 'fixed', at: board.deadline.at },
+                  foundAt: solved ? undefined : board.deadline.foundAt,
+                  label: solved ? board.deadline.label : '死亡推定',
+                  death: solved ? { kind: 'fixed', at: board.deadline.at } : { kind: 'unknown' },
                 }}
                 truth={solved ? board.truth : undefined}
               />

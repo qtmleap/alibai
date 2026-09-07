@@ -1,4 +1,4 @@
-import { useId, useState } from 'react'
+import { type ReactNode, useId, useState } from 'react'
 import { AlibiChart, type AlibiPerson, type AlibiSegment } from '@/client/components/AlibiChart'
 import { CharacterAvatar, inkOf, surfaceOf } from '@/client/components/CharacterAvatar'
 import { Button } from '@/client/components/ui/button'
@@ -118,17 +118,69 @@ export const AccusationScreen = ({
         ]),
   ]
 
-  /** 帯のなかでの位置。端末側は幅が端末に依るので、px ではなく % で置く。 */
-  const ratio = (at: string): string => {
+  /** 帯のなかでの位置（%）。端末側は幅が端末に依るので、px ではなく % で置く。 */
+  const ratioNum = (at: string): number => {
     if (timeWindow === null) {
-      return '0%'
+      return 0
     }
 
     const from = toMinutes(timeWindow.start)
     const length = toMinutes(timeWindow.end) - from
 
-    return `${(((toMinutes(at) - from) / length) * 100).toFixed(1)}%`
+    return ((toMinutes(at) - from) / length) * 100
   }
+  const ratio = (at: string): string => `${ratioNum(at).toFixed(1)}%`
+  const leftOf = (pct: number): string => `${pct.toFixed(1)}%`
+  /** 端に寄った札は文字が画面の外へ出ないよう内側へ折り返す（机の DeadlineLabel と同じ判断）。 */
+  const railLabelAlign = (pct: number): string =>
+    pct < 24 ? '' : pct >= 72 ? '-translate-x-full text-right' : '-translate-x-1/2'
+
+  /*
+   * 端末の帯に置く「遺体発見・死亡推定」の印。机の AlibiChart（DeadlineMarks）と同じ規則を
+   * 横向きに言い換えたもの——遺体発見は常に実線、死亡推定は手に入れた確度で描き分ける。
+   * この画面だけの帯なので、机の縦向きの実装をそのまま流用できない。
+   */
+  const deathInfo = deadlineOf(scenario.victim, interrogation.estimatedDeathAt)
+
+  /** 一点を指す印。裏の取れていない見立てだけ点線にする（実線＝盤面が保証した情報）。 */
+  const RailTick = ({ pct, dotted }: { pct: number; dotted: boolean }) => (
+    <span
+      aria-hidden="true"
+      className={`absolute top-[4px] bottom-[48px] ${
+        dotted ? 'w-0 border-l border-l-nezumi-dim border-dotted' : 'w-px bg-nezumi-dim'
+      }`}
+      style={{ left: leftOf(pct) }}
+    />
+  )
+
+  /** 幅を指す窓。両端に返しを付け、面は塗らない（帯の色と競わせないため）。 */
+  const RailWindow = ({
+    fromPct,
+    toPct,
+    dotted,
+  }: {
+    fromPct: number
+    toPct: number
+    dotted: boolean
+  }) => (
+    <span
+      aria-hidden="true"
+      className={`before:-top-[3px] after:-top-[3px] absolute top-[88px] before:absolute before:left-0 before:h-[7px] before:w-px before:bg-nezumi-dim before:content-[''] after:absolute after:right-0 after:h-[7px] after:w-px after:bg-nezumi-dim after:content-[''] ${
+        dotted ? 'h-0 border-t border-t-nezumi-dim border-dotted' : 'h-px bg-nezumi-dim'
+      }`}
+      style={{ left: leftOf(fromPct), width: leftOf(toPct - fromPct) }}
+    />
+  )
+
+  /** 印の傍らに置く一行の札。等幅は時刻にだけ使う。 */
+  const RailLabel = ({ pct, children }: { pct: number; children: ReactNode }) => (
+    <span
+      className={`absolute top-[94px] whitespace-nowrap font-mincho text-[9.5px] text-nezumi tracking-[0.06em] ${railLabelAlign(pct)}`}
+      style={{ left: leftOf(pct) }}
+    >
+      {children}
+    </span>
+  )
 
   const canSubmit =
     culpritCharacterId !== undefined &&
@@ -259,7 +311,7 @@ export const AccusationScreen = ({
             区間は薄く——机の実線／破線と同じ区別を、線の太さではなく濃さで言い換える。
           */}
           {timeWindow === null ? null : (
-            <div className="relative mt-[18px] mb-[14px] h-[106px] shrink-0 lg:hidden">
+            <div className="relative mt-[18px] mb-[14px] h-[136px] shrink-0 lg:hidden">
               {scenario.characters.map((character, index) => (
                 <div
                   key={character.id}
