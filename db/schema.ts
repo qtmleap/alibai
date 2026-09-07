@@ -481,3 +481,126 @@ export const llmUsages = sqliteTable(
     index('llm_usages_session_id_idx').on(table.sessionId),
   ],
 )
+
+/**
+ * 分析用の控え（analytics_sessions / analytics_turns）。
+ *
+ * この2表は llm_usages と同じ理由で play_sessions への外部キーを張らない。
+ * 会話ログは保持期間で消す方針のままにしつつ、プロンプトと難易度を後から
+ * 調整するための材料——プレイヤーが何を打ち、NPCが何を返し、その回に何が
+ * 出たか——だけを残すのがこの2表の存在理由なので、cascade で一緒に消えては
+ * 目的がそのまま失われる。したがって session_id / scenario_id は参照の切れた
+ * 履歴上の値であり、play_sessions と JOIN できることを前提にしてはいけない
+ * （この2表どうしの JOIN は、両方とも消えないので成立する）。
+ *
+ * 集計に使う値は列に開き、読み返すだけの本文は JSON 列に置く。
+ * 「モード別に何ターンで解けたか」を数えるのは列、「そのとき何を打ったか」を
+ * 読むのは JSON、という住み分け。
+ */
+
+/** analytics_turns.exchanges の1往復。探偵の質問とNPCの返答。 */
+export type LoggedExchange = {
+  question: string
+  answer: string
+}
+
+/**
+ * 1プレイセッション1行。開始時に入れ、告発時に結果列を埋める。
+ *
+ * 告発まで至らなかった行は結果列が NULL のまま残る。これは欠損ではなく、
+ * 「どこで諦めたか」がこの表の一番知りたいことの一つなので、
+ * 完走した行だけを入れる作りにはしない。
+ */
+export const analyticsSessions = sqliteTable(
+  'analytics_sessions',
+  {
+    /** play_sessions.id と同じ値。ただし外部キーではない（上のコメント参照）。 */
+    sessionId: text('session_id').primaryKey(),
+    scenarioId: text('scenario_id').notNull(),
+    /** 難易度モード。db/game-mode.ts の列挙。 */
+    mode: text('mode').notNull(),
+    /** 名乗らずに始められるので nullable。名前と容姿は自由記述で、そのまま入る。 */
+    detective: text('detective', { mode: 'json' }).$type<Detective>(),
+    /**
+     * 進行の上限。難易度そのものを動かす値なので、モードとは別に持つ。
+     * 同じ nohope でも上限が違えば別の難しさになり、混ぜると読み違える。
+     */
+    maxTurns: integer('max_turns').notNull(),
+    questionsPerTurn: integer('questions_per_turn').notNull(),
+    exchangesPerTopic: integer('exchanges_per_topic').notNull(),
+    startedAt: createdTimestamp('started_at'),
+    /** ここから下は告発時に埋まる。埋まっていない＝最後まで行っていない。 */
+    finishedAt: integer('finished_at', { mode: 'timestamp' }),
+    culpritCharacterId: text('culprit_character_id'),
+    culpritCorrect: integer('culprit_correct', { mode: 'boolean' }),
+    methodCorrect: integer('method_correct', { mode: 'boolean' }),
+    motiveCorrect: integer('motive_correct', { mode: 'boolean' }),
+    /** プレイヤーが書いた推理の本文。 */
+    reasoning: text('reasoning'),
+    method: text('method'),
+    motive: text('motive'),
+    /** 採点者の短評。プレイヤーの記述をどう読んだかが分かる。 */
+    methodComment: text('method_comment'),
+    motiveComment: text('motive_comment'),
+    solvedSeconds: integer('solved_seconds'),
+    questionCount: integer('question_count'),
+    evidenceFound: integer('evidence_found'),
+    /** 発見数だけでは難易度を読めないので、母数も一緒に残す。 */
+    evidenceTotal: integer('evidence_total'),
+    contradictionCount: integer('contradiction_count'),
+    accuracyPercent: integer('accuracy_percent'),
+  },
+  (table) => [
+    index('analytics_sessions_scenario_id_idx').on(table.scenarioId),
+    index('analytics_sessions_started_at_idx').on(table.startedAt),
+  ],
+)
+
+/**
+ * ask 1回（＝プレイヤーが話題を1つ投げた回）1行。
+ *
+ * 聞き込みと検分を同じ形で受ける。messages が検分を落としているのは
+ * character_id が characters への外部キーで、場所も遺体も入らないため。
+ * こちらは外部キーを持たないので、subject_kind で区別して両方入る。
+ */
+export const analyticsTurns = sqliteTable(
+  'analytics_turns',
+  {
+    id: uuidPrimaryKey('id'),
+    sessionId: text('session_id').notNull(),
+    scenarioId: text('scenario_id').notNull(),
+    /**
+     * モードは analytics_sessions から JOIN で引けるが、ここにも置く。
+     * 開始時の行の書き込みが落ちた回でも、ターン単体で難易度が読めるようにするため。
+     */
+    mode: text('mode').notNull(),
+    /** character / victim / place。sessions.ts の sourceTypeOf と同じ区別。 */
+    subjectKind: text('subject_kind').notNull(),
+    /** 人物ID、VICTIM_ID、場所ID のいずれか。 */
+    subjectId: text('subject_id').notNull(),
+    /**
+     * 何ターン目か（DO の round）と、その時点の累計質問数。
+     * DO への記録が落ちた回は取れないので nullable。
+     */
+    turnIndex: integer('turn_index'),
+    questionCount: integer('question_count'),
+    /** プレイヤーが打った文そのもの。この列がこの表の主目的。 */
+    topic: text('topic').notNull(),
+    /** 探偵の質問とNPCの返答。プロンプト調整はここを読む。 */
+    exchanges: text('exchanges', { mode: 'json' }).$type<LoggedExchange[]>().notNull(),
+    /**
+     * その回の判定。Judge が落ちた回は判定そのものが無いので nullable。
+     * 落ちた回でもプレイヤーの入力は残したいので、行ごと捨てることはしない。
+     */
+    revealedEvidenceIds: text('revealed_evidence_ids', { mode: 'json' }).$type<string[]>(),
+    revealedRevelationIds: text('revealed_revelation_ids', { mode: 'json' }).$type<string[]>(),
+    contradictionPointedOut: integer('contradiction_pointed_out', { mode: 'boolean' }),
+    npcLied: integer('npc_lied', { mode: 'boolean' }),
+    createdAt: createdTimestamp('created_at'),
+  },
+  (table) => [
+    index('analytics_turns_session_id_idx').on(table.sessionId),
+    index('analytics_turns_scenario_id_idx').on(table.scenarioId),
+    index('analytics_turns_created_at_idx').on(table.createdAt),
+  ],
+)

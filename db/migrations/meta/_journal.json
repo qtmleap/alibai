@@ -162,6 +162,13 @@
       "when": 1788379031994,
       "tag": "0022_scenario-place-public-copy-safety",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "6",
+      "when": 1788790609383,
+      "tag": "0023_analytics-tables",
+      "breakpoints": true
     }
   ]
 }

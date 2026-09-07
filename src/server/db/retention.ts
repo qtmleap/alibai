@@ -7,9 +7,10 @@ import { playSessions } from '~/db/schema'
  *
  * messages / discoveries / results は外部キーの cascade で付いてくるので、
  * ここで消すのは play_sessions だけでよい。
- * llm_usages は意図的に外部キーを張っていないため残る。「会話ログは捨てても
- * いくら使ったかの記録は残す」ことが、あのテーブルを分けた理由そのものなので、
- * ここに llm_usages への delete を足さないこと。
+ * llm_usages / analytics_sessions / analytics_turns は意図的に外部キーを張って
+ * いないため残る。「会話ログは捨てても、いくら使ったかの記録と、プロンプトや
+ * 難易度を調整するための材料は残す」ことが、あれらのテーブルを分けた理由その
+ * ものなので、ここにそれらへの delete を足さないこと。
  */
 
 /**

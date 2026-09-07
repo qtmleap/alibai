@@ -10,6 +10,12 @@ import {
   loadHintSubjects,
   loadJudgeRubric,
 } from '@/server/cache/scenario'
+import {
+  recordSessionOutcome,
+  recordSessionStart,
+  recordTurn,
+  type TurnJudgementRecord,
+} from '@/server/db/analytics'
 import type { Db } from '@/server/db/client'
 import { createDb } from '@/server/db/client'
 import type { Bindings, Env } from '@/server/env'
@@ -531,9 +537,26 @@ sessionRoutes.post('/api/sessions', validateCreateSession, withEnv, async (c) =>
 
   // 上限もここで固定する。送られてこなければ env の値がそのまま入るので、
   // 設定画面を知らないクライアントでも今までと同じ進行になる。
-  await session.setLimits(
-    clampLimits(createInput.limits === undefined ? {} : createInput.limits, envLimits(env)),
+  const limits = clampLimits(
+    createInput.limits === undefined ? {} : createInput.limits,
+    envLimits(env),
   )
+
+  await session.setLimits(limits)
+
+  // 分析用の控えを立てる。ここで入れておくと、告発まで至らなかったセッションが
+  // 結果列の空いた行として残り、どこで諦めたかが読める。
+  try {
+    await recordSessionStart(db, {
+      sessionId: row.id,
+      scenarioId: createInput.scenarioId,
+      mode: createInput.mode,
+      detective,
+      limits,
+    })
+  } catch (error) {
+    console.error('[sessions] failed to persist analytics session', error)
+  }
 
   // 探偵の有無に関わらず必ず呼ぶ。ここで meta() が初期化されて計時が始まるので、
   // 省くと「最初の質問を投げた瞬間」が開始時刻になり、考えていた時間がタイムから消える。
@@ -1107,6 +1130,13 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
       round: undefined,
     }
 
+    /*
+      判定を try の外へ持ち出すための入れ物。分析用の控えは Judge が落ちた回も
+      書きたい（プレイヤーが何を打ったかは残す）ので、判定の成否と行の有無を
+      切り離しておく必要がある。すぐ上の persisted と同じ手。
+    */
+    const judgementRecord: { value: TurnJudgementRecord | undefined } = { value: undefined }
+
     try {
       const appended = await session.appendTopic(
         askInput.characterId,
@@ -1199,6 +1229,13 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
         contradictionPointedOut: judgement.contradictionPointedOut,
         npcLied: judgement.npcLied,
       })
+
+      judgementRecord.value = {
+        revealedEvidenceIds: judgement.revealedEvidenceIds,
+        revealedRevelationIds,
+        contradictionPointedOut: judgement.contradictionPointedOut,
+        npcLied: judgement.npcLied,
+      }
 
       // 実りのあった話題に印を付ける。会話ログを遡ったときに、どこが効いたのかが
       // 分かるようにするためのもの。往復番号が要るので、記録そのものが落ちていた
@@ -1314,6 +1351,32 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
       }
     } catch (error) {
       console.error('[ask] judge failed', error)
+    }
+
+    /*
+      分析用の控え。judge の try/catch を抜けた後に書くのは、判定が落ちた回でも
+      プレイヤーが打った文と NPC の返答を残すため。messages と違って外部キーを
+      持たないので、検分（場所・遺体）もここには普通に入る——保持期間を越えて
+      残る入力の記録は、今のところこの表だけ。
+    */
+    try {
+      await recordTurn(db, {
+        sessionId,
+        scenarioId,
+        mode: meta.mode,
+        subjectKind: subject.kind,
+        subjectId: askInput.characterId,
+        turnIndex: persisted.round,
+        questionCount: persisted.questionCount,
+        topic: askInput.topic,
+        exchanges: collected.exchanges.map((exchange) => ({
+          question: exchange.question,
+          answer: exchange.answer,
+        })),
+        judgement: judgementRecord.value,
+      })
+    } catch (error) {
+      console.error('[ask] failed to persist analytics turn', error)
     }
 
     await stream.writeSSE({ event: 'done', data: '' })
@@ -1488,6 +1551,29 @@ sessionRoutes.post('/api/sessions/:id/accuse', validateAccuse, withEnv, async (c
       .where(eq(playSessions.id, sessionId))
   } catch (error) {
     console.error('[accuse] failed to persist result', error)
+  }
+
+  // 分析用の控えにも結果を書く。results と同じ値だが、あちらは保持期間で消える。
+  // 開始時の行が落ちていても拾えるよう、update ではなく upsert にしてある。
+  try {
+    await recordSessionOutcome(db, {
+      sessionId,
+      scenarioId,
+      mode: meta.mode,
+      detective: meta.detective === null ? undefined : meta.detective,
+      limits: limitsOf(finalSnapshot.limits, env),
+      culpritCharacterId: accuseInput.culpritCharacterId,
+      culpritCorrect: correct,
+      reasoning: accuseInput.reasoning,
+      method: accuseInput.method,
+      motive: accuseInput.motive,
+      methodComment: graded.grade.methodComment,
+      motiveComment: graded.grade.motiveComment,
+      evidenceTotal: evidenceCountRows.length,
+      score,
+    })
+  } catch (error) {
+    console.error('[accuse] failed to persist analytics outcome', error)
   }
 
   // 採点は既に届いているので、集計の失敗を採点の失敗として扱わない。
