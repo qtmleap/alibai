@@ -114,7 +114,7 @@ export const ScenarioSelectScreen = ({
           <button
             type="button"
             onClick={onSettings}
-            className="ml-auto text-[11.5px] text-nezumi lg:text-[12.5px] lg:leading-[1.8]"
+            className="ml-auto text-[11.5px] text-nezumi lg:text-[12.5px] lg:leading-[1.8] lg:hover:text-kinari"
           >
             設定
           </button>
@@ -132,6 +132,9 @@ export const ScenarioSelectScreen = ({
         一覧は読み物ではないので、行ごとに行間を締める。
 
         机の上では三列。行の高さは中身に任せ、セルの下辺の罫線だけで分ける。
+
+        机の上（lg以上）だけ、触れている行の左端に線を立てる。事件は顔料を持たないので
+        鼠で引く。狭い幅では鼠が無いので付けない——押した瞬間に消える線は迷いのもとになる。
       */}
       <ul className="flex flex-col border-keisen border-t lg:grid lg:grid-cols-3 lg:gap-x-11">
         {scenarios.map((scenario, index) => {
@@ -151,7 +154,7 @@ export const ScenarioSelectScreen = ({
                 type="button"
                 onClick={() => setPending(scenario)}
                 disabled={loadingId !== undefined}
-                className="flex w-full flex-col gap-[3px] py-[9px] text-left disabled:opacity-40 lg:gap-0.5 lg:py-[13px]"
+                className="flex w-full flex-col gap-[3px] py-[9px] text-left disabled:opacity-40 lg:gap-0.5 lg:py-[13px] lg:pl-3 lg:hover:bg-sumi-2 lg:hover:shadow-[inset_2px_0_0_var(--color-nezumi)]"
               >
                 {/*
                   同じ分類が続くあいだは繰り返さない。3行続けて「殺人」と書いても
