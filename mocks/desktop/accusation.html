@@ -32,6 +32,11 @@
       .suspects button + button { border-left: 1px solid var(--keisen); }
       /* 選ばれた一人だけ、下辺を朱に替える。塗り足しも枠も足さない。 */
       .suspects button.on { border-bottom-color: var(--shu); }
+      /* 触れているあいだは左端にその人の顔料で一本（語彙は _desk.css）。
+         指名の印は下辺なので、軸が違って喧嘩しない。 */
+      @media (hover: hover) {
+        .suspects button:hover { box-shadow: inset 2px 0 0 currentColor; }
+      }
       .suspects .face {
         width: 30px; height: 30px; border-radius: 50%; flex: none;
         display: grid; place-items: center; background: var(--sumi-2);

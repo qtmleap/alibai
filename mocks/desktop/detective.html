@@ -60,9 +60,14 @@
       /*
         選択は塗らずに左端の一本で示す。行の頭は全行そろえたいので、枠ではなく
         内側の影で引く——枠だと選ばれた行だけ字が右へずれる。
+        触れているあいだも同じ位置に一本立てるが、そちらは鼠。探偵は顔料を
+        持たないので、明るさだけで「選べる」と「選んだ」を分ける。
       */
       .roster .r { align-items: flex-start; padding-left: 14px; }
       .roster .r.on { box-shadow: inset 2px 0 0 var(--kinari); }
+      @media (hover: hover) {
+        .roster .r:not(.on):hover { box-shadow: inset 2px 0 0 var(--nezumi); }
+      }
       .roster .pick {
         display: flex; flex-direction: column; min-width: 0;
         background: none; border: 0; padding: 0; text-align: left;

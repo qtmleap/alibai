@@ -29,7 +29,7 @@ const characterKey = (characterId: string) => `character:v2:${characterId}`
  * 版を付けてある。ルーブリックは1時間キャッシュされるので、版が無いと
  * 指示を直しても最大1時間は古い文面のまま判定が走る（デプロイ直後が一番危ない）。
  */
-const judgeRubricKey = (scenarioId: string) => `judge-rubric:v2:${scenarioId}`
+const judgeRubricKey = (scenarioId: string) => `judge-rubric:v3:${scenarioId}`
 const judgeRevelationsKey = (scenarioId: string) => `judge-revelations:${scenarioId}`
 // 版を付けてある。数える相手の並びが変わっても、1時間の TTL を待たずに切り替わるように。
 const hintSubjectsKey = (scenarioId: string) => `hint-subjects:v2:${scenarioId}`
@@ -190,6 +190,8 @@ export const loadJudgeRubric = async (
   const rubric = `あなたはマーダーミステリーの進行審判である。プレイヤーが指定した話題と、それを受けて探偵がNPCと交わしたやり取りを読み、以下を判定する。やり取りは同じ話題について複数の往復にわたることがあり、その全体をまとめて1回として判定する。
 
 - revealedEvidenceIds: 今回のやり取りで開示条件を満たした証拠のIDを列挙する。満たしていなければ空配列。
+  **プレイヤーが条件に関係する言葉を質問しただけでは、開示条件を満たしたことにならない。** NPCの返答または検分の返答で、条件に必要な事実が実際に確認されていること。
+  返答が「分からない」「確認できない」「その所見はない」など、必要な事実を否定または不明としている場合は、質問側に同じ言葉が含まれていても絶対に開示しない。
 - revealedRevelationIds: ユーザーメッセージ末尾の「今回判定可能なRevelation」に列挙された候補のうち、今回の会話で条件を満たしたIDだけを列挙する。候補外のIDを推測してはいけない。満たしていなければ空配列。
 - contradictionPointedOut: 探偵が過去の発言との矛盾を指摘できていたら true。
 - npcLied: NPCの返答が、その場しのぎの嘘や誤誘導を含んでいたら true。

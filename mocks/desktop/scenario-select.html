@@ -45,9 +45,14 @@
       }
       .case {
         display: flex; flex-direction: column; gap: 2px; align-items: flex-start;
-        padding: 13px 0; text-align: left;
+        padding: 13px 0 13px 12px; text-align: left;
         background: none; border: 0; border-bottom: 1px solid var(--keisen);
         color: inherit; font: inherit; text-decoration: none;
+      }
+      /* 触れている一件だけ左端に線を立てる（語彙は _desk.css の「押せる行の左端に立つ一本」）。
+         事件は顔料を持たないので鼠で引く。 */
+      @media (hover: hover) {
+        .case:hover { box-shadow: inset 2px 0 0 var(--nezumi); }
       }
       .case .cat { font-size: 10px; color: var(--nezumi-dim); letter-spacing: 0.16em; line-height: 1.5; }
       .case .ttl { font-family: var(--mincho); font-weight: 500; font-size: 15px; line-height: 1.5; letter-spacing: 0.03em; }

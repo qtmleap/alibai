@@ -709,13 +709,34 @@ select {
   font-size: 14px;
 }
 
+/* ---- 押せる行の左端に立つ一本 ---- */
+/*
+ * 机の上では指が触れないので、押せる行かどうかを静止画から読み取れない。
+ * 触れているあいだだけ左端に一本立てて、そこが押せることを言う。
+ *
+ * 選ばれた行の線と同じ位置・同じ太さで引き、明るさだけを変える——
+ * 迷っているあいだの線と、決めたあとの線が別物に見えると、
+ * 触れて動いた一本が「選べた」のか「選んだ」のか分からなくなる。
+ *
+ * 枠ではなく内側の影で引く。枠だと線が出た瞬間に行の字が右へずれる。
+ * 行の側に左の余白を用意しておくのも同じ理由で、線と字を重ねないため。
+ * 顔料を持つ行（人物・場所）はその人の色で、持たない行は鼠で引く。
+ *
+ * 指の台では hover が押したあと張り付くので、ポインタのある台だけに出す。
+ */
+
 /* ---- 名簿（登場人物） ---- */
 .cast .r {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 0;
+  padding: 10px 0 10px 12px;
   border-bottom: 1px solid var(--keisen);
+}
+@media (hover: hover) {
+  .cast .r:not([disabled]):hover {
+    box-shadow: inset 2px 0 0 currentColor;
+  }
 }
 .cast .r:first-child {
   border-top: 1px solid var(--keisen);
