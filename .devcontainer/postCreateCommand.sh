@@ -29,14 +29,13 @@ if [ -f package.json ]; then
   fi
 fi
 
-# Playwright's browser and the shared libraries it links against.
-# The screenshot tool (.claude/skills/mock-shot) needs both; without them it dies
-# with "libglib-2.0.so.0: cannot open shared object file".
+# Playwright's browser for the screenshot tool (.claude/skills/mock-shot).
+# The shared libraries it links against are declared in devcontainer.json's
+# apt-packages feature — without them the browser dies at launch with
+# "libglib-2.0.so.0: cannot open shared object file".
 # The installs above pass --ignore-scripts, so package.json's postinstall does not
 # fire here — call it explicitly.
 if [ -x node_modules/.bin/playwright ]; then
-  sudo env "PATH=$PATH" node_modules/.bin/playwright install-deps chromium \
-    || echo "[postCreate] playwright install-deps failed — run it manually"
   bun run postinstall || echo "[postCreate] browser download failed — run 'bun run postinstall'"
 fi
 
