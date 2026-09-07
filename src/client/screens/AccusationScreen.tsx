@@ -343,7 +343,7 @@ export const AccusationScreen = ({
               {/* 死亡推定は掴んで動かす目盛りと同じ描き方。ここは動かないが、朱で立てて唯一の刻限だと示す。 */}
               {deadline === undefined ? null : (
                 <span
-                  className="absolute top-[-4px] bottom-[18px] w-[1.5px] bg-shu"
+                  className="absolute top-[-4px] bottom-[57px] w-[1.5px] bg-shu"
                   style={{ left: ratio(deadline.at) }}
                 >
                   <span
@@ -356,9 +356,81 @@ export const AccusationScreen = ({
                 </span>
               )}
 
+              {/*
+                帯の下、軸の上に置く刻限の一段。遺体発見は常に実線、死亡推定は確度で描き分ける
+                （机の AlibiChart と同じ規則）。指名の目盛りと重なると読めなくなるので、
+                段の下（top:4〜88px）だけを使い、上の帯へは踏み込まない。
+              */}
+              {deathInfo === undefined ? null : (
+                <>
+                  {deathInfo.foundAt === undefined ? null : (
+                    <>
+                      <RailTick pct={ratioNum(deathInfo.foundAt)} dotted={false} />
+                      <RailLabel pct={ratioNum(deathInfo.foundAt)}>
+                        {'遺体発見　'}
+                        <span className={CLOCK}>{deathInfo.foundAt}</span>
+                      </RailLabel>
+                    </>
+                  )}
+
+                  {deathInfo.death === undefined ? null : deathInfo.death.kind === 'fixed' ? (
+                    <>
+                      <RailTick pct={ratioNum(deathInfo.death.at)} dotted={false} />
+                      <RailLabel pct={ratioNum(deathInfo.death.at)}>
+                        {deathInfo.label}
+                        <span className={CLOCK}>{deathInfo.death.at}</span>
+                      </RailLabel>
+                    </>
+                  ) : deathInfo.death.kind === 'range' ? (
+                    <>
+                      <RailWindow
+                        fromPct={ratioNum(deathInfo.death.from)}
+                        toPct={ratioNum(deathInfo.death.to)}
+                        dotted={false}
+                      />
+                      <RailLabel
+                        pct={(ratioNum(deathInfo.death.from) + ratioNum(deathInfo.death.to)) / 2}
+                      >
+                        {deathInfo.label}
+                        <span
+                          className={CLOCK}
+                        >{`${deathInfo.death.from}–${deathInfo.death.to}`}</span>
+                      </RailLabel>
+                    </>
+                  ) : deathInfo.death.kind === 'claimed' ? (
+                    <>
+                      <RailTick pct={ratioNum(deathInfo.death.at)} dotted={true} />
+                      <RailLabel pct={ratioNum(deathInfo.death.at)}>
+                        {deathInfo.label}
+                        <span className={CLOCK}>{`? ${deathInfo.death.at}`}</span>
+                        {/* 誰の見立てかは札の尾に続ける。机には線の下の一段があるが、端末にその段が無いため。 */}
+                        <span
+                          className={`ml-[6px] ${inkOf(HUES.indexOf(deathInfo.death.by.hue))}`}
+                        >{`${deathInfo.death.by.name}の見立て`}</span>
+                      </RailLabel>
+                    </>
+                  ) : (
+                    // 不明。どこか一点を指せないので、分かっている幅ぜんぶを点線の窓で囲う。
+                    <>
+                      <RailWindow
+                        fromPct={0}
+                        toPct={deathInfo.foundAt === undefined ? 100 : ratioNum(deathInfo.foundAt)}
+                        dotted={true}
+                      />
+                      <RailLabel
+                        pct={
+                          (deathInfo.foundAt === undefined ? 100 : ratioNum(deathInfo.foundAt)) / 2
+                        }
+                      >
+                        {deathInfo.label}　<span className={CLOCK}>?</span>
+                      </RailLabel>
+                    </>
+                  )}
+                </>
+              )}
+
               <div className="absolute inset-x-0 bottom-0 flex justify-between border-keisen border-t pt-[5px]">
                 <span className={CLOCK}>{timeWindow.start}</span>
-                {deadline === undefined ? null : <span className={CLOCK}>{deadline.at}</span>}
                 <span className={CLOCK}>{timeWindow.end}</span>
               </div>
             </div>

@@ -160,7 +160,15 @@ const ROW_STAGGER_MS = 200
  * `at` は上から何番目か。渡さなければ他と一緒に出る——順に読ませたいのは
  * 判定の三行だけで、記録は表として一度に見えたほうが早い。
  */
-const Row = ({ label, at = 0, children }: { label: string; at?: number; children: ReactNode }) => (
+const Row = ({
+  label,
+  at = 0,
+  children,
+}: {
+  label: ReactNode
+  at?: number
+  children: ReactNode
+}) => (
   <div
     className="row-in flex items-baseline justify-between gap-4 border-keisen border-b py-[7px] text-[12.5px] leading-[1.75] lg:py-[9px] lg:text-[13.5px] lg:leading-[1.8]"
     style={{ animationDelay: `${at * ROW_STAGGER_MS}ms` }}
@@ -412,7 +420,20 @@ export const ResultScreen = ({ accuseResult, board, onRetry, onRestart }: Props)
               <Row label={solved ? '解決タイム' : 'かかった時間'}>
                 <span className={AT}>{elapsed}</span>
               </Row>
-              <Row label="質問回数">{result.questionCount}回</Row>
+              {/*
+                訊くだけでなく遺体も現場も調べる。全部まとめて「手」なので、
+                端末では質問と呼ばない——机は横幅があるぶん「質問回数」で言い切れる。
+              */}
+              <Row
+                label={
+                  <>
+                    <span className="lg:hidden">使ったターン</span>
+                    <span className="hidden lg:inline">質問回数</span>
+                  </>
+                }
+              >
+                {result.questionCount}回
+              </Row>
               <Row label="発見した証拠">{result.evidenceFound}個</Row>
             </div>
           </Group>
