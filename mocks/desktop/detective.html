@@ -66,7 +66,11 @@
       .roster .r { align-items: flex-start; padding-left: 14px; }
       .roster .r.on { box-shadow: inset 2px 0 0 var(--kinari); }
       @media (hover: hover) {
-        .roster .r:not(.on):hover { box-shadow: inset 2px 0 0 var(--nezumi); }
+        .roster .r:not(.on):hover { box-shadow: inset 2px 0 0 var(--nezumi); background: var(--sumi-2); }
+        /* 行の中の小さな操作と、字だけの操作。起こすものが字しかない。 */
+        .roster .acts span:hover, .add:hover, .mirror .edit:hover, .det > .lt > .back:hover {
+          color: var(--kinari);
+        }
       }
       .roster .pick {
         display: flex; flex-direction: column; min-width: 0;

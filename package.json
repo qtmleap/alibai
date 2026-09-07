@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "postinstall": "playwright install --only-shell chromium",
     "dev": "vite --host",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
