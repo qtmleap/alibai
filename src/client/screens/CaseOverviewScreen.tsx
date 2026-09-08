@@ -129,7 +129,7 @@ const NameRow = ({
       disabled={disabled}
       onClick={onClick}
       aria-pressed={active}
-      className={`flex w-full items-center gap-2.5 py-[7px] text-left lg:gap-3 lg:py-2.5 ${nameInk} ${
+      className={`flex w-full items-center gap-2.5 py-[7px] text-left lg:gap-3 lg:py-2.5 lg:pl-3 ${nameInk} ${
         disabled ? '' : 'lg:hover:bg-sumi-2 lg:hover:shadow-[inset_2px_0_0_currentColor]'
       }`}
     >
