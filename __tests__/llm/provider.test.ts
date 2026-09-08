@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import type { Env } from '@/server/env'
-import { cacheHint, chooseLlm, hasApiKey } from '@/server/llm/provider'
+import { chooseLlm, isLlmConfigured } from '@/server/llm/provider'
 import { toUsageRow } from '@/server/llm/usage'
 import { LLM_DEFAULT_MODELS } from '~/db/llm-catalog'
 
@@ -15,12 +15,8 @@ const makeEnv = (overrides: Partial<Env>): Env => ({
   LLM_ACTOR_MODEL: undefined,
   LLM_JUDGE_MODEL: undefined,
   LLM_AUTHOR_MODEL: undefined,
-  ANTHROPIC_API_KEY: 'key-anthropic',
   OPENAI_API_KEY: 'key-openai',
-  GOOGLE_GENERATIVE_AI_API_KEY: undefined,
-  ANTHROPIC_BASE_URL: undefined,
-  OPENAI_BASE_URL: undefined,
-  GOOGLE_GENERATIVE_AI_BASE_URL: undefined,
+  OPENAI_URL: undefined,
   MAX_TURNS: 5,
   QUESTIONS_PER_TURN: 1,
   RATE_LIMIT_MAX_CALLS: 420,
@@ -81,45 +77,18 @@ describe('chooseLlm: 信用しない入力', () => {
   })
 
   /*
-    キーの無いプロバイダを通すと、応答を流し始めてから SDK の中で落ちる。
-    一番後味の悪い壊れ方なので、選ばれても env のプロバイダのまま進む。
+    宛先は互換サーバ1つなので、プロバイダごとの鍵の有無で弾く道理が無くなった。
+    どのプロバイダを選んでもそのまま通す。
   */
-  test('APIキーが無いプロバイダの指定は無視する', () => {
-    const choice = chooseLlm(makeEnv({}), 'actor', { provider: 'google' })
-
-    expect(choice.provider).toBe('anthropic')
-  })
-
-  test('キーが有れば同じ指定が通る', () => {
-    const env = makeEnv({ GOOGLE_GENERATIVE_AI_API_KEY: 'key-google' })
-
-    expect(chooseLlm(env, 'actor', { provider: 'google' }).provider).toBe('google')
+  test('プロバイダの指定はどれでも通る', () => {
+    expect(chooseLlm(makeEnv({}), 'actor', { provider: 'google' }).provider).toBe('google')
   })
 })
 
-describe('hasApiKey', () => {
-  test('鍵の有無だけを見る', () => {
-    const env = makeEnv({})
-
-    expect(hasApiKey(env, 'anthropic')).toBe(true)
-    expect(hasApiKey(env, 'google')).toBe(false)
-  })
-})
-
-/*
-  cacheHint が env と role ではなく決定済みの choice を受けるのは、
-  「モデルは openai なのに anthropic のキャッシュ指定が付く」ズレを型で書けなくするため。
-*/
-describe('cacheHint', () => {
-  test('anthropic のときだけキャッシュ指定を返す', () => {
-    expect(cacheHint({ provider: 'anthropic', modelId: 'claude-sonnet-5' })).toEqual({
-      anthropic: { cacheControl: { type: 'ephemeral' } },
-    })
-  })
-
-  test('他のプロバイダでは空', () => {
-    expect(cacheHint({ provider: 'openai', modelId: 'gpt-5.6-terra' })).toEqual({})
-    expect(cacheHint({ provider: 'google', modelId: 'gemini-3.5-flash' })).toEqual({})
+describe('isLlmConfigured', () => {
+  test('互換サーバの鍵の有無だけを見る', () => {
+    expect(isLlmConfigured(makeEnv({}))).toBe(true)
+    expect(isLlmConfigured(makeEnv({ OPENAI_API_KEY: undefined }))).toBe(false)
   })
 })
 

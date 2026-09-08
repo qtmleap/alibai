@@ -17,12 +17,8 @@ const envWithKeys: Env = {
   LLM_ACTOR_MODEL: undefined,
   LLM_JUDGE_MODEL: undefined,
   LLM_AUTHOR_MODEL: undefined,
-  ANTHROPIC_API_KEY: 'sk-ant-secret-value',
   OPENAI_API_KEY: 'sk-openai-secret-value',
-  GOOGLE_GENERATIVE_AI_API_KEY: undefined,
-  ANTHROPIC_BASE_URL: 'https://gateway.example.internal/v1',
-  OPENAI_BASE_URL: 'https://gateway.example.internal/v1',
-  GOOGLE_GENERATIVE_AI_BASE_URL: undefined,
+  OPENAI_URL: 'https://gateway.example.internal/v1',
   MAX_TURNS: 5,
   QUESTIONS_PER_TURN: 1,
   RATE_LIMIT_MAX_CALLS: 420,
@@ -31,13 +27,23 @@ const envWithKeys: Env = {
 }
 
 describe('buildLlmSettings', () => {
+  /*
+    宛先は互換サーバ1つなので、可否はプロバイダごとに分かれない。
+    鍵が有れば全部 true、無ければ全部 false になる。
+  */
   test('鍵の有無だけを真偽値で伝える', () => {
     const payload = buildLlmSettings(envWithKeys)
     const availability = Object.fromEntries(
       payload.providers.map((provider) => [provider.id, provider.available]),
     )
 
-    expect(availability).toEqual({ anthropic: true, openai: true, google: false })
+    expect(availability).toEqual({ anthropic: true, openai: true, google: true })
+  })
+
+  test('鍵が無ければどれも選ばせない', () => {
+    const payload = buildLlmSettings({ ...envWithKeys, OPENAI_API_KEY: undefined })
+
+    expect(payload.providers.every((provider) => !provider.available)).toBe(true)
   })
 
   /*
@@ -48,12 +54,11 @@ describe('buildLlmSettings', () => {
   test('鍵の値もゲートウェイの向き先も本文に現れない', () => {
     const text = JSON.stringify(buildLlmSettings(envWithKeys))
 
-    expect(text).not.toContain('sk-ant-secret-value')
     expect(text).not.toContain('sk-openai-secret-value')
     expect(text).not.toContain('gateway.example.internal')
     expect(text).not.toContain('http')
     expect(text).not.toContain('API_KEY')
-    expect(text).not.toContain('BASE_URL')
+    expect(text).not.toContain('OPENAI_URL')
   })
 
   test('選ばせる役割は会話と判定の2つだけ（author は出さない）', () => {

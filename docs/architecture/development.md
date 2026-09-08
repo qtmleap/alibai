@@ -44,13 +44,12 @@
 
 ```json
 "remoteEnv": {
-  "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}",
   "OPENAI_API_KEY": "${localEnv:OPENAI_API_KEY}",
-  "GOOGLE_GENERATIVE_AI_API_KEY": "${localEnv:GOOGLE_GENERATIVE_AI_API_KEY}"
+  "OPENAI_URL": "${localEnv:OPENAI_URL}"
 }
 ```
 
-ホスト側にキーが無ければ空文字が入るだけで、コンテナは問題なく起動します。使わないプロバイダのキーは設定しなくて構いません。
+ホスト側にキーが無ければ空文字が入るだけで、コンテナは問題なく起動します（空文字は「未設定」として扱われます）。LLM はどのプロバイダを選んでも `OPENAI_URL` の互換サーバへ行くので、鍵はこの1本だけです。
 
 `~/.aws` `~/.ssh` `~/.config/gh` は読み取り専用でバインドマウントされます。
 
@@ -137,7 +136,7 @@ test('GET /api/health responds ok', async () => {
 
 全ジョブが `~/.bun/install/cache` をキャッシュし、`bun install --frozen-lockfile --ignore-scripts` で入れます。
 
-デプロイに必要な GitHub Secrets は `CLOUDFLARE_API_TOKEN` と `CLOUDFLARE_ACCOUNT_ID` です。**LLM の APIキーは渡しません。** `wrangler secret put ANTHROPIC_API_KEY` で登録済みである前提です。`wrangler.jsonc` の `vars` にはプロバイダ選択とレート制限値だけを置き、シークレットは入れません。
+デプロイに必要な GitHub Secrets は `CLOUDFLARE_API_TOKEN` と `CLOUDFLARE_ACCOUNT_ID` です。**LLM の APIキーは渡しません。** `wrangler secret put OPENAI_API_KEY` で登録済みである前提です。`wrangler.jsonc` の `vars` にはプロバイダ選択とレート制限値だけを置き、シークレットは入れません。
 
 コミットメッセージは Conventional Commits です（`.commitlintrc.yaml`）。ローカルで CI を動かしたいときは Dev Container に入っている `act` が使えます（`.actrc` あり）。
 

@@ -1,7 +1,7 @@
 import { type ModelMessage, streamText } from 'ai'
 import type { Env } from '@/server/env'
 import { buildDetectiveBlock } from '@/server/llm/detective'
-import { cacheHint, type LlmChoice, resolveModel } from '@/server/llm/provider'
+import { type LlmChoice, resolveModel } from '@/server/llm/provider'
 import type { Detective } from '~/db/detective'
 
 export type ActorContext = {
@@ -42,8 +42,6 @@ const buildDetectiveMessages = (detective: Detective | undefined): ModelMessage[
  * キャッシュ設計の要点:
  *   - gameRules と characterSheet は会話中まったく変化しない → プレフィックス
  *   - 探偵もセッション開始時に決まったら変わらないので、履歴より前に置いてよい
- *     （cacheHint は付けない。数行しかなく最小キャッシュ長に届かないので、
- *       ブレークポイントを1つ消費するだけ無駄になる）
  *   - ターン数・経過時間・発見済み証拠は絶対にここへ埋め込まない
  *     （埋め込むと毎ターンprefixが変わり、キャッシュが全部無効になる）
  */
@@ -61,25 +59,16 @@ export const streamNpcReply = ({
     // system を messages 側に置くことを明示的に許可する。
     //
     // AI SDK は既定でこれを警告する（プレイヤー由来の文字列が system に混ざる経路を
-    // 作りやすいため）。ここでそれでも messages に置くのは、Anthropic の
-    // cacheControl が「ブロック単位」の指定で、system オプション（ただの文字列）では
-    // ゲームルールとキャラクターシートに別々のブレークポイントを打てないから。
-    // キャッシュ設計を捨てるとランニングコストが一桁変わる。
+    // 作りやすいため）。ここでそれでも messages に置くのは、ゲームルールと
+    // キャラクターシートを別々のブロックとして前置きに並べたいから。
+    // 共通の前置きが長いほど、互換サーバ側の自動プレフィックスキャッシュが効きやすい。
     //
     // プレイヤーの発話は必ず user ロールに閉じ込めており（utterance を
     // system 側へ混ぜる経路はこの関数に存在しない）、警告が想定する事故は起きない。
     allowSystemInMessages: true,
     messages: [
-      {
-        role: 'system',
-        content: gameRules,
-        providerOptions: cacheHint(choice),
-      },
-      {
-        role: 'system',
-        content: characterSheet,
-        providerOptions: cacheHint(choice),
-      },
+      { role: 'system', content: gameRules },
+      { role: 'system', content: characterSheet },
       ...buildDetectiveMessages(detective),
       ...history,
       { role: 'user', content: utterance },

@@ -1,7 +1,4 @@
-import { createAnthropic } from '@ai-sdk/anthropic'
-import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { createOpenAI } from '@ai-sdk/openai'
-import type { ProviderOptions } from '@ai-sdk/provider-utils'
 import type { LanguageModel } from 'ai'
 import type { Env } from '@/server/env'
 import {
@@ -22,9 +19,12 @@ import {
  * みたいな混成構成も設定だけで組める。
  *
  * このモジュールは「役割 → 使う値を決める」（chooseLlm）と「値 → SDKクライアント」
- * （resolveModel / cacheHint）に分かれている。分けてあるのは、プレイヤーが画面から
+ * （resolveModel）に分かれている。分けてあるのは、プレイヤーが画面から
  * モデルを差し替えられるようにしたときに、決定を**リクエストごとに一度だけ**行って
  * 以降は同じ値を配り回すため。役割から二度引くと、片方だけ差し替わって食い違う。
+ *
+ * 宛先は3社ぶんではなく `OPENAI_URL` の互換サーバ1つ。プロバイダ名はモデルIDの
+ * 区分けとして残っているだけで、経路は分かれない。
  */
 export type LlmRole = 'actor' | 'judge' | 'author'
 
@@ -54,48 +54,20 @@ const configOf = (
   }
 }
 
-const apiKeyOf = (env: Env, provider: LlmProvider): string | undefined => {
-  switch (provider) {
-    case 'anthropic':
-      return env.ANTHROPIC_API_KEY
-    case 'openai':
-      return env.OPENAI_API_KEY
-    case 'google':
-      return env.GOOGLE_GENERATIVE_AI_API_KEY
-  }
-}
-
-/** 設定画面が「選ばせてよいプロバイダ」を出すのに使う。鍵そのものは決して外へ出さない。 */
-export const hasApiKey = (env: Env, provider: LlmProvider): boolean =>
-  apiKeyOf(env, provider) !== undefined
-
 /**
- * ゲートウェイを挟む場合の向き先。未設定なら undefined を返し、各SDKの既定に任せる。
+ * 設定画面が「モデルを選ばせてよいか」を決めるのに使う。鍵そのものは決して外へ出さない。
  *
- * ここはクライアントから差し替えられない。公開された画面から向き先を変えられると、
- * 攻撃者が自分のサーバを指定するだけで、Worker がそこへ API キーを添えて送ってしまう。
+ * 宛先が互換サーバ1つになったので、プロバイダごとの可否は無い。
+ * どのモデルが本当に生えているかは互換サーバ次第で、ここからは分からない。
  */
-const baseUrlOf = (env: Env, provider: LlmProvider): string | undefined => {
-  switch (provider) {
-    case 'anthropic':
-      return env.ANTHROPIC_BASE_URL
-    case 'openai':
-      return env.OPENAI_BASE_URL
-    case 'google':
-      return env.GOOGLE_GENERATIVE_AI_BASE_URL
-  }
-}
+export const isLlmConfigured = (env: Env): boolean => env.OPENAI_API_KEY !== undefined
 
 /**
  * どのプロバイダのどのモデルを使うかを決める。リクエストごとに一度だけ呼ぶ。
  *
- * 優先順位は override → env → 既定表。ただし override は次の2つの場合に黙って捨てる。
- * どちらも 400 にはしない——localStorage に古い設定が残っているだけのプレイヤーを、
- * 事件の途中で締め出すことになるため。
- *
- *   - 指定されたプロバイダの API キーが設定されていない
- *     （通すと、応答を流し始めてから SDK の中で落ちる。一番後味の悪い壊れ方）
- *   - 指定されたモデルIDが `db/llm-catalog.ts` の表に無い
+ * 優先順位は override → env → 既定表。ただし override のモデルIDが
+ * `db/llm-catalog.ts` の表に無ければ黙って捨てる。400 にはしない——localStorage に
+ * 古い設定が残っているだけのプレイヤーを、事件の途中で締め出すことになるため。
  *
  * provider が override で変わったときに env のモデルIDを引き継がないのが要点。
  * `LLM_ACTOR_MODEL` は別のプロバイダ向けの値なので、openai に `claude-sonnet-5` を
@@ -104,7 +76,7 @@ const baseUrlOf = (env: Env, provider: LlmProvider): string | undefined => {
 export const chooseLlm = (env: Env, role: LlmRole, override?: LlmOverride): LlmChoice => {
   const config = configOf(env, role)
   const wanted = override?.provider
-  const provider = wanted !== undefined && hasApiKey(env, wanted) ? wanted : config.provider
+  const provider = wanted === undefined ? config.provider : wanted
 
   const fromEnv = provider === config.provider ? config.model : undefined
   const requested = override?.model
@@ -121,40 +93,17 @@ export const chooseLlm = (env: Env, role: LlmRole, override?: LlmOverride): LlmC
 /**
  * プロバイダのクライアントはただのファクトリなので、リクエストごとに作っても実質コストはない。
  * isolate をまたいで使い回そうとするより、毎回作るほうが安全で読みやすい。
+ *
+ * どのプロバイダのモデルも `createOpenAI` で組む。宛先は `OPENAI_URL` の一つだけで、
+ * プロバイダ名はモデルIDの区分けとして残っているだけ。
+ *
+ * `.chat` を明示するのは、省くと Responses API（`/responses`）へ行くため。
+ * OpenAI互換を名乗るサーバが出しているのは大抵 `/chat/completions` だけで、
+ * 既定のままだと 404 になる。本家も `/chat/completions` を持っているので、
+ * こちらに寄せれば両方に繋がる。
+ *
+ * 向き先はクライアントから差し替えられない。公開された画面から変えられると、
+ * 攻撃者が自分のサーバを指定するだけで、Worker がそこへ API キーを添えて送ってしまう。
  */
-export const resolveModel = (env: Env, choice: LlmChoice): LanguageModel => {
-  const baseURL = baseUrlOf(env, choice.provider)
-  const apiKey = apiKeyOf(env, choice.provider)
-
-  switch (choice.provider) {
-    case 'anthropic':
-      return createAnthropic({ apiKey, baseURL })(choice.modelId)
-    case 'openai':
-      /*
-        `.chat` を明示する。省くと Responses API（`/responses`）へ行くが、
-        OpenAI互換を名乗るサーバが出しているのは大抵 `/chat/completions` だけで、
-        `OPENAI_BASE_URL` を自前のサーバに向けた瞬間に 404 になる。
-        本家も `/chat/completions` を持っているので、こちらに寄せれば両方に繋がる。
-      */
-      return createOpenAI({ apiKey, baseURL }).chat(choice.modelId)
-    case 'google':
-      return createGoogleGenerativeAI({ apiKey, baseURL })(choice.modelId)
-  }
-}
-
-/**
- * プロンプトキャッシュの効かせ方はプロバイダごとに違う。
- *
- *   Anthropic … 明示的。cache_control をブロックに付ける。付け忘れると効かない。
- *   OpenAI    … 自動。長い共通プレフィックスがあれば勝手に効く。設定なし。
- *   Google    … 暗黙キャッシュが自動で効く。明示キャッシュは別APIで管理する。
- *
- * 「Anthropicだけ明示が要る」ので、ここを抽象化の裏に隠すと
- * プロバイダを切り替えた瞬間にコストが跳ねる。だから関数として表に出す。
- *
- * 引数が env と role ではなく決定済みの choice なのは意図的。役割から引き直せる形だと、
- * resolveModel だけ差し替えたときに「actor は openai なのに anthropic のキャッシュ指定が
- * 付く」というズレが起こせてしまう。材料が手元に無ければ、そのズレは型で書けない。
- */
-export const cacheHint = (choice: LlmChoice): ProviderOptions =>
-  choice.provider === 'anthropic' ? { anthropic: { cacheControl: { type: 'ephemeral' } } } : {}
+export const resolveModel = (env: Env, choice: LlmChoice): LanguageModel =>
+  createOpenAI({ apiKey: env.OPENAI_API_KEY, baseURL: env.OPENAI_URL }).chat(choice.modelId)

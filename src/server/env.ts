@@ -65,25 +65,22 @@ const schema = z.object({
   LLM_JUDGE_MODEL: optionalString,
   LLM_AUTHOR_MODEL: optionalString,
 
-  // 使うプロバイダの分だけあればよい。
-  ANTHROPIC_API_KEY: optionalString,
+  /** 互換サーバの鍵。鍵を要らないサーバでも何か入れること（後述）。 */
   OPENAI_API_KEY: optionalString,
-  GOOGLE_GENERATIVE_AI_API_KEY: optionalString,
 
   /*
-    自前のゲートウェイを挟むときの向き先。未設定なら各社の本番エンドポイント。
+    LLMの向き先。3社ぶんではなく1つなのは、どのプロバイダのモデルも
+    OpenAI互換の `/chat/completions` へ投げるため（src/server/llm/provider.ts）。
+    プロバイダ名はモデルIDの区分けとして残っているだけで、宛先は分かれない。
 
     ここを env として明示的に持つ必要がある。AI SDK は baseURL を渡さないと
     process.env の同名変数を見にいくが、Workers の isolate に process.env は無い。
-    .env に置いただけではローカルでしか効かず、デプロイした瞬間に本家へ向き直る——
+    .dev.vars に置いただけではローカルでしか効かず、デプロイした瞬間に本家へ向き直る——
     しかも例外は出ないので、請求とレイテンシが変わるまで誰も気づかない。
 
-    各社ともパスの接頭辞まで含めた値を入れること
-    （OpenAI 互換なら末尾は /v1、Google は /v1beta）。
+    パスの接頭辞まで含めた値を入れること（末尾は `/v1`）。
   */
-  ANTHROPIC_BASE_URL: optionalString,
-  OPENAI_BASE_URL: optionalString,
-  GOOGLE_GENERATIVE_AI_BASE_URL: optionalString,
+  OPENAI_URL: optionalString,
 
   /** 1プレイで使えるターン数。使い切ると質問できなくなり、推理に進む。 */
   MAX_TURNS: z.coerce.number().int().positive().default(15),

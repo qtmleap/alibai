@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import type { Bindings, Env } from '@/server/env'
-import { hasApiKey } from '@/server/llm/provider'
+import { isLlmConfigured } from '@/server/llm/provider'
 import { withEnv } from '@/server/middleware/env'
 import { EXCHANGES_PER_TOPIC, LIMIT_CEILINGS } from '@/shared/turns'
 import {
@@ -19,8 +19,11 @@ import {
  * 値も、その長さも、ゲートウェイの向き先も載せない。ベースURLは設定できない方針なので、
  * 存在すら漏らさない（漏らせば、どこを狙えばよいかを教えることになる）。
  *
- * この口が無いと、キーの無いプロバイダを選べてしまい、応答を流し始めてから
+ * この口が無いと、鍵の無いまま選べてしまい、応答を流し始めてから
  * SDK の中で落ちることになる。一番後味の悪い壊れ方なので、先に潰しておく。
+ *
+ * 宛先は互換サーバ1つなので、可否はプロバイダごとに分かれない。互換サーバに
+ * そのモデルが本当に生えているかまでは、ここからは分からない。
  */
 export const settingsRoutes = new Hono<{ Bindings: Bindings }>()
 
@@ -35,7 +38,7 @@ export const buildLlmSettings = (env: Env) => ({
   providers: LLM_PROVIDERS.map((provider) => ({
     id: provider,
     label: LLM_PROVIDER_LABELS[provider],
-    available: hasApiKey(env, provider),
+    available: isLlmConfigured(env),
     models: LLM_CATALOG[provider],
   })),
   roles: SETTABLE_LLM_ROLES.map((role) => ({

@@ -16,20 +16,14 @@ Actor と Judge を分けるのが要点です。1つのモデルに「キャラ
 
 ## Vercel AI SDK によるプロバイダ抽象
 
-`ai@^5` と各社アダプタ（`@ai-sdk/anthropic` / `@ai-sdk/openai` / `@ai-sdk/google`）で3社を吸収します。`src/server/llm/provider.ts` が「役割 → モデル」の解決だけを担当し、呼び出し側（`actor.ts` / `judge.ts`）はプロバイダを知りません。
+`ai@^5` と `@ai-sdk/openai` を使います。宛先は `OPENAI_URL` が指す OpenAI互換サーバ1つで、3社ぶんの口には分かれません。プロバイダ名はモデルIDの区分けとして残っているだけです。`src/server/llm/provider.ts` が「役割 → モデル」の解決だけを担当し、呼び出し側（`actor.ts` / `judge.ts`）はプロバイダを知りません。
 
 ```typescript
-export const resolveModel = (env: Env, role: LlmRole): LanguageModel => {
-  const config = configOf(env, role)
-  const modelId = config.model === undefined ? DEFAULT_MODELS[config.provider][role] : config.model
-
-  switch (config.provider) {
-    case 'anthropic': return createAnthropic({ apiKey: env.ANTHROPIC_API_KEY })(modelId)
-    case 'openai':    return createOpenAI({ apiKey: env.OPENAI_API_KEY })(modelId)
-    case 'google':    return createGoogleGenerativeAI({ apiKey: env.GOOGLE_GENERATIVE_AI_API_KEY })(modelId)
-  }
-}
+export const resolveModel = (env: Env, choice: LlmChoice): LanguageModel =>
+  createOpenAI({ apiKey: env.OPENAI_API_KEY, baseURL: env.OPENAI_URL }).chat(choice.modelId)
 ```
+
+`.chat` を明示しています。省くと `@ai-sdk/openai` v2 は Responses API（`/responses`）へ行きますが、OpenAI互換を名乗るサーバが出しているのは大抵 `/chat/completions` だけで、既定のままだと 404 になります。
 
 `env` を引数で受け取るのが重要です。Workers の isolate はグローバルスコープにシークレットを持たないため、モジュールのトップレベルで env を読んだりクライアントを組み立てたりすると、デプロイした瞬間に起動しなくなります。全てリクエストスコープに降ろしています。
 
@@ -47,14 +41,18 @@ export const resolveModel = (env: Env, role: LlmRole): LanguageModel => {
 
 ### 切り替え
 
-環境変数だけで済みます。役割ごとに別プロバイダを選べるので、混成構成も設定だけで組めます。
+環境変数だけで済みます。役割ごとに別プロバイダを選べるので、混成構成も設定だけで組めます。ただし宛先は `OPENAI_URL` 一つなので、選んだモデルがその互換サーバに生えていることが前提です。
 
 ```bash
-LLM_ACTOR_PROVIDER=anthropic    # anthropic | openai | google
+OPENAI_URL=https://example.internal/v1   # 末尾は /v1
+OPENAI_API_KEY=                          # 鍵の要らないサーバでも何か入れる
+
+LLM_ACTOR_PROVIDER=anthropic    # anthropic | openai | google（モデルIDの区分けとして働く）
 LLM_JUDGE_PROVIDER=google       # actorはClaude、judgeはGeminiのFlash系、も可
 LLM_AUTHOR_PROVIDER=openai
 
-# 個別にモデルIDを上書きしたい場合
+# 個別にモデルIDを上書きしたい場合。env 由来の値は db/llm-catalog.ts の表を通らないので、
+# 互換サーバ独自のモデル名もそのまま書けます。
 LLM_ACTOR_MODEL=
 ```
 
@@ -70,10 +68,11 @@ LLM_ACTOR_MODEL=
 
 ```typescript
 streamText({
-  model: resolveModel(env, 'actor'),
+  model: resolveModel(env, choice),
+  allowSystemInMessages: true,
   messages: [
-    { role: 'system', content: gameRules,      providerOptions: cacheHint(env, 'actor') },
-    { role: 'system', content: characterSheet, providerOptions: cacheHint(env, 'actor') },
+    { role: 'system', content: gameRules },
+    { role: 'system', content: characterSheet },
     ...buildDetectiveMessages(detective),
     ...history,
     { role: 'user', content: question },
@@ -98,7 +97,7 @@ streamText({
 
 ### 探偵の人物像
 
-プレイヤーが演じる探偵（`src/server/llm/detective.ts`）を、キャラクターシートの直後・履歴の前に置きます。セッション開始時に決まったら変わらないので、プレフィックスを壊しません。`cacheHint` は付けません。数行しかなく最小キャッシュ長に届かないので、ブレークポイントを1つ捨てるだけになります。
+プレイヤーが演じる探偵（`src/server/llm/detective.ts`）を、キャラクターシートの直後・履歴の前に置きます。セッション開始時に決まったら変わらないので、プレフィックスを壊しません。
 
 ここには人物像に加えて**呼びかけの候補**を書きます。設定を並べるだけでは、モデルはどの相手にも同じ調子で喋るからです。
 
@@ -165,56 +164,30 @@ Judge は往復ごとではなく**話題ごとに1回**呼びます。往復ご
 
 会話型ゲームは、毎ターン同じNPC定義（人格・知識・秘密・記憶）を送り直す構造です。20ターンの尋問なら、同じキャラクターシートを20回送ることになります。キャッシュが効けばこの部分が大幅に安くなり、効かなければ全額です。
 
-### ここだけは抽象化の裏に隠せない
+### 明示指定は持っていません
 
-挙動が3社で違います。
+以前は Anthropic の `cache_control` を `cacheHint` で差し込んでいましたが、互換API一本にした時点で外しました。`createOpenAI` で組んだモデルに `{ anthropic: ... }` の `providerOptions` を渡しても、AI SDK 側で誰も読まないため黙って捨てられるからです。エラーは出ず、請求だけが変わる——動かない指定をコードに残すほうが害が大きいと判断しました。
 
-| プロバイダ | 方式 | 実装側でやること |
-| --- | --- | --- |
-| Anthropic | 明示的。`cache_control` をブロックに付ける | **付け忘れると効かない。** ブレークポイント設計が必要 |
-| OpenAI | 自動。共通プレフィックスがあれば効く | 設定不要。プレフィックスを壊さないことだけ意識する |
-| Google | 暗黙キャッシュが自動。明示キャッシュは別API | 基本は自動任せ |
+いま頼っているのは、共通プレフィックスがあれば自動で効くタイプのキャッシュだけです。互換サーバが裏で Anthropic を叩く構成にする場合、`cache_control` を通せるかどうかはそのサーバ次第で、ここからは指定できません。**明示指定が要るモデルへ寄せるなら、そのプロバイダだけネイティブSDKに戻す判断が要ります。**
 
-抽象レイヤの裏に隠すと、プロバイダを切り替えた瞬間にコストが跳ねます。そのため `cacheHint(env, role)` を関数として表に出し、Anthropic 選択時だけ明示指定を差し込みます。
-
-```typescript
-export const cacheHint = (env: Env, role: LlmRole): ProviderOptions =>
-  providerOf(env, role) === 'anthropic'
-    ? { anthropic: { cacheControl: { type: 'ephemeral' } } }
-    : {}
-```
-
-### 3社共通で守るべき設計ルール
+### 守るべき設計ルール
 
 **1. system prompt を凍結する。**
-「現在のターン数」「経過時間」「発見済み証拠リスト」を system に埋め込まないこと。これらは毎ターン変わるので、先頭に入れた瞬間にキャッシュミスします。動的な状態は必ずメッセージ列の後方に置きます。どのプロバイダもプレフィックス一致なので、これは共通です。
+「現在のターン数」「経過時間」「発見済み証拠リスト」を system に埋め込まないこと。これらは毎ターン変わるので、先頭に入れた瞬間にキャッシュミスします。動的な状態は必ずメッセージ列の後方に置きます。プレフィックス一致で効くタイプのキャッシュしか使っていないので、ここが唯一のレバーです。
 
-**2. ブレークポイントは安定性の境界に置く（Anthropic）。**
+**2. 前置きは安定している順に並べる。**
 
 - 1つ目: 全シナリオ共通のゲームルール（最も安定）
 - 2つ目: NPCのキャラクターシート（そのNPCとの会話中は不変）
-- 3つ目: 直近ターンの最終コンテンツブロック（会話履歴を累積キャッシュ）
+- 3つ目以降: 探偵、会話履歴
 
-ブレークポイントは1リクエスト最大4つまでです。
+`actor.ts` / `examiner.ts` が `allowSystemInMessages: true` を立てているのはこのためです。system オプション（ただの文字列）ではこの並びを作れません。
 
-**3. 最小キャッシュ長に注意する（Anthropic）。**
-これを下回ると、`cache_control` を付けてもエラーにならず静かにキャッシュされません。
-
-| モデル | 最小キャッシュ長 |
-| --- | --- |
-| `claude-opus-5` | 512 tokens |
-| `claude-sonnet-5` | 1,024 tokens |
-| `claude-haiku-4-5` | 4,096 tokens |
-
-Judge 用のプロンプトは 4,096 トークン未満になりがちです。キャッシュしたいなら共通の判定ルールを厚めに書いて閾値を超えさせるか、割り切って諦めます。現状 `judge.ts` は `cacheHint` を使っていません。
-
-**4. キャッシュはモデル単位・NPC単位で分かれる。**
+**3. キャッシュはモデル単位・NPC単位で分かれる。**
 同一シナリオでもNPCが違えばキャッシュは別物です。1プレイ中に何度も同じNPCへ聞き直す設計は、キャッシュ効率の面でも有利になります。
 
-**5. 必ず計測する。**
-キャッシュ読み込みトークンが0のまま増えないなら、どこかに破壊要因があります。タイムスタンプ、UUID、JSONのキー順不定、条件分岐による system 文の差分などを疑ってください。
-
-Anthropic の既定 TTL は5分です。1回のプレイが約10分なので、テンポの良いプレイなら5分で十分回りますが、じっくり考えるプレイヤーは会話間隔が空きます。1時間TTLは書き込みコストが上がるので、実データでヒット率を見てから判断します。
+**4. 必ず計測する。**
+キャッシュ読み込みトークンが0のまま増えないなら、どこかに破壊要因があります。タイムスタンプ、UUID、JSONのキー順不定、条件分岐による system 文の差分などを疑ってください。互換サーバがそもそもキャッシュを持たない可能性もあるので、0が続くなら実装より先にサーバ側を確かめてください。
 
 ### コスト集計
 

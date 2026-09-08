@@ -8,7 +8,7 @@ import {
 import type { Env } from '@/server/env'
 import { buildDetectiveBlock, buildDetectiveSelfBlock } from '@/server/llm/detective'
 import type { TopicExchange } from '@/server/llm/interviewer'
-import { cacheHint, type LlmChoice, resolveModel } from '@/server/llm/provider'
+import { type LlmChoice, resolveModel } from '@/server/llm/provider'
 import type { Detective } from '~/db/detective'
 
 export type ExaminationFocusResult = {
@@ -109,19 +109,11 @@ export const streamExamination = ({
 }: ExaminationContext) =>
   streamText({
     model: resolveModel(env, choice),
-    // 理由は streamNpcReply と同じ。ブロックごとにキャッシュの区切りを打つため。
+    // 理由は streamNpcReply と同じ。前置きをブロックに分けて並べるため。
     allowSystemInMessages: true,
     messages: [
-      {
-        role: 'system',
-        content: examinationRules,
-        providerOptions: cacheHint(choice),
-      },
-      {
-        role: 'system',
-        content: sheet,
-        providerOptions: cacheHint(choice),
-      },
+      { role: 'system', content: examinationRules },
+      { role: 'system', content: sheet },
       ...buildDetectiveMessages(detective),
       ...history,
       { role: 'user', content: utterance },

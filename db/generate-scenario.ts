@@ -1,7 +1,7 @@
 import { generateObject, jsonSchema } from 'ai'
 import { z } from 'zod'
 import { parseEnv } from '@/server/env'
-import { cacheHint, chooseLlm, resolveModel } from '@/server/llm/provider'
+import { chooseLlm, resolveModel } from '@/server/llm/provider'
 import { type AuthorGenerate, describeIssues, runAuthor } from './author'
 import { scenarioDefinitionShapeSchema } from './scenario-definition'
 import { toScenarioYaml } from './scenario-file'
@@ -75,7 +75,6 @@ const generate: AuthorGenerate = async (request) => {
     schema: outputSchema,
     system: SYSTEM_PROMPT,
     prompt,
-    providerOptions: cacheHint(choice),
   })
 
   console.log(`  トークン: 入力 ${result.usage.inputTokens} / 出力 ${result.usage.outputTokens}`)
