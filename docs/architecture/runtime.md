@@ -80,7 +80,7 @@ const app = new Hono<{ Bindings: Bindings; Variables: { env: Env } }>()
 
 `src/server/env.ts` が Zod スキーマで環境変数を検証します。バインディングは isolate の中で不変なので、`src/server/middleware/env.ts` が一度検証した結果を使い回します。リクエストごとに parse をやり直すと、10分の体験の中で何十回も同じ検証を繰り返すことになります。
 
-APIキーは全て `optional` です。3社のうち使うプロバイダの分だけあればよく、未使用プロバイダのキーが無くても起動します。
+LLM 関係の項目（`OPENAI_URL` / `OPENAI_API_KEY` / `LLM_*_MODEL`）は全て `optional` です。設定が無くても起動し、聞き込みに入って初めて足りないと分かる形にしています。設定画面は鍵と向き先が揃っているときだけモデルの一覧を出し、揃っていなければ空配列を返して「選択肢が出ない」と説明します。
 
 ## ストリーミング
 
@@ -115,7 +115,7 @@ return streamSSE(c, async (stream) => {
 
 画面のルーティングは TanStack Start（`@tanstack/react-start`）が担い、`src/routes/` のディレクトリ構造から `src/routeTree.gen.ts` を生成します。生成物は手で触らず、`biome.json` の `!**/*.gen.ts` で検査からも外してあります。アセットに一致しないパスは Worker に落ちて SSR で応答するので、`not_found_handling`（SPAフォールバック）は使いません。
 
-dev サーバは `.env` を読んでシークレットとして Worker に渡します。未使用のプロバイダのキーを `KEY=` と空文字で残しても落ちないよう、`env.ts` 側で空文字は未設定として扱っています。
+dev サーバは `.env` を読んでシークレットとして Worker に渡します。使わない項目を `KEY=` と空文字で残しても落ちないよう、`env.ts` 側で空文字は未設定として扱っています。
 
 ### TypeScript
 

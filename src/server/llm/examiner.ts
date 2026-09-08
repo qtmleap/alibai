@@ -8,7 +8,7 @@ import {
 import type { Env } from '@/server/env'
 import { buildDetectiveBlock, buildDetectiveSelfBlock } from '@/server/llm/detective'
 import type { TopicExchange } from '@/server/llm/interviewer'
-import { type LlmChoice, resolveModel } from '@/server/llm/provider'
+import { resolveModel } from '@/server/llm/provider'
 import type { Detective } from '~/db/detective'
 
 export type ExaminationFocusResult = {
@@ -31,7 +31,7 @@ export type ExaminationFocusResult = {
  */
 export const composeExaminationFocus = async (params: {
   env: Env
-  choice: LlmChoice
+  modelId: string
   /** 何を調べに行くかの決まり。相手が遺体か場所かで文面が変わる。 */
   intentRules: string
   detective: Detective | undefined
@@ -42,7 +42,7 @@ export const composeExaminationFocus = async (params: {
 }): Promise<ExaminationFocusResult> => {
   // 調べどころはプレイヤー由来の文字列なので、必ず user ロールに閉じ込める。
   const result = await generateText({
-    model: resolveModel(params.env, params.choice),
+    model: resolveModel(params.env, params.modelId),
     system:
       params.detective === undefined
         ? params.intentRules
@@ -70,7 +70,7 @@ export const composeExaminationFocus = async (params: {
 
 export type ExaminationContext = {
   env: Env
-  choice: LlmChoice
+  modelId: string
   /**
    * 検分の語り口の決まり。会話中変わらないので先頭に置く。
    * 遺体なら `EXAMINATION_RULES`、場所なら `PLACE_EXAMINATION_RULES`。
@@ -100,7 +100,7 @@ const buildDetectiveMessages = (detective: Detective | undefined): ModelMessage[
  */
 export const streamExamination = ({
   env,
-  choice,
+  modelId,
   examinationRules,
   sheet,
   detective,
@@ -108,7 +108,7 @@ export const streamExamination = ({
   utterance,
 }: ExaminationContext) =>
   streamText({
-    model: resolveModel(env, choice),
+    model: resolveModel(env, modelId),
     // 理由は streamNpcReply と同じ。前置きをブロックに分けて並べるため。
     allowSystemInMessages: true,
     messages: [

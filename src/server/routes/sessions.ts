@@ -43,7 +43,7 @@ import { composeExaminationFocus, streamExamination } from '@/server/llm/examine
 import { createFilterState, FALLBACK_REPLY, feedChunk, finalizeFilter } from '@/server/llm/filter'
 import { streamQuestion, type TopicExchange } from '@/server/llm/interviewer'
 import { judgeTurn } from '@/server/llm/judge'
-import { chooseLlm, type LlmChoice } from '@/server/llm/provider'
+import { chooseLlm } from '@/server/llm/provider'
 import { toUsageRow } from '@/server/llm/usage'
 import { withEnv } from '@/server/middleware/env'
 import {
@@ -880,11 +880,11 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
 
   /*
     使うモデルはここで一度だけ決めて、以降は同じ値を配り回す。
-    役割から都度引き直すと、モデルとキャッシュ指定が別々に解決されて食い違う。
+    役割から都度引き直すと、同じ往復の中で質問と返答が違うモデルで走りうる。
     env そのものには決して混ぜない——withEnv が isolate 全体で使い回している
     オブジェクトなので、一人の選択が他のプレイヤーのリクエストへ漏れる。
   */
-  const choices: Record<'actor' | 'judge', LlmChoice> = {
+  const choices: Record<'actor' | 'judge', string> = {
     actor: chooseLlm(env, 'actor', askInput.llm?.actor),
     judge: chooseLlm(env, 'judge', askInput.llm?.judge),
   }
@@ -977,7 +977,7 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
       if (examining) {
         const focus = await composeExaminationFocus({
           env,
-          choice: choices.actor,
+          modelId: choices.actor,
           intentRules,
           detective,
           topic: askInput.topic,
@@ -994,7 +994,7 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
 
       const asking = streamQuestion({
         env,
-        choice: choices.actor,
+        modelId: choices.actor,
         detective,
         characterName: subject.name,
         topic: askInput.topic,
@@ -1026,7 +1026,6 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
 
       collected.usages.push(
         toUsageRow({
-          choice: choices.actor,
           role: 'actor',
           model: interviewer.model,
           usage: interviewer.usage,
@@ -1045,7 +1044,7 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
       const result = examining
         ? streamExamination({
             env,
-            choice: choices.actor,
+            modelId: choices.actor,
             examinationRules,
             sheet: subject.sheet,
             detective,
@@ -1054,7 +1053,7 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
           })
         : streamNpcReply({
             env,
-            choice: choices.actor,
+            modelId: choices.actor,
             gameRules: GAME_RULES,
             characterSheet: subject.sheet,
             detective,
@@ -1081,7 +1080,6 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
 
         collected.usages.push(
           toUsageRow({
-            choice: choices.actor,
             role: 'actor',
             model: response.modelId,
             usage,
@@ -1216,7 +1214,7 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
         .map((entry) => `探偵: ${entry.question}\nNPC: ${entry.answer}`)
         .join('\n\n')
       const exchange = `プレイヤーが指定した話題: ${askInput.topic}\n\n${transcript}\n\n今回判定可能なRevelation:\n${candidateBlock}`
-      const judged = await judgeTurn({ env, choice: choices.judge, rubric, exchange })
+      const judged = await judgeTurn({ env, modelId: choices.judge, rubric, exchange })
       const judgement = judged.judgement
       const revealedRevelationIds = acceptRevealedRevelationIds(
         revelationCandidates,
@@ -1337,7 +1335,6 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
       try {
         await db.insert(llmUsages).values(
           toUsageRow({
-            choice: choices.judge,
             role: 'judge',
             model: judged.model,
             usage: judged.usage,
@@ -1483,7 +1480,7 @@ sessionRoutes.post('/api/sessions/:id/accuse', validateAccuse, withEnv, async (c
 
   const graded = await gradeDeduction({
     env,
-    choice: judgeChoice,
+    modelId: judgeChoice,
     // method / motive が空のシナリオでは summary を的に使う。採点の精度は落ちるが、
     // 古いシナリオで推理パートごと成立しなくなるよりはいい。
     truth: {
@@ -1580,7 +1577,6 @@ sessionRoutes.post('/api/sessions/:id/accuse', validateAccuse, withEnv, async (c
   try {
     await db.insert(llmUsages).values(
       toUsageRow({
-        choice: judgeChoice,
         role: 'judge',
         model: graded.model,
         usage: graded.usage,

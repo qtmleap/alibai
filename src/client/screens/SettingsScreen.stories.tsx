@@ -31,18 +31,19 @@ export const Default: Story = {
     load: () => Promise.resolve(LLM_SETTINGS),
     readSettings: () => ({
       ...DEFAULT_SETTINGS,
-      llm: { actor: { provider: 'anthropic', model: 'claude-sonnet-5' } },
+      llm: { actor: { model: 'claude-sonnet-5' } },
     }),
   },
 }
 
 /**
- * まだ何も選んでいない。既定のまま遊ぶ状態で、モデルはどの役割でも触れない。
- * 名前が NoKeys なのは、鍵を入れていない人がここに辿り着くため。
+ * モデルの一覧が空。鍵が未設定か、モデルサーバに繋がらないときの姿で、
+ * どの役割の欄も触れず、断り書きだけが出る。取得そのものは成功しているので、
+ * Failed（応答が返らない）とは別の絵になる。
  */
 export const NoKeys: Story = {
   name: 'NoKeys',
-  args: { load: () => Promise.resolve(LLM_SETTINGS) },
+  args: { load: () => Promise.resolve({ ...LLM_SETTINGS, models: [] }) },
 }
 
 /**

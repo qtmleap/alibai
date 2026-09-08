@@ -9,7 +9,7 @@ import {
 } from '@/client/components/ui/select'
 import { fetchLlmSettings } from '@/client/lib/api'
 import { type BriefingMode, loadBriefingMode, saveBriefingMode } from '@/client/lib/briefing-mode'
-import type { LlmProvider, LlmSettingsResponse, SettableLlmRole } from '@/client/lib/schemas'
+import type { LlmSettingsResponse, SettableLlmRole } from '@/client/lib/schemas'
 import {
   loadSettings,
   type RoleSetting,
@@ -175,14 +175,14 @@ export const SettingsScreen = ({
                 <RoleFields
                   key={role.id}
                   role={role}
-                  catalog={catalog}
+                  models={catalog.models}
                   value={settings.llm[role.id]}
                   onChange={(next) => updateRole(role.id, next)}
                 />
               ))}
             </div>
 
-            <UnavailableNote catalog={catalog} />
+            <UnavailableNote models={catalog.models} />
           </section>
 
           <section className="flex flex-col gap-[13px] border-keisen border-t pt-[14px] lg:gap-0 lg:border-t-0 lg:pt-0">
@@ -288,7 +288,7 @@ const SOUND_CHOICES: readonly Choice<SoundSetting>[] = [
 /**
  * 二択の行。難易度の四択と同じ組みで、塗りつぶさずに選んだものだけ罫線と字を起こす。
  *
- * 触れないときは「提供元が決まるまでモデルは触れない」のと同じ扱い——枠を地に沈めて、
+ * 触れないときは「一覧が空のあいだモデルは触れない」のと同じ扱い——枠を地に沈めて、
  * 押せないことを枠と色で言う。灰色にするだけだと、ただの飾りに見える。
  */
 const ChoiceRow = <T extends string>({
@@ -378,35 +378,52 @@ const Budget = ({ settings, max }: { settings: Settings; max: number }) => (
   </p>
 )
 
-/** 鍵が入っていない提供元は選べない。理由を書かないと、灰色の行が故障に見える。 */
-const UnavailableNote = ({ catalog }: { catalog: LlmSettingsResponse }) => {
-  const missing = catalog.providers.filter((entry) => !entry.available)
-
-  if (missing.length === 0) {
+/**
+ * 一覧が空のときの断り書き。理由を書かないと、選べない欄が故障に見える。
+ *
+ * 「鍵が無い」と「モデルサーバに繋がらない」は画面からは区別が付かない
+ * ——応答はどちらも空の一覧で、切り分けに要る情報はサーバの外に出さない。
+ * 両方を並べて書くのは、遊ぶ人が直せるのは前者だけだから。
+ */
+const UnavailableNote = ({ models }: { models: LlmSettingsResponse['models'] }) => {
+  if (models.length > 0) {
     return undefined
   }
 
   return (
     <p className={`${FINE_LG} lg:pt-[10px]`}>
-      {missing.map((entry) => entry.label).join('・')} は APIキーが未設定のため選べません。
+      モデルの一覧が空です。APIキーが未設定か、モデルサーバに繋がっていません。
     </p>
   )
 }
 
+/**
+ * 選択肢の並び。
+ *
+ * 保管庫にあるIDが一覧に無ければ、それも末尾に足す。落とすと選択欄が空欄になり、
+ * 選んだはずのモデルが消えたように見える——モデルサーバの構成が変わると起きる。
+ * ラベルにIDをそのまま出すのは、一覧に無い以上、表示名を知る術が無いため。
+ */
+const modelChoices = (
+  models: LlmSettingsResponse['models'],
+  chosen: string | undefined,
+): LlmSettingsResponse['models'] =>
+  chosen === undefined || models.some((model) => model.id === chosen)
+    ? models
+    : [...models, { id: chosen, label: chosen }]
+
 const RoleFields = ({
   role,
-  catalog,
+  models,
   value,
   onChange,
 }: {
   role: LlmSettingsResponse['roles'][number]
-  catalog: LlmSettingsResponse
+  models: LlmSettingsResponse['models']
   value: RoleSetting | undefined
   onChange: (next: RoleSetting | undefined) => void
 }) => {
-  const provider = value?.provider
-  const models =
-    provider === undefined ? [] : catalog.providers.find((entry) => entry.id === provider)?.models
+  const choices = modelChoices(models, value?.model)
 
   return (
     // 広い画面ではラベル左・操作右の一行。左を固定幅にしてあるのは、役割名の長短で
@@ -421,62 +438,40 @@ const RoleFields = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 lg:gap-[14px]">
-        {/*
-          Select の外側が label ではなく div なのは、SelectTrigger が label と
-          結びつく種類の要素ではないため。名前は aria-label で渡す。
-        */}
-        <div className="flex min-w-0 flex-col gap-1 lg:gap-[5px]">
-          <span className={LEGEND}>提供元</span>
-          <Select
-            value={provider === undefined ? UNSET : provider}
-            onValueChange={(next) =>
-              onChange(next === UNSET ? undefined : { provider: pickProvider(catalog, next) })
-            }
-          >
-            <SelectTrigger aria-label={`${role.label}の提供元`} className={triggerClass(provider)}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={UNSET}>既定のまま</SelectItem>
-              {catalog.providers.map((entry) => (
-                <SelectItem key={entry.id} value={entry.id} disabled={!entry.available}>
-                  {entry.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+      {/*
+        Select の外側が label ではなく div なのは、SelectTrigger が label と
+        結びつく種類の要素ではないため。名前は aria-label で渡す。
 
-        <div className="flex min-w-0 flex-col gap-1 lg:gap-[5px]">
-          <span className={LEGEND}>モデル</span>
-          <Select
-            value={value?.model === undefined ? UNSET : value.model}
-            disabled={provider === undefined}
-            onValueChange={(next) =>
-              onChange(
-                provider === undefined
-                  ? undefined
-                  : { provider, model: next === UNSET ? undefined : next },
-              )
-            }
+        欄の上に「モデル」とは書かない。節の見出しが「使うモデル」で、行の左には
+        役割名が立っているので、三つ目の名前は同じことを繰り返すだけになる。
+      */}
+      {/*
+        机では欄の幅を止める。1fr のまま伸ばすと 490px 近くになり、短いモデルIDの右に
+        矢印だけが遠く離れて、選択欄というより入力欄に見える。
+      */}
+      <div className="flex min-w-0 flex-col lg:max-w-[240px]">
+        <Select
+          value={value?.model === undefined ? UNSET : value.model}
+          // 選ぶものが一つも無いときだけ触れなくする。一覧が空でも保管庫に選択が残っていれば、
+          // 「既定のまま」へ戻す道は要る——触れなくすると、消せない選択が残る。
+          disabled={choices.length === 0}
+          onValueChange={(next) => onChange(next === UNSET ? undefined : { model: next })}
+        >
+          <SelectTrigger
+            aria-label={`${role.label}のモデル`}
+            className={triggerClass(value?.model, choices.length === 0)}
           >
-            <SelectTrigger
-              aria-label={`${role.label}のモデル`}
-              className={triggerClass(value?.model, provider === undefined)}
-            >
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={UNSET}>既定のまま</SelectItem>
-              {(models === undefined ? [] : models).map((model) => (
-                <SelectItem key={model.id} value={model.id}>
-                  {model.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={UNSET}>既定のまま</SelectItem>
+            {choices.map((model) => (
+              <SelectItem key={model.id} value={model.id}>
+                {model.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
     </div>
   )
@@ -486,26 +481,15 @@ const RoleFields = ({
  * 選択欄の見え方。
  *
  * 選んでいないときは字を沈める。「既定のまま」は値ではなく値が無いことの名前なので、
- * 選んだ提供元と同じ明るさで並ぶと、二つの状態が見分けられなくなる。
- * 触れない欄（提供元が決まる前のモデル）は部品側の既定に任せる——枠も字も一緒に沈む。
+ * 選んだモデルと同じ明るさで並ぶと、二つの状態が見分けられなくなる。
+ * 触れない欄（一覧が空のとき）は部品側の既定に任せる——枠も字も一緒に沈む。
  * ここで字色まで重ねて沈めると、部品の disabled 時の不透明度と二重にかかって
  * 沈みすぎる（枠だけ見えて字が消える）ので、disabled のときは色を足さない。
  */
-const triggerClass = (chosen: string | undefined, disabled = false): string =>
+const triggerClass = (chosen: string | undefined, disabled: boolean): string =>
   `${FIELD_BOX} lg:text-[12.5px] [&_svg]:size-3 ${
     !disabled && chosen === undefined ? 'text-nezumi-dim lg:text-nezumi' : ''
   }`
-
-/** 応答に無い提供元は選ばせない。型を通すためだけの分岐ではなく、実際の番人。 */
-const pickProvider = (catalog: LlmSettingsResponse, value: string): LlmProvider => {
-  const found = catalog.providers.find((entry) => entry.id === value)
-
-  if (found === undefined) {
-    throw new Error(`未知の提供元: ${value}`)
-  }
-
-  return found.id
-}
 
 /**
  * 数値欄。空にされたときに NaN を書き込まないよう、読めた値だけを通す。

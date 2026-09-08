@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import type { Env } from '@/server/env'
-import { chooseLlm, isLlmConfigured } from '@/server/llm/provider'
+import { chooseLlm } from '@/server/llm/provider'
 import { toUsageRow } from '@/server/llm/usage'
 import { LLM_DEFAULT_MODELS } from '~/db/llm-catalog'
 
@@ -9,9 +9,6 @@ import { LLM_DEFAULT_MODELS } from '~/db/llm-catalog'
  * 残りは型を満たすだけの値で埋める。
  */
 const makeEnv = (overrides: Partial<Env>): Env => ({
-  LLM_ACTOR_PROVIDER: 'anthropic',
-  LLM_JUDGE_PROVIDER: 'anthropic',
-  LLM_AUTHOR_PROVIDER: 'anthropic',
   LLM_ACTOR_MODEL: undefined,
   LLM_JUDGE_MODEL: undefined,
   LLM_AUTHOR_MODEL: undefined,
@@ -26,81 +23,45 @@ const makeEnv = (overrides: Partial<Env>): Env => ({
 })
 
 describe('chooseLlm: 優先順位', () => {
-  test('指定が無ければ env のプロバイダと既定表のモデル', () => {
-    expect(chooseLlm(makeEnv({}), 'actor')).toEqual({
-      provider: 'anthropic',
-      modelId: LLM_DEFAULT_MODELS.anthropic.actor,
-    })
+  test('指定が無ければ既定表のモデル', () => {
+    expect(chooseLlm(makeEnv({}), 'actor')).toBe(LLM_DEFAULT_MODELS.actor)
   })
 
   test('env のモデル指定があればそれを使う', () => {
-    const env = makeEnv({ LLM_ACTOR_MODEL: 'claude-opus-5' })
+    const env = makeEnv({ LLM_ACTOR_MODEL: 'my-local-model' })
 
-    expect(chooseLlm(env, 'actor').modelId).toBe('claude-opus-5')
+    expect(chooseLlm(env, 'actor')).toBe('my-local-model')
   })
 
   test('プレイヤーの指定は env より優先される', () => {
-    const choice = chooseLlm(makeEnv({}), 'actor', {
-      provider: 'openai',
-      model: 'gpt-5.6-luna',
-    })
+    const env = makeEnv({ LLM_ACTOR_MODEL: 'my-local-model' })
 
-    expect(choice).toEqual({ provider: 'openai', modelId: 'gpt-5.6-luna' })
-  })
-
-  /*
-    ここが一番静かに壊れるところ。env の LLM_ACTOR_MODEL は anthropic 向けの値なので、
-    プロバイダだけ openai に変えて引き継ぐと openai に claude のIDを投げることになる。
-  */
-  test('プロバイダを変えたら env のモデルIDは引き継がず、既定表から引き直す', () => {
-    const env = makeEnv({ LLM_ACTOR_MODEL: 'claude-opus-5' })
-    const choice = chooseLlm(env, 'actor', { provider: 'openai' })
-
-    expect(choice).toEqual({ provider: 'openai', modelId: LLM_DEFAULT_MODELS.openai.actor })
+    expect(chooseLlm(env, 'actor', { model: 'another-model' })).toBe('another-model')
   })
 
   test('役割ごとに既定のモデルが違う', () => {
     const env = makeEnv({})
 
-    expect(chooseLlm(env, 'actor').modelId).not.toBe(chooseLlm(env, 'judge').modelId)
-  })
-})
-
-describe('chooseLlm: 信用しない入力', () => {
-  test('カタログに無いモデルIDは黙って捨て、既定へ落とす', () => {
-    const choice = chooseLlm(makeEnv({}), 'actor', {
-      provider: 'anthropic',
-      model: 'claude-imaginary-9',
-    })
-
-    expect(choice.modelId).toBe(LLM_DEFAULT_MODELS.anthropic.actor)
+    expect(chooseLlm(env, 'actor')).not.toBe(chooseLlm(env, 'judge'))
   })
 
   /*
-    宛先は互換サーバ1つなので、プロバイダごとの鍵の有無で弾く道理が無くなった。
-    どのプロバイダを選んでもそのまま通す。
+    突き合わせる許可リストはもう無い。互換サーバに何が生えているかはここからは
+    分からないので、見慣れないIDでも既定へ落とさずそのまま通す。
+    通らないIDなら互換サーバがエラーを返す。
   */
-  test('プロバイダの指定はどれでも通る', () => {
-    expect(chooseLlm(makeEnv({}), 'actor', { provider: 'google' }).provider).toBe('google')
-  })
-})
-
-describe('isLlmConfigured', () => {
-  test('互換サーバの鍵の有無だけを見る', () => {
-    expect(isLlmConfigured(makeEnv({}))).toBe(true)
-    expect(isLlmConfigured(makeEnv({ OPENAI_API_KEY: undefined }))).toBe(false)
+  test('見慣れないモデルIDでも捨てずに通す', () => {
+    expect(chooseLlm(makeEnv({}), 'actor', { model: 'who-knows-9' })).toBe('who-knows-9')
   })
 })
 
 describe('toUsageRow', () => {
   /*
-    使用量の provider 列は env ではなく実際に使った choice から取る。
-    env から引き直すと、プレイヤーがプロバイダを差し替えたセッションの記録が
-    静かに嘘になり、コストの内訳が追えなくなる。
+    model は設定値ではなく応答が名乗ったIDを入れる。設定から引き直すと、
+    互換サーバが別名へ振り替えたときに記録が静かに嘘になる。
   */
-  test('env ではなく実際に使ったプロバイダを記録する', () => {
+  test('実際に応答したモデルを記録する', () => {
     const row = toUsageRow({
-      choice: { provider: 'openai', modelId: 'gpt-5.6-terra' },
       role: 'actor',
       model: 'gpt-5.6-terra',
       usage: { inputTokens: 10, outputTokens: 20, totalTokens: 30 },
@@ -109,16 +70,15 @@ describe('toUsageRow', () => {
       scenarioId: 'scenario-1',
     })
 
-    expect(row.provider).toBe('openai')
+    expect(row.model).toBe('gpt-5.6-terra')
     expect(row.role).toBe('actor')
     expect(row.inputTokens).toBe(10)
   })
 
   test('未報告のトークン数は0として数える', () => {
     const row = toUsageRow({
-      choice: { provider: 'anthropic', modelId: 'claude-sonnet-5' },
       role: 'judge',
-      model: 'claude-sonnet-5',
+      model: 'gpt-5.6-luna',
       usage: { inputTokens: undefined, outputTokens: undefined, totalTokens: undefined },
       providerMetadata: undefined,
       sessionId: 'session-1',

@@ -489,7 +489,6 @@ export const llmUsages = sqliteTable(
     scenarioId: text('scenario_id'),
     /** provider.ts の LlmRole。actor / judge / author。 */
     role: text('role').notNull(),
-    provider: text('provider').notNull(),
     model: text('model').notNull(),
     inputTokens: integer('input_tokens').notNull().default(0),
     outputTokens: integer('output_tokens').notNull().default(0),

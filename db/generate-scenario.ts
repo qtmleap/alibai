@@ -83,7 +83,7 @@ const generate: AuthorGenerate = async (request) => {
 }
 
 console.log(`題材: ${premise}`)
-console.log(`モデル: ${choice.provider} / ${choice.modelId}`)
+console.log(`モデル: ${choice}`)
 
 const result = await runAuthor({ premise, generate, maxAttempts: MAX_ATTEMPTS })
 

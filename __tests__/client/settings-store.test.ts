@@ -20,59 +20,72 @@ describe('parseSettings: 読めない入力', () => {
 })
 
 describe('parseSettings: モデルの選択', () => {
-  test('カタログにある組み合わせはそのまま通る', () => {
+  test('モデルIDはそのまま通る', () => {
     const parsed = parseSettings({
-      llm: { actor: { provider: 'openai', model: 'gpt-5.6-terra' } },
+      llm: { actor: { model: 'gpt-5.6-terra' } },
       limits: DEFAULT_SETTINGS.limits,
     })
 
-    expect(parsed.settings.llm.actor).toEqual({ provider: 'openai', model: 'gpt-5.6-terra' })
+    expect(parsed.settings.llm.actor).toEqual({ model: 'gpt-5.6-terra' })
     expect(parsed.migrated).toBe(false)
   })
 
   /*
-    カタログからモデルが消えても、提供元の選択まで巻き添えで消さない。
-    まるごと消えると、プレイヤーには「なぜか設定が戻った」としか見えず直しようがない。
+    提供元を選ばせていた頃の保管庫が、いま遊んでいる人の端末に残っている。
+    ここでモデルまで捨てると、プレイヤーには「なぜか設定が戻った」としか見えず、
+    しかも気づくのは次に何か操作して上書きされた後になる。
   */
-  test('消えたモデルIDは落とすが、提供元の選択は残す', () => {
+  test('提供元付きの古い形は、モデルを残して読み替える', () => {
     const parsed = parseSettings({
-      llm: { actor: { provider: 'openai', model: 'gpt-4-retired' } },
+      llm: { actor: { provider: 'anthropic', model: 'claude-sonnet-5' } },
       limits: DEFAULT_SETTINGS.limits,
     })
 
-    expect(parsed.settings.llm.actor).toEqual({ provider: 'openai', model: undefined })
+    expect(parsed.settings.llm.actor).toEqual({ model: 'claude-sonnet-5' })
+    // 古い形のまま置いておくと provider が消えないので、その場で書き戻させる。
     expect(parsed.migrated).toBe(true)
   })
 
-  test('提供元が読めない役割は落とす', () => {
+  /*
+    互換サーバが何を載せているかは、この端末からは分からない。
+    知らないIDでも落とさず、通らなければサーバ側でエラーになるのに任せる。
+  */
+  test('見覚えのないモデルIDでも落とさない', () => {
     const parsed = parseSettings({
-      llm: { actor: { provider: 'nope', model: 'gpt-5.6-terra' } },
+      llm: { actor: { model: 'gpt-4-retired' } },
+      limits: DEFAULT_SETTINGS.limits,
+    })
+
+    expect(parsed.settings.llm.actor).toEqual({ model: 'gpt-4-retired' })
+  })
+
+  test('モデルが読めない役割は落とす', () => {
+    const parsed = parseSettings({
+      llm: { actor: { model: 42 }, judge: { provider: 'anthropic' } },
       limits: DEFAULT_SETTINGS.limits,
     })
 
     expect(parsed.settings.llm.actor).toBeUndefined()
+    expect(parsed.settings.llm.judge).toBeUndefined()
     expect(parsed.migrated).toBe(true)
   })
 
   test('壊れた役割があっても、他の役割は残す', () => {
     const parsed = parseSettings({
       llm: {
-        actor: { provider: 'nope' },
-        judge: { provider: 'anthropic', model: 'claude-haiku-4-5' },
+        actor: { model: '' },
+        judge: { model: 'claude-haiku-4-5' },
       },
       limits: DEFAULT_SETTINGS.limits,
     })
 
     expect(parsed.settings.llm.actor).toBeUndefined()
-    expect(parsed.settings.llm.judge).toEqual({
-      provider: 'anthropic',
-      model: 'claude-haiku-4-5',
-    })
+    expect(parsed.settings.llm.judge).toEqual({ model: 'claude-haiku-4-5' })
   })
 
   test('設定できない役割（author など）は拾わない', () => {
     const parsed = parseSettings({
-      llm: { author: { provider: 'openai', model: 'gpt-5.6-sol' } },
+      llm: { author: { model: 'gpt-5.6-sol' } },
       limits: DEFAULT_SETTINGS.limits,
     })
 

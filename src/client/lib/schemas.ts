@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { detectiveSchema } from '~/db/detective'
 import { floorPlanSchema } from '~/db/floor-plan'
 import { gameModeSchema, hintSchema } from '~/db/game-mode'
-import { llmProviderSchema, settableLlmRoleSchema } from '~/db/llm-catalog'
+import { settableLlmRoleSchema } from '~/db/llm-catalog'
 import { investigablePlaceSchema } from '~/db/place'
 import { placeIdSchema, VICTIM_ID } from '~/db/scenario-definition'
 
@@ -333,20 +333,14 @@ export const sessionHistorySchema = z.object({
 /**
  * 設定画面が選択肢を組み立てるための材料（GET /api/settings/llm）。
  *
- * available はキーが設定されているかの真偽値だけ。鍵も、その長さも、
- * ゲートウェイの向き先も返ってこない。
+ * 鍵も、その長さも、互換サーバの向き先も返ってこない。models が空なら
+ * 「鍵が未設定」か「互換サーバに繋がらなかった」のどちらかで、画面から区別は付かない。
  */
 const limitBoundSchema = z.object({ value: z.int().positive().optional(), max: z.int().positive() })
 
 export const llmSettingsResponseSchema = z.object({
-  providers: z.array(
-    z.object({
-      id: llmProviderSchema,
-      label: z.string().nonempty(),
-      available: z.boolean(),
-      models: z.array(z.object({ id: z.string().nonempty(), label: z.string().nonempty() })),
-    }),
-  ),
+  /** 互換サーバの `/v1/models` 由来。手で書いた表ではないので、ID を列挙で縛らない。 */
+  models: z.array(z.object({ id: z.string().nonempty(), label: z.string().nonempty() })),
   roles: z.array(
     z.object({
       id: settableLlmRoleSchema,
@@ -386,10 +380,5 @@ export type AccuseResult = z.infer<typeof accuseResultSchema>
 export type SessionHistory = z.infer<typeof sessionHistorySchema>
 export type { GameMode, Hint, SubjectCount } from '~/db/game-mode'
 export type LlmSettingsResponse = z.infer<typeof llmSettingsResponseSchema>
-// 選択肢の正典は db/llm-catalog.ts。ここで並べ直すと画面とAPIの受け入れ値がずれる。
-export {
-  LLM_CATALOG,
-  LLM_PROVIDER_LABELS,
-  type LlmProvider,
-  type SettableLlmRole,
-} from '~/db/llm-catalog'
+// 役割の正典は db/llm-catalog.ts。ここで並べ直すと画面とAPIの受け入れ値がずれる。
+export type { SettableLlmRole } from '~/db/llm-catalog'

@@ -74,9 +74,6 @@
   //   wrangler secret put OPENAI_API_KEY
   // 向き先（OPENAI_URL）も secret 側に置く。互換サーバの所在を公開設定に晒さないため。
   "vars": {
-    "LLM_ACTOR_PROVIDER": "openai",
-    "LLM_JUDGE_PROVIDER": "openai",
-    "LLM_AUTHOR_PROVIDER": "openai",
     "MAX_TURNS": "15",
     "QUESTIONS_PER_TURN": "2",
     // 数えるのはモデル呼び出しの回数。1つの話題で最大 2×往復数+1 回消費する。

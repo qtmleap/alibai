@@ -346,30 +346,12 @@ export const DETECTIVES: DetectiveStore = {
   activeId: 'akari',
 }
 
-/** Google だけキー未設定。選べない提供元がある状態を見る。 */
+/** 互換サーバが数種類を返している状態。名前の付け方はサーバ次第なので、揃えない。 */
 export const LLM_SETTINGS: LlmSettingsResponse = {
-  providers: [
-    {
-      id: 'anthropic',
-      label: 'Anthropic',
-      available: true,
-      models: [
-        { id: 'claude-sonnet-5', label: 'Claude Sonnet 5' },
-        { id: 'claude-opus-5', label: 'Claude Opus 5' },
-      ],
-    },
-    {
-      id: 'openai',
-      label: 'OpenAI',
-      available: true,
-      models: [{ id: 'gpt-5', label: 'GPT-5' }],
-    },
-    {
-      id: 'google',
-      label: 'Google',
-      available: false,
-      models: [{ id: 'gemini-3-pro', label: 'Gemini 3 Pro' }],
-    },
+  models: [
+    { id: 'gpt-5.6-terra', label: 'gpt-5.6-terra' },
+    { id: 'gpt-5.6-luna', label: 'gpt-5.6-luna' },
+    { id: 'claude-sonnet-5', label: 'claude-sonnet-5' },
   ],
   roles: [
     { id: 'actor', label: '会話', note: 'NPCの受け答えと、探偵が組み立てる質問' },

@@ -1,7 +1,7 @@
 import { generateObject, type LanguageModelUsage, type ProviderMetadata } from 'ai'
 import { z } from 'zod'
 import type { Env } from '@/server/env'
-import { type LlmChoice, resolveModel } from '@/server/llm/provider'
+import { resolveModel } from '@/server/llm/provider'
 
 /**
  * 判定結果は必ずこの形に収まる。構造化出力なのでパース失敗を考えなくてよい。
@@ -25,7 +25,7 @@ export type JudgeInput = {
   /** リクエストスコープで検証済みの設定。 */
   env: Env
   /** この呼び出しで使う組み合わせ。役割から引き直さず、呼び出し側が決めた値を使う。 */
-  choice: LlmChoice
+  modelId: string
   /** 判定ルールと、そのシナリオの証拠定義。共通部分が長いほどキャッシュが効く。 */
   rubric: string
   /** 直近のやり取り（プレイヤーの質問とNPCの返答） */
@@ -54,7 +54,7 @@ export type JudgeResult = {
  */
 export const judgeTurn = async ({
   env,
-  choice,
+  modelId,
   rubric,
   exchange,
 }: JudgeInput): Promise<JudgeResult> => {
@@ -63,7 +63,7 @@ export const judgeTurn = async ({
   // system に紛れ込む経路を作りがちなため）。Judge はブロック単位のキャッシュ指定が
   // 要らないので、素直に分けたほうが安全側に倒れる。
   const result = await generateObject({
-    model: resolveModel(env, choice),
+    model: resolveModel(env, modelId),
     schema: judgementSchema,
     system: rubric,
     messages: [{ role: 'user', content: exchange }],

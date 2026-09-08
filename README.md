@@ -225,7 +225,7 @@ Hono + Vite + React を Cloudflare Workers 上で動かし、状態は D1 / Dura
 
 ### LLM
 
-**AlibAIはLLMプロバイダを固定しません。** 役割ごとに選び、混成もできます。
+**AlibAIはLLMを役割で使い分けます。** 宛先は `OPENAI_URL` が指す OpenAI互換サーバ1つで、役割ごとに当てるモデルを選びます。
 
 | 役割 | 何をするか | 求められる性質 |
 | --- | --- | --- |
@@ -233,17 +233,17 @@ Hono + Vite + React を Cloudflare Workers 上で動かし、状態は D1 / Dura
 | **Judge** | 証拠開示・矛盾検出・質問候補生成 | 構造化出力、安価、高速、並列実行できる |
 | **Author** | シナリオ作成支援と整合性チェック | 頻度は低い。長文脈と推論力 |
 
-役割ごとの既定モデルは以下。3社どれでも組めます。
+役割ごとの既定モデルは以下（`db/llm-catalog.ts` の `LLM_DEFAULT_MODELS`）。
 
-| 役割 | Anthropic | OpenAI | Google |
-| --- | --- | --- | --- |
-| Actor | `claude-sonnet-5` | `gpt-5.6-terra` | `gemini-3.5-flash` |
-| Judge | `claude-haiku-4-5` | `gpt-5.6-luna` | `gemini-3.1-flash-lite` |
-| Author | `claude-opus-5` | `gpt-5.6-sol` | `gemini-3.1-pro` |
+| 役割 | 既定モデル |
+| --- | --- |
+| Actor | `gpt-5.6-terra` |
+| Judge | `gpt-5.6-luna` |
+| Author | `gpt-5.6-sol` |
 
-> **モデルIDと料金は各社とも改定が速いです。**
-> 上の表は既定値であって正典ではありません。採用前に各社の公式ドキュメントで確認してください。
-> 特にOpenAI / Googleの型番は二次情報を元にしているので、実装前の検証が必須です。
+> **これは env にも設定にも何も無いときの最後の拠りどころであって、正典ではありません。**
+> 互換サーバがこのIDを持っているとは限らないので、構成に合わせて `LLM_ACTOR_MODEL` などで上書きしてください。
+> 実際に選べるモデルの一覧は、互換サーバの `/v1/models` から取ります（手で書いた表は持ちません）。
 
 **選び方の目安**
 
@@ -255,27 +255,32 @@ Hono + Vite + React を Cloudflare Workers 上で動かし、状態は D1 / Dura
 切り替えは環境変数だけで済みます。
 
 ```bash
-LLM_ACTOR_PROVIDER=anthropic    # anthropic | openai | google
-LLM_JUDGE_PROVIDER=google       # 役割ごとに別プロバイダでよい
-LLM_AUTHOR_PROVIDER=openai
+OPENAI_URL=https://example.internal/v1   # 末尾は /v1
+OPENAI_API_KEY=                          # 鍵の要らないサーバでも何か入れる
+
+LLM_ACTOR_MODEL=                         # 未設定なら既定表。互換サーバ独自の名前も書ける
+LLM_JUDGE_MODEL=
+LLM_AUTHOR_MODEL=
 ```
 
-実装は [Vercel AI SDK](https://sdk.vercel.ai/) で3社を吸収します。
-`src/server/llm/provider.ts` が役割 → モデルの解決だけを担当し、
-呼び出し側（`actor.ts` / `judge.ts`）はプロバイダを知りません。
+`OPENAI_API_KEY` は鍵を要求しないサーバでも必要です。SDK が Authorization ヘッダを無条件に組み立てるためで、
+未設定だと組み立てに失敗します。
+
+実装は [Vercel AI SDK](https://sdk.vercel.ai/) の `@ai-sdk/openai` 1本です。
+`src/server/llm/provider.ts` が役割 → モデルIDの解決（`chooseLlm`）とクライアントの生成（`resolveModel`）に分かれ、
+呼び出し側（`actor.ts` / `judge.ts`）はモデルIDだけを知ります。
 
 ```ts
-export const resolveModel = (role: LlmRole): LanguageModel => {
-  const config = PROVIDER_CONFIG[role]
-  const modelId = config.model === undefined ? DEFAULT_MODELS[config.provider][role] : config.model
-
-  switch (config.provider) {
-    case 'anthropic': return anthropic(modelId)
-    case 'openai':    return openai(modelId)
-    case 'google':    return google(modelId)
-  }
+export const chooseLlm = (env: Env, role: LlmRole, override?: LlmOverride): string => {
+  // 優先順位は override（画面での選択）→ env → 既定表
 }
+
+export const resolveModel = (env: Env, modelId: string): LanguageModel =>
+  createOpenAI({ apiKey: env.OPENAI_API_KEY, baseURL: env.OPENAI_URL }).chat(modelId)
 ```
+
+`.chat` を明示するのは、省くと `@ai-sdk/openai` v2 が Responses API（`/responses`）へ行くためです。
+互換を名乗るサーバが出しているのは大抵 `/chat/completions` だけで、既定のままだと 404 になります。
 
 Actorは必ずストリーミングで返します。
 スマホで10分の体験なので、返答が丸ごと届くまで待たせると体感が死にます。
@@ -299,55 +304,38 @@ export const judgementSchema = z.object({
 20ターンの尋問なら、同じキャラクターシートを20回送ることになります。
 キャッシュが効けばこの部分が大幅に安くなり、効かなければ全額です。
 
-**ここだけはプロバイダを抽象化の裏に隠せません。** 挙動が3社で違うからです。
+**明示指定は持っていません。**
 
-| プロバイダ | 方式 | 実装側でやること |
-| --- | --- | --- |
-| Anthropic | 明示的。`cache_control` をブロックに付ける | **付け忘れると効かない。** ブレークポイント設計が必要 |
-| OpenAI | 自動。共通プレフィックスがあれば勝手に効く | 設定不要。プレフィックスを壊さないことだけ意識する |
-| Google | 暗黙キャッシュが自動。明示キャッシュは別API | 基本は自動任せ。強く効かせたいなら明示キャッシュを別管理 |
+以前は「ブロックに `cache_control` を付ける」方式のモデル向けに `cacheHint(role)` という関数を表に出し、
+そのモデルを選んだときだけ明示指定を差し込んでいました。宛先を互換API1本にした時点で外しています。
+`createOpenAI` で組んだモデルに `providerOptions` でベンダ固有の指定を渡しても、
+AI SDK 側で誰も読まないため黙って捨てられるからです。エラーは出ず、請求だけが変わる——
+動かない指定をコードに残すほうが害が大きい、という判断です。
 
-抽象レイヤの裏に隠すと、プロバイダを切り替えた瞬間にコストが跳ねます。
-だから `cacheHint(role)` として関数を表に出し、Anthropic選択時だけ明示指定を差し込みます。
+いま頼っているのは、**共通プレフィックスがあれば自動で効くタイプのキャッシュだけ**です。
+互換サーバがそもそもキャッシュを持たない可能性もあります。
 
-**3社共通で守るべき設計ルール**
+**守るべき設計ルール**
 
 1. **system promptを凍結する。**
    「現在のターン数」「経過時間」「発見済み証拠リスト」をsystemに埋め込まないこと。
    これらは毎ターン変わるので、先頭に入れた瞬間にキャッシュミスします。
    動的な状態は必ずメッセージ列の後方に置きます。
-   どのプロバイダもプレフィックス一致なので、これは共通です。
+   プレフィックス一致で効くタイプしか使っていないので、ここが唯一のレバーです。
 
-2. **ブレークポイントは安定性の境界に置く（Anthropic）。**
+2. **前置きは安定している順に並べる。**
    - 1つ目: 全シナリオ共通のゲームルール（最も安定）
    - 2つ目: NPCのキャラクターシート（そのNPCとの会話中は不変）
-   - 3つ目: 直近ターンの最終コンテンツブロック（会話履歴を累積キャッシュ）
+   - 3つ目以降: 探偵、会話履歴
 
-   ブレークポイントは1リクエスト最大4つまでです。
-
-3. **最小キャッシュ長に注意する（Anthropic）。**
-   これを下回ると、`cache_control` を付けてもエラーにならず静かにキャッシュされません。
-
-   | モデル | 最小キャッシュ長 |
-   | --- | --- |
-   | `claude-opus-5` | 512 tokens |
-   | `claude-sonnet-5` | 1,024 tokens |
-   | `claude-haiku-4-5` | 4,096 tokens |
-
-   Judge用のプロンプトは4,096トークン未満になりがちです。
-   キャッシュしたいなら共通の判定ルールを厚めに書いて閾値を超えさせるか、割り切って諦めます。
-
-4. **キャッシュはモデル単位・NPC単位で分かれる。**
+3. **キャッシュはモデル単位・NPC単位で分かれる。**
    同一シナリオでもNPCが違えばキャッシュは別物です。
    1プレイ中に何度も同じNPCへ聞き直す設計は、キャッシュ効率の面でも有利になります。
 
-5. **必ず計測する。**
+4. **必ず計測する。**
    キャッシュ読み込みトークンが0のまま増えないなら、どこかに破壊要因があります。
    タイムスタンプ、UUID、JSONのキー順不定、条件分岐によるsystem文の差分などを疑ってください。
-
-Anthropicの既定TTLは5分です。1回のプレイが約10分なので、
-テンポの良いプレイなら5分で十分回りますが、じっくり考えるプレイヤーは会話間隔が空きます。
-1時間TTLは書き込みコストが上がるので、実データでヒット率を見てから判断します。
+   0が続くなら、実装より先に互換サーバ側を確かめてください。
 
 ### Frontend
 
@@ -389,10 +377,11 @@ scenario_truths    真相（サーバー限定。APIレスポンスに絶対含�
 characters         登場人物（人格・知識・秘密・目的・嘘・時系列）
 evidences          証拠（開示条件、発見トリガー）
 play_sessions      プレイセッション（匿名可、進行状態、経過時間）
-messages           会話ログ（NPC別、トークン使用量も記録）
+messages           会話ログ（NPC別）
 discoveries        発見済み証拠・指摘済み矛盾
 results            結果（解決時間、質問回数、正解率、順位）
 reports            UGC通報
+llm_usages         LLM呼び出しごとのトークン消費（役割・モデル別）
 ```
 
 `scenario_truths` を別テーブルに切るのが重要です。
@@ -424,14 +413,14 @@ LLMを使うサービスは、コスト可視化を後回しにすると必ず�
 | エラー監視 | Sentry |
 | LLMトレース | Langfuse（または Braintrust） |
 | プロダクト分析 | PostHog |
-| コスト集計 | 全リクエストのトークン使用量を記録し、シナリオ別・NPC別・プロバイダ別に集計 |
+| コスト集計 | 全リクエストのトークン使用量を `llm_usages` に記録し、シナリオ別・NPC別・モデル別に集計 |
 
 記録すべきは通常の入出力トークンに加えて、**キャッシュ書き込み量とキャッシュ読み込み量**です。
 入力トークンの総量は「非キャッシュ入力 + キャッシュ書き込み + キャッシュ読み込み」であって、
 非キャッシュ入力の単体ではありません。
 ここを取り違えると、キャッシュが効いているのに「トークンが少ない」と誤読します。
 
-プロバイダ別に集計しておくと、乗り換え判断が数字でできるようになります。
+役割別・モデル別に集計しておくと、モデルの入れ替え判断が数字でできるようになります。
 1プレイあたりのコストは「ターン数 × (キャッシュ読み込み + 新規入力 + 出力)」で見積もり、
 ローンチ前に必ず実測してください。キャッシュ設計が効いているかどうかで一桁変わります。
 
@@ -450,9 +439,9 @@ LLMを使うサービスは、コスト可視化を後回しにすると必ず�
 インジェクションテストは**CIに入れること**。
 プロンプトを1行変えただけで防御が崩れることがあるので、人力レビューでは守り切れません。
 
-プロバイダを切り替え可能にした以上、**評価は3社分回す必要があります。**
-Anthropicで漏れなかったプロンプトがGeminiで漏れることは普通にあります。
-乗り換えを検討するときは、まずこの評価スイートを通してから判断してください。
+モデルを差し替え可能にした以上、**評価は使う候補モデルごとに回す必要があります。**
+あるモデルで漏れなかったプロンプトが別のモデルで漏れることは普通にあります。
+互換サーバに載せるモデルを入れ替えるときは、まずこの評価スイートを通してから判断してください。
 
 ### CI / CD
 
@@ -497,14 +486,13 @@ Anthropicで漏れなかったプロンプトがGeminiで漏れることは普�
 
 ```json
 "remoteEnv": {
-  "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}",
   "OPENAI_API_KEY": "${localEnv:OPENAI_API_KEY}",
-  "GOOGLE_GENERATIVE_AI_API_KEY": "${localEnv:GOOGLE_GENERATIVE_AI_API_KEY}"
+  "OPENAI_URL": "${localEnv:OPENAI_URL}"
 }
 ```
 
 ホスト側にキーが無ければ空文字が入るだけで、コンテナは問題なく起動します。
-使わないプロバイダのキーは設定しなくて構いません。
+LLMの宛先は互換サーバ1つなので、渡すのはこの2つだけです。
 
 初回作成時に `.env.example` から `.env` が生成されます。
 **既存の `.env` は上書きしません。** 実キーを消す事故を防ぐためです。

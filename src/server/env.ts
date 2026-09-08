@@ -1,7 +1,6 @@
 import { z } from 'zod'
 import type { PlaySession } from '@/server/do/play-session'
 import type { RateLimiter } from '@/server/do/rate-limiter'
-import { llmProviderSchema } from '~/db/llm-catalog'
 
 /**
  * Workers のバインディング。
@@ -54,13 +53,8 @@ const optionalString = z.preprocess(
  * 未設定のまま動きだして、プレイ中に初めて落ちる事故を防ぐ。
  */
 const schema = z.object({
-  // 役割ごとに使うプロバイダ。3社を混在させてよい。
-  // 値の正典は db/llm-catalog.ts。ここで列挙し直すと、選択肢と受け入れ値が静かにずれる。
-  LLM_ACTOR_PROVIDER: llmProviderSchema.default('openai'),
-  LLM_JUDGE_PROVIDER: llmProviderSchema.default('openai'),
-  LLM_AUTHOR_PROVIDER: llmProviderSchema.default('openai'),
-
-  // 明示するとプロバイダ既定のモデルIDを上書きできる。
+  // 役割ごとに使うモデル。未設定なら db/llm-catalog.ts の既定。
+  // 互換サーバ独自のモデル名もそのまま書ける（突き合わせる表を持たないため）。
   LLM_ACTOR_MODEL: optionalString,
   LLM_JUDGE_MODEL: optionalString,
   LLM_AUTHOR_MODEL: optionalString,

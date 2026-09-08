@@ -10,7 +10,7 @@
 | --- | --- |
 | [runtime.md](./runtime.md) | 実行基盤・APIレイヤ・ビルドパイプライン |
 | [data.md](./data.md) | 永続化・キャッシュ・状態管理の役割分担 |
-| [llm.md](./llm.md) | LLMの役割分割、プロバイダ抽象、プロンプトキャッシュ |
+| [llm.md](./llm.md) | LLMの役割分割、OpenAI互換サーバへの一本化、プロンプトキャッシュ |
 | [scenario-format.md](./scenario-format.md) | シナリオ定義形式、YAML/Structured Output、検証・コンパイル仕様 |
 | [cost.md](./cost.md) | 1プレイあたりのトークン消費、各社の無料枠、推奨構成 |
 | [development.md](./development.md) | 開発環境・コード品質・CI/CD・テスト |
@@ -53,7 +53,7 @@
 | ORM | Drizzle ORM / drizzle-kit | `^0.44` / `^0.31` |
 | セッション状態・レート制限 | Durable Objects (SQLite backend) | — |
 | 読みキャッシュ | Workers KV | — |
-| LLM | Vercel AI SDK (Anthropic / OpenAI / Google) | `ai@^5` |
+| LLM | Vercel AI SDK（OpenAI互換サーバ1つへ） | `ai@^5` / `@ai-sdk/openai@^2` |
 | バリデーション | Zod | `^4` |
 | Lint / Format | Biome + biome-plugins (GritQL) | `^2` |
 
