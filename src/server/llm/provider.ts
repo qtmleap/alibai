@@ -130,7 +130,13 @@ export const resolveModel = (env: Env, choice: LlmChoice): LanguageModel => {
     case 'anthropic':
       return createAnthropic({ apiKey, baseURL })(choice.modelId)
     case 'openai':
-      return createOpenAI({ apiKey, baseURL })(choice.modelId)
+      /*
+        `.chat` を明示する。省くと Responses API（`/responses`）へ行くが、
+        OpenAI互換を名乗るサーバが出しているのは大抵 `/chat/completions` だけで、
+        `OPENAI_BASE_URL` を自前のサーバに向けた瞬間に 404 になる。
+        本家も `/chat/completions` を持っているので、こちらに寄せれば両方に繋がる。
+      */
+      return createOpenAI({ apiKey, baseURL }).chat(choice.modelId)
     case 'google':
       return createGoogleGenerativeAI({ apiKey, baseURL })(choice.modelId)
   }
