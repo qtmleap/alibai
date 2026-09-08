@@ -116,6 +116,8 @@ export const Default: Story = {
  * ここでしか見えない——1ページ目の先頭は、繰り返しかどうかに関わらず先頭行だから。
  */
 export const Page2: Story = {
+  // Storybook は export 名を「Page 2」と割ってしまう。対応表がこの綴りで引くので明示する。
+  name: 'Page2',
   render: () => <Paged scenarios={SCENARIOS} initialPage={2} />,
 }
 
@@ -125,6 +127,7 @@ export const Page2: Story = {
  * 「次へ」は消さずに薄くする。
  */
 export const LastPage: Story = {
+  name: 'LastPage',
   render: () => <Paged scenarios={SCENARIOS} initialPage={5} />,
 }
 

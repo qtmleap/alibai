@@ -321,7 +321,8 @@ export const AccusationScreen = ({
                   <span
                     className={`-translate-y-[13px] absolute left-0 text-[10px] ${inkOf(index)}`}
                   >
-                    {character.name}
+                    {/* 帯の左端に置く名。段の幅は 3px しかないので、名字だけに畳む。 */}
+                    {character.shortName}
                   </span>
                   {segments
                     .filter((segment) => segment.who === character.id)
