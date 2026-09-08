@@ -212,6 +212,19 @@ export const scenarioCharacterSchema = z.object({
    */
   ageGroup: ageGroupSchema.default('unknown'),
   gender: genderSchema.default('unknown'),
+  /**
+   * Irodori-TTS へ渡す声の指定。どちらも任意で、書かなければ喋らない。
+   *
+   * `voiceSeed` は合成のシード。固定しないと台詞ごとに別人の声になるので、
+   * 声を与えるなら必ず要る（caption だけ書いた場合は下の superRefine が弾く）。
+   *
+   * `voiceCaption` はそのキャラの声質を書いた一文。「落ち着いた女性の声で、
+   * 近い距離感でやわらかく」のような自由記述で、モデルはこの日本語文から声を作る。
+   * 場面ごとの感情はここに書かない——喋らせる側が実行時に足して繋ぐ。
+   * ここに書くと、どの台詞も同じ感情で読まれる。
+   */
+  voiceSeed: z.int().min(0).optional(),
+  voiceCaption: nonemptyTextSchema.max(200).optional(),
   publicIntroduction: nonemptyTextSchema.max(300),
   personality: nonemptyTextSchema,
   goals: z.array(nonemptyTextSchema),
@@ -567,6 +580,19 @@ export const ScenarioDefinitionSchema = scenarioDefinitionShapeSchema.superRefin
           })
         }
       })
+
+      /*
+        シードの無い声は台詞ごとに別人になる。合成してみるまで気づけず、
+        テストでも落ちないので、書き忘れをここで止める。
+      */
+      if (character.voiceCaption !== undefined && character.voiceSeed === undefined) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['characters', characterIndex, 'voiceSeed'],
+          message:
+            'voiceCaption を書いたら voiceSeed も必要です（固定しないと台詞ごとに声が変わります）。',
+        })
+      }
     })
 
     scenario.timeline.forEach((event, eventIndex) => {

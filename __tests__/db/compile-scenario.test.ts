@@ -415,6 +415,46 @@ describe('compileScenario: 列挙の訳し分け', () => {
     expect(written.gender).toBe('female')
   })
 
+  test('声が書かれていなければ両方 null になる', () => {
+    expect(alpha.voiceSeed).toBeNull()
+    expect(alpha.voiceCaption).toBeNull()
+  })
+
+  test('書かれた声はそのまま列に入る', () => {
+    const definition = makeMinimal()
+    const written = compileOrThrow({
+      ...definition,
+      characters: definition.characters.map((character) =>
+        character.id === 'alpha'
+          ? { ...character, voiceSeed: 1234, voiceCaption: '落ち着いた女性の声。' }
+          : character,
+      ),
+    }).characters[0]
+
+    if (written === undefined) throw new Error('characters[0] がありません')
+
+    expect(written.voiceSeed).toBe(1234)
+    expect(written.voiceCaption).toBe('落ち着いた女性の声。')
+  })
+
+  test('シードを書き忘れた声は検証で落ちる', () => {
+    const definition = makeMinimal()
+    const result = compileScenario(
+      {
+        ...definition,
+        characters: definition.characters.map((character) =>
+          character.id === 'alpha'
+            ? { ...character, voiceCaption: '落ち着いた女性の声。' }
+            : character,
+        ),
+      },
+      { isPublished: true, newId: sequentialIds() },
+    )
+
+    expect(result.ok).toBe(false)
+    expect(result.ok ? [] : result.issues.join('\n')).toContain('voiceSeed')
+  })
+
   test('態度が無ければ括弧ごと省く', () => {
     const beta = minimal.characters[1]
     expect(beta?.personality).toBe('よく喋る。\n\n- アルファ: 同僚')

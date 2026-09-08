@@ -226,6 +226,14 @@ export const characters = sqliteTable(
      */
     ageGroup: text('age_group').$type<AgeGroup>().notNull().default('unknown'),
     gender: text('gender').$type<Gender>().notNull().default('unknown'),
+    /**
+     * Irodori-TTS へ渡す声の指定。両方 null なら、その人物は喋らない。
+     *
+     * キャラクターシートには入れない。これはNPCへ読ませる情報ではなく、
+     * 合成を呼ぶ側が読むもので、プロンプトに混ぜると声の指示を台詞として喋り出す。
+     */
+    voiceSeed: integer('voice_seed'),
+    voiceCaption: text('voice_caption'),
     /** プレイヤーへ最初から見せてよい、完全公開の人物紹介。 */
     publicIntroduction: text('public_introduction').notNull().default(''),
     personality: text('personality').notNull(),
