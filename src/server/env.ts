@@ -109,10 +109,10 @@ const schema = z.object({
   RETENTION_DAYS: z.coerce.number().int().positive().default(90),
 
   /**
-   * Irodori-TTS のサーバ。未設定なら誰も喋らない（画面は今までどおり文字だけで進む）。
+   * 読み上げサーバ。未設定なら誰も喋らない（画面は今までどおり文字だけで進む）。
    * 末尾のスラッシュは有っても無くてもよい。
    */
-  IRODORI_TTS_URL: optionalString,
+  TTS_URL: optionalString,
 })
 
 export type Env = z.infer<typeof schema>

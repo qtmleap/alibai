@@ -40,7 +40,7 @@ const validateIds = createMiddleware<{
 
 voiceRoutes.get('/api/sessions/:id/messages/:messageId/voice', validateIds, withEnv, async (c) => {
   const ids = c.get('ids')
-  const baseUrl = c.get('env').IRODORI_TTS_URL
+  const baseUrl = c.get('env').TTS_URL
 
   if (baseUrl === undefined) {
     return c.json({ error: 'voice is not configured' }, 503)
