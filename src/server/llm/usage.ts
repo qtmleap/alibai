@@ -16,9 +16,11 @@ const tokenCount = (value: number | undefined): number => (value === undefined ?
  * キャッシュ「書き込み」量。
  *
  * usage には入っておらず providerMetadata 側にしかないので、明示的に拾う。
- * Anthropicではキャッシュ書き込みが通常の入力より高い。ここを落とすと、
- * actor.ts が組んだキャッシュ設計の一番高い部分が請求書にだけ現れることになる。
- * anthropic以外のプロバイダはこのキーを持たないので0になる。
+ * キャッシュ書き込みを通常の入力より高く取るモデルがあり、ここを落とすと
+ * 一番高い部分が請求書にだけ現れることになる。
+ *
+ * 読んでいる `anthropic` は AI SDK がメタデータに付ける名前で、設定とは関係ない。
+ * 互換サーバがこの形で返さなければ 0 のままになる。
  */
 const cacheCreationTokens = (metadata: ProviderMetadata | undefined): number => {
   const value = metadata?.anthropic?.cacheCreationInputTokens

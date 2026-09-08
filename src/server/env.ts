@@ -63,9 +63,9 @@ const schema = z.object({
   OPENAI_API_KEY: optionalString,
 
   /*
-    LLMの向き先。3社ぶんではなく1つなのは、どのプロバイダのモデルも
-    OpenAI互換の `/chat/completions` へ投げるため（src/server/llm/provider.ts）。
-    プロバイダ名はモデルIDの区分けとして残っているだけで、宛先は分かれない。
+    LLMの向き先。どのモデルを選んでもここ1つへ、OpenAI互換の
+    `/chat/completions` として投げる（src/server/llm/provider.ts）。
+    選べるモデルの一覧もここに聞く（src/server/llm/models.ts）。
 
     ここを env として明示的に持つ必要がある。AI SDK は baseURL を渡さないと
     process.env の同名変数を見にいくが、Workers の isolate に process.env は無い。
