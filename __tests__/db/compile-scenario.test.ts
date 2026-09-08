@@ -393,6 +393,28 @@ describe('compileScenario: 列挙の訳し分け', () => {
     expect(alpha.personality).toBe('淡々としている。\n\n- ベータ: 同僚（距離を置いている）')
   })
 
+  test('年ごろと性別は書かれていなければ unknown になる', () => {
+    expect(alpha.ageGroup).toBe('unknown')
+    expect(alpha.gender).toBe('unknown')
+  })
+
+  test('書かれた年ごろと性別はそのまま列に入る', () => {
+    const definition = makeMinimal()
+    const written = compileOrThrow({
+      ...definition,
+      characters: definition.characters.map((character) =>
+        character.id === 'alpha'
+          ? { ...character, ageGroup: 'senior', gender: 'female' }
+          : character,
+      ),
+    }).characters[0]
+
+    if (written === undefined) throw new Error('characters[0] がありません')
+
+    expect(written.ageGroup).toBe('senior')
+    expect(written.gender).toBe('female')
+  })
+
   test('態度が無ければ括弧ごと省く', () => {
     const beta = minimal.characters[1]
     expect(beta?.personality).toBe('よく喋る。\n\n- アルファ: 同僚')

@@ -7,6 +7,7 @@ import {
   type RevelationEligibilityContext,
   type RevelationRule,
 } from '@/server/game/revelations'
+import { AGE_GROUP_LABELS, AGE_GROUP_NOTES, GENDER_LABELS } from '~/db/person'
 import { parseInvestigablePlaces } from '~/db/place'
 import { VICTIM_ID } from '~/db/scenario-definition'
 import { characters, evidences, revelations, scenarios } from '~/db/schema'
@@ -24,7 +25,8 @@ const CHARACTER_TTL_SECONDS = 3600
 const SCENARIO_LIST_TTL_SECONDS = 60
 const JUDGE_RUBRIC_TTL_SECONDS = 3600
 
-const characterKey = (characterId: string) => `character:v2:${characterId}`
+// 版を付けてある。シートの文面を直しても、版を上げないと TTL のあいだ古いシートが読まれる。
+const characterKey = (characterId: string) => `character:v3:${characterId}`
 /*
  * 版を付けてある。ルーブリックは1時間キャッシュされるので、版が無いと
  * 指示を直しても最大1時間は古い文面のまま判定が走る（デプロイ直後が一番危ない）。
@@ -36,17 +38,37 @@ const hintSubjectsKey = (scenarioId: string) => `hint-subjects:v2:${scenarioId}`
 const SCENARIO_LIST_KEY = 'scenarios:published'
 
 /**
+ * 年ごろと性別を人物像の一行目に置く。
+ *
+ * 見出しを増やさないのは、src/server/game/rules.ts が「人物像・知識・秘密・目的・嘘・記憶」の
+ * 6つを閉じた列挙で並べていて、そこに無い見出しは「使ってよいと言われていない情報」になるため。
+ * `unknown` の側を落とすのは、書かれていないことと「不詳という設定」を区別しないから。
+ * 落とせば、これまでどおり personality の文章だけが読まれる。
+ */
+const describePerson = (row: typeof characters.$inferSelect) =>
+  [
+    row.ageGroup === 'unknown'
+      ? undefined
+      : `年ごろは${AGE_GROUP_LABELS[row.ageGroup]}（${AGE_GROUP_NOTES[row.ageGroup]}）。`,
+    row.gender === 'unknown' ? undefined : `性別は${GENDER_LABELS[row.gender]}。`,
+  ]
+    .filter((part) => part !== undefined)
+    .join('')
+
+/**
  * NPCのプロンプトになる上限。全員共通の公開事件記録と、そのNPC自身の characters 行だけを使う。
  * scenario_truths や他人物の内部情報はここへ持ち込まない。
  */
-export const buildCharacterSheet = (row: typeof characters.$inferSelect, briefing: string) =>
-  `# ${row.name}
+export const buildCharacterSheet = (row: typeof characters.$inferSelect, briefing: string) => {
+  const person = describePerson(row)
+
+  return `# ${row.name}
 
 ## 事件の公開記録
 ${briefing}
 
 ## 人物像
-${row.personality}
+${person === '' ? row.personality : `${person}\n${row.personality}`}
 
 ## 知っていること
 ${row.knowledge}
@@ -62,6 +84,7 @@ ${row.lies}
 
 ## 記憶
 ${row.memories}`
+}
 
 /**
  * キャラクターシートは会話中まったく変化しない。毎ターンDBを叩くのは無駄なのでKVに置く。

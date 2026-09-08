@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm'
 import { index, integer, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 import type { Detective } from './detective'
 import type { FloorPlanInput } from './floor-plan'
+import type { AgeGroup, Gender } from './person'
 import type { InvestigablePlace, PlaceFindings } from './place'
 import type { ScenarioEvidenceSource, ScenarioRevelationSource } from './scenario-definition'
 import type { TimelineEvent } from './timeline-event'
@@ -9,7 +10,8 @@ import type { VictimFinding } from './victim-finding'
 
 /**
  * プレイヤーが演じる探偵の形と検証は db/detective.ts が正典。
- * 年ごろと性別は列挙で、NPCの呼びかけ方はそこから引く。
+ * 年ごろと性別の列挙は db/person.ts にあり、探偵と登場人物が同じものを読む。
+ * NPCの呼びかけ方はそこから引く。
  */
 export type { Detective } from './detective'
 /**
@@ -216,6 +218,14 @@ export const characters = sqliteTable(
      * コンパイラも書かれていなければ `name` を入れるので、空のまま残る行は本来無い。
      */
     shortName: text('short_name').notNull().default(''),
+    /**
+     * 年ごろと性別。探偵と同じ列挙で、正典は db/person.ts。
+     *
+     * `unknown` は「書かれていない」も兼ねる。キャラクターシートはそのとき行ごと出さないので、
+     * 年ごろも性別も人物像の文章に委ねたままにできる。職業の列は持たない。
+     */
+    ageGroup: text('age_group').$type<AgeGroup>().notNull().default('unknown'),
+    gender: text('gender').$type<Gender>().notNull().default('unknown'),
     /** プレイヤーへ最初から見せてよい、完全公開の人物紹介。 */
     publicIntroduction: text('public_introduction').notNull().default(''),
     personality: text('personality').notNull(),

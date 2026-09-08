@@ -1,11 +1,11 @@
+import type { Detective } from '~/db/detective'
 import {
   AGE_GROUP_LABELS,
   AGE_GROUP_NOTES,
   type AgeGroup,
-  type Detective,
   GENDER_LABELS,
   type Gender,
-} from '~/db/detective'
+} from '~/db/person'
 
 /**
  * 探偵の人物像を、NPCが読めるプロンプトの一片に変える。
@@ -14,9 +14,9 @@ import {
  * 「相手の設定を並べる」だけでは足りない。老人が少女に向かって「お嬢さん」と言うところまで
  * 決めてやらないと、モデルはどの相手にも同じ調子で喋る。
  *
- * ただしNPC自身の年齢はキャラクターシート側にしか無い（characters に年齢の列は無く、
- * personality の文章に書かれている）。だからここでは絶対的な呼称を指定せず、
- * 「あなたのほうが年上なら」という相対的な条件で候補を渡す。判断はモデルに任せる。
+ * ただしNPC自身の年ごろはキャラクターシート側にあり、この一片からは見えない。
+ * だからここでは絶対的な呼称を指定せず、「あなたのほうが年上なら」という相対的な
+ * 条件で候補を渡す。突き合わせはシートを持っているモデルに任せる。
  */
 
 /**

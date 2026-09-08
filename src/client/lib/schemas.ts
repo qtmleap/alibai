@@ -370,8 +370,9 @@ export const apiErrorSchema = z.object({
 
 export type ScenarioSummary = z.infer<typeof scenarioSummarySchema>
 export type CharacterSheet = z.infer<typeof characterSchema>
-export type { AgeGroup, Detective, Gender } from '~/db/detective'
+export type { Detective } from '~/db/detective'
 export type { FloorPlan, Room } from '~/db/floor-plan'
+export type { AgeGroup, Gender } from '~/db/person'
 export type ScenarioDetail = z.infer<typeof scenarioDetailSchema>
 export type CreateSessionResponse = z.infer<typeof createSessionResponseSchema>
 export type Discovery = z.infer<typeof discoverySchema>

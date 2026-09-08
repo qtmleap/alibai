@@ -313,6 +313,20 @@ characters:
 
 `publicIntroduction` はプレイヤーへ最初から公開する短い人物紹介です。職業・立場・表向きの性格だけを書き、秘密・動機・未公開の目撃・アリバイ・嘘・違反行為など、聞き込みで判明すべき情報を含めません。`personality` と `relationships` はActor専用の非公開情報です。
 
+### `ageGroup` / `gender`
+
+任意です。探偵と同じ列挙を使い、正典は `db/person.ts` にあります。
+
+- `ageGroup`: `child` / `teen` / `young` / `adult` / `senior` / `elder` / `unknown`
+- `gender`: `male` / `female` / `other` / `unknown`
+
+```yaml
+ageGroup: senior
+gender: female
+```
+
+書かなければ `unknown` になり、キャラクターシートにも出ません。そのときは今までどおり `personality` の文章が年ごろと性別を伝えます。職業の項目はありません。「投影技師」「売店責任者」のように列挙へ収まらず、`publicIntroduction` と `personality` が既にその役をしているためです。
+
 `knowledge` は原則 `facts[].id` の参照です。
 
 ### `secrets`

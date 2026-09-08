@@ -15,17 +15,16 @@ import {
 } from '@/client/lib/detective-store'
 import type { ScenarioDetail } from '@/client/lib/schemas'
 import { playSe } from '@/client/lib/sound'
+import { type Detective, describeDetective } from '~/db/detective'
 import {
   AGE_GROUP_LABELS,
   AGE_GROUP_NOTES,
   AGE_GROUPS,
   type AgeGroup,
-  type Detective,
-  describeDetective,
   GENDER_LABELS,
   GENDERS,
   type Gender,
-} from '~/db/detective'
+} from '~/db/person'
 
 /**
  * 節の見出しと欄の名前。等幅なのは書式であって時刻ではないので、値には使わない。

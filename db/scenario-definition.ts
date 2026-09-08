@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { floorPlanSchema } from './floor-plan'
+import { ageGroupSchema, genderSchema } from './person'
 
 const scenarioIdSchema = z.string().regex(/^[a-z0-9][a-z0-9-]{2,63}$/)
 const localIdSchema = z.string().nonempty().max(100)
@@ -202,6 +203,15 @@ export const scenarioCharacterSchema = z.object({
    * ——一文字姓や外国名では切る位置が決まらないので、書く人が決める。
    */
   shortName: nonemptyTextSchema.max(8).optional(),
+  /**
+   * 年ごろと性別。探偵と同じ列挙を読む（db/person.ts）。
+   *
+   * 既定が `unknown` なのは、この項目より前に書かれた yaml がそのまま通るようにするため。
+   * 書かなければキャラクターシートにも出ないので、人物像の文章に任せたままにできる。
+   * 職業の項目は無い。列挙に収まらず、publicIntroduction と personality が既にその役をしている。
+   */
+  ageGroup: ageGroupSchema.default('unknown'),
+  gender: genderSchema.default('unknown'),
   publicIntroduction: nonemptyTextSchema.max(300),
   personality: nonemptyTextSchema,
   goals: z.array(nonemptyTextSchema),
