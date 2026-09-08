@@ -107,6 +107,12 @@ const schema = z.object({
    * llm_usages はこの対象外（コストの履歴は保持期間に引きずらせない）。
    */
   RETENTION_DAYS: z.coerce.number().int().positive().default(90),
+
+  /**
+   * Irodori-TTS のサーバ。未設定なら誰も喋らない（画面は今までどおり文字だけで進む）。
+   * 末尾のスラッシュは有っても無くてもよい。
+   */
+  IRODORI_TTS_URL: optionalString,
 })
 
 export type Env = z.infer<typeof schema>
