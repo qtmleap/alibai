@@ -300,7 +300,7 @@ export const CaseOverviewScreen = ({
           <AlertDialogTrigger asChild>
             <button
               type="button"
-              className="font-mono text-[9.5px] text-nezumi-dim leading-[1.75] tracking-[0.24em] lg:font-gothic lg:text-xs lg:tracking-normal"
+              className="font-mono text-[9.5px] text-nezumi-dim leading-[1.75] tracking-[0.24em] lg:font-gothic lg:text-xs lg:tracking-normal lg:hover:text-kinari"
             >
               ←　事件を選ぶ
             </button>

@@ -36,7 +36,7 @@ const buttonVariants = cva(
         outline:
           'border border-sumi-3 text-nezumi-dim hover:border-nezumi hover:bg-sumi-2 hover:text-kinari',
         /** 丸いアイコンボタン（記・図・推）。 */
-        icon: 'rounded-full border border-keisen text-nezumi hover:border-nezumi-dim hover:text-kinari',
+        icon: 'rounded-full border border-keisen text-nezumi hover:border-nezumi hover:bg-sumi-2 hover:text-kinari',
         /** 枠なし。列に並ぶ項目そのものを押させるとき。 */
         ghost: 'text-nezumi hover:text-kinari',
         /** 文中の細いリンク。 */

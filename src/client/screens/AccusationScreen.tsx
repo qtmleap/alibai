@@ -225,7 +225,7 @@ export const AccusationScreen = ({
         <button
           type="button"
           onClick={onBack}
-          className="flex items-center gap-2 font-mono text-[9.5px] text-nezumi-dim tracking-[0.24em] lg:gap-3 lg:font-gothic lg:text-[12px] lg:tracking-normal"
+          className="flex items-center gap-2 font-mono text-[9.5px] text-nezumi-dim tracking-[0.24em] lg:gap-3 lg:font-gothic lg:text-[12px] lg:tracking-normal lg:hover:text-kinari"
         >
           {/* 矢印と文字の間合いは端末と机で違う。空白の文字を挟まず、間で開ける。 */}
           <span aria-hidden="true">←</span>
