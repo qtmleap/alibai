@@ -194,6 +194,14 @@ export const scenarioRelationshipSchema = z.object({
 export const scenarioCharacterSchema = z.object({
   id: localIdSchema,
   name: nonemptyTextSchema.max(100),
+  /**
+   * 帯や名札のように幅の狭いところへ出す短い名前。姓だけ、渾名だけ。
+   *
+   * 場所の `shortName` と同じ役目だが、こちらは省略できる。書かなければ `name` が
+   * そのまま入る（db/compile-scenario.ts）。姓を機械的に切り出す案は採らない
+   * ——一文字姓や外国名では切る位置が決まらないので、書く人が決める。
+   */
+  shortName: nonemptyTextSchema.max(8).optional(),
   publicIntroduction: nonemptyTextSchema.max(300),
   personality: nonemptyTextSchema,
   goals: z.array(nonemptyTextSchema),

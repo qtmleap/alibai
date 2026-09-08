@@ -8,11 +8,7 @@ import {
 } from '@/client/hooks/useInterrogation'
 import type { InvestigablePlace } from '@/client/lib/schemas'
 import { InterrogationScreen } from '@/client/screens/InterrogationScreen'
-import {
-  INTERROGATION_SEED,
-  INTERROGATION_SEED_LAST_TURN,
-  SCENARIO,
-} from '@/client/stories/fixtures'
+import { INTERROGATION_SEED, SCENARIO } from '@/client/stories/fixtures'
 import { VICTIM_ID } from '~/db/scenario-definition'
 
 /**
@@ -54,187 +50,408 @@ const PLACES: InvestigablePlace[] = [
 ]
 
 const CHOBA = PLACES[0]
+const OKU = PLACES[1]
 
-if (CHOBA === undefined) {
-  throw new Error('場所の story は帳場から始める前提で組んである。')
+if (CHOBA === undefined || OKU === undefined) {
+  throw new Error('場所の story は帳場と奥の間の二つで組んである。')
 }
 
 /**
- * アリバイ表に立つ線。
+ * 聞き込みの台本。
  *
- * いまのAPIは時刻付きの在所を返さないので、story が持つ。
- * 中身は mocks/_case.js の台本と同じ——別の事件を並べると、差の出所が
- * 意匠なのかデータなのか分からなくなる。
+ * mocks/_case.js の script をそのまま写したもの。別の受け答えを並べると、
+ * 突き合わせたときの差が意匠から来ているのかデータから来ているのか分からなくなる。
  *
- * 刻限は遺体発見だけが出ていて、死亡推定はまだ「不明」。この台本では誰も
- * 遺体を検分していないので、盤面もそこを知らない（#death=unknown と同じ状態）。
+ * 答えの改行は書き手が置いた呼吸で、そのまま段落の切れ目になる（モックの lines と同じ）。
  */
-const DEADLINE: Deadline = { foundAt: '19:10', label: '死亡推定', death: { kind: 'unknown' } }
+type Beat = {
+  /** 探偵が投げる問い。モックと同じく句点は置かない。 */
+  q: string
+  a: string
+  reveals: AlibiSegment[]
+}
 
-/** 4ターン目まで訊いたところで開いている線。 */
-const SEGMENTS_MID: AlibiSegment[] = [
-  { who: MAKINO.id, from: '18:20', to: '18:36', kind: 'solid', place: '店内' },
-  { who: MAKINO.id, from: '18:36', to: '19:08', kind: 'claim', place: '郵便局へ、雨のなかを' },
-  {
-    who: MAKINO.id,
-    from: '19:08',
-    to: '19:14',
-    kind: 'solid',
-    place: '郵便窓口',
-    fix: '19:08　受付',
-  },
-  { who: KURODA.id, from: '18:23', to: '18:41', kind: 'solid', place: '店内', fix: '18:23　来店' },
-]
+const SCRIPT: Record<string, Beat[]> = {
+  [MAKINO.id]: [
+    {
+      q: '閉店したあと、店に残っていたのは誰ですか',
+      a: 'わたしと、店長と、黒田さんです。黒田さんは初版本の話で六時二十三分ごろに見えました。\nわたしは奥の帳場にいましたから、そのあたりはよく覚えています。',
+      reveals: [{ who: MAKINO.id, from: '18:20', to: '18:36', kind: 'solid', place: '店内' }],
+    },
+    {
+      q: '店を出たあと、まっすぐ郵便局へ向かったんですね',
+      a: 'はい。発送があったので、午後六時三十六分には店を出ています。\n……三十分以上かかる道のりでしたけど。雨でしたから。',
+      reveals: [
+        {
+          who: MAKINO.id,
+          from: '18:36',
+          to: '19:08',
+          kind: 'claim',
+          place: '郵便局へ、雨のなかを',
+        },
+      ],
+    },
+    {
+      q: 'レシートを見せてもらえますか',
+      a: 'ええ、鞄に。……これです。窓口の受付は午後七時八分。\n小包の控えも一緒に残っています。日付も時刻も、機械が打ったものです。',
+      reveals: [
+        {
+          who: MAKINO.id,
+          from: '19:08',
+          to: '19:14',
+          kind: 'solid',
+          place: '郵便窓口',
+          fix: '19:08　受付',
+        },
+      ],
+    },
+    {
+      q: '黒田さんとは、店で話しましたか',
+      a: '少しだけ。黒田さんは初版本を見に来ていて、店長と奥で長く話していました。\nわたしが出るときは、まだ店内にいらしたはずです。',
+      reveals: [
+        {
+          who: KURODA.id,
+          from: '18:23',
+          to: '18:41',
+          kind: 'solid',
+          place: '店内',
+          fix: '18:23　来店',
+        },
+      ],
+    },
+    {
+      q: '瀬名さんは、あなたが出ていくのを見ていないそうです',
+      a: '……向かいのお店から、うちの戸口が全部見えるわけではありませんから。\nちょうど雨脚が強い時分でしたし。傘を差せば、顔なんて見えないでしょう。',
+      reveals: [],
+    },
+  ],
+  [KURODA.id]: [
+    {
+      q: '何時ごろ、店へ来られましたか',
+      a: '六時二十三分です。約束の時間より少し早く着きました。\n初版本は水野さんが奥から出してくださる手筈でしたので、待っていました。',
+      reveals: [
+        {
+          who: KURODA.id,
+          from: '18:23',
+          to: '18:41',
+          kind: 'solid',
+          place: '店内',
+          fix: '18:23　来店',
+        },
+      ],
+    },
+    {
+      q: '閉店後、店の奥へは入っていない',
+      a: '入っていません。商談は帳場の前で済みましたから。\nそのあとは、まっすぐ帰りました。',
+      reveals: [
+        { who: KURODA.id, from: '18:48', to: '19:20', kind: 'claim', place: '帰宅したと申告' },
+      ],
+    },
+    {
+      q: '傘は、どうされました',
+      a: '……ああ。忘れて出てしまって、裏の路地から戻ったんです。六時四十一分ごろ。\n軒下に立てかけたままで。濡れて帰るのは厭でしたから。',
+      reveals: [
+        {
+          who: KURODA.id,
+          from: '18:41',
+          to: '18:48',
+          kind: 'solid',
+          place: '裏の路地',
+          fix: '18:41　忘れ傘',
+        },
+      ],
+    },
+    {
+      q: '店主とは、何を話しましたか',
+      a: '値段の話です。もっとも、あの人はずっと店の奥にいて、出てきたのは一度きりでした。\n帳場に戻ってからも、奥の物音は続いていましたよ。',
+      reveals: [{ who: VICTIM_ID, from: '18:20', to: '18:50', kind: 'solid', place: '店の奥' }],
+    },
+  ],
+  [SENA.id]: [
+    {
+      q: 'その時間、あなたはどちらに',
+      a: '向かいの店に。うちは八時まで開けていますから、ずっと中にいました。\n雨の日はお客も来ませんし、窓の外ばかり見ていました。',
+      reveals: [
+        { who: SENA.id, from: '18:20', to: '18:39', kind: 'claim', place: '向かいの喫茶店' },
+      ],
+    },
+    {
+      q: '青雨堂の軒先で、雨宿りをされていたと聞きました',
+      a: 'ええ、六時三十九分ごろでしょうか。ゴミを出しに出たら、急に降りが強くなって。\n十分ばかり、青雨堂さんの軒を借りていました。',
+      reveals: [
+        {
+          who: SENA.id,
+          from: '18:39',
+          to: '18:48',
+          kind: 'solid',
+          place: '青雨堂の軒先',
+          fix: '18:39　雨宿り',
+        },
+      ],
+    },
+    {
+      q: '通報されたのは、あなたですね',
+      a: 'はい。灯りが点いたままなのが気になって、七時過ぎに戸を叩きました。\n返事がないので中へ入って……七時十二分に電話をしました。',
+      reveals: [
+        { who: SENA.id, from: '18:48', to: '19:12', kind: 'claim', place: '喫茶店に戻る' },
+        {
+          who: SENA.id,
+          from: '19:12',
+          to: '19:20',
+          kind: 'solid',
+          place: '青雨堂',
+          fix: '19:12　通報',
+        },
+      ],
+    },
+    {
+      q: '牧野さんが店を出ていくのは、見ましたか',
+      a: '見ていません。軒先にいた十分のあいだ、あの戸は一度も開きませんでした。\n……開いていたら、音で分かります。あすこの引戸は、建て付けが悪いので。',
+      reveals: [],
+    },
+  ],
+  /*
+   * 遺体の検分と場所調べ。喋らないので、探偵の一手は問いかけではなく独り言になる。
+   * 返ってくるのは所見——見て取ったことだけが並ぶ。
+   */
+  [VICTIM_ID]: [
+    {
+      q: '水野さんの死因はなんだろうか、確かめてみよう',
+      a: '争った跡は無い。着衣も髪も乱れていない。\n後頭部に、固いものが当たったような打撲がひとつ。倒れた先は帳場の奥だ。',
+      reveals: [{ who: VICTIM_ID, from: '18:20', to: '18:50', kind: 'solid', place: '店の奥' }],
+    },
+  ],
+  [CHOBA.id]: [
+    {
+      q: '帳場の帳面を見てみよう',
+      a: '閉店の締めが途中で止まっている。合計の欄が空のままだ。\n最後の記帳は六時四十四分。牧野の字で書かれている。',
+      reveals: [
+        {
+          who: MAKINO.id,
+          from: '18:40',
+          to: '18:44',
+          kind: 'solid',
+          place: '帳場',
+          fix: '18:44　最後の記帳',
+        },
+      ],
+    },
+  ],
+  [OKU.id]: [
+    {
+      q: '書架のあいだを見てみよう',
+      a: '棚の一段だけ、埃の跡が新しい。本が一冊、抜かれたまま戻っていない。\n空いた場所の札に、初版本の整理番号が残っている。',
+      reveals: [{ who: KURODA.id, from: '18:41', to: '18:48', kind: 'solid', place: '奥の間' }],
+    },
+  ],
+}
 
 /**
- * 打ち止めまで訊いたところ。三人ぶんが出そろい、食い違いが一本立つ。
- *
- * 並びは聞き出した順。端末の帯は「最後に裏付けが取れた線」に白を立てるので、
- * 人ごとにまとめて並べ替えると、その一本が別の時刻へ移る。
+ * 聞き込みの順番。mocks/_mock.js の PLAY と同じ運びで、9手目に食い違いが立ち、
+ * 10手目でそれを牧野に当てる。遺体の検分と場所調べも同じ財布から一手を使う。
  */
-const SEGMENTS_LAST: AlibiSegment[] = [
-  ...SEGMENTS_MID,
-  {
-    who: KURODA.id,
-    from: '18:41',
-    to: '18:48',
-    kind: 'solid',
-    place: '裏の路地',
-    fix: '18:41　忘れ傘',
-  },
-  { who: KURODA.id, from: '18:48', to: '19:20', kind: 'claim', place: '帰宅したと申告' },
-  { who: SENA.id, from: '18:20', to: '18:39', kind: 'claim', place: '向かいの喫茶店' },
-  {
-    who: SENA.id,
-    from: '18:39',
-    to: '18:48',
-    kind: 'solid',
-    place: '青雨堂の軒先',
-    fix: '18:39　雨宿り',
-  },
-  { who: 'victim', from: '18:20', to: '18:50', kind: 'solid', place: '店の奥' },
-  { who: SENA.id, from: '18:48', to: '19:12', kind: 'claim', place: '喫茶店に戻る' },
-  { who: SENA.id, from: '19:12', to: '19:20', kind: 'solid', place: '青雨堂', fix: '19:12　通報' },
+const PLAY: { who: string; i: number }[] = [
+  { who: MAKINO.id, i: 0 },
+  { who: MAKINO.id, i: 1 },
+  { who: MAKINO.id, i: 2 },
+  { who: KURODA.id, i: 0 },
+  { who: KURODA.id, i: 2 },
+  { who: KURODA.id, i: 1 },
+  { who: SENA.id, i: 0 },
+  { who: SENA.id, i: 1 },
+  { who: SENA.id, i: 3 },
+  { who: MAKINO.id, i: 4 },
+  { who: KURODA.id, i: 3 },
+  { who: SENA.id, i: 2 },
+  { who: VICTIM_ID, i: 0 },
+  { who: CHOBA.id, i: 0 },
+  { who: OKU.id, i: 0 },
 ]
 
-/**
- * 帳場を調べ終えたところ。人の証言では出てこなかった一本が、所見から立つ。
- *
- * 立つ列は牧野。部屋そのものの列は無いので、場所を調べて分かったことは
- * 「誰がどこにいたか」として人の列に入る。
- */
-const SEGMENTS_PLACE: AlibiSegment[] = [
-  ...SEGMENTS_LAST,
-  {
-    who: MAKINO.id,
-    from: '18:40',
-    to: '18:44',
-    kind: 'solid',
-    place: '帳場',
-    fix: '18:44　最後の記帳',
-  },
-]
+const MAX_TURNS = PLAY.length
 
 const ASKED_AT = 1_756_000_000_000
 
+const beatOf = (who: string, index: number): Beat => {
+  const beat = SCRIPT[who]?.[index]
+
+  if (beat === undefined) {
+    throw new Error(`台本に無い一手を指している: ${who} / ${index}`)
+  }
+
+  return beat
+}
+
 /** 一往復ぶん。話題・探偵の質問・返答は同じ時刻を共有して、一本の時系列に塊のまま並ぶ。 */
-const exchange = (n: number, topic: string, question: string, answer: string): ChatTurn[] => [
-  { id: `t${n}`, role: 'topic', text: topic, askedAt: ASKED_AT + n * 60_000 },
-  { id: `u${n}`, role: 'user', text: question, askedAt: ASKED_AT + n * 60_000 },
-  { id: `a${n}`, role: 'assistant', text: answer, askedAt: ASKED_AT + n * 60_000 },
+const exchange = (n: number, beat: Beat): ChatTurn[] => [
+  { id: `t${n}`, role: 'topic', text: beat.q, askedAt: ASKED_AT + n * 60_000 },
+  { id: `u${n}`, role: 'user', text: beat.q, askedAt: ASKED_AT + n * 60_000 },
+  { id: `a${n}`, role: 'assistant', text: beat.a, askedAt: ASKED_AT + n * 60_000 },
 ]
 
-const merge = (base: ChatTurn[] | undefined, added: ChatTurn[]): ChatTurn[] =>
-  base === undefined ? added : [...base, ...added]
+const keyOf = (segment: AlibiSegment): string =>
+  `${segment.who}/${segment.from}/${segment.to}/${segment.kind}`
 
-/**
- * 打ち止めの回。終盤の三往復を継ぎ足して、画面の下端に映るところを揃える。
- * 最後に喋ったのが瀬名なので、開いた画面は瀬名を向いている。
- */
-const LAST_TURN_SEED: InterrogationSeed = {
-  ...INTERROGATION_SEED_LAST_TURN,
-  conversations: {
-    ...INTERROGATION_SEED_LAST_TURN.conversations,
-    [MAKINO.id]: merge(
-      INTERROGATION_SEED_LAST_TURN.conversations[MAKINO.id],
-      exchange(
-        10,
-        '瀬名の証言との食い違い',
-        '瀬名さんは、あなたが出ていくのを見ていないそうです。',
-        '……向かいのお店から、うちの戸口が全部見えるわけではありませんから。ちょうど雨脚が強い時分でしたし。傘を差せば、顔なんて見えないでしょう。',
-      ),
-    ),
-    [KURODA.id]: merge(
-      INTERROGATION_SEED_LAST_TURN.conversations[KURODA.id],
-      exchange(
-        11,
-        '店主と話した内容',
-        '店主とは、何を話しましたか。',
-        '値段の話です。もっとも、あの人はずっと店の奥にいて、出てきたのは一度きりでした。帳場に戻ってからも、奥の物音は続いていましたよ。',
-      ),
-    ),
-    [SENA.id]: merge(
-      INTERROGATION_SEED_LAST_TURN.conversations[SENA.id],
-      exchange(
-        12,
-        '通報したときのこと',
-        '通報されたのは、あなたですね。',
-        'はい。灯りが点いたままなのが気になって、七時過ぎに戸を叩きました。返事がないので中へ入って……七時十二分に電話をしました。',
-      ),
-    ),
-  },
+/** n 手目まで進めたところ。会話・線・次に訊けそうなことが、同じ台本から一度に出る。 */
+const playUpTo = (n: number) => {
+  const beats = PLAY.slice(0, n)
+  // 相手ごとに分けて持つ。積むだけなので、袋を作り直さず手元のものへ足す。
+  const conversations: Record<string, ChatTurn[]> = {}
+
+  for (const [index, play] of beats.entries()) {
+    const held = conversations[play.who]
+
+    conversations[play.who] = [
+      ...(held === undefined ? [] : held),
+      ...exchange(index, beatOf(play.who, play.i)),
+    ]
+  }
+
+  // 同じ線を二度開くことがある（黒田の来店は牧野からも黒田からも出る）。重ねても見え方は変わらない。
+  const segments = beats
+    .flatMap((play) => beatOf(play.who, play.i).reveals)
+    .filter((segment, index, all) => all.findIndex((s) => keyOf(s) === keyOf(segment)) === index)
+
+  return {
+    turn: n,
+    current: PLAY[n - 1]?.who,
+    conversations,
+    segments,
+    // 次に訊けそうなこと。台本の先読みなので、残りが無ければ空。
+    hints: PLAY.slice(n, n + 2).map((play) => beatOf(play.who, play.i).q),
+  }
 }
 
 /**
- * 十四手目。遺体を検分したあと、帳場へ回ったところ。
- *
- * 喋らない相手は二人続く。ログの名前はどちらも「所見」で、縦罫は遺体が芥子、
- * 帳場が灰——色の付いた相手は答え、灰のままの相手は答えない。
+ * 刻限。遺体発見だけが出ていて、死亡推定はまだ「不明」。この台本では誰も
+ * 遺体を検分していないので、盤面もそこを知らない（#death=unknown と同じ状態）。
  */
-const PLACE_SEED: InterrogationSeed = {
-  ...LAST_TURN_SEED,
-  conversations: {
-    ...LAST_TURN_SEED.conversations,
-    [VICTIM_ID]: exchange(
-      13,
-      '死因',
-      '水野さんの死因はなんだろうか、確かめてみよう。',
-      '争った跡は無い。着衣も髪も乱れていない。後頭部に、固いものが当たったような打撲がひとつ。倒れた先は帳場の奥だ。',
-    ),
-    [CHOBA.id]: exchange(
-      14,
-      '帳場の帳面',
-      '帳場の帳面を見てみよう。',
-      '閉店の締めが途中で止まっている。合計の欄が空のままだ。最後の記帳は六時四十四分。牧野の字で書かれている。',
-    ),
-  },
-  questionCount: 13,
-  /*
-   * 場所を調べるのも一手を使う。人に訊くか現場を見るかは同じ財布から出るので、
-   * 台本の十五手ぶんをそのまま持たせる。
-   */
+const DEADLINE: Deadline = {
+  // 発見時刻は事件の記録が語っている公開情報。モックの CASE.found と同じ 19:15。
+  foundAt: SCENARIO.victim?.foundAt === null ? undefined : SCENARIO.victim?.foundAt,
+  label: '死亡推定',
+  death: { kind: 'unknown' },
+}
+
+/** 食い違い。牧野の申告と瀬名の証言が噛み合わない一点。九手目で立つ。 */
+const CLASH = { at: '18:36', label: '食い違い', between: [MAKINO.id, SENA.id] } satisfies {
+  at: string
+  label: string
+  between: [string, string]
+}
+
+/**
+ * 経過時間。モックの Mock.clock と同じ見せかけで、計っているわけではない。
+ * 十五手で十分弱に収まる速さ——一覧が「約10分」と言っている以上、
+ * 画面の時計だけ二十六分を指していては辻褄が合わない。
+ */
+const elapsedOf = (turn: number): number => turn * 47 + 13
+
+const seedOf = (turn: number): InterrogationSeed => ({
+  ...INTERROGATION_SEED,
+  conversations: playUpTo(turn).conversations,
+  questionCount: turn - 1,
   turn: {
-    turn: 14,
-    maxTurns: 15,
+    turn,
+    maxTurns: MAX_TURNS,
     askedInTurn: 0,
     questionsPerTurn: 1,
     remainingInTurn: 1,
     exhausted: false,
   },
+})
+
+/**
+ * サーバの返事。経過時間はここからしか出ないので、静止画のために返しておく
+ * ——画面が計器を出すかどうかは通信の成否で決まるべきではない。
+ */
+const serveSession = (turn: number, seed: InterrogationSeed) => {
+  const original = globalThis.fetch
+  const served = (input: RequestInfo | URL, init?: RequestInit): Promise<Response> =>
+    String(input).includes(`/api/sessions/${SESSION}`)
+      ? Promise.resolve(
+          Response.json({
+            sessionId: SESSION,
+            scenarioId: SCENARIO.id,
+            detectiveName: '灰かぶりの探偵',
+            hint: seed.hint,
+            questionCount: seed.questionCount,
+            elapsedSeconds: elapsedOf(turn),
+            finished: false,
+            discoveries: seed.discoveries,
+            revelations: seed.revelations,
+            alibiSegments: [],
+            clash: null,
+            estimatedDeathAt: null,
+            turn: seed.turn,
+          }),
+        )
+      : original(input, init)
+
+  globalThis.fetch = Object.assign(served, { preconnect: original.preconnect })
+
+  return () => {
+    globalThis.fetch = original
+  }
 }
 
+/** 帯を出しておく間隔。NewFactBand が引く 2.6 秒より短くして、途切れないようにする。 */
+const BAND_INTERVAL_MS = 2400
+
 const Harness = ({
-  seed,
+  turn,
   detectiveName,
+  newFact,
   segments,
-  clash,
 }: {
-  seed: InterrogationSeed
+  turn: number
   detectiveName: string | null
-  segments: AlibiSegment[]
-  clash?: { at: string; label: string; between: [string, string] }
+  /** 帯に出す一行。増えたことを知らせる帯は、増えた瞬間にしか出ない。 */
+  newFact?: string
+  /** 表に立てる線。台本どおりでない見え方（増えていく途中）を見たいときだけ渡す。 */
+  segments?: AlibiSegment[]
 }) => {
+  const played = playUpTo(turn)
+  const [seed] = useState(() => seedOf(turn))
+  /*
+    サーバの返事は、画面が最初に取りに行くより前に用意しておく必要がある
+    ——子の effect は親の effect より先に走るので、ここは描画のうちに差し替える。
+  */
+  const [restore] = useState(() => serveSession(turn, seed))
   const interrogation = useInterrogation(seed)
+  /*
+    画面に入った時点で持っているぶんは帯に出ない（既知の手掛かりを知らされても
+    何も増えていない）。増えたところを見たいので、開いてから足す。
+
+    実装は 2.6 秒で帯を引くが、モックは静止画としても読まれるので出したままにしてある。
+    突き合わせを成り立たせるため、ここでは足し続けて出したままにする。
+  */
+  const [learned, setLearned] = useState(interrogation.revelations)
+
+  useEffect(() => restore, [restore])
+
+  useEffect(() => {
+    if (newFact === undefined) {
+      return
+    }
+
+    const add = () =>
+      setLearned((prev) => [
+        ...prev,
+        {
+          id: `9d3b7c${prev.length}-0000-4000-8000-00000000000f`,
+          title: newFact,
+          text: newFact,
+          category: '証言',
+          subject: { type: 'event' as const, id: `turn-${turn}` },
+        },
+      ])
+
+    add()
+    const timer = setInterval(add, BAND_INTERVAL_MS)
+
+    return () => clearInterval(timer)
+  }, [newFact, turn])
 
   return (
     <InterrogationScreen
@@ -246,8 +463,19 @@ const Harness = ({
       places={PLACES}
       sessionId={SESSION}
       detectiveName={detectiveName}
-      interrogation={interrogation}
-      alibi={{ segments, deadline: DEADLINE, clash }}
+      interrogation={{
+        ...interrogation,
+        revelations: learned,
+        // 次に訊けそうなことはフックの外から来る（サーバが返答と一緒に返す）。
+        suggestedQuestions: played.current === undefined ? {} : { [played.current]: played.hints },
+      }}
+      firstTarget={played.current}
+      alibi={{
+        segments: segments === undefined ? played.segments : segments,
+        deadline: DEADLINE,
+        // 食い違いは九手目で立つ。それより前は繋ぐ先がまだ無い。
+        clash: turn >= 9 && segments === undefined ? CLASH : undefined,
+      }}
       onAccuse={() => undefined}
       onLeave={() => undefined}
     />
@@ -265,20 +493,19 @@ const SEGMENT_INTERVAL_MS = 1200
  * AlibiChart の作りをここで確かめる。
  */
 const Growing = () => {
+  const all = playUpTo(MAX_TURNS).segments
   const [count, setCount] = useState(0)
   const [take, setTake] = useState(0)
 
   useEffect(() => {
-    if (count >= SEGMENTS_LAST.length) {
+    if (count >= all.length) {
       return
     }
 
     const timer = setTimeout(() => setCount(count + 1), SEGMENT_INTERVAL_MS)
 
     return () => clearTimeout(timer)
-  }, [count])
-
-  const done = count >= SEGMENTS_LAST.length
+  }, [count, all.length])
 
   return (
     <>
@@ -288,17 +515,15 @@ const Growing = () => {
           setCount(0)
           setTake(take + 1)
         }}
-        className="fixed top-3 right-3 z-50 border border-keisen bg-sumi px-[9px] py-[3px] text-[10px] tracking-[0.16em] text-nezumi-dim hover:border-nezumi-dim hover:text-kinari"
+        className="fixed top-3 right-3 z-50 border border-keisen bg-sumi px-[9px] py-[3px] text-[10px] text-nezumi-dim tracking-[0.16em] hover:border-nezumi-dim hover:text-kinari"
       >
-        もう一度（{count} / {SEGMENTS_LAST.length}）
+        もう一度（{count} / {all.length}）
       </button>
       <Harness
         key={take}
-        seed={LAST_TURN_SEED}
+        turn={MAX_TURNS}
         detectiveName="灰かぶりの探偵"
-        segments={SEGMENTS_LAST.slice(0, count)}
-        // 食い違いは線が出そろってから引く。途中で引くと、繋ぐ先がまだ無い。
-        clash={done ? { at: '18:36', label: '食い違い', between: [MAKINO.id, SENA.id] } : undefined}
+        segments={all.slice(0, count)}
       />
     </>
   )
@@ -316,13 +541,17 @@ type Story = StoryObj<typeof InterrogationScreen>
 /** 中盤。何本か線が立ち、まだ訊ける。 */
 export const Default: Story = {
   render: () => (
-    <Harness seed={INTERROGATION_SEED} detectiveName="灰かぶりの探偵" segments={SEGMENTS_MID} />
+    <Harness
+      turn={4}
+      detectiveName="灰かぶりの探偵"
+      newFact="牧野は午後六時三十五分に店を出たと述べた"
+    />
   ),
 }
 
 /** 名乗らずに始めたセッション。会話の聞き手が一般名詞に落ちる。 */
 export const Anonymous: Story = {
-  render: () => <Harness seed={INTERROGATION_SEED} detectiveName={null} segments={SEGMENTS_MID} />,
+  render: () => <Harness turn={4} detectiveName={null} />,
 }
 
 /** 最後のターン。線が出そろい、食い違いが一本立っている。 */
@@ -332,10 +561,9 @@ export const LastTurn: Story = {
   name: 'LastTurn',
   render: () => (
     <Harness
-      seed={LAST_TURN_SEED}
+      turn={12}
       detectiveName="灰かぶりの探偵"
-      segments={SEGMENTS_LAST}
-      clash={{ at: '18:36', label: '食い違い', between: [MAKINO.id, SENA.id] }}
+      newFact="牧野は午後六時三十五分に店を出たと述べた"
     />
   ),
 }
@@ -349,10 +577,9 @@ export const LastTurn: Story = {
 export const 場所を調べる: Story = {
   render: () => (
     <Harness
-      seed={PLACE_SEED}
+      turn={14}
       detectiveName="灰かぶりの探偵"
-      segments={SEGMENTS_PLACE}
-      clash={{ at: '18:36', label: '食い違い', between: [MAKINO.id, SENA.id] }}
+      newFact="帳場の帳面は午後六時四十四分で止まっていた"
     />
   ),
 }

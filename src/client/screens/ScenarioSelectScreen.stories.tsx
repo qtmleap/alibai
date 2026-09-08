@@ -84,8 +84,14 @@ const SCENARIOS: ScenarioSummary[] = CASES.map(
   }),
 )
 
-const Paged = ({ scenarios }: { scenarios: ScenarioSummary[] }) => {
-  const [page, setPage] = useState(1)
+const Paged = ({
+  scenarios,
+  initialPage = 1,
+}: {
+  scenarios: ScenarioSummary[]
+  initialPage?: number
+}) => {
+  const [page, setPage] = useState(initialPage)
 
   return (
     <ScenarioSelectScreen
@@ -100,6 +106,26 @@ const Paged = ({ scenarios }: { scenarios: ScenarioSummary[] }) => {
 
 export const Default: Story = {
   render: () => <Paged scenarios={SCENARIOS} />,
+}
+
+/**
+ * 途中のページ。
+ *
+ * 前へも次へも押せる唯一の形なので、端のページだけを見ても確かめられない。
+ * ページの先頭では分類を必ず出す（前の行は別のページにあり、繰り返しにならない）ことも
+ * ここでしか見えない——1ページ目の先頭は、繰り返しかどうかに関わらず先頭行だから。
+ */
+export const Page2: Story = {
+  render: () => <Paged scenarios={SCENARIOS} initialPage={2} />,
+}
+
+/**
+ * 最後のページ。43件を10件ずつで割ると3件しか残らないので、
+ * 一覧が短くなってもページ送りの行が上がってこないことを確かめる。
+ * 「次へ」は消さずに薄くする。
+ */
+export const LastPage: Story = {
+  render: () => <Paged scenarios={SCENARIOS} initialPage={5} />,
 }
 
 /** 1件も無いとき。ページ送りが出ないことと、空の見え方を確かめる。 */

@@ -333,8 +333,12 @@ export const CaseOverviewScreen = ({
             </span>
           </div>
 
-          {/* 事件の幅が長いと表は画面より背が高くなる。縮めずにここで送る（聞き込みと同じ）。 */}
-          <div className="min-h-0 flex-1 overflow-y-auto">
+          {/*
+            事件の幅が長いと表は画面より背が高くなる。縮めずにここで送る（聞き込みと同じ）。
+            伸びはしない（flex-1 を持たない）——余りを飲ませると、短い事件で凡例が
+            表から離れて画面の下端まで落ちる。溢れたときだけ縮んで、中を送る。
+          */}
+          <div className="min-h-0 shrink overflow-y-auto pb-2">
             <AlibiChart
               people={[...people, ...victimColumn]}
               segments={[]}
@@ -356,7 +360,7 @@ export const CaseOverviewScreen = ({
             線の意味は表のそばに置く。色は顔料に使い切っているので、
             裏付けの有無は実線と破線で分ける。
           */}
-          <div className="mt-4 flex items-center gap-5 text-[10.5px] text-nezumi-dim leading-[1.4]">
+          <div className="mt-2 flex items-center gap-5 text-[10.5px] text-nezumi-dim leading-[1.4]">
             <span className="inline-flex items-center gap-1.5">
               <span className="h-[3px] w-[14px] bg-nezumi" />
               <span className="text-nezumi">実線</span>

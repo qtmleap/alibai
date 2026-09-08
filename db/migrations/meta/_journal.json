@@ -169,6 +169,13 @@
       "when": 1788790609383,
       "tag": "0023_analytics-tables",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "6",
+      "when": 1788830884765,
+      "tag": "0024_character-short-name",
+      "breakpoints": true
     }
   ]
 }

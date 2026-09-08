@@ -64,7 +64,7 @@ export type ScenarioDetail = {
   floorPlan: FloorPlan | null
   difficulty: number
   estimatedMinutes: number
-  characters: { id: string; name: string; publicIntroduction: string }[]
+  characters: { id: string; name: string; shortName: string; publicIntroduction: string }[]
 }
 
 const PUBLIC_INTRODUCTION_FALLBACK = 'この事件の関係者。'
@@ -80,6 +80,19 @@ export const normalizePublicIntroduction = (value: string): string => {
   return trimmed === '' || trimmed === 'public_introduction'
     ? PUBLIC_INTRODUCTION_FALLBACK
     : trimmed
+}
+
+/**
+ * 短い名前が使える形になっているか見て、駄目ならフルネームへ倒す。
+ *
+ * 空になり得るのは、この列より前に焼かれて移行の埋めも通っていない行。
+ * `short_name` という文字列そのものが返るのは publicIntroduction と同じ事情で、
+ * migration がコードより遅れているときに SQLite の DQS 互換挙動が起こす。
+ * どちらもフルネームなら帯が窮屈になるだけで、表示は壊れない。
+ */
+export const normalizeShortName = (value: string, name: string): string => {
+  const trimmed = value.trim()
+  return trimmed === '' || trimmed === 'short_name' ? name : trimmed
 }
 
 /**
@@ -152,12 +165,14 @@ export const findScenarioDetail = async (
         .select({
           id: characters.id,
           name: characters.name,
+          shortName: characters.shortName,
           publicIntroduction: characters.publicIntroduction,
         })
         .from(characters)
         .where(eq(characters.scenarioId, scenarioId))
     ).map((character) => ({
       ...character,
+      shortName: normalizeShortName(character.shortName, character.name),
       publicIntroduction: normalizePublicIntroduction(character.publicIntroduction),
     })),
   )

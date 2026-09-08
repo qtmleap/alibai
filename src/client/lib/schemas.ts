@@ -31,6 +31,13 @@ export const scenarioListSchema = z.array(scenarioSummarySchema)
 export const characterSchema = z.object({
   id: z.uuid(),
   name: z.string().nonempty(),
+  /**
+   * 幅の狭いところへ出す短い名前。アリバイ表の帯がこれを読む。
+   *
+   * サーバは書かれていない行にも `name` を写して返すので、常に値がある。
+   * 画面側で姓を切り出さないこと——一文字姓や外国名で切る位置が決まらない。
+   */
+  shortName: z.string().nonempty(),
   publicIntroduction: z.string().nonempty(),
 })
 

@@ -1,12 +1,16 @@
 import dayjs from 'dayjs'
 
-/** 経過秒数を `分:秒` に整形する。タイマー表示とリザルトの解決タイムの両方で使う。 */
+/**
+ * 経過秒数を `分:秒` に整形する。タイマー表示とリザルトの解決タイムの両方で使う。
+ *
+ * 分も0詰めする。この数字は等幅で計器として出るので、桁が増減すると
+ * 隣の字が横へ動く。`3:21` と `03:21` が入れ替わるだけで目盛りが揺れて見える。
+ */
 export const formatSeconds = (totalSeconds: number): string => {
   const minutes = Math.floor(totalSeconds / 60)
   const seconds = totalSeconds % 60
-  const paddedSeconds = seconds < 10 ? `0${seconds}` : `${seconds}`
 
-  return `${minutes}:${paddedSeconds}`
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
 }
 
 /**

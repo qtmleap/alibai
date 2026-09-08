@@ -368,7 +368,7 @@ export const AccusationScreen = ({
                       <RailTick pct={ratioNum(deathInfo.foundAt)} dotted={false} />
                       <RailLabel pct={ratioNum(deathInfo.foundAt)}>
                         {'遺体発見　'}
-                        <span className={CLOCK}>{deathInfo.foundAt}</span>
+                        <span className="text-[9px] text-nezumi-dim">{deathInfo.foundAt}</span>
                       </RailLabel>
                     </>
                   )}
@@ -377,8 +377,8 @@ export const AccusationScreen = ({
                     <>
                       <RailTick pct={ratioNum(deathInfo.death.at)} dotted={false} />
                       <RailLabel pct={ratioNum(deathInfo.death.at)}>
-                        {deathInfo.label}
-                        <span className={CLOCK}>{deathInfo.death.at}</span>
+                        {`${deathInfo.label}　`}
+                        <span className="text-[9px] text-nezumi-dim">{deathInfo.death.at}</span>
                       </RailLabel>
                     </>
                   ) : deathInfo.death.kind === 'range' ? (
@@ -391,18 +391,18 @@ export const AccusationScreen = ({
                       <RailLabel
                         pct={(ratioNum(deathInfo.death.from) + ratioNum(deathInfo.death.to)) / 2}
                       >
-                        {deathInfo.label}
-                        <span
-                          className={CLOCK}
-                        >{`${deathInfo.death.from}–${deathInfo.death.to}`}</span>
+                        {`${deathInfo.label}　`}
+                        <span className="text-[9px] text-nezumi-dim">
+                          {`${deathInfo.death.from}–${deathInfo.death.to}`}
+                        </span>
                       </RailLabel>
                     </>
                   ) : deathInfo.death.kind === 'claimed' ? (
                     <>
                       <RailTick pct={ratioNum(deathInfo.death.at)} dotted={true} />
                       <RailLabel pct={ratioNum(deathInfo.death.at)}>
-                        {deathInfo.label}
-                        <span className={CLOCK}>{`? ${deathInfo.death.at}`}</span>
+                        {`${deathInfo.label}　`}
+                        <span className="text-[9px] text-nezumi-dim">{`? ${deathInfo.death.at}`}</span>
                         {/* 誰の見立てかは札の尾に続ける。机には線の下の一段があるが、端末にその段が無いため。 */}
                         <span
                           className={`ml-[6px] ${inkOf(HUES.indexOf(deathInfo.death.by.hue))}`}
@@ -422,7 +422,8 @@ export const AccusationScreen = ({
                           (deathInfo.foundAt === undefined ? 100 : ratioNum(deathInfo.foundAt)) / 2
                         }
                       >
-                        {deathInfo.label}　<span className={CLOCK}>?</span>
+                        {`${deathInfo.label}　`}
+                        <span className="text-[9px] text-nezumi-dim">?</span>
                       </RailLabel>
                     </>
                   )}

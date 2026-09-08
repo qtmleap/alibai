@@ -209,6 +209,13 @@ export const characters = sqliteTable(
       .notNull()
       .references(() => scenarios.id, { onDelete: 'cascade' }),
     name: text('name').notNull(),
+    /**
+     * 幅の狭いところへ出す短い名前。アリバイ表の帯がこれを読む。
+     *
+     * 既定が空なのは、この列より前に焼かれた行があるため。移行では `name` を写して埋め、
+     * コンパイラも書かれていなければ `name` を入れるので、空のまま残る行は本来無い。
+     */
+    shortName: text('short_name').notNull().default(''),
     /** プレイヤーへ最初から見せてよい、完全公開の人物紹介。 */
     publicIntroduction: text('public_introduction').notNull().default(''),
     personality: text('personality').notNull(),
