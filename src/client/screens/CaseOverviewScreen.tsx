@@ -138,7 +138,13 @@ const NameRow = ({
         <span className={`text-[13px] leading-[1.75] lg:text-[13.5px] lg:leading-[1.5] ${nameInk}`}>
           {name}
         </span>
-        <span className="text-[10.5px] text-nezumi-dim leading-[1.6] lg:text-[11.5px]">
+        {/*
+          机では一行に切る。紹介文は事件ごとに長さがまちまちで、折り返した行だけ背が伸び、
+          二列に畳んだ名簿では段ごと高さが変わる——触れたときの帯の高さも行によって変わってしまう。
+          モックの名簿は短い肩書ひとことで組んであるので、そちらの佇まいに合わせる。
+          （データが短い紹介文を持つようになったら、この切り落としは要らなくなる）
+        */}
+        <span className="text-[10.5px] text-nezumi-dim leading-[1.6] lg:truncate lg:text-[11.5px]">
           {introduction}
         </span>
       </span>
