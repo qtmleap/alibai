@@ -137,7 +137,7 @@ export const SettingsScreen = ({
         <button
           type="button"
           onClick={onBack}
-          className="block font-mono text-[9.5px] text-nezumi-dim leading-[1.75] tracking-[0.24em] lg:font-gothic lg:text-[12px] lg:leading-[2.1] lg:tracking-normal"
+          className="block font-mono text-[9.5px] text-nezumi-dim leading-[1.75] tracking-[0.24em] lg:font-gothic lg:text-[12px] lg:leading-[2.1] lg:tracking-normal lg:hover:text-kinari"
         >
           ← 事件を選ぶ
         </button>

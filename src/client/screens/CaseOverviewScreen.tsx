@@ -119,12 +119,19 @@ const NameRow = ({
   onClick,
 }: RowProps) => (
   <li className={`border-keisen border-b ${topRule ? 'lg:border-t' : ''}`}>
+    {/*
+      行の色にその人の顔料を持たせ、触れたときの線を currentColor で立てる。
+      色を決め打ちにすると、どの行を触っても同じ色の線が出て、行と人の結びつきが切れる。
+      押せない行（調べられない遺体）には出さない——反応があると押せると読める。
+    */}
     <button
       type="button"
       disabled={disabled}
       onClick={onClick}
       aria-pressed={active}
-      className="flex w-full items-center gap-2.5 py-[7px] text-left lg:gap-3 lg:py-2.5"
+      className={`flex w-full items-center gap-2.5 py-[7px] text-left lg:gap-3 lg:py-2.5 ${nameInk} ${
+        disabled ? '' : 'lg:hover:bg-sumi-2 lg:hover:shadow-[inset_2px_0_0_currentColor]'
+      }`}
     >
       {mark}
       <span className="flex min-w-0 flex-col gap-px lg:gap-0">

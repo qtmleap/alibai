@@ -144,8 +144,8 @@ const FOOT =
 
 const footOf = (main: boolean): string =>
   main
-    ? `${FOOT} border-nezumi font-mincho text-kinari tracking-[0.16em]`
-    : `${FOOT} border-keisen text-nezumi`
+    ? `${FOOT} border-nezumi font-mincho text-kinari tracking-[0.16em] lg:hover:bg-sumi-2`
+    : `${FOOT} border-keisen text-nezumi lg:hover:border-nezumi lg:hover:bg-sumi-2 lg:hover:text-kinari`
 
 /**
  * 上から順に出すときの刻み。

@@ -451,8 +451,12 @@ export const AccusationScreen = ({
                 return (
                   <label
                     key={character.id}
-                    className={`flex cursor-pointer items-center gap-[10px] border-keisen border-b py-[10px] text-[13px] has-[:focus-visible]:ring-1 has-[:focus-visible]:ring-nezumi lg:border-t lg:px-[14px] lg:py-[13px] lg:text-[13.5px] ${
-                      picked ? 'lg:border-b-shu' : ''
+                    /*
+                      触れた列にその人の顔料で線を立てる（指した相手は朱）。名前の色を
+                      行そのものに持たせて currentColor で引く——名簿の行と同じ引き方。
+                    */
+                    className={`flex cursor-pointer items-center gap-[10px] border-keisen border-b py-[10px] text-[13px] has-[:focus-visible]:ring-1 has-[:focus-visible]:ring-nezumi lg:border-t lg:px-[14px] lg:py-[13px] lg:text-[13.5px] lg:hover:bg-sumi-2 lg:hover:shadow-[inset_2px_0_0_currentColor] ${
+                      picked ? 'text-shu lg:border-b-shu' : inkOf(index)
                     } ${index === 0 ? '' : 'lg:border-l'}`}
                   >
                     {/* ラジオは見た目を持たせず、行そのものを押す場所にする。

@@ -914,7 +914,7 @@ export const InterrogationScreen = ({
                   type="button"
                   onClick={handleAsk}
                   disabled={isAsking || inputText.trim().length === 0}
-                  className="shrink-0 border border-keisen px-3.5 py-[7px] text-[12px] hover:border-nezumi-dim disabled:opacity-40 lg:px-[22px] lg:py-2 lg:text-[13px]"
+                  className="shrink-0 border border-keisen px-3.5 py-[7px] text-[12px] disabled:opacity-40 disabled:hover:border-keisen disabled:hover:bg-transparent lg:px-[22px] lg:py-2 lg:text-[13px] lg:hover:border-nezumi lg:hover:bg-sumi-2 lg:hover:text-kinari"
                 >
                   {isAsking ? '…' : examining ? '調べる' : '訊く'}
                 </button>

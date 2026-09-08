@@ -146,7 +146,7 @@ export const DetectiveSetupScreen = ({
         <button
           type="button"
           onClick={onBack}
-          className="hidden text-left lg:block lg:text-[12.5px] lg:text-nezumi"
+          className="hidden text-left lg:block lg:text-[12.5px] lg:text-nezumi lg:hover:text-kinari"
         >
           ←　シナリオを選び直す
         </button>
@@ -177,8 +177,14 @@ export const DetectiveSetupScreen = ({
                 return (
                   <li
                     key={profile.id}
+                    /*
+                      選ばれている行には生成りの線が既に立っているので、触れても動かさない。
+                      それ以外の行だけ、机の上で鼠の線を立てて地を一段起こす。
+                    */
                     className={`flex items-start gap-[10px] border-keisen border-b py-[7px] pl-3 lg:gap-3 lg:py-[10px] lg:pl-[14px] ${
-                      isActive ? 'shadow-[inset_2px_0_0_var(--color-kinari)]' : ''
+                      isActive
+                        ? 'shadow-[inset_2px_0_0_var(--color-kinari)]'
+                        : 'lg:hover:bg-sumi-2 lg:hover:shadow-[inset_2px_0_0_var(--color-nezumi)]'
                     }`}
                   >
                     {/*
@@ -212,14 +218,14 @@ export const DetectiveSetupScreen = ({
                       <button
                         type="button"
                         onClick={() => setDraft({ ...profile })}
-                        className="text-[11px] text-nezumi lg:text-[11.5px]"
+                        className="text-[11px] text-nezumi lg:text-[11.5px] lg:hover:text-kinari"
                       >
                         編集
                       </button>
                       <button
                         type="button"
                         onClick={() => update(removeDetective(store, profile.id))}
-                        className="text-[11px] text-nezumi-dim lg:text-[11.5px]"
+                        className="text-[11px] text-nezumi-dim lg:text-[11.5px] lg:hover:text-kinari"
                       >
                         削除
                       </button>
@@ -233,7 +239,7 @@ export const DetectiveSetupScreen = ({
           <button
             type="button"
             onClick={() => setDraft(emptyDraft())}
-            className="self-start text-[12px] text-nezumi tracking-[0.06em] lg:mt-[14px] lg:text-[12.5px] lg:tracking-[0.08em]"
+            className="self-start text-[12px] text-nezumi tracking-[0.06em] lg:mt-[14px] lg:text-[12.5px] lg:tracking-[0.08em] lg:hover:text-kinari"
           >
             ＋ 新しい探偵をつくる
           </button>

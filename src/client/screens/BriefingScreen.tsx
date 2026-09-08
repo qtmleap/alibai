@@ -164,7 +164,7 @@ export const BriefingScreen = ({ scenario, onRead }: Props) => {
           playSe('stage')
           onRead()
         }}
-        className="z-20 mt-auto pb-[26px] text-center text-[11.5px] text-nezumi-dim leading-[1.75] lg:absolute lg:inset-x-0 lg:bottom-[26px] lg:mt-0 lg:pb-0"
+        className="z-20 mt-auto pb-[26px] text-center text-[11.5px] text-nezumi-dim leading-[1.75] lg:absolute lg:inset-x-0 lg:bottom-[26px] lg:mt-0 lg:pb-0 lg:hover:text-kinari"
       >
         <span className="lg:hidden">タップで読み飛ばす</span>
         <span className="hidden lg:inline">クリックで読み飛ばす</span>

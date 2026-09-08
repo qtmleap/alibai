@@ -16,13 +16,25 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        /** 画面の主たる操作。事件を始める・推理を出す、といった一段目のボタン。 */
+        /**
+         * 画面の主たる操作。事件を始める・推理を出す、といった一段目のボタン。
+         *
+         * 触れたら地を一段だけ起こし、枠を生成りまで上げる。地を上げる幅は
+         * 押せる行と同じ sumi-2 で止める——濃くすると、罫線で組んだ画面のなかで
+         * ここだけ塗った札になる。
+         */
         default:
-          'border border-nezumi-dim font-semibold tracking-widest text-kinari hover:border-nezumi',
-        /** 取り返しのつかない操作。朱が出るのはこの variant だけ。 */
-        destructive: 'border border-shu tracking-widest text-shu hover:border-shu',
+          'border border-nezumi-dim font-semibold tracking-widest text-kinari hover:border-kinari hover:bg-sumi-2',
+        /**
+         * 取り返しのつかない操作。朱が出るのはこの variant だけ。
+         *
+         * 触れても枠は朱のまま動かさない。取り消せない一手が、触れただけで
+         * 他の操作と同じ顔になると、押す前の身構えがひとつ抜ける。
+         */
+        destructive: 'border border-shu tracking-widest text-shu hover:bg-sumi-2',
         /** 沈めた枠。選ばれていない選択肢や、副次的な入口。 */
-        outline: 'border border-sumi-3 text-nezumi-dim hover:border-nezumi-dim hover:text-nezumi',
+        outline:
+          'border border-sumi-3 text-nezumi-dim hover:border-nezumi hover:bg-sumi-2 hover:text-kinari',
         /** 丸いアイコンボタン（記・図・推）。 */
         icon: 'rounded-full border border-keisen text-nezumi hover:border-nezumi-dim hover:text-kinari',
         /** 枠なし。列に並ぶ項目そのものを押させるとき。 */
