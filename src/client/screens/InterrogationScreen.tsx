@@ -328,6 +328,11 @@ export const InterrogationScreen = ({
     ...scenario.characters.map((character, index) => ({
       id: character.id,
       name: character.name,
+      /*
+       * 相手を替える並びに出す名前。端末の上部バーは幅が無いので、三人並ぶと
+       * 姓名では折り返す。短い名前はサーバが必ず返すので、ここで姓を切り出さない。
+       */
+      shortName: character.shortName,
       logName: character.name,
       introduction: character.publicIntroduction,
       ink: inkOf(index),
@@ -346,6 +351,8 @@ export const InterrogationScreen = ({
           {
             id: VICTIM_ID,
             name: scenario.victim.name,
+            // 遺体には短い名前が無い（scenarioDetail の victim は name しか持たない）。
+            shortName: scenario.victim.name,
             logName: '所見',
             introduction: `被害者・${scenario.victim.introduction}`,
             ink: inkOf(scenario.characters.length),
@@ -357,6 +364,7 @@ export const InterrogationScreen = ({
     ...places.map((place) => ({
       id: place.id,
       name: place.name,
+      shortName: place.shortName,
       logName: '所見',
       /*
        * 名札の下に出すのは佇まいのほう。introduction は名簿に出す紹介で、
@@ -545,7 +553,7 @@ export const InterrogationScreen = ({
                 onClick={() => setActiveCharacterId(subject.id)}
                 className={`${switchClass} text-nezumi-dim hover:text-nezumi`}
               >
-                {subject.name}
+                {subject.shortName}
                 {subject.remaining === undefined ? null : (
                   <span className="ml-1.5">あと {subject.remaining}</span>
                 )}
@@ -682,17 +690,19 @@ export const InterrogationScreen = ({
           )}
 
           <div className="mt-2 flex items-center gap-5 text-[10.5px] text-nezumi-dim leading-[1.4]">
+            {/*
+              見本・呼び名・意味を、それぞれ間合いを空けて並べる。呼び名と意味を
+              一続きの字にすると、和字間隔ぶんしか離れず、どこまでが呼び名か読み取れない。
+            */}
             <span className="inline-flex items-center gap-1.5">
               <span aria-hidden="true" className="h-[3px] w-3.5 bg-nezumi" />
-              <span>
-                <span className="text-nezumi">実線</span>　裏付けあり
-              </span>
+              <span className="text-nezumi">実線</span>
+              <span>　裏付けあり</span>
             </span>
             <span className="inline-flex items-center gap-1.5">
               <span aria-hidden="true" className="w-3.5 border-nezumi-dim border-t border-dashed" />
-              <span>
-                <span className="text-nezumi">破線</span>　本人の申告のみ
-              </span>
+              <span className="text-nezumi">破線</span>
+              <span>　本人の申告のみ</span>
             </span>
           </div>
 
