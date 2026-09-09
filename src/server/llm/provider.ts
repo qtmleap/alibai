@@ -71,4 +71,4 @@ export const chooseLlm = (env: Env, role: LlmRole, override?: LlmOverride): stri
  * 攻撃者が自分のサーバを指定するだけで、Worker がそこへ API キーを添えて送ってしまう。
  */
 export const resolveModel = (env: Env, modelId: string): LanguageModel =>
-  createOpenAI({ apiKey: env.OPENAI_API_KEY, baseURL: env.OPENAI_URL }).chat(modelId)
+  createOpenAI({ apiKey: env.OPENAI_API_KEY, baseURL: env.OPENAI_URL })(modelId)
