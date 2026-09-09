@@ -43,7 +43,7 @@ if (premise === undefined || premise.trim() === '') {
 }
 
 const env = parseEnv(process.env)
-const choice = chooseLlm(env, 'author')
+const choice = await chooseLlm(env, 'author')
 const model = resolveModel(env, choice)
 
 /*

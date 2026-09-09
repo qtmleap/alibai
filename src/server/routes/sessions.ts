@@ -43,7 +43,7 @@ import { composeExaminationFocus, streamExamination } from '@/server/llm/examine
 import { createFilterState, FALLBACK_REPLY, feedChunk, finalizeFilter } from '@/server/llm/filter'
 import { streamQuestion, type TopicExchange } from '@/server/llm/interviewer'
 import { judgeTurn } from '@/server/llm/judge'
-import { chooseLlm } from '@/server/llm/provider'
+import { chooseLlms } from '@/server/llm/provider'
 import { toUsageRow } from '@/server/llm/usage'
 import { withEnv } from '@/server/middleware/env'
 import {
@@ -884,10 +884,10 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
     env そのものには決して混ぜない——withEnv が isolate 全体で使い回している
     オブジェクトなので、一人の選択が他のプレイヤーのリクエストへ漏れる。
   */
-  const choices: Record<'actor' | 'judge', string> = {
-    actor: chooseLlm(env, 'actor', askInput.llm?.actor),
-    judge: chooseLlm(env, 'judge', askInput.llm?.judge),
-  }
+  const choices = await chooseLlms(env, {
+    actor: askInput.llm?.actor,
+    judge: askInput.llm?.judge,
+  })
 
   /*
     レート制限は「このリクエストが実際に走らせるモデル呼び出しの数」で消費する。
@@ -1433,7 +1433,7 @@ sessionRoutes.post('/api/sessions/:id/accuse', validateAccuse, withEnv, async (c
   const accuseInput = c.get('accuseInput')
   const sessionId = accuseInput.sessionId
   const env = c.get('env')
-  const judgeChoice = chooseLlm(env, 'judge', accuseInput.llm?.judge)
+  const judgeChoice = (await chooseLlms(env, { judge: accuseInput.llm?.judge })).judge
 
   // LLMを呼ぶ口になったので ask と同じ上限を通す。認証がまだ無いのでキーはIP。
   const clientIp = c.req.header('cf-connecting-ip')

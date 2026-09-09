@@ -1,6 +1,7 @@
 import { createOpenAI } from '@ai-sdk/openai'
 import type { LanguageModel } from 'ai'
 import type { Env } from '@/server/env'
+import { listModels } from '@/server/llm/models'
 import { LLM_DEFAULT_MODELS, type LlmOverride } from '~/db/llm-catalog'
 
 /**
@@ -41,31 +42,107 @@ const modelOf = (env: Env, role: LlmRole): string | undefined => {
 }
 
 /**
- * どのモデルを使うかを決める。リクエストごとに一度だけ呼ぶ。
- *
- * 優先順位は override → env → 既定表。突き合わせる許可リストは持たないので、
- * プレイヤーが指定したIDはそのまま通る。互換サーバが知らないIDならそこでエラーになる。
+ * 指定されているモデル。override → env の順で、どちらも無ければ undefined。
+ * 突き合わせる許可リストは持たないので、指定されたIDはそのまま通る。
  */
-export const chooseLlm = (env: Env, role: LlmRole, override?: LlmOverride): string => {
+const settledModel = (env: Env, role: LlmRole, override?: LlmOverride): string | undefined => {
   const requested = override?.model
 
-  if (requested !== undefined) {
-    return requested
+  return requested === undefined ? modelOf(env, role) : requested
+}
+
+/**
+ * 何も指定が無いときのモデルを、互換サーバが返した一覧から選ぶ。
+ *
+ * `LLM_DEFAULT_MODELS` を固定のIDとして使わないのは、そのIDが相手のサーバに在るとは
+ * 限らないため。実際、モデル名を `openai,gpt-5.6-terra` のように「どのプロバイダ経由か」
+ * を接頭辞で表すゲートウェイがあり、素の名前は一つも存在しない。
+ *
+ * そこで既定表は「希望」として扱う。同じ名前で終わるIDが一覧にあればそれを採り、
+ * 無ければ一覧の先頭に落ちる。一覧そのものが引けなければ希望をそのまま返す
+ * （どのみち動かないが、モデル名がエラーに出るぶん原因が分かる）。
+ */
+const pickFromAvailable = (available: string[], preferred: string): string => {
+  const exact = available.find((id) => id === preferred)
+
+  if (exact !== undefined) {
+    return exact
   }
 
-  const fromEnv = modelOf(env, role)
+  const suffixed = available.find((id) => id.endsWith(`,${preferred}`))
 
-  return fromEnv === undefined ? LLM_DEFAULT_MODELS[role] : fromEnv
+  if (suffixed !== undefined) {
+    return suffixed
+  }
+
+  const first = available[0]
+
+  return first === undefined ? preferred : first
 }
+
+/**
+ * 1リクエストぶんのモデルを決める。
+ *
+ * 役割ごとに別々に呼ばず1つにまとめてあるのは、一覧の取得を多くても一度で済ませるため。
+ * env に何も置いていない構成では、ここが唯一「実在するモデル名」を知る手がかりになる。
+ */
+export const chooseLlms = async (
+  env: Env,
+  overrides: { actor?: LlmOverride; judge?: LlmOverride },
+  fetchModels = listModels,
+): Promise<{ actor: string; judge: string }> => {
+  const settled = {
+    actor: settledModel(env, 'actor', overrides.actor),
+    judge: settledModel(env, 'judge', overrides.judge),
+  }
+
+  if (settled.actor !== undefined && settled.judge !== undefined) {
+    return { actor: settled.actor, judge: settled.judge }
+  }
+
+  const available = await availableModels(env, fetchModels)
+
+  return {
+    actor:
+      settled.actor === undefined
+        ? pickFromAvailable(available, LLM_DEFAULT_MODELS.actor)
+        : settled.actor,
+    judge:
+      settled.judge === undefined
+        ? pickFromAvailable(available, LLM_DEFAULT_MODELS.judge)
+        : settled.judge,
+  }
+}
+
+/** 役割ひとつぶん。CLI（`db/generate-scenario.ts` の author）から使う。 */
+export const chooseLlm = async (
+  env: Env,
+  role: LlmRole,
+  override?: LlmOverride,
+  fetchModels = listModels,
+): Promise<string> => {
+  const settled = settledModel(env, role, override)
+
+  return settled === undefined
+    ? pickFromAvailable(await availableModels(env, fetchModels), LLM_DEFAULT_MODELS[role])
+    : settled
+}
+
+/** 鍵か向き先が無ければ聞きに行かない。 */
+const availableModels = async (env: Env, fetchModels: typeof listModels): Promise<string[]> =>
+  env.OPENAI_API_KEY === undefined || env.OPENAI_URL === undefined
+    ? []
+    : fetchModels(env.OPENAI_URL, env.OPENAI_API_KEY)
 
 /**
  * クライアントはただのファクトリなので、リクエストごとに作っても実質コストはない。
  * isolate をまたいで使い回そうとするより、毎回作るほうが安全で読みやすい。
  *
- * `.chat` を明示するのは、省くと Responses API（`/responses`）へ行くため。
- * OpenAI互換を名乗るサーバが出しているのは大抵 `/chat/completions` だけで、
- * 既定のままだと 404 になる。本家も `/chat/completions` を持っているので、
- * こちらに寄せれば両方に繋がる。
+ * 経路は SDK の既定のまま Responses API（`/responses`）を使う。chat/completions は
+ * 古いほうで、上限トークン数の指定が `max_tokens` と `max_completion_tokens` に
+ * 分かれている。SDK はどちらを送るかをモデルIDの文字列から判断するので、
+ * `openai,gpt-5.6-terra` のように接頭辞の付いたIDだとその判断を外し、
+ * 古い名前で送って 400 になる。Responses にはこの分岐が無い。
  *
  * 向き先はクライアントから差し替えられない。公開された画面から変えられると、
  * 攻撃者が自分のサーバを指定するだけで、Worker がそこへ API キーを添えて送ってしまう。
