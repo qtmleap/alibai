@@ -32,20 +32,37 @@
     "**/.turbo": true,
     "**/.cache": true,
     "**/coverage": true,
-    "**/.tanstack": true
+    "**/.tanstack": true,
+    "**/.vite": true,
+    "**/.wrangler": true,
+    "**/*.tsbuildinfo": true,
+    "storybook-static": true,
+    "screenshots": true,
+    "db/seed.sql": true
   },
   "files.watcherExclude": {
     "**/.git/objects/**": true,
     "**/node_modules/**": true,
-    "**/dist/**": true
+    "**/dist/**": true,
+    "**/.tanstack/**": true,
+    "**/.vite/**": true,
+    "**/.wrangler/**": true,
+    "storybook-static/**": true,
+    "screenshots/**": true
   },
   "search.exclude": {
     "**/node_modules": true,
     "**/dist": true,
     "**/coverage": true,
+    "**/.tanstack": true,
+    "**/.wrangler": true,
     "**/*.gen.ts": true,
+    "**/*.tsbuildinfo": true,
     "**/bun.lock": true,
-    "**/db/migrations/**": true
+    "**/db/migrations/**": true,
+    "storybook-static": true,
+    "screenshots": true,
+    "db/seed.sql": true
   },
 
   // ─────────────────────────────────────────────────────────────
