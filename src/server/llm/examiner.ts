@@ -85,13 +85,14 @@ export type ExaminationContext = {
   utterance: string
 }
 
-const buildDetectiveMessages = (detective: Detective | undefined): ModelMessage[] =>
-  detective === undefined ? [] : [{ role: 'system', content: buildDetectiveBlock(detective) }]
+/** 探偵の人物像。名乗らずに始めることもできるので、無ければ前置きごと出さない。 */
+const detectiveBlocks = (detective: Detective | undefined): string[] =>
+  detective === undefined ? [] : [buildDetectiveBlock(detective)]
 
 /**
  * 検分を書き起こす。遺体でも場所でも、渡すものが変わるだけで作りは同じ。
  *
- * 作りは `streamNpcReply` と同じ（プレフィックスを二段に分けてキャッシュを効かせる）。
+ * 作りは `streamNpcReply` と同じ（変わらない前置きを先に置いてキャッシュを効かせる）。
  * 違うのは相手が喋らないことだけで、渡すのが人物像ではなく所見のシートになる。
  *
  * ここは**言い換えだけをさせる経路**で、所見そのものはシナリオが決めている。
@@ -109,14 +110,8 @@ export const streamExamination = ({
 }: ExaminationContext) =>
   streamText({
     model: resolveModel(env, modelId),
-    // 理由は streamNpcReply と同じ。前置きをブロックに分けて並べるため。
-    allowSystemInMessages: true,
-    messages: [
-      { role: 'system', content: examinationRules },
-      { role: 'system', content: sheet },
-      ...buildDetectiveMessages(detective),
-      ...history,
-      { role: 'user', content: utterance },
-    ],
+    // 理由は streamNpcReply と同じ。前置きは system オプションに一本化する。
+    system: [examinationRules, sheet, ...detectiveBlocks(detective)].join('\n\n'),
+    messages: [...history, { role: 'user', content: utterance }],
     maxOutputTokens: 1024,
   })

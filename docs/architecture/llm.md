@@ -80,15 +80,9 @@ LLM_AUTHOR_MODEL=
 
 ```typescript
 streamText({
-  model: resolveModel(env, choice),
-  allowSystemInMessages: true,
-  messages: [
-    { role: 'system', content: gameRules },
-    { role: 'system', content: characterSheet },
-    ...buildDetectiveMessages(detective),
-    ...history,
-    { role: 'user', content: question },
-  ],
+  model: resolveModel(env, modelId),
+  system: [gameRules, characterSheet, ...detectiveBlocks(detective)].join('\n\n'),
+  messages: [...history, { role: 'user', content: question }],
   maxOutputTokens: 1024,
 })
 ```
@@ -193,7 +187,7 @@ Judge は往復ごとではなく**話題ごとに1回**呼びます。往復ご
 - 2つ目: NPCのキャラクターシート（そのNPCとの会話中は不変）
 - 3つ目以降: 探偵、会話履歴
 
-`actor.ts` / `examiner.ts` が `allowSystemInMessages: true` を立てているのはこのためです。system オプション（ただの文字列）ではこの並びを作れません。
+前置きは system オプションに一本の文字列としてまとめます。以前は messages の先頭に system ロールで積んでいましたが、互換サーバが Anthropic へ中継する構成だと 400 になります（あちらは system を最上位でしか受けません）。ブロックに分けていた理由（`cache_control` をブロック単位で打つため）はもう無いので、順序さえ保てば足ります。
 
 **3. キャッシュはモデル単位・NPC単位で分かれる。**
 同一シナリオでもNPCが違えばキャッシュは別物です。1プレイ中に何度も同じNPCへ聞き直す設計は、キャッシュ効率の面でも有利になります。
