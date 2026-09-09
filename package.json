@@ -21,6 +21,7 @@
     "db:seed:apply": "wrangler d1 execute alibai --local --file=db/seed.sql",
     "db:speakers:apply": "wrangler d1 execute alibai --local --file=db/tts-speakers.sql",
     "db:seed:apply:remote": "wrangler d1 execute alibai --remote --file=db/seed.sql",
+    "db:speakers:apply:remote": "wrangler d1 execute alibai --remote --file=db/tts-speakers.sql",
     "db:author": "bun run db/generate-scenario.ts",
     "se:fetch": "bun run scripts/fetch-se.ts",
     "deploy": "bun run se:fetch && bun run build && bun run db:migrate:remote && wrangler deploy"
