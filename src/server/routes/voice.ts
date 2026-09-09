@@ -5,8 +5,8 @@ import { z } from 'zod'
 import { createDb } from '@/server/db/client'
 import type { Bindings } from '@/server/env'
 import { withEnv } from '@/server/middleware/env'
-import { listSpeakers, speakerFor, synthesize } from '@/server/tts/irodori'
-import { messages } from '~/db/schema'
+import { speakerFor, synthesize } from '@/server/tts/irodori'
+import { characters, messages, ttsSpeakers } from '~/db/schema'
 
 /**
  * NPCの台詞を音声にして返す。
@@ -52,8 +52,11 @@ voiceRoutes.get('/api/sessions/:id/messages/:messageId/voice', validateIds, with
       content: messages.content,
       role: messages.role,
       characterId: messages.characterId,
+      ageGroup: characters.ageGroup,
+      gender: characters.gender,
     })
     .from(messages)
+    .innerJoin(characters, eq(characters.id, messages.characterId))
     .where(and(eq(messages.id, ids.messageId), eq(messages.sessionId, ids.id)))
     .limit(1)
 
@@ -69,19 +72,31 @@ voiceRoutes.get('/api/sessions/:id/messages/:messageId/voice', validateIds, with
   }
 
   /*
-    話者はキャラクターのUUIDから引く。シナリオのデータには持たせていない。
+    話者は人物の年ごろと性別で絞ってから、UUIDで一体に決める。シナリオのデータには
+    持たせていない。登録話者は既存作品の登場人物なので、割り当てをリポジトリに
+    焼き込みたくない（`src/server/tts/irodori.ts` の但し書きを参照）。
 
-    登録話者は既存作品の登場人物なので、割り当てをリポジトリに焼き込みたくない
-    （`src/server/tts/irodori.ts` の但し書きを参照）。ここで引く形なら、公開へ向かうときに
-    この関数を差し替えるだけで済み、43本のシナリオを洗い直さずに戻せる。
+    絞り込みは性別を先に、年ごろを後に落とす。声を聞いて一番先に「違う」と分かるのが
+    性別で、年ごろの隣（young と adult など）は許容できる幅があるため。
   */
-  const speaker = speakerFor(await listSpeakers(baseUrl), row.characterId)
+  const matched = await db
+    .select({ id: ttsSpeakers.id })
+    .from(ttsSpeakers)
+    .where(and(eq(ttsSpeakers.gender, row.gender), eq(ttsSpeakers.ageGroup, row.ageGroup)))
+  const sameGender =
+    matched.length > 0
+      ? matched
+      : await db
+          .select({ id: ttsSpeakers.id })
+          .from(ttsSpeakers)
+          .where(eq(ttsSpeakers.gender, row.gender))
+  const speaker = speakerFor(sameGender, row.characterId)
 
   if (speaker === undefined) {
     return c.json({ error: 'character has no voice' }, 404)
   }
 
-  const upstream = await synthesize(baseUrl, row.content, { speakerId: speaker.uuid })
+  const upstream = await synthesize(baseUrl, row.content, { speakerId: speaker.id })
 
   if (!upstream.ok) {
     return c.json({ error: 'synthesis failed' }, 502)

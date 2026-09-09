@@ -628,3 +628,23 @@ export const analyticsTurns = sqliteTable(
     index('analytics_turns_created_at_idx').on(table.createdAt),
   ],
 )
+
+/**
+ * Irodori-TTS の登録話者に、年ごろと性別を付けた表。
+ *
+ * TTS 側の `/speakers` は uuid と名前しか返さないので、キャラクターの `age_group` /
+ * `gender` と突き合わせるための情報がここにしか無い。値は `db/tts-speakers.ts` が
+ * Author LLM に話者名から推定させて入れる。
+ *
+ * **開発中の仮のもの。** 登録話者は既存作品の登場人物で、公開する作品には乗せられない
+ * （`src/server/tts/irodori.ts` の但し書きを参照）。声の作り分けを画面で確かめるための
+ * 足場であって、外へ出すときはこの表ごと落とす。
+ */
+export const ttsSpeakers = sqliteTable('tts_speakers', {
+  /** TTS 側の話者 UUID。こちらでは採番しない。 */
+  id: text('id').primaryKey(),
+  /** 突き合わせには使わない。推定を人が見直すときの手がかり。 */
+  name: text('name').notNull(),
+  ageGroup: text('age_group').$type<AgeGroup>().notNull().default('unknown'),
+  gender: text('gender').$type<Gender>().notNull().default('unknown'),
+})

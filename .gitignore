@@ -257,6 +257,7 @@ vite.config.*.timestamp-*
 /db/seeds/*.local.*
 # db:seed が生成する投入用SQL。中身は db/scenarios/*.yaml から再生成できる。
 /db/seed.sql
+/db/tts-speakers.sql
 
 ### Cloudflare Workers ###
 # wrangler のローカル状態（DO/KVのエミュレーションデータなど）
