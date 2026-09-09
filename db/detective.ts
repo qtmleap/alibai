@@ -15,14 +15,18 @@ import { AGE_GROUP_LABELS, ageGroupSchema, GENDER_LABELS, genderSchema } from '.
 /**
  * 探偵そのもの。名乗らずに始めることもできるので、持たないセッションもある。
  *
- * appearance だけが自由記述。NPC のプロンプトにそのまま入る＝そのままトークン数に
+ * appearance と speech が自由記述。NPC のプロンプトにそのまま入る＝そのままトークン数に
  * なるので、上限を切る。空でも構わない（書かなければプロンプトにも出さない）。
+ *
+ * speech が appearance より短いのは、口調は例を一つ二つ挙げれば足りるため。
+ * 長く書けるようにすると人物設定をここへ書き始めてしまい、appearance と役が重なる。
  */
 export const detectiveSchema = z.object({
   name: z.string().nonempty().max(40),
   ageGroup: ageGroupSchema,
   gender: genderSchema,
   appearance: z.string().max(200),
+  speech: z.string().max(100),
 })
 
 export type Detective = z.infer<typeof detectiveSchema>

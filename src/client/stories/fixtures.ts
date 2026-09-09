@@ -333,6 +333,7 @@ export const DETECTIVES: DetectiveStore = {
       ageGroup: 'adult',
       gender: 'female',
       appearance: '背の低い痩身。読みかけの文庫をいつも外套の右に入れている。',
+      speech: '丁寧語だが素っ気ない。相手を名字で呼ぶ。',
     },
     {
       id: 'tohru',
@@ -340,8 +341,16 @@ export const DETECTIVES: DetectiveStore = {
       ageGroup: 'elder',
       gender: 'male',
       appearance: '白髪を短く刈った長身。杖はつくが足取りは速い。',
+      speech: '',
     },
-    { id: 'ash', name: '灰かぶり', ageGroup: 'unknown', gender: 'unknown', appearance: '' },
+    {
+      id: 'ash',
+      name: '灰かぶり',
+      ageGroup: 'unknown',
+      gender: 'unknown',
+      appearance: '',
+      speech: '',
+    },
   ],
   activeId: 'akari',
 }

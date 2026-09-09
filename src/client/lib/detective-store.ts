@@ -43,7 +43,9 @@ export const TACHIBANA_SHERRY: StoredDetective = {
   name: '橘シェリー',
   ageGroup: 'teen',
   gender: 'female',
-  appearance: '上背のある少女。いつもにこにこしていて、面白そうなものには迷わず飛びついてくる。',
+  appearance:
+    '水色の髪を三つ編みでまとめた団子頭に、オレンジの瞳。右の横髪に金と黒の小さなリボン。紺と青と水色のチェックのシャーロックハットをかぶり、首元はリボンとネクタイ。くすんだ水色のウェストコートを黒いリボンで留め、上から紺のインバネスコート。帽子と同じチェックのスカートは膝が見える丈で、左足だけ黒いタイツ。靴は黒く、白い小さなリボンの飾りがついている。',
+  speech: '敬語を使わず、明るく砕けた口ぶり。面白がっているのがそのまま声に出る。',
 }
 
 export const PRESET_DETECTIVES: StoredDetective[] = [TACHIBANA_SHERRY]
@@ -78,6 +80,14 @@ const legacyStoredDetectiveSchema = z.object({
   gender: z.string().max(20),
   appearance: z.string().max(200),
 })
+
+/**
+ * 口調の欄が無かった頃の形。空の口調として読み替える。
+ *
+ * 足したばかりの欄なので、保管庫にある探偵はまだ誰も持っていない。ここを飛ばすと
+ * 全員が今の形にも旧い形にも当てはまらなくなり、次に開いた瞬間まとめて消える。
+ */
+const speechlessStoredDetectiveSchema = storedDetectiveSchema.omit({ speech: true })
 
 /** 中身の検証は1人ずつやるので、ここでは器の形だけ見る。 */
 const looseStoreSchema = z.object({
@@ -151,6 +161,12 @@ const recoverProfile = (raw: unknown): StoredDetective[] => {
     return [current.data]
   }
 
+  const speechless = speechlessStoredDetectiveSchema.safeParse(raw)
+
+  if (speechless.success) {
+    return [{ ...speechless.data, speech: '' }]
+  }
+
   const legacy = legacyStoredDetectiveSchema.safeParse(raw)
 
   if (!legacy.success) {
@@ -164,6 +180,7 @@ const recoverProfile = (raw: unknown): StoredDetective[] => {
       ageGroup: toAgeGroup(legacy.data.age),
       gender: toGender(legacy.data.gender),
       appearance: legacy.data.appearance,
+      speech: '',
     },
   ]
 }
@@ -255,6 +272,7 @@ export const toDetective = (stored: StoredDetective): Detective => ({
   ageGroup: stored.ageGroup,
   gender: stored.gender,
   appearance: stored.appearance,
+  speech: stored.speech,
 })
 
 export const newDetectiveId = (): string => crypto.randomUUID()

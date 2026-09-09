@@ -22,6 +22,7 @@ const profile = (id: string, name: string): StoredDetective => ({
   ageGroup: 'young',
   gender: 'female',
   appearance: 'くたびれたコート',
+  speech: '',
 })
 
 const akari = profile('a', '日下部 灯')
@@ -163,6 +164,7 @@ describe('toDetective', () => {
       ageGroup: 'young',
       gender: 'female',
       appearance: 'くたびれたコート',
+      speech: '',
     })
   })
 })
@@ -187,8 +189,9 @@ describe('parseDetectiveStore', () => {
         ageGroup: 'young',
         gender: 'female',
         appearance: 'くたびれたコート',
+        speech: '',
       },
-      { id: 'b', name: '八千代 椿', ageGroup: 'elder', gender: 'male', appearance: '' },
+      { id: 'b', name: '八千代 椿', ageGroup: 'elder', gender: 'male', appearance: '', speech: '' },
     ])
     expect(parsed.store.activeId).toBe('a')
   })
@@ -224,6 +227,15 @@ describe('parseDetectiveStore', () => {
     const parsed = parseDetectiveStore({ profiles: [legacy.profiles[1]], activeId: 'a' })
 
     expect(parsed.store.activeId).toBeUndefined()
+  })
+
+  test('口調の欄が無かった頃の探偵を、消さずに空の口調で読み替える', () => {
+    const { speech, ...speechless } = akari
+    const parsed = parseDetectiveStore({ profiles: [speechless], activeId: 'a' })
+
+    expect(parsed.migrated).toBe(true)
+    expect(parsed.store.profiles).toEqual([{ ...akari, speech: '' }])
+    expect(parsed.store.activeId).toBe('a')
   })
 
   test('今の形はそのまま通り、書き戻しも起こさない', () => {

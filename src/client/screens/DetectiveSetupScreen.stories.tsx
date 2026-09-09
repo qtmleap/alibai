@@ -37,6 +37,7 @@ const EDIT_DRAFT: Draft = {
   ageGroup: 'adult',
   gender: 'female',
   appearance: '背の低い痩身。読みかけの文庫をいつも外套の右に入れている。',
+  speech: '丁寧語だが素っ気ない。相手を名字で呼ぶ。',
 }
 
 /** 探偵を編集する。1人目の値が入っていて、保存が押せる。 */

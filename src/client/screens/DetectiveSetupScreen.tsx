@@ -66,6 +66,7 @@ export const emptyDraft = (): Draft => ({
   ageGroup: 'unknown',
   gender: 'unknown',
   appearance: '',
+  speech: '',
 })
 
 /**
@@ -91,6 +92,7 @@ export const DetectiveSetupScreen = ({
 }: Props) => {
   const nameId = useId()
   const appearanceId = useId()
+  const speechId = useId()
   const [store, setStore] = useState<DetectiveStore>(readStore)
   const [draft, setDraft] = useState<Draft | undefined>(initialDraft)
 
@@ -122,6 +124,7 @@ export const DetectiveSetupScreen = ({
       ageGroup: draft.ageGroup,
       gender: draft.gender,
       appearance: draft.appearance,
+      speech: draft.speech,
     }
 
     update(upsertDetective(store, saved))
@@ -306,6 +309,12 @@ export const DetectiveSetupScreen = ({
               >
                 {selected.appearance.length > 0 ? selected.appearance : '容姿は書かれていません。'}
               </p>
+              {/* 書かれていないときは行ごと出さない。容姿と違って、無いなら黙っていてよい。 */}
+              {selected.speech.length > 0 && (
+                <p className="mt-4 max-w-[34em] border-keisen border-t pt-4 text-[13px] text-nezumi leading-[2]">
+                  {selected.speech}
+                </p>
+              )}
               {!isPresetDetective(selected.id) && (
                 <button
                   type="button"
@@ -372,6 +381,23 @@ export const DetectiveSetupScreen = ({
                   maxLength={200}
                   rows={3}
                   placeholder="例：くたびれたコートを着た長身。目つきが鋭く、口数は少ない。"
+                  className="field-sizing-fixed resize-none leading-relaxed"
+                />
+              </label>
+
+              {/*
+                容姿より短い欄にしてある。口調は例を一つ二つ挙げれば足りて、
+                長く書けるようにすると人物設定をこちらへ書き始めてしまう。
+              */}
+              <label className="flex flex-col gap-1.5 lg:gap-[7px]" htmlFor={speechId}>
+                <span className={`block ${LEGEND}`}>口調</span>
+                <Textarea
+                  id={speechId}
+                  value={draft.speech}
+                  onChange={(event) => updateDraft({ speech: event.target.value })}
+                  maxLength={100}
+                  rows={2}
+                  placeholder="例：丁寧語だが素っ気ない。相手を名字で呼ぶ。"
                   className="field-sizing-fixed resize-none leading-relaxed"
                 />
               </label>

@@ -94,7 +94,10 @@ export const buildDetectiveSelfBlock = (detective: Detective): string =>
     `あなたの名前は${detective.name}。`,
     `年ごろは${AGE_GROUP_LABELS[detective.ageGroup]}、性別は${GENDER_LABELS[detective.gender]}。`,
     ...(detective.appearance.length > 0 ? [`外見: ${detective.appearance}`] : []),
-    'この人物像に合った口調で話す。',
+    ...(detective.speech.length > 0 ? [`口調: ${detective.speech}`] : []),
+    // 口調が書かれていれば、それに従わせる。書かれていなければ、残りの人物像から
+    // 探らせる——ここを空にすると、どの探偵も同じ調子で喋る。
+    detective.speech.length > 0 ? 'この口調を保って話す。' : 'この人物像に合った口調で話す。',
   ].join('\n')
 
 export const buildDetectiveBlock = (detective: Detective): string => {
@@ -109,6 +112,9 @@ export const buildDetectiveBlock = (detective: Detective): string => {
     `性別: ${GENDER_LABELS[detective.gender]}`,
     // 空のまま「外見: 」と書くと、モデルが行を埋めようとして勝手に外見を作る。
     ...(detective.appearance.length > 0 ? [`外見: ${detective.appearance}`] : []),
+    // NPC からも聞こえているものなので、こちらにも渡す。相手の砕けた口ぶりに
+    // 気を悪くするか合わせるかは、NPC 自身の人物像が決める。
+    ...(detective.speech.length > 0 ? [`口調: ${detective.speech}`] : []),
     '',
     '呼びかけと態度:',
     `- あなたのほうが年上なら、${hint.fromElder} のように呼びかける。`,
