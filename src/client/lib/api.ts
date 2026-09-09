@@ -160,8 +160,16 @@ export type AskCallbacks = {
   onQuestionStart: () => void
   /** 探偵の質問の断片。直前の `onQuestionStart` で始まった往復の質問として継ぎ足す。 */
   onQuestion: (chunk: string) => void
+  /**
+   * 質問が記録された合図。届く `id` は messages の行のIDで、読み上げを頼む宛先になる。
+   * ここまで来たら本文は確定している——以後この質問に断片は継ぎ足されない。
+   * 記録に失敗した回は届かない（声が付かないだけで、会話は続く）。
+   */
+  onQuestionId: (id: string) => void
   /** NPCの返答の断片。直前の `onQuestion` で始まった往復の答えとして継ぎ足す。 */
   onDelta: (chunk: string) => void
+  /** 返答が記録された合図。`onQuestionId` と同じ扱い。 */
+  onAnswerId: (id: string) => void
   onJudgement: (judgement: Judgement) => void
   onDone: () => void
 }
@@ -206,8 +214,16 @@ export const askTopic = async (
       callbacks.onQuestion(event.data)
     }
 
+    if (event.event === 'question-id') {
+      callbacks.onQuestionId(event.data)
+    }
+
     if (event.event === 'delta') {
       callbacks.onDelta(event.data)
+    }
+
+    if (event.event === 'answer-id') {
+      callbacks.onAnswerId(event.data)
     }
 
     if (event.event === 'judgement') {
@@ -220,6 +236,15 @@ export const askTopic = async (
     }
   }
 }
+
+/**
+ * 発言の1行を読み上げてもらう先。
+ *
+ * 文そのものは渡さない。サーバが messages から読んで同じ割り方で切り出す
+ * （`src/server/routes/voice.ts`）。声の付かない行はここを呼ばない。
+ */
+export const voiceUrl = (sessionId: string, messageId: string, line: number): string =>
+  `/api/sessions/${sessionId}/messages/${messageId}/voice?line=${line}`
 
 /** catch (error: unknown) から表示用の一言を取り出す。 */
 export const describeError = (error: unknown): string => {

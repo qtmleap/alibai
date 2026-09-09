@@ -18,6 +18,7 @@ const meta: Meta<typeof SettingsScreen> = {
     // 保管庫を読ませない。story ごとに前の操作が残ると、同じ絵が二度出ない。
     readBriefing: () => 'typewriter',
     readSound: () => 'on',
+    readVoice: () => 'on',
   },
 }
 

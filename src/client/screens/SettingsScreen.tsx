@@ -17,6 +17,7 @@ import {
   saveSettings,
 } from '@/client/lib/settings-store'
 import { loadSoundSetting, type SoundSetting, saveSoundSetting } from '@/client/lib/sound'
+import { loadVoiceSetting, saveVoiceSetting, type VoiceSetting } from '@/client/lib/voice'
 import { clampLimits, modelCallsPerTopic } from '@/shared/turns'
 
 /**
@@ -70,6 +71,7 @@ type Props = {
   /** 演出の設定は別の保管庫に住んでいる（記録の画面が単独で読むため）。差し替える理由は同じ。 */
   readBriefing?: () => BriefingMode
   readSound?: () => SoundSetting
+  readVoice?: () => VoiceSetting
   /** 戻り先はルートが決める。他の画面と同じく、ここは表示に専念する。 */
   onBack: () => void
 }
@@ -79,11 +81,13 @@ export const SettingsScreen = ({
   readSettings = loadSettings,
   readBriefing = loadBriefingMode,
   readSound = loadSoundSetting,
+  readVoice = loadVoiceSetting,
   onBack,
 }: Props) => {
   const [settings, setSettings] = useState<Settings>(readSettings)
   const [briefing, setBriefing] = useState<BriefingMode>(readBriefing)
   const [sound, setSound] = useState<SoundSetting>(readSound)
+  const [voice, setVoice] = useState<VoiceSetting>(readVoice)
   const [catalog, setCatalog] = useState<LlmSettingsResponse | undefined>(undefined)
   const [failed, setFailed] = useState(false)
 
@@ -118,6 +122,11 @@ export const SettingsScreen = ({
   const chooseSound = (next: SoundSetting) => {
     saveSoundSetting(next)
     setSound(next)
+  }
+
+  const chooseVoice = (next: VoiceSetting) => {
+    saveVoiceSetting(next)
+    setVoice(next)
   }
 
   // 音は打鍵のときしか鳴らない。せり上がるを選んでいるあいだは選ばせない。
@@ -269,6 +278,30 @@ export const SettingsScreen = ({
             : 'せり上がるは速さが決まっているぶん、音は鳴りません。'}
         </p>
       </section>
+
+      {/*
+        聞き込みの声。記録の見せ方と同じで、会話の最中に切り替えを置くと毎回そこで手が止まる。
+        モデルの一覧を待たずに決められる値なので、取得の成否とは切り離して置く。
+      */}
+      <section className="flex flex-col gap-[13px] border-keisen border-t pt-[14px] lg:gap-0 lg:border-t-0 lg:pt-0">
+        <h2 className={`${LEGEND} lg:block lg:pb-[7px]`}>聞き込み</h2>
+
+        <div className="flex flex-col gap-[13px] lg:gap-0 lg:border-keisen lg:border-t">
+          <ChoiceRow
+            name="読み上げ"
+            note="読み終わるまで次の行を待ちます"
+            noteOnPhone={true}
+            choices={VOICE_CHOICES}
+            value={voice}
+            pickable={true}
+            onChange={chooseVoice}
+          />
+        </div>
+
+        <p className={`${FINE_LG} lg:pt-[10px]`}>
+          読み上げないときは、これまで通り一定の間で流れます。
+        </p>
+      </section>
     </div>
   )
 }
@@ -283,6 +316,11 @@ const BRIEFING_CHOICES: readonly Choice<BriefingMode>[] = [
 const SOUND_CHOICES: readonly Choice<SoundSetting>[] = [
   { key: 'on', label: '鳴らす' },
   { key: 'off', label: '鳴らさない' },
+]
+
+const VOICE_CHOICES: readonly Choice<VoiceSetting>[] = [
+  { key: 'on', label: '読み上げる' },
+  { key: 'off', label: '読み上げない' },
 ]
 
 /**

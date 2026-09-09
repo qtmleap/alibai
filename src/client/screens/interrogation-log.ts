@@ -6,7 +6,7 @@
  * この画面からしか呼ばれない。
  */
 import type { ChatTurn } from '@/client/hooks/useInterrogation'
-import { splitParagraphs } from '@/client/lib/paragraphs'
+import { messageParagraphs } from '@/shared/paragraphs'
 
 /** `HH:mm` を分に直す。時刻軸の位置取りと、会話のなかの時刻合わせに使う。 */
 export const toMinutes = (hhmm: string): number => {
@@ -34,9 +34,12 @@ const settledEnd = (text: string): number => {
  *
  * `streaming` のあいだは、書きかけの一文を伏せる。届いたそばから出すと、
  * 読むより先に目が字を追いはじめる。
+ *
+ * 割り方そのものは `messageParagraphs`（shared）。読み上げを頼むときの行番号は
+ * ここが返した添字なので、サーバも同じ関数で割る。
  */
 export const paragraphsOf = (text: string, streaming: boolean): string[] =>
-  splitParagraphs((streaming ? text.slice(0, settledEnd(text)) : text).split(/\n+/).join('\n\n'))
+  messageParagraphs(streaming ? text.slice(0, settledEnd(text)) : text)
 
 /* ---- 会話のなかの確定時刻 ---- */
 
@@ -128,6 +131,15 @@ export const tintTimes = (text: string, inks: Map<number, string>): Piece[] => {
 
 /* ---- 会話の塊 ---- */
 
+/**
+ * その行を読み上げてもらう宛先。`line` は発言の中での段落の位置。
+ *
+ * 記録が済んでいない行（書いている途中・記録に失敗した行）には無い。
+ */
+export type VoiceRef = { messageId: string; line: number }
+
+export type Line = { id: string; text: string; voice: VoiceRef | undefined }
+
 /** who は登場順の添字。探偵は列を持たないので -1。 */
 export type Block = {
   id: string
@@ -136,7 +148,7 @@ export type Block = {
   /** 名前の色と縦罫。人は登場順の顔料、場所は灰、探偵は罫線と同じ色。 */
   ink: string
   edge: string
-  lines: { id: string; text: string }[]
+  lines: Line[]
 }
 
 /** 塊を作るのに要る、相手の最小限。 */
@@ -171,7 +183,13 @@ export const buildBlocks = (
           name: character.logName,
           ink: character.ink,
           edge: character.edge,
-          streaming: seq === streamingSeq && turn.role === 'assistant',
+          /*
+           * IDが立った行はもう書き終わっている（サーバは記録してからIDを配る）。
+           * そこから先は書きかけを伏せない——伏せたままだと、画面が割った段落と
+           * サーバが割った段落がずれて、出ている行と読まれる行が食い違う。
+           */
+          streaming:
+            seq === streamingSeq && turn.role === 'assistant' && turn.messageId === undefined,
         }))
         // 話題はプレイヤーの指示であって発言ではない。探偵が投げた質問のほうが残る。
         .filter(({ turn }) => turn.role !== 'topic' && turn.text.length > 0)
@@ -186,9 +204,12 @@ export const buildBlocks = (
   for (const item of ordered) {
     const who = item.turn.role === 'user' ? -1 : item.index
     const id = `${item.index}:${item.turn.id}`
+    const messageId = item.turn.messageId
     const lines = paragraphsOf(item.turn.text, item.streaming).map((text, at) => ({
       id: `${id}:${at}`,
       text,
+      // 段落の添字がそのまま読み上げの行番号になる。サーバも同じ割り方で切る。
+      voice: messageId === undefined ? undefined : { messageId, line: at },
     }))
 
     // 一文目が出来上がるまでは何も置かない。名前だけ先に出ると、

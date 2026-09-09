@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { splitParagraphs } from '@/client/lib/paragraphs'
+import { messageParagraphs, splitParagraphs } from '@/shared/paragraphs'
 
 describe('splitParagraphs', () => {
   test('空行1つで区切られた段落を分割する', () => {
@@ -77,5 +77,31 @@ describe('splitParagraphs（長い段落の分割）', () => {
       sentence(10),
       sentence(10),
     ])
+  })
+})
+
+/**
+ * 読み上げは「この発言の N 行目」で頼むので、画面とサーバがここを同じに割る。
+ * ずれると、出ている行と読まれる行が食い違う。
+ */
+describe('messageParagraphs', () => {
+  const sentence = (chars: number) => `${'あ'.repeat(chars - 1)}。`
+
+  test('単なる改行も段落の切れ目として扱う', () => {
+    expect(messageParagraphs(`${sentence(10)}\n${sentence(10)}`)).toEqual([
+      sentence(10),
+      sentence(10),
+    ])
+  })
+
+  test('連続した改行はひとつの切れ目', () => {
+    expect(messageParagraphs(`${sentence(10)}\n\n\n${sentence(10)}`)).toHaveLength(2)
+  })
+
+  test('長い段落は文の切れ目で割れ、添字がそのまま行番号になる', () => {
+    const said = messageParagraphs(`${sentence(40)}${sentence(40)}`)
+
+    expect(said).toHaveLength(2)
+    expect(said[1]).toBe(sentence(40))
   })
 })

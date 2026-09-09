@@ -378,9 +378,14 @@ export const messages = sqliteTable(
     sessionId: text('session_id')
       .notNull()
       .references(() => playSessions.id, { onDelete: 'cascade' }),
-    characterId: text('character_id')
-      .notNull()
-      .references(() => characters.id, { onDelete: 'cascade' }),
+    /**
+     * 話しかけた（あるいは調べた）相手。
+     *
+     * `characters` への外部キーは張らない。遺体は `victim` 固定、場所はシナリオの
+     * JSON 列が持つ ID で、どちらも `characters` に行が無いため。外部キーがあった頃は
+     * 検分の往復だけ記録ごと落としていた。
+     */
+    characterId: text('character_id').notNull(),
     role: text('role').notNull(),
     content: text('content').notNull(),
     createdAt: createdTimestamp('created_at'),

@@ -20,6 +20,17 @@
 export type Speaker = { id: string }
 
 /**
+ * 探偵の声。話者は「橘シェリー」（CV 柊優花）で固定。
+ *
+ * 人物と違って探偵は `characters` に行を持たないので、年ごろと性別で絞る道が無い。
+ * プレイヤーが名前を決めるだけの役なので、選ばせる仕組みも要らない——一体に決め打つ。
+ * 遺体や現場を調べたときの所見も、探偵が見たものなのでこの声で読む。
+ *
+ * 上の但し書きと同じ扱い。公開に向かうときはこの定数ごと落とす。
+ */
+export const DETECTIVE_SPEAKER_ID = '64cbf822-f7ee-525f-8d2f-8ad7a89664e8'
+
+/**
  * 候補の中から一体を決める。
  *
  * UUIDから引くので、同じ人物には毎回同じ声が当たる。候補の並びが変わらない限り、
@@ -41,6 +52,50 @@ export const speakerFor = <T extends Speaker>(
 
   return candidates[digest % candidates.length]
 }
+
+/**
+ * 事件に出る人物へ、まとめて声を配る。
+ *
+ * 一人ずつ独立に決めると、年ごろと性別が同じ二人に同じ声が当たることがある。
+ * 同じ事件のなかで声が重なると、誰が喋っているのか耳では分からなくなる——
+ * 名前が見えている画面でも、聞いているあいだは声が人物の見分けになっている。
+ *
+ * `tiers` は望ましい順に並べた候補の束。先の束に空きがあるあいだはそこから取り、
+ * 尽きたら次の束へ落ちる。年ごろまで合う声が一体しか居ない組（senior は男女とも
+ * 一体ずつ）で二人目が来たとき、重ねるのではなく年ごろを譲るための段。
+ *
+ * 配る順はIDの昇順。登場順ではないのは、並びの根拠をこの関数の中だけで完結させるため
+ * （呼ぶ側が順番を間違えると、人物ごとに違う声が返る関数になってしまう）。
+ * どの束にも空きが無くなったら重なりを許す——声が出ないより、二人が似ているほうが
+ * まだ遊べる。
+ */
+export const assignSpeakers = <T extends Speaker>(
+  people: { id: string; tiers: T[][] }[],
+): Map<string, T> =>
+  [...people]
+    .sort((a, b) => (a.id < b.id ? -1 : 1))
+    .reduce(
+      (acc, person) => {
+        const open = person.tiers.find((tier) =>
+          tier.some((candidate) => !acc.taken.has(candidate.id)),
+        )
+        const pool =
+          open === undefined
+            ? person.tiers.flat()
+            : open.filter((candidate) => !acc.taken.has(candidate.id))
+        const picked = speakerFor(pool, person.id)
+
+        if (picked === undefined) {
+          return acc
+        }
+
+        acc.taken.add(picked.id)
+        acc.byPerson.set(person.id, picked)
+
+        return acc
+      },
+      { taken: new Set<string>(), byPerson: new Map<string, T>() },
+    ).byPerson
 
 /** 登録話者で鳴らす。細かい調整は送らない——話者ごとの既定が上流にある。 */
 export type Voice = { speakerId: string }

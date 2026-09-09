@@ -13,8 +13,8 @@ import { TurnAnnounce } from '@/client/components/TurnAnnounce'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/client/components/ui/dialog'
 import type { ChatTurn, UseInterrogation } from '@/client/hooks/useInterrogation'
 import { useLitFix } from '@/client/hooks/useLitFix'
-import { usePacedReveal } from '@/client/hooks/usePacedReveal'
-import { fetchSessionState } from '@/client/lib/api'
+import { useVoicedReveal } from '@/client/hooks/useVoicedReveal'
+import { fetchSessionState, voiceUrl } from '@/client/lib/api'
 import { formatSeconds } from '@/client/lib/format'
 import type { InvestigablePlace, ScenarioDetail, SessionState } from '@/client/lib/schemas'
 import { InterrogationRail } from '@/client/screens/InterrogationRail'
@@ -478,11 +478,22 @@ export const InterrogationScreen = ({
   )
 
   const said = buildBlocks(subjects, conversations, askerName, askingCharacterId)
-  const total = said.reduce((count, block) => count + block.lines.length, 0)
-  const shown = usePacedReveal(total, isAsking)
+  /*
+   * 通す順に並べた、行ごとの音の在りか。記録の済んでいない行（書いている途中・
+   * 記録に失敗した行）には無く、そこは声の無かった頃と同じ時間送りで出る。
+   */
+  const voices = said.flatMap((block) =>
+    block.lines.map((line) =>
+      line.voice === undefined
+        ? undefined
+        : voiceUrl(sessionId, line.voice.messageId, line.voice.line),
+    ),
+  )
+  const total = voices.length
+  const { shown, speaking } = useVoicedReveal(voices, isAsking)
   const blocks = capLines(said, shown)
   /** 返答が出そろって、こちらの番になっているか。合図の印を置いてよい状態。 */
-  const settled = !isAsking && shown >= total
+  const settled = !isAsking && shown >= total && !speaking
   const timeWindow = scenario.timeWindow
 
   /**

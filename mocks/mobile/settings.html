@@ -31,7 +31,7 @@
         <div class="grp" data-mock-id="ALI_SET_04">
           <div class="label">使うモデル</div>
           <div id="roles"></div>
-          <p class="fine" style="margin: 0" data-mock-id="ALI_SET_08">Google は APIキーが未設定のため選べません。</p>
+          <p class="fine" style="margin: 0" id="nomodels" data-mock-id="ALI_SET_08"></p>
         </div>
 
         <div class="grp" data-mock-id="ALI_SET_09">
@@ -70,6 +70,17 @@
           </div>
           <p class="fine" style="margin: 0" id="brieffine"></p>
         </div>
+
+        <!-- 聞き込みの声。読み上げているあいだ次の行は出ないので、速さを決める値でもある。 -->
+        <div class="grp" data-mock-id="ALI_SET_15">
+          <div class="label">聞き込み</div>
+          <div class="role">
+            <div class="nm">読み上げ</div>
+            <div class="ps" style="margin: 0">読み終わるまで次の行を待ちます</div>
+            <div class="modes" id="voice" data-mock-id="ALI_SET_16"></div>
+          </div>
+          <p class="fine" style="margin: 0">読み上げないときは、これまで通り一定の間で流れます。</p>
+        </div>
       </div>
     </div>
 
@@ -81,15 +92,26 @@
         // 選んだ状態とを、見た目でも分けられるかを確かめるための切り替え。
         var unset = Mock.str('unset', '0') === '1'
 
+        /*
+          互換サーバが返すモデルIDは「提供元,モデル」のカンマ区切り。欄を二つに割るのは、
+          一覧が全提供元ぶん一列に並ぶと二十行を超えるため。並べる値はここで割ったもので、
+          保存されるのは連結し直した一つの文字列。
+        */
+        var nomodels = Mock.str('nomodels', '0') === '1'
+        var chosen = unset || nomodels ? null : 'claude-code,claude-opus-5'
         var roles = [
           {
             nm: '会話',
             ps: 'NPCの受け答えと、探偵が組み立てる質問',
-            vendor: unset ? null : 'Anthropic',
-            model: unset ? null : 'Claude Sonnet 5',
+            vendor: chosen && chosen.split(',')[0],
+            model: chosen && chosen.split(',')[1],
           },
           { nm: '判定', ps: '証拠の開示と、推理の採点', vendor: null, model: null },
         ]
+
+        document.getElementById('nomodels').textContent = nomodels
+          ? 'モデルの一覧が空です。APIキーが未設定か、モデルサーバに繋がっていません。'
+          : ''
 
         document.getElementById('roles').innerHTML = roles
           .map(function (r) {
@@ -172,6 +194,15 @@
           ],
           sound,
           pickable,
+        )
+        choices(
+          'voice',
+          [
+            { key: 'on', name: '読み上げる' },
+            { key: 'off', name: '読み上げない' },
+          ],
+          Mock.str('voice', 'on'),
+          true,
         )
 
         document.getElementById('brieffine').textContent = pickable

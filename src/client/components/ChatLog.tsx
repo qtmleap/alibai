@@ -1,7 +1,7 @@
 import { edgeOf, inkOf } from '@/client/components/CharacterAvatar'
 import type { ChatTurn } from '@/client/hooks/useInterrogation'
 import { usePacedReveal } from '@/client/hooks/usePacedReveal'
-import { settledSentences } from '@/client/lib/paragraphs'
+import { settledSentences } from '@/shared/paragraphs'
 
 type Props = {
   turns: ChatTurn[]

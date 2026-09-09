@@ -955,6 +955,51 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
     } = { exchanges: [], usages: [], blocked: false }
 
     /*
+      発言を書き終えた時点で messages へ入れて、その行のIDを配る。
+
+      読み上げは「この発言の N 行目を読んで」と頼む形なので、画面が行を出す前に
+      IDが要る。話題が終わってからまとめて書いていた頃は、配れるIDが無かった。
+
+      話題の行は最初の1回だけ、質問と一緒に入れる。往復が一つも成立しなかった話題は
+      何も残さない、という性質をそこで保つ。
+
+      書けなくてもIDを配らないだけで、配信は止めない。IDの無い行は声が付かず、
+      画面はこれまで通りの時間送りで出す——記録の取りこぼしでプレイを止めない。
+    */
+    const recorded = { topic: false }
+
+    const record = async (
+      role: 'user' | 'assistant',
+      content: string,
+      event: 'question-id' | 'answer-id',
+    ) => {
+      const id = crypto.randomUUID()
+
+      try {
+        await db.insert(messages).values([
+          ...(recorded.topic
+            ? []
+            : [
+                {
+                  sessionId,
+                  characterId: askInput.characterId,
+                  role: 'topic',
+                  content: askInput.topic,
+                },
+              ]),
+          { id, sessionId, characterId: askInput.characterId, role, content },
+        ])
+        recorded.topic = true
+      } catch (error) {
+        console.error('[ask] failed to record message', error)
+
+        return
+      }
+
+      await stream.writeSSE({ event, data: id })
+    }
+
+    /*
       往復の上限はセッションに固定された値。ここが1つの話題のコストを決める。
       検分だけは1回きり——相手が喋らないので、答えを受けて掘り下げる相手が居ない。
     */
@@ -1041,6 +1086,8 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
         break
       }
 
+      await record('user', interviewer.question, 'question-id')
+
       const result = examining
         ? streamExamination({
             env,
@@ -1097,13 +1144,18 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
         break
       }
 
+      await record('assistant', streamed.text, 'answer-id')
+
       collected.exchanges.push({ question: interviewer.question, answer: streamed.text })
     }
 
     if (collected.blocked) {
-      // 秘匿キーワードの漏洩を検知。この往復はDBにもDOにも記録せず、
+      // 秘匿キーワードの漏洩を検知。漏れた返答はDBにもDOにも記録せず、
       // プレイヤーには当たり障りのない代替応答を返す。すでに安全な断片は流れているので、
       // 「話の途中で言葉を止めた」ように読める文で締める。
+      //
+      // 探偵の質問のほうは、この時点で既に messages に入っている（record）。
+      // 漏れているのは相手の返答で、こちらは探偵が自分で言ったことなので残してよい。
       //
       // 同じ話題の中で先に成立した往復は捨てない。プレイヤーはもう読んでいるし、
       // それ自体は漏洩していない。捨てると画面の会話と記録が食い違う。
@@ -1145,45 +1197,8 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
       persisted.questionCount = appended.questionCount
       persisted.round = appended.round
 
-      /*
-        会話ログとコストは別のテーブルへ、同時に書く。ここは Judge の手前なので、
-        直列にすると往復ぶんだけ判定の開始が遅れる。
-
-        話題そのものも1行として残す。探偵の質問だけを並べると、プレイヤーが
-        何を指示したのかが後から辿れない。
-
-        検分だけは messages に残さない。あの列は characters への外部キーを持っていて、
-        被害者も場所も characters に居ないため入らない。読み返しに使うのは DO の側なので
-        （履歴の復元も判定もそちらを見る）、プレイには影響しない。
-        あの表は後から分析するための控えなので、そこだけ欠けることになる。
-      */
-      await Promise.all([
-        examining
-          ? Promise.resolve()
-          : db.insert(messages).values([
-              {
-                sessionId,
-                characterId: askInput.characterId,
-                role: 'topic',
-                content: askInput.topic,
-              },
-              ...collected.exchanges.flatMap((exchange) => [
-                {
-                  sessionId,
-                  characterId: askInput.characterId,
-                  role: 'user',
-                  content: exchange.question,
-                },
-                {
-                  sessionId,
-                  characterId: askInput.characterId,
-                  role: 'assistant',
-                  content: exchange.answer,
-                },
-              ]),
-            ]),
-        db.insert(llmUsages).values(collected.usages),
-      ])
+      // 会話ログは往復ごとに書き終えている（record）。ここに残るのはコストだけ。
+      await db.insert(llmUsages).values(collected.usages)
     } catch (error) {
       console.error('[ask] failed to persist turn', error)
     }
