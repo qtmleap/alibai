@@ -3,6 +3,7 @@ import type { Db } from '@/server/db/client'
 import type { Score } from '@/server/game/scoring'
 import type { SessionLimits } from '@/shared/turns'
 import type { Detective } from '~/db/detective'
+import type { JudgeTuning } from '~/db/judge-tuning'
 import { analyticsSessions, analyticsTurns, type LoggedExchange } from '~/db/schema'
 
 /**
@@ -111,6 +112,13 @@ export type TurnJudgementRecord = {
   revealedRevelationIds: string[]
   contradictionPointedOut: boolean
   npcLied: boolean
+  /**
+   * その回に入れてあった判定の直し。
+   *
+   * これが無いと、この表を見比べても「判定が良くなった」のか「入れた回が
+   * たまたま易しい話題だった」のかが分けられない。
+   */
+  tuning: JudgeTuning
 }
 
 /**
@@ -148,4 +156,5 @@ export const recordTurn = (
     revealedRevelationIds: input.judgement?.revealedRevelationIds,
     contradictionPointedOut: input.judgement?.contradictionPointedOut,
     npcLied: input.judgement?.npcLied,
+    judgeTuning: input.judgement?.tuning,
   })

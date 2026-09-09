@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { clampLimits, EXCHANGES_PER_TOPIC, type SessionLimits } from '@/shared/turns'
+import { DEFAULT_JUDGE_TUNING, type JudgeTuning, judgeTuningSchema } from '~/db/judge-tuning'
 import { type SettableLlmRole, settableLlmRoleSchema } from '~/db/llm-catalog'
 
 /**
@@ -30,6 +31,7 @@ const settingsSchema = z.object({
     questionsPerTurn: z.int().positive(),
     exchangesPerTopic: z.int().positive(),
   }),
+  judge: judgeTuningSchema,
 })
 
 export type Settings = z.infer<typeof settingsSchema>
@@ -54,12 +56,18 @@ export const DEFAULT_SETTINGS: Settings = {
     questionsPerTurn: 2,
     exchangesPerTopic: EXCHANGES_PER_TOPIC,
   },
+  /*
+   * 判定の直しは既定で全部オフ。今までの挙動のまま始まり、入れたときだけ変わる。
+   * 入れた回と切った回を見比べたいので、既定を良いほうに寄せない。
+   */
+  judge: DEFAULT_JUDGE_TUNING,
 }
 
 /** 器だけを見るための緩いスキーマ。中身の妥当性は要素ごとに判断する。 */
 const looseSettingsSchema = z.object({
   llm: z.record(z.string().nonempty(), z.unknown()).optional(),
   limits: z.record(z.string().nonempty(), z.unknown()).optional(),
+  judge: z.record(z.string().nonempty(), z.unknown()).optional(),
 })
 
 /**
@@ -124,7 +132,7 @@ export const parseSettings = (raw: unknown): ParsedSettings => {
     DEFAULT_SETTINGS.limits,
   )
 
-  const settings: Settings = { llm, limits }
+  const settings: Settings = { llm, limits, judge: recoverJudge(loose.data.judge) }
 
   // 現行スキーマで読めて、かつ切り詰めも取りこぼしも起きていなければ、書き戻す必要はない。
   return { settings, migrated: !current.success || !isSameSettings(current.data, settings) }
@@ -132,6 +140,27 @@ export const parseSettings = (raw: unknown): ParsedSettings => {
 
 const numberOf = (value: unknown): number | undefined =>
   typeof value === 'number' && Number.isFinite(value) ? value : undefined
+
+const judgeFlag = (raw: Record<string, unknown> | undefined, key: keyof JudgeTuning): boolean => {
+  const parsed = z.boolean().safeParse(raw?.[key])
+
+  return parsed.success ? parsed.data : DEFAULT_JUDGE_TUNING[key]
+}
+
+/**
+ * 判定の直しの読み替え。鍵ごとに見て、真偽値でないものは既定（オフ）に落とす。
+ *
+ * 器ごと捨てないのは他の項目と同じ理由だが、ここはもう一つある——切り替えを増やしたとき、
+ * 保存済みの端末には新しい鍵が無い。丸ごと捨てると、既に入れてあったぶんまでオフに戻る。
+ *
+ * 鍵を並べて書いてあるのは、増やしたときにここを直し忘れると型が通らないため。
+ */
+const recoverJudge = (raw: Record<string, unknown> | undefined): JudgeTuning => ({
+  checkEvidenceIds: judgeFlag(raw, 'checkEvidenceIds'),
+  contradictionNeedsHistory: judgeFlag(raw, 'contradictionNeedsHistory'),
+  fixedTemperature: judgeFlag(raw, 'fixedTemperature'),
+  retryOnce: judgeFlag(raw, 'retryOnce'),
+})
 
 const isSameSettings = (a: Settings, b: Settings): boolean =>
   JSON.stringify(a) === JSON.stringify(b)
@@ -141,6 +170,15 @@ export const toLlmOverrides = (settings: Settings): Partial<Record<SettableLlmRo
   settings.llm
 
 export const settingsLimits = (settings: Settings): SessionLimits => settings.limits
+
+/**
+ * サーバへ載せる形。limits と同じで、常に四つとも載る。
+ *
+ * llm のような「未選択」を作らないのは、切り替えの既定がサーバ側にも同じ形で
+ * 置いてあるため（`DEFAULT_JUDGE_TUNING`）。載せないと既定に落ちるだけなので、
+ * 「送っていない」と「オフを送った」を区別する意味が無い。
+ */
+export const toJudgeTuning = (settings: Settings): JudgeTuning => settings.judge
 
 /**
  * localStorage は「使えない環境がある」前提で触る。

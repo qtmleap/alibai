@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm'
 import { index, integer, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 import type { Detective } from './detective'
 import type { FloorPlanInput } from './floor-plan'
+import type { JudgeTuning } from './judge-tuning'
 import type { AgeGroup, Gender } from './person'
 import type { InvestigablePlace, PlaceFindings } from './place'
 import type { ScenarioEvidenceSource, ScenarioRevelationSource } from './scenario-definition'
@@ -625,6 +626,13 @@ export const analyticsTurns = sqliteTable(
     revealedRevelationIds: text('revealed_revelation_ids', { mode: 'json' }).$type<string[]>(),
     contradictionPointedOut: integer('contradiction_pointed_out', { mode: 'boolean' }),
     npcLied: integer('npc_lied', { mode: 'boolean' }),
+    /**
+     * その回に入れてあった判定の直し（`db/judge-tuning.ts`）。判定が落ちた回は無い。
+     *
+     * 列を四つに割らず1つのJSONで持つのは、切り替え自体が試すためのもので、
+     * 増えたり減ったり、決着がついたら丸ごと消える見込みのため。
+     */
+    judgeTuning: text('judge_tuning', { mode: 'json' }).$type<JudgeTuning>(),
     createdAt: createdTimestamp('created_at'),
   },
   (table) => [

@@ -2,6 +2,7 @@ import { generateObject, type LanguageModelUsage, type ProviderMetadata } from '
 import { z } from 'zod'
 import type { Env } from '@/server/env'
 import { resolveModel } from '@/server/llm/provider'
+import type { JudgeTuning } from '~/db/judge-tuning'
 
 /**
  * 判定結果は必ずこの形に収まる。構造化出力なのでパース失敗を考えなくてよい。
@@ -30,6 +31,8 @@ export type JudgeInput = {
   rubric: string
   /** 直近のやり取り（プレイヤーの質問とNPCの返答） */
   exchange: string
+  /** その回に入れてある判定の直し。`db/judge-tuning.ts` を参照。 */
+  tuning: JudgeTuning
 }
 
 /**
@@ -52,11 +55,27 @@ export type JudgeResult = {
  * Actorと分けているのは、1つのモデルに「演じつつ進行も管理して」と頼むと
  * 演技が崩れるか判定が曖昧になるため。役者は役者に徹してもらう。
  */
-export const judgeTurn = async ({
+export const judgeTurn = async (input: JudgeInput): Promise<JudgeResult> => {
+  if (!input.tuning.retryOnce) {
+    return callJudge(input)
+  }
+
+  /*
+    やり直すのは、判定が落ちた回の発見が丸ごと消えるため。呼び出し側は握り潰して
+    先へ進む作りなので、プレイヤーには「訊いたのに何も出なかった」としか見えない。
+
+    AI SDK 自体も通信の失敗は数回やり直す。ここで拾えるのはその先——構造化出力が
+    こちらの形に収まらずに投げられた場合で、同じ入力でも二度目に通ることがある。
+  */
+  return callJudge(input).catch(() => callJudge(input))
+}
+
+const callJudge = async ({
   env,
   modelId,
   rubric,
   exchange,
+  tuning,
 }: JudgeInput): Promise<JudgeResult> => {
   // 判定ルールは messages ではなく system オプションに置く。
   // AI SDK は messages 側の system ロールを警告する（プレイヤー由来の文字列が
@@ -67,6 +86,11 @@ export const judgeTurn = async ({
     schema: judgementSchema,
     system: rubric,
     messages: [{ role: 'user', content: exchange }],
+    /*
+      温度を渡さなければ提供元の既定に従う。判定は同じやり取りなら同じ答えが出て
+      ほしい仕事なので、切り替えを入れた回だけ 0 に固定する。
+    */
+    temperature: tuning.fixedTemperature ? 0 : undefined,
   })
 
   return {

@@ -24,6 +24,7 @@ describe('parseSettings: モデルの選択', () => {
     const parsed = parseSettings({
       llm: { actor: { model: 'gpt-5.6-terra' } },
       limits: DEFAULT_SETTINGS.limits,
+      judge: DEFAULT_SETTINGS.judge,
     })
 
     expect(parsed.settings.llm.actor).toEqual({ model: 'gpt-5.6-terra' })
@@ -151,5 +152,55 @@ describe('parseSettings: 進行の数値', () => {
     })
 
     expect(parsed.settings.limits).toEqual(DEFAULT_SETTINGS.limits)
+  })
+})
+
+describe('parseSettings: 判定の直し', () => {
+  test('保管庫に無ければ全部オフ', () => {
+    const parsed = parseSettings({ llm: {}, limits: DEFAULT_SETTINGS.limits })
+
+    expect(parsed.settings.judge).toEqual(DEFAULT_SETTINGS.judge)
+    // この区画より前の保管庫なので、その場で書き戻させて形を揃える。
+    expect(parsed.migrated).toBe(true)
+  })
+
+  test('入れてある切り替えはそのまま通る', () => {
+    const parsed = parseSettings({
+      llm: {},
+      limits: DEFAULT_SETTINGS.limits,
+      judge: { ...DEFAULT_SETTINGS.judge, checkEvidenceIds: true, retryOnce: true },
+    })
+
+    expect(parsed.settings.judge.checkEvidenceIds).toBe(true)
+    expect(parsed.settings.judge.retryOnce).toBe(true)
+    expect(parsed.settings.judge.fixedTemperature).toBe(false)
+    expect(parsed.migrated).toBe(false)
+  })
+
+  /*
+    切り替えを増やしたとき、保存済みの端末には新しい鍵が無い。丸ごと捨てると
+    既に入れてあったぶんまでオフに戻る。
+  */
+  test('鍵が欠けていても、他の切り替えは残す', () => {
+    const parsed = parseSettings({
+      llm: {},
+      limits: DEFAULT_SETTINGS.limits,
+      judge: { checkEvidenceIds: true },
+    })
+
+    expect(parsed.settings.judge.checkEvidenceIds).toBe(true)
+    expect(parsed.settings.judge.retryOnce).toBe(false)
+    expect(parsed.migrated).toBe(true)
+  })
+
+  test('真偽値でない値はオフに落とす', () => {
+    const parsed = parseSettings({
+      llm: {},
+      limits: DEFAULT_SETTINGS.limits,
+      judge: { ...DEFAULT_SETTINGS.judge, checkEvidenceIds: 'はい' },
+    })
+
+    expect(parsed.settings.judge.checkEvidenceIds).toBe(false)
+    expect(parsed.migrated).toBe(true)
   })
 })

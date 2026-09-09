@@ -25,8 +25,14 @@ import {
   画面から引数で渡して回すと、設定と関係のない関数にまで引数が生えるので、
   送る直前にここで読む。サーバはこの値を信用せず、許可リストと上限で検め直す。
 */
-import { loadSettings, settingsLimits, toLlmOverrides } from '@/client/lib/settings-store'
+import {
+  loadSettings,
+  settingsLimits,
+  toJudgeTuning,
+  toLlmOverrides,
+} from '@/client/lib/settings-store'
 import { parseSseStream } from '@/client/lib/sse'
+import type { JudgeTuning } from '~/db/judge-tuning'
 
 /**
  * HTTPエラーとレスポンス形状の不一致を1つの型にまとめる。
@@ -102,6 +108,19 @@ export const fetchScenarioDetail = (scenarioId: string): Promise<ScenarioDetail>
   requestJson(`/api/scenarios/${scenarioId}`, scenarioDetailSchema, undefined)
 
 /**
+ * リクエストに載せるプレイヤー側の設定。
+ *
+ * モデルの指名と判定の切り替えは、どちらも「その回に何を使ったか」なので一緒に載せる。
+ * 保管庫を毎回読み直すのは、設定画面で切り替えた直後の話題から効かせるため
+ * （読み込み時に一度だけ読むと、遊びながら入れ替えて比べるという使い方ができない）。
+ */
+const playerSettings = (): { llm: ReturnType<typeof toLlmOverrides>; judge: JudgeTuning } => {
+  const settings = loadSettings()
+
+  return { llm: toLlmOverrides(settings), judge: toJudgeTuning(settings) }
+}
+
+/**
  * セッション開始。ここで計時が始まるので、事件の記録を読み終えてから呼ぶ。
  * 探偵は名乗らずに始めることもできるので undefined を許す。
  */
@@ -149,6 +168,8 @@ export const submitAccusation = (params: {
   requestJson(
     `/api/sessions/${params.sessionId}/accuse`,
     accuseResultSchema,
+    // 判定の直しは載せない。推理の採点は別の呼び出し（`deduction.ts`）で、
+    // 話題ごとの判定とは通る道が違う。
     jsonInit('POST', { ...params, llm: toLlmOverrides(loadSettings()) }),
   )
 
@@ -187,7 +208,7 @@ export const askTopic = async (
 ): Promise<void> => {
   const res = await fetch(
     `/api/sessions/${params.sessionId}/ask`,
-    jsonInit('POST', { ...params, llm: toLlmOverrides(loadSettings()) }),
+    jsonInit('POST', { ...params, ...playerSettings() }),
   )
 
   if (!res.ok) {

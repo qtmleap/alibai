@@ -7,6 +7,7 @@ import { z } from 'zod'
 import {
   loadCharacterSheet,
   loadEligibleRevelationCandidates,
+  loadEvidenceIds,
   loadHintSubjects,
   loadJudgeRubric,
 } from '@/server/cache/scenario'
@@ -26,6 +27,7 @@ import {
   clashOf,
   deathEstimateOf,
 } from '@/server/game/alibi'
+import { acceptRevealedEvidenceIds } from '@/server/game/discovery-state'
 import { buildPlaceSheet, buildVictimSheet, type DiscoveredIds } from '@/server/game/examination'
 import { remainingHints } from '@/server/game/hints'
 import { acceptRevealedRevelationIds, type RevelationSourceType } from '@/server/game/revelations'
@@ -59,6 +61,7 @@ import {
 // クライアントの選択肢とAPIが受ける値が静かにずれる。
 import { type Detective, detectiveSchema } from '~/db/detective'
 import { type GameMode, gameModeOf, gameModeSchema } from '~/db/game-mode'
+import { DEFAULT_JUDGE_TUNING, judgeTuningSchema } from '~/db/judge-tuning'
 import { llmOverridesSchema } from '~/db/llm-catalog'
 import { findingsOfPlace, parseInvestigablePlaces } from '~/db/place'
 import { placeIdSchema, VICTIM_ID } from '~/db/scenario-definition'
@@ -182,6 +185,23 @@ type Subject = { kind: 'character' | 'victim' | 'place'; name: string; sheet: st
 /** Judge が読む出どころの型。場所は見取り図の部屋と同じ `location` に乗る。 */
 const sourceTypeOf = (kind: Subject['kind']): RevelationSourceType =>
   kind === 'place' ? 'location' : kind
+
+/**
+ * Actor 用の履歴を、判定役に読ませる会話へ書き出す。
+ *
+ * user が探偵、assistant がNPC。文字列で持っていない要素は落とす——この履歴は
+ * こちらが文字列だけを積んで作っているので、当てはまるのは将来ここに別の形を
+ * 混ぜたときだけで、そのときは読めるところまでを渡すのが安全側になる。
+ */
+const transcriptOf = (history: ModelMessage[]): string =>
+  history
+    .map((message) =>
+      typeof message.content === 'string'
+        ? `${message.role === 'user' ? '探偵' : 'NPC'}: ${message.content}`
+        : '',
+    )
+    .filter((line) => line !== '')
+    .join('\n')
 
 const loadCharacterSubject = async (
   kv: KVNamespace,
@@ -727,6 +747,13 @@ const askSchema = z.object({
    * 残っているだけのプレイヤーを、事件の途中で締め出すことになるため。
    */
   llm: llmOverridesSchema.optional(),
+  /**
+   * その回に入れてある判定の直し（`db/judge-tuning.ts`）。
+   *
+   * 送られてこなければ全部オフ、つまり今までの挙動。llm と同じで、知らない形でも
+   * 400 にはせず既定へ落とす。
+   */
+  judge: judgeTuningSchema.optional(),
 })
 
 /**
@@ -888,6 +915,12 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
     actor: askInput.llm?.actor,
     judge: askInput.llm?.judge,
   })
+
+  /*
+    判定の直しも同じで、この回のぶんをここで一度決める。送られてこなければ全部オフ
+    ——この機能より前のクライアントや、設定を触っていない端末がそこへ落ちる。
+  */
+  const tuning = askInput.judge === undefined ? DEFAULT_JUDGE_TUNING : askInput.judge
 
   /*
     レート制限は「このリクエストが実際に走らせるモデル呼び出しの数」で消費する。
@@ -1207,7 +1240,7 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
     // judgementイベントを送らずにdoneへ進むだけにする(500にしない)。
     try {
       const current = await session.snapshot()
-      const [rubric, revelationCandidates] = await Promise.all([
+      const [rubric, revelationCandidates, scenarioEvidenceIds] = await Promise.all([
         loadJudgeRubric(c.env.SCENARIO_CACHE, db, scenarioId),
         loadEligibleRevelationCandidates(c.env.SCENARIO_CACHE, db, scenarioId, {
           // 場所は `location`。作者が `type: location` で書いた出どころと同じ道に乗る。
@@ -1215,6 +1248,10 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
           discoveredEvidenceIds: current.discoveredEvidenceIds,
           discoveredRevelationIds: current.discoveredRevelationIds,
         }),
+        // 突き合わせを入れていない回は引かない。KVへの読みが1回増えるだけの回になる。
+        tuning.checkEvidenceIds
+          ? loadEvidenceIds(c.env.SCENARIO_CACHE, db, scenarioId)
+          : Promise.resolve([]),
       ])
       const candidateBlock =
         revelationCandidates.length === 0
@@ -1228,45 +1265,65 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
       const transcript = collected.exchanges
         .map((entry) => `探偵: ${entry.question}\nNPC: ${entry.answer}`)
         .join('\n\n')
-      const exchange = `プレイヤーが指定した話題: ${askInput.topic}\n\n${transcript}\n\n今回判定可能なRevelation:\n${candidateBlock}`
-      const judged = await judgeTurn({ env, modelId: choices.judge, rubric, exchange })
+      /*
+        矛盾の判定には、この相手とのそれまでのやり取りが要る。「過去の発言との矛盾を
+        指摘できたか」を訊いておきながら、渡しているのが今回のぶんだけでは、
+        突き合わせる相手がない。
+
+        渡すのはこの相手との分だけ（`history` が既にそう絞られている）。他の人物との
+        会話まで混ぜると、別人が別のことを言っただけの食い違いを矛盾と読みはじめる。
+
+        中身を見ずに `transcriptOf` へ通してから空かどうかを見るのは、DO 越しの
+        戻り値の型が never に潰れていて、配列として触れないため（1131 行の渡し方と同じ）。
+      */
+      const priorTranscript = tuning.contradictionNeedsHistory ? transcriptOf(history) : ''
+      const priorBlock =
+        priorTranscript === '' ? '' : `\n\nこの相手とのこれまでのやり取り:\n${priorTranscript}`
+      const exchange = `プレイヤーが指定した話題: ${askInput.topic}${priorBlock}\n\n今回のやり取り:\n${transcript}\n\n今回判定可能なRevelation:\n${candidateBlock}`
+      const judged = await judgeTurn({ env, modelId: choices.judge, rubric, exchange, tuning })
       const judgement = judged.judgement
       const revealedRevelationIds = acceptRevealedRevelationIds(
         revelationCandidates,
         judgement.revealedRevelationIds,
       )
+      const revealedEvidenceIds = tuning.checkEvidenceIds
+        ? acceptRevealedEvidenceIds(
+            scenarioEvidenceIds,
+            current.discoveredEvidenceIds,
+            judgement.revealedEvidenceIds,
+          )
+        : judgement.revealedEvidenceIds
 
       const snapshot = await session.recordJudgement({
-        revealedEvidenceIds: judgement.revealedEvidenceIds,
+        revealedEvidenceIds,
         revealedRevelationIds,
         contradictionPointedOut: judgement.contradictionPointedOut,
         npcLied: judgement.npcLied,
       })
 
       judgementRecord.value = {
-        revealedEvidenceIds: judgement.revealedEvidenceIds,
+        revealedEvidenceIds,
         revealedRevelationIds,
         contradictionPointedOut: judgement.contradictionPointedOut,
         npcLied: judgement.npcLied,
+        tuning,
       }
 
       // 実りのあった話題に印を付ける。会話ログを遡ったときに、どこが効いたのかが
       // 分かるようにするためのもの。往復番号が要るので、記録そのものが落ちていた
       // 回は印も付けない。
-      const yielded = judgement.revealedEvidenceIds.length > 0 || revealedRevelationIds.length > 0
+      const yielded = revealedEvidenceIds.length > 0 || revealedRevelationIds.length > 0
 
       if (yielded && persisted.round !== undefined) {
         await session.markTopicYield(askInput.characterId, persisted.round)
       }
 
       await Promise.all([
-        judgement.revealedEvidenceIds.length === 0
+        revealedEvidenceIds.length === 0
           ? Promise.resolve()
           : db
               .insert(discoveries)
-              .values(
-                judgement.revealedEvidenceIds.map((evidenceId) => ({ sessionId, evidenceId })),
-              )
+              .values(revealedEvidenceIds.map((evidenceId) => ({ sessionId, evidenceId })))
               .onConflictDoNothing(),
         revealedRevelationIds.length === 0
           ? Promise.resolve()
@@ -1277,7 +1334,7 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
       ])
 
       const [revealedRows, revealedRevelationRows] = await Promise.all([
-        judgement.revealedEvidenceIds.length === 0
+        revealedEvidenceIds.length === 0
           ? Promise.resolve([])
           : db
               .select({
@@ -1286,7 +1343,7 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
                 description: evidences.description,
               })
               .from(evidences)
-              .where(inArray(evidences.id, judgement.revealedEvidenceIds)),
+              .where(inArray(evidences.id, revealedEvidenceIds)),
         revealedRevelationIds.length === 0
           ? Promise.resolve([])
           : db

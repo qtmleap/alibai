@@ -1,4 +1,5 @@
 import { count, eq } from 'drizzle-orm'
+import { z } from 'zod'
 import type { Db } from '@/server/db/client'
 import type { HintItem, HintSource } from '@/server/game/hints'
 import {
@@ -33,6 +34,7 @@ const characterKey = (characterId: string) => `character:v3:${characterId}`
  */
 const judgeRubricKey = (scenarioId: string) => `judge-rubric:v3:${scenarioId}`
 const judgeRevelationsKey = (scenarioId: string) => `judge-revelations:${scenarioId}`
+const evidenceIdsKey = (scenarioId: string) => `evidence-ids:${scenarioId}`
 // 版を付けてある。数える相手の並びが変わっても、1時間の TTL を待たずに切り替わるように。
 const hintSubjectsKey = (scenarioId: string) => `hint-subjects:v2:${scenarioId}`
 const SCENARIO_LIST_KEY = 'scenarios:published'
@@ -236,6 +238,39 @@ ${evidenceList}`
   return rubric
 }
 
+/**
+ * そのシナリオに実在する証拠のID。判定が返したIDを突き合わせるためだけに使う。
+ *
+ * 判定ルールと同じ行から作れるが、あちらは1本の文字列なので読み返せない。
+ * 条件文を含まないぶん短く、真相も混ざらないので、別の鍵で持つ。
+ */
+export const loadEvidenceIds = async (
+  kv: KVNamespace,
+  db: Db,
+  scenarioId: string,
+): Promise<string[]> => {
+  const cached = await kv.get(evidenceIdsKey(scenarioId), 'json')
+
+  const parsed = z.array(z.string().nonempty()).safeParse(cached)
+
+  if (parsed.success) {
+    return parsed.data
+  }
+
+  const rows = await db
+    .select({ id: evidences.id })
+    .from(evidences)
+    .where(eq(evidences.scenarioId, scenarioId))
+
+  const ids = rows.map((row) => row.id)
+
+  await kv.put(evidenceIdsKey(scenarioId), JSON.stringify(ids), {
+    expirationTtl: JUDGE_RUBRIC_TTL_SECONDS,
+  })
+
+  return ids
+}
+
 const loadRevelationRules = async (
   kv: KVNamespace,
   db: Db,
@@ -386,6 +421,7 @@ export const invalidateScenario = async (
     kv.delete(SCENARIO_LIST_KEY),
     kv.delete(judgeRubricKey(scenarioId)),
     kv.delete(judgeRevelationsKey(scenarioId)),
+    kv.delete(evidenceIdsKey(scenarioId)),
     kv.delete(hintSubjectsKey(scenarioId)),
     ...characterIds.map((id) => kv.delete(characterKey(id))),
   ])

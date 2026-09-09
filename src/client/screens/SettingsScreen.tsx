@@ -19,6 +19,12 @@ import {
 import { loadSoundSetting, type SoundSetting, saveSoundSetting } from '@/client/lib/sound'
 import { loadVoiceSetting, saveVoiceSetting, type VoiceSetting } from '@/client/lib/voice'
 import { clampLimits, modelCallsPerTopic } from '@/shared/turns'
+import {
+  JUDGE_TUNING_KEYS,
+  JUDGE_TUNING_LABELS,
+  JUDGE_TUNING_NOTES,
+  type JudgeTuning,
+} from '~/db/judge-tuning'
 
 /**
  * このブラウザで使うモデルと、進行の数値を選ぶ画面。
@@ -112,6 +118,10 @@ export const SettingsScreen = ({
     }
 
     update({ ...settings, llm })
+  }
+
+  const updateJudge = (key: keyof JudgeTuning, enabled: boolean) => {
+    update({ ...settings, judge: { ...settings.judge, [key]: enabled } })
   }
 
   const chooseBriefing = (next: BriefingMode) => {
@@ -241,6 +251,28 @@ export const SettingsScreen = ({
         </>
       )}
 
+      <section className="flex flex-col gap-[13px] border-keisen border-t pt-[14px] lg:gap-0 lg:border-t-0 lg:pt-0">
+        <h2 className={`${LEGEND} lg:block lg:pb-[7px]`}>判定の調整</h2>
+        <p className={`${FINE_LG} lg:pt-[10px]`}>
+          判定役の振る舞いを一つずつ試せます。既定はすべてオフで、入れたものだけ判定の出方が変わります。
+        </p>
+
+        <div className="flex flex-col gap-[13px] lg:mt-[14px] lg:gap-0 lg:border-keisen lg:border-t">
+          {JUDGE_TUNING_KEYS.map((key) => (
+            <ChoiceRow
+              key={key}
+              name={JUDGE_TUNING_LABELS[key]}
+              note={JUDGE_TUNING_NOTES[key]}
+              noteOnPhone={true}
+              choices={JUDGE_TUNING_CHOICES}
+              value={settings.judge[key] ? 'on' : 'off'}
+              pickable={true}
+              onChange={(next) => updateJudge(key, next === 'on')}
+            />
+          ))}
+        </div>
+      </section>
+
       {/*
         事件の記録の見せ方。演出の好みなので、記録の画面に切り替えを置くと毎回そこで一拍止まる。
         物語の外にあるこの画面へ寄せて、始める前に一度だけ決めてもらう。
@@ -321,6 +353,11 @@ const SOUND_CHOICES: readonly Choice<SoundSetting>[] = [
 const VOICE_CHOICES: readonly Choice<VoiceSetting>[] = [
   { key: 'on', label: '読み上げる' },
   { key: 'off', label: '読み上げない' },
+]
+
+const JUDGE_TUNING_CHOICES: readonly Choice<'on' | 'off'>[] = [
+  { key: 'on', label: '入れる' },
+  { key: 'off', label: '入れない' },
 ]
 
 /**
