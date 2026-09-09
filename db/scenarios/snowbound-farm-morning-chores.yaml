@@ -133,6 +133,8 @@ characters:
   - id: fuyuki
     name: 冬木紬
     publicIntroduction: "実務に強く、農園の細かな段取りを誰より把握している主任。"
+    ageGroup: adult
+    gender: female
     personality: 実務に強く、農園の細かな段取りを誰より把握している主任。佐久間への恩義を語る一方、経営の数字を突かれると急に防御的になる。朝の作業は佐久間本人がしたという前提を崩されたくない。
     goals:
       - 出荷代金の流用を隠したい
@@ -171,6 +173,8 @@ characters:
   - id: nozomi
     name: 佐久間希
     publicIntroduction: "被害者の姪。"
+    ageGroup: young
+    gender: female
     personality: 被害者の姪。几帳面で数字に強いが、個人的な借金を抱えていることを恥じている。朝に台所の灯りを見たため、叔父はその時点で生きていたと強く思い込んでいる。
     goals:
       - 叔父から金を借りていたことを隠したい
@@ -197,6 +201,8 @@ characters:
   - id: kuze
     name: 久世圭太
     publicIntroduction: "農園の設備担当。"
+    ageGroup: adult
+    gender: male
     personality: 設備の状態を数字で覚える寡黙な技術者。予備発電機を私用した規則違反を隠しているが、人の動線については余計な推測をせず見たまま話す。
     goals:
       - 予備発電機の私的利用を隠したい

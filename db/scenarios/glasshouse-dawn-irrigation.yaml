@@ -130,6 +130,8 @@ characters:
   - id: narahara
     name: 楢原彩
     publicIntroduction: "植物園の研究助手。"
+    ageGroup: young
+    gender: female
     personality: 植物の扱いは繊細で、記録にも几帳面な研究助手。希少種への愛着は強いが、自分の持ち出しを「余った挿し穂の有効利用」と正当化している。作業手順を細かく話して信用を得ようとする。
     goals:
       - 希少植物の無断販売を隠したい
@@ -165,6 +167,8 @@ characters:
   - id: mizusawa
     name: 水沢浩司
     publicIntroduction: "丁寧な言葉を崩さない企業担当者。"
+    ageGroup: adult
+    gender: male
     personality: 丁寧な言葉を崩さない企業担当者。寄付を交渉材料に使ったことを表へ出したくなく、木島との関係を必要以上に穏便だったように話す。
     goals:
       - 命名権を巡って木島へ圧力をかけたことを隠したい
@@ -185,6 +189,8 @@ characters:
   - id: onishi
     name: 大西蒼太
     publicIntroduction: "朝が早い仕事に慣れた園芸員。"
+    ageGroup: young
+    gender: male
     personality: 朝が早い仕事に慣れた園芸員。設備の数値には正確だが、自分の残業申請の水増しが見つかるのを恐れている。人間関係の揉め事には首を突っ込みたくない。
     goals:
       - 残業時間の水増し申請を隠したい
