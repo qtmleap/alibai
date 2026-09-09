@@ -41,9 +41,9 @@ export const EMPTY_STORE: DetectiveStore = { profiles: [], activeId: undefined }
 export const TACHIBANA_SHERRY: StoredDetective = {
   id: 'preset:tachibana-sherry',
   name: '橘シェリー',
-  ageGroup: 'young',
+  ageGroup: 'teen',
   gender: 'female',
-  appearance: '黒のロングコートに白手袋。物腰は柔らかいが、目だけは笑っていない。',
+  appearance: '上背のある少女。いつもにこにこしていて、面白そうなものには迷わず飛びついてくる。',
 }
 
 export const PRESET_DETECTIVES: StoredDetective[] = [TACHIBANA_SHERRY]
