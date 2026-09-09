@@ -5,8 +5,8 @@ import { z } from 'zod'
 import { createDb } from '@/server/db/client'
 import type { Bindings } from '@/server/env'
 import { withEnv } from '@/server/middleware/env'
-import { synthesize } from '@/server/tts/irodori'
-import { characters, messages } from '~/db/schema'
+import { listSpeakers, speakerFor, synthesize } from '@/server/tts/irodori'
+import { messages } from '~/db/schema'
 
 /**
  * NPCの台詞を音声にして返す。
@@ -51,11 +51,9 @@ voiceRoutes.get('/api/sessions/:id/messages/:messageId/voice', validateIds, with
     .select({
       content: messages.content,
       role: messages.role,
-      seed: characters.voiceSeed,
-      caption: characters.voiceCaption,
+      characterId: messages.characterId,
     })
     .from(messages)
-    .innerJoin(characters, eq(characters.id, messages.characterId))
     .where(and(eq(messages.id, ids.messageId), eq(messages.sessionId, ids.id)))
     .limit(1)
 
@@ -70,14 +68,20 @@ voiceRoutes.get('/api/sessions/:id/messages/:messageId/voice', validateIds, with
     return c.json({ error: 'not a character message' }, 404)
   }
 
-  if (row.seed === null || row.caption === null) {
+  /*
+    話者はキャラクターのUUIDから引く。シナリオのデータには持たせていない。
+
+    登録話者は既存作品の登場人物なので、割り当てをリポジトリに焼き込みたくない
+    （`src/server/tts/irodori.ts` の但し書きを参照）。ここで引く形なら、公開へ向かうときに
+    この関数を差し替えるだけで済み、43本のシナリオを洗い直さずに戻せる。
+  */
+  const speaker = speakerFor(await listSpeakers(baseUrl), row.characterId)
+
+  if (speaker === undefined) {
     return c.json({ error: 'character has no voice' }, 404)
   }
 
-  const upstream = await synthesize(baseUrl, row.content, {
-    seed: row.seed,
-    caption: row.caption,
-  })
+  const upstream = await synthesize(baseUrl, row.content, { speakerId: speaker.uuid })
 
   if (!upstream.ok) {
     return c.json({ error: 'synthesis failed' }, 502)
