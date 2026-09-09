@@ -5,6 +5,8 @@ import {
   activeDetective,
   clearActiveDetective,
   type DetectiveStore,
+  detectiveRoster,
+  isPresetDetective,
   loadDetectiveStore,
   newDetectiveId,
   removeDetective,
@@ -127,6 +129,7 @@ export const DetectiveSetupScreen = ({
   }
 
   const selected = activeDetective(store)
+  const roster = detectiveRoster(store)
   const canSave = draft !== undefined && draft.name.trim().length > 0
   // 名簿は端末では draft が無いあいだだけ、机では常に見せる。
   const rosterVisibleOnPhone = draft === undefined
@@ -164,55 +167,56 @@ export const DetectiveSetupScreen = ({
         <div className="mt-4 flex flex-col gap-4 lg:mt-6 lg:block lg:gap-0">
           <span className={`hidden lg:block lg:pb-[7px] ${LEGEND}`}>探偵</span>
 
-          {store.profiles.length === 0 ? (
-            <p className="text-[11px] text-nezumi-dim leading-[1.7] lg:text-[11.5px] lg:leading-[1.8]">
-              まだ探偵がいません。作るか、名乗らずに始めることもできます。
-            </p>
-          ) : (
-            <ul className="flex flex-col border-keisen border-t">
-              {store.profiles.map((profile) => {
-                const isActive = profile.id === store.activeId
+          {/* 備え付けの一体が常に居るので、名簿が空になることはない。 */}
+          <ul className="flex flex-col border-keisen border-t">
+            {roster.map((profile) => {
+              const isActive = profile.id === store.activeId
+              const isPreset = isPresetDetective(profile.id)
 
-                return (
-                  <li
-                    key={profile.id}
-                    /*
+              return (
+                <li
+                  key={profile.id}
+                  /*
                       選ばれている行には生成りの線が既に立っているので、触れても動かさない。
                       それ以外の行だけ、机の上で鼠の線を立てて地を一段起こす。
                     */
-                    className={`flex items-start gap-[10px] border-keisen border-b py-[7px] pl-3 lg:gap-3 lg:py-[10px] lg:pl-[14px] ${
-                      isActive
-                        ? 'shadow-[inset_2px_0_0_var(--color-kinari)]'
-                        : 'lg:hover:bg-sumi-2 lg:hover:shadow-[inset_2px_0_0_var(--color-nezumi)]'
-                    }`}
-                  >
-                    {/*
+                  className={`flex items-start gap-[10px] border-keisen border-b py-[7px] pl-3 lg:gap-3 lg:py-[10px] lg:pl-[14px] ${
+                    isActive
+                      ? 'shadow-[inset_2px_0_0_var(--color-kinari)]'
+                      : 'lg:hover:bg-sumi-2 lg:hover:shadow-[inset_2px_0_0_var(--color-nezumi)]'
+                  }`}
+                >
+                  {/*
                       行そのものが押す場所なので、ここは素のボタンのまま。名前と説明を
                       積む形は Button の一行に詰める組みとは噛み合わない。
                     */}
-                    <button
-                      type="button"
-                      onClick={() => update(setActiveDetective(store, profile.id))}
-                      className="flex min-w-0 flex-1 flex-col gap-px text-left lg:gap-0"
+                  <button
+                    type="button"
+                    onClick={() => update(setActiveDetective(store, profile.id))}
+                    className="flex min-w-0 flex-1 flex-col gap-px text-left lg:gap-0"
+                  >
+                    <span
+                      className={`text-[13px] leading-[1.75] lg:text-[13.5px] lg:leading-[1.5] ${
+                        isActive ? 'text-kinari' : 'text-nezumi'
+                      }`}
                     >
-                      <span
-                        className={`text-[13px] leading-[1.75] lg:text-[13.5px] lg:leading-[1.5] ${
-                          isActive ? 'text-kinari' : 'text-nezumi'
-                        }`}
-                      >
-                        {profile.name}
-                      </span>
+                      {profile.name}
+                    </span>
+                    <span className="text-[10.5px] text-nezumi-dim leading-[1.6] lg:text-[11.5px]">
+                      {describeDetective(profile)}
+                    </span>
+                    {profile.appearance.length > 0 && (
                       <span className="text-[10.5px] text-nezumi-dim leading-[1.6] lg:text-[11.5px]">
-                        {describeDetective(profile)}
+                        {profile.appearance}
                       </span>
-                      {profile.appearance.length > 0 && (
-                        <span className="text-[10.5px] text-nezumi-dim leading-[1.6] lg:text-[11.5px]">
-                          {profile.appearance}
-                        </span>
-                      )}
-                    </button>
+                    )}
+                  </button>
 
-                    {/* 消すほうは一段沈める。並べて置くと押し間違える。 */}
+                  {/*
+                      消すほうは一段沈める。並べて置くと押し間違える。
+                      備え付けは直しも消しもできないので、行ごと出さない。
+                    */}
+                  {!isPreset && (
                     <div className="mt-0.5 ml-auto flex flex-none gap-3 lg:gap-[14px]">
                       <button
                         type="button"
@@ -229,11 +233,11 @@ export const DetectiveSetupScreen = ({
                         削除
                       </button>
                     </div>
-                  </li>
-                )
-              })}
-            </ul>
-          )}
+                  )}
+                </li>
+              )
+            })}
+          </ul>
 
           <button
             type="button"
@@ -302,13 +306,15 @@ export const DetectiveSetupScreen = ({
               >
                 {selected.appearance.length > 0 ? selected.appearance : '容姿は書かれていません。'}
               </p>
-              <button
-                type="button"
-                onClick={() => setDraft({ ...selected })}
-                className="mt-5 block text-[12.5px] text-nezumi"
-              >
-                この探偵を編集する
-              </button>
+              {!isPresetDetective(selected.id) && (
+                <button
+                  type="button"
+                  onClick={() => setDraft({ ...selected })}
+                  className="mt-5 block text-[12.5px] text-nezumi"
+                >
+                  この探偵を編集する
+                </button>
+              )}
             </div>
           )
         ) : (

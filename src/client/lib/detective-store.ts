@@ -26,6 +26,38 @@ export type DetectiveStore = z.infer<typeof detectiveStoreSchema>
 
 export const EMPTY_STORE: DetectiveStore = { profiles: [], activeId: undefined }
 
+/**
+ * 備え付けの探偵。作らなくても、この一体を選べばすぐ事件に向かえる。
+ *
+ * localStorage には書かない。保管庫は「プレイヤーが作ったもの」だけを持ち、
+ * 備え付けは名簿に並べるときに前へ足す。書き込むと、消せない行が保存され続けるうえ、
+ * 中身を直したときに古い写しが各人の端末に残る。
+ *
+ * 【外に出す前に必ず外すこと】
+ * 「橘シェリー」は既存作品の登場人物で、声も実在の声優に紐づく登録話者を借りている。
+ * src/server/tts/irodori.ts の但し書きと同じ扱いで、公開に向かうときは
+ * DETECTIVE_SPEAKER_ID と一緒にこの定数ごと落とす。
+ */
+export const TACHIBANA_SHERRY: StoredDetective = {
+  id: 'preset:tachibana-sherry',
+  name: '橘シェリー',
+  ageGroup: 'young',
+  gender: 'female',
+  appearance: '黒のロングコートに白手袋。物腰は柔らかいが、目だけは笑っていない。',
+}
+
+export const PRESET_DETECTIVES: StoredDetective[] = [TACHIBANA_SHERRY]
+
+/** 備え付けかどうか。編集と削除を出すかがここで決まる。 */
+export const isPresetDetective = (id: string): boolean =>
+  PRESET_DETECTIVES.some((preset) => preset.id === id)
+
+/** 名簿。備え付けが先、そのあとに作った順で並ぶ。 */
+export const detectiveRoster = (store: DetectiveStore): StoredDetective[] => [
+  ...PRESET_DETECTIVES,
+  ...store.profiles,
+]
+
 const STORAGE_KEY = 'alibai:detectives'
 
 /**
@@ -161,7 +193,9 @@ export const parseDetectiveStore = (raw: unknown): ParsedStore => {
   const profiles = loose.data.profiles.flatMap(recoverProfile)
   // 選択中だった探偵が復元できなかったなら、選択は外す。
   // 居ない相手を選んだままにすると、そのまま事件に向かえてしまう。
-  const activeId = profiles.some((profile) => profile.id === loose.data.activeId)
+  const activeId = detectiveRoster({ profiles, activeId: undefined }).some(
+    (profile) => profile.id === loose.data.activeId,
+  )
     ? loose.data.activeId
     : undefined
 
@@ -176,7 +210,7 @@ export const parseDetectiveStore = (raw: unknown): ParsedStore => {
  * プレイが始まってしまう。
  */
 export const activeDetective = (store: DetectiveStore): StoredDetective | undefined =>
-  store.profiles.find((profile) => profile.id === store.activeId)
+  detectiveRoster(store).find((profile) => profile.id === store.activeId)
 
 /**
  * 追加または更新。同じ id があれば置き換え、無ければ末尾に足す。
@@ -207,7 +241,7 @@ export const removeDetective = (store: DetectiveStore, id: string): DetectiveSto
 
 /** 選択の切り替え。存在しない id を渡された場合は何も変えない。 */
 export const setActiveDetective = (store: DetectiveStore, id: string): DetectiveStore =>
-  store.profiles.some((profile) => profile.id === id) ? { ...store, activeId: id } : store
+  detectiveRoster(store).some((profile) => profile.id === id) ? { ...store, activeId: id } : store
 
 /** 名乗らずに始めるときのために、選択を外す。 */
 export const clearActiveDetective = (store: DetectiveStore): DetectiveStore => ({

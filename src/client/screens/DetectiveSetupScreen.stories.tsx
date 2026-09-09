@@ -6,7 +6,7 @@ import { DETECTIVES, SCENARIO } from '@/client/stories/fixtures'
 /**
  * ALI_DET — 探偵を決める。
  * readStore と initialDraft を差し替えられるように作られているので、
- * localStorage を仕込まずに名簿・つくる・編集する・空の4状態を出せる。
+ * localStorage を仕込まずに名簿・つくる・編集する・作る前の4状態を出せる。
  */
 const meta: Meta<typeof DetectiveSetupScreen> = {
   title: 'Screens/DET 探偵を決める',
@@ -44,7 +44,10 @@ export const Edit: Story = {
   args: { initialDraft: EDIT_DRAFT },
 }
 
-/** 名簿が空。「まだ探偵がいません」と出て、事件に向かうは押せない。 */
-export const Empty: Story = {
+/**
+ * まだ1人も作っていない状態。備え付けの橘シェリーだけが並ぶ。
+ * 選ぶまで「事件に向かう」は押せず、その一体には編集も削除も出ない。
+ */
+export const PresetOnly: Story = {
   args: { readStore: () => EMPTY_STORE },
 }

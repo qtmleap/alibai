@@ -3,11 +3,15 @@ import {
   activeDetective,
   clearActiveDetective,
   type DetectiveStore,
+  detectiveRoster,
   EMPTY_STORE,
+  isPresetDetective,
+  PRESET_DETECTIVES,
   parseDetectiveStore,
   removeDetective,
   type StoredDetective,
   setActiveDetective,
+  TACHIBANA_SHERRY,
   toDetective,
   upsertDetective,
 } from '@/client/lib/detective-store'
@@ -106,6 +110,39 @@ describe('activeDetective', () => {
     const store: DetectiveStore = { profiles: [akari], activeId: 'b' }
 
     expect(activeDetective(store)).toBeUndefined()
+  })
+})
+
+describe('備え付けの探偵', () => {
+  test('1人も作っていなくても名簿には並ぶ', () => {
+    expect(detectiveRoster(EMPTY_STORE)).toEqual(PRESET_DETECTIVES)
+  })
+
+  test('作った探偵より前に並ぶ', () => {
+    const store: DetectiveStore = { profiles: [akari], activeId: undefined }
+
+    expect(detectiveRoster(store).map((p) => p.id)).toEqual([TACHIBANA_SHERRY.id, 'a'])
+  })
+
+  test('選べる', () => {
+    const selected = setActiveDetective(EMPTY_STORE, TACHIBANA_SHERRY.id)
+
+    expect(activeDetective(selected)?.name).toBe('橘シェリー')
+  })
+
+  test('選んでも保管庫には書かれない', () => {
+    expect(setActiveDetective(EMPTY_STORE, TACHIBANA_SHERRY.id).profiles).toEqual([])
+  })
+
+  test('選択中のまま読み直しても、選択が外れない', () => {
+    const parsed = parseDetectiveStore({ profiles: [], activeId: TACHIBANA_SHERRY.id })
+
+    expect(parsed.store.activeId).toBe(TACHIBANA_SHERRY.id)
+  })
+
+  test('備え付けかどうかを見分けられる', () => {
+    expect(isPresetDetective(TACHIBANA_SHERRY.id)).toBe(true)
+    expect(isPresetDetective('a')).toBe(false)
   })
 })
 
