@@ -160,6 +160,8 @@ characters:
   - id: sudo
     name: 須藤拓海
     publicIntroduction: "ロープウェイの運転主任。"
+    ageGroup: adult
+    gender: male
     personality: 安全規程を熟知し、自信を持って機器表示を説明する運転主任。自分の点検記録の不備を隠し、監視盤の『乗員1』を人物の在席記録であるかのように語る。
     goals:
       - 制動点検記録の虚偽を隠したい
@@ -209,6 +211,8 @@ characters:
   - id: enomoto
     name: 榎本澄
     publicIntroduction: "丁寧で記憶力のよい案内係。"
+    ageGroup: adult
+    gender: unknown
     personality: 丁寧で記憶力のよい案内係。拾った財布を正式処理しなかったことを隠したいが、21時18分に職員通路で須藤とすれ違ったことは明確に覚えている。
     goals:
       - 拾得物を自分のロッカーへ入れたことを隠したい
@@ -235,6 +239,8 @@ characters:
   - id: nagamine
     name: 長峰礼
     publicIntroduction: "機械の仕様を優先して考える設備担当。"
+    ageGroup: adult
+    gender: unknown
     personality: 機械の仕様を優先して考える設備担当。融雪設備の手順違反を隠したいが、非常用搬器の乗員表示が単なる荷重判定だと知っている。
     goals:
       - 融雪ヒーターの警報を無効化したことを隠したい
@@ -265,6 +271,8 @@ characters:
   - id: orihara
     name: 折原壮
     publicIntroduction: "山頂駅にいた山岳写真家。"
+    ageGroup: adult
+    gender: male
     personality: 好奇心が強く規則を軽視しがちな山岳写真家。立入禁止の保守デッキへ出たことを隠すため行動をぼかすが、職員同士の事情には詳しくない。
     goals:
       - 保守デッキへ無断で出たことを隠したい
