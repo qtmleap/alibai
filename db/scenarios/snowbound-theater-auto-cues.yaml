@@ -149,6 +149,8 @@ characters:
   - id: kunieda
     name: 国枝美冬
     publicIntroduction: "段取りに厳しく、舞台上の出来事を秒単位で管理する舞台監督。"
+    ageGroup: adult
+    gender: female
     personality: 段取りに厳しく、舞台上の出来事を秒単位で管理する舞台監督。照明が予定どおり進んだ事実を自分の操作記録のように語り、自動進行機能について尋ねられると話をそらす。
     goals:
       - 架空スタッフ名義の残業費請求を隠したい
@@ -198,6 +200,8 @@ characters:
   - id: hiiragi
     name: 柊真琴
     publicIntroduction: "感情表現の大きい主演俳優。"
+    ageGroup: adult
+    gender: male
     personality: 感情表現の大きい主演俳優。改稿台本を知人へ送ったことを隠したいが、舞台機器の仕組みには詳しくない。瀬尾と配役を巡って口論していた。
     goals:
       - 公開前の台本を外部へ送ったことを隠したい
@@ -218,6 +222,8 @@ characters:
   - id: toba
     name: 鳥羽香
     publicIntroduction: "細部を見る衣装担当。"
+    ageGroup: adult
+    gender: female
     personality: 細部を見る衣装担当。衣装の損傷を隠したいが、客席から照明が二十分間切り替わった事実は正確に話す。ただし誰が調光卓を操作していたかは見えていない。
     goals:
       - 衣装を傷めて隠したことを秘密にしたい
@@ -244,6 +250,8 @@ characters:
   - id: sasai
     name: 笹井徹
     publicIntroduction: "舞台機構の挙動に詳しい技術者。"
+    ageGroup: adult
+    gender: male
     personality: 舞台機構の挙動に詳しい技術者。点検省略を隠したいが、22時10分の国枝の目撃と調光卓の自動進行機能は正確に説明できる。
     goals:
       - 舞台機構の定期点検を一項目省略したことを隠したい

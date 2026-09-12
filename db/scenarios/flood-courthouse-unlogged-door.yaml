@@ -134,6 +134,8 @@ characters:
   - id: yabuki
     name: 矢吹梓
     publicIntroduction: "裁判所の書記官。"
+    ageGroup: adult
+    gender: female
     personality: 論理的で、規則やシステムの仕様を根拠に話す書記官。記録上の証拠を重視するため、自分に有利なログだけを強調する傾向がある。
     goals:
       - 解錠履歴がないことを、自分が保存記録室へ入っていない証明として通したい
@@ -172,6 +174,8 @@ characters:
   - id: mitamura
     name: 三田村悟
     publicIntroduction: "設備仕様には詳しいが、書類仕事が雑な技術職員。"
+    ageGroup: adult
+    gender: male
     personality: 設備仕様には詳しいが、書類仕事が雑な技術職員。点検の一項目を飛ばしたことを隠したい一方、電子錠が何を記録するかは正確に説明できる。
     goals:
       - 点検項目を飛ばしたことを隠したい
@@ -203,6 +207,8 @@ characters:
   - id: kise
     name: 木瀬亮
     publicIntroduction: "寡黙な警備員。"
+    ageGroup: adult
+    gender: male
     personality: 寡黙な警備員。人の歩き方や服装をよく覚えているが、勤務中に古い事件資料を私的に読んでいたことを知られたくない。
     goals:
       - 私的に事件資料を読んでいたことを隠したい

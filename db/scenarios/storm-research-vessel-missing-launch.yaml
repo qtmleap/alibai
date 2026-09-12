@@ -134,6 +134,8 @@ characters:
   - id: kariya
     name: 狩谷琴音
     publicIntroduction: "頭の回転が速く、可能性を広げて話す研究員。"
+    ageGroup: young
+    gender: female
     personality: 頭の回転が速く、可能性を広げて話す研究員。作業艇の消失を強調し、船内の三人に限定せず外部犯人の可能性を残そうとする。自分の研究上の不正を瀬尾に見つけられていた。
     goals:
       - 消えた作業艇を外部犯人の逃走手段と思わせたい
@@ -174,6 +176,8 @@ characters:
   - id: mizuki
     name: 水城明
     publicIntroduction: "現場優先の機関担当。"
+    ageGroup: adult
+    gender: male
     personality: 現場優先の機関担当。設備点検を延期した件を隠したいが、作業艇が失われた時刻と狩谷の署名については記録通り話す。
     goals:
       - 設備点検の延期を隠したい
@@ -207,6 +211,8 @@ characters:
   - id: nonomura
     name: 野々村岳
     publicIntroduction: "調査船の通信担当。"
+    ageGroup: adult
+    gender: male
     personality: 正確な通信記録を好む担当者。勤務中の私的通信を知られたくない。19時56分に瀬尾本人と話したことには自信がある。
     goals:
       - 業務外の個人的な通信を隠したい

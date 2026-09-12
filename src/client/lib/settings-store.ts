@@ -1,35 +1,37 @@
 import { z } from 'zod'
 import { clampLimits, EXCHANGES_PER_TOPIC, type SessionLimits } from '@/shared/turns'
-import {
-  isKnownModel,
-  llmProviderSchema,
-  type SettableLlmRole,
-  settableLlmRoleSchema,
-} from '~/db/llm-catalog'
+import { DEFAULT_JUDGE_TUNING, type JudgeTuning, judgeTuningSchema } from '~/db/judge-tuning'
+import { type SettableLlmRole, settableLlmRoleSchema } from '~/db/llm-catalog'
 
 /**
  * プレイヤーがこのブラウザで選んだ設定。
  *
  * サーバには保存しない。自分のプレイにだけ効くもので、他の人には影響しない。
- * リクエストのたびに載せて送るが、**サーバはこれを信用しない**——モデルIDは
- * 許可リストと突き合わせ、数値は上限で切り詰めてから使う。ここでの検証は
- * 「画面に変な値を出さない」ためのもので、防御の本体はサーバ側にある。
+ * リクエストのたびに載せて送るが、**サーバはこれを信用しない**——数値は上限で
+ * 切り詰めてから使う。ここでの検証は「画面に変な値を出さない」ためのもので、
+ * 防御の本体はサーバ側にある。
  */
 
-const roleSettingSchema = z.object({
-  provider: llmProviderSchema.optional(),
-  model: z.string().nonempty().max(80).optional(),
-})
+/** 長さだけ見て通す。突き合わせる許可リストはもう無い（`db/llm-catalog.ts`）。 */
+const modelField = z.string().nonempty().max(80).optional()
+
+const roleSettingSchema = z.object({ model: modelField })
 
 export type RoleSetting = z.infer<typeof roleSettingSchema>
 
 const settingsSchema = z.object({
-  llm: z.partialRecord(settableLlmRoleSchema, roleSettingSchema),
+  /*
+    知らないキーを許さないのは、書き戻しの判断（parseSettings の `current`）に使うため。
+    通常の object は provider を黙って捨てて「現行の形で読めた」と答えるので、
+    提供元を選んでいた頃の保管庫がいつまでも書き換わらない。
+  */
+  llm: z.partialRecord(settableLlmRoleSchema, z.strictObject({ model: modelField })),
   limits: z.object({
     maxTurns: z.int().positive(),
     questionsPerTurn: z.int().positive(),
     exchangesPerTopic: z.int().positive(),
   }),
+  judge: judgeTuningSchema,
 })
 
 export type Settings = z.infer<typeof settingsSchema>
@@ -54,41 +56,41 @@ export const DEFAULT_SETTINGS: Settings = {
     questionsPerTurn: 2,
     exchangesPerTopic: EXCHANGES_PER_TOPIC,
   },
+  /*
+   * 判定の直しは既定で全部オフ。今までの挙動のまま始まり、入れたときだけ変わる。
+   * 入れた回と切った回を見比べたいので、既定を良いほうに寄せない。
+   */
+  judge: DEFAULT_JUDGE_TUNING,
 }
 
 /** 器だけを見るための緩いスキーマ。中身の妥当性は要素ごとに判断する。 */
 const looseSettingsSchema = z.object({
   llm: z.record(z.string().nonempty(), z.unknown()).optional(),
   limits: z.record(z.string().nonempty(), z.unknown()).optional(),
+  judge: z.record(z.string().nonempty(), z.unknown()).optional(),
 })
 
 /**
  * 1役割ぶんの読み替え。
  *
- * プロバイダが読めなければ、その役割ごと落とす（モデルだけ残しても、
- * どのプロバイダのモデルか決まらないため）。モデルだけが表から消えている場合は、
- * プロバイダの選択は活かしてモデルだけ落とす——カタログの更新で
- * プレイヤーの選択がまるごと消えるのは、直しようがなくて困る。
+ * 提供元を選んでいた頃の `{provider, model}` がそのまま残っている端末がある。
+ * zod は知らないキーを黙って落とすので、provider は消えて model だけが残る
+ * ——ここで役割ごと捨てると、プレイヤーには「なぜか設定が戻った」としか見えない。
+ *
+ * 突き合わせる許可リストはもう無い（宛先が互換サーバ1つになり、実在するモデルは
+ * サーバに聞くもの）。長さだけ見て通し、知らないIDならサーバ側でエラーになる。
+ *
+ * モデルが読めなければ役割ごと落とす。model しか持たない今、モデルの無い役割は
+ * 「未選択」と同じものなので、空の器を残す意味が無い。
  */
 const recoverRole = (raw: unknown): RoleSetting | undefined => {
   const parsed = roleSettingSchema.safeParse(raw)
 
-  if (!parsed.success) {
+  if (!parsed.success || parsed.data.model === undefined) {
     return undefined
   }
 
-  const provider = parsed.data.provider
-
-  if (provider === undefined) {
-    return undefined
-  }
-
-  const model = parsed.data.model
-
-  return {
-    provider,
-    model: model !== undefined && isKnownModel(provider, model) ? model : undefined,
-  }
+  return { model: parsed.data.model }
 }
 
 export type ParsedSettings = {
@@ -130,7 +132,7 @@ export const parseSettings = (raw: unknown): ParsedSettings => {
     DEFAULT_SETTINGS.limits,
   )
 
-  const settings: Settings = { llm, limits }
+  const settings: Settings = { llm, limits, judge: recoverJudge(loose.data.judge) }
 
   // 現行スキーマで読めて、かつ切り詰めも取りこぼしも起きていなければ、書き戻す必要はない。
   return { settings, migrated: !current.success || !isSameSettings(current.data, settings) }
@@ -138,6 +140,27 @@ export const parseSettings = (raw: unknown): ParsedSettings => {
 
 const numberOf = (value: unknown): number | undefined =>
   typeof value === 'number' && Number.isFinite(value) ? value : undefined
+
+const judgeFlag = (raw: Record<string, unknown> | undefined, key: keyof JudgeTuning): boolean => {
+  const parsed = z.boolean().safeParse(raw?.[key])
+
+  return parsed.success ? parsed.data : DEFAULT_JUDGE_TUNING[key]
+}
+
+/**
+ * 判定の直しの読み替え。鍵ごとに見て、真偽値でないものは既定（オフ）に落とす。
+ *
+ * 器ごと捨てないのは他の項目と同じ理由だが、ここはもう一つある——切り替えを増やしたとき、
+ * 保存済みの端末には新しい鍵が無い。丸ごと捨てると、既に入れてあったぶんまでオフに戻る。
+ *
+ * 鍵を並べて書いてあるのは、増やしたときにここを直し忘れると型が通らないため。
+ */
+const recoverJudge = (raw: Record<string, unknown> | undefined): JudgeTuning => ({
+  checkEvidenceIds: judgeFlag(raw, 'checkEvidenceIds'),
+  contradictionNeedsHistory: judgeFlag(raw, 'contradictionNeedsHistory'),
+  fixedTemperature: judgeFlag(raw, 'fixedTemperature'),
+  retryOnce: judgeFlag(raw, 'retryOnce'),
+})
 
 const isSameSettings = (a: Settings, b: Settings): boolean =>
   JSON.stringify(a) === JSON.stringify(b)
@@ -147,6 +170,15 @@ export const toLlmOverrides = (settings: Settings): Partial<Record<SettableLlmRo
   settings.llm
 
 export const settingsLimits = (settings: Settings): SessionLimits => settings.limits
+
+/**
+ * サーバへ載せる形。limits と同じで、常に四つとも載る。
+ *
+ * llm のような「未選択」を作らないのは、切り替えの既定がサーバ側にも同じ形で
+ * 置いてあるため（`DEFAULT_JUDGE_TUNING`）。載せないと既定に落ちるだけなので、
+ * 「送っていない」と「オフを送った」を区別する意味が無い。
+ */
+export const toJudgeTuning = (settings: Settings): JudgeTuning => settings.judge
 
 /**
  * localStorage は「使えない環境がある」前提で触る。

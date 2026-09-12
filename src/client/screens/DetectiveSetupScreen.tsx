@@ -5,6 +5,8 @@ import {
   activeDetective,
   clearActiveDetective,
   type DetectiveStore,
+  detectiveRoster,
+  isPresetDetective,
   loadDetectiveStore,
   newDetectiveId,
   removeDetective,
@@ -15,17 +17,16 @@ import {
 } from '@/client/lib/detective-store'
 import type { ScenarioDetail } from '@/client/lib/schemas'
 import { playSe } from '@/client/lib/sound'
+import { type Detective, describeDetective } from '~/db/detective'
 import {
   AGE_GROUP_LABELS,
   AGE_GROUP_NOTES,
   AGE_GROUPS,
   type AgeGroup,
-  type Detective,
-  describeDetective,
   GENDER_LABELS,
   GENDERS,
   type Gender,
-} from '~/db/detective'
+} from '~/db/person'
 
 /**
  * 節の見出しと欄の名前。等幅なのは書式であって時刻ではないので、値には使わない。
@@ -65,6 +66,7 @@ export const emptyDraft = (): Draft => ({
   ageGroup: 'unknown',
   gender: 'unknown',
   appearance: '',
+  speech: '',
 })
 
 /**
@@ -90,6 +92,7 @@ export const DetectiveSetupScreen = ({
 }: Props) => {
   const nameId = useId()
   const appearanceId = useId()
+  const speechId = useId()
   const [store, setStore] = useState<DetectiveStore>(readStore)
   const [draft, setDraft] = useState<Draft | undefined>(initialDraft)
 
@@ -121,6 +124,7 @@ export const DetectiveSetupScreen = ({
       ageGroup: draft.ageGroup,
       gender: draft.gender,
       appearance: draft.appearance,
+      speech: draft.speech,
     }
 
     update(upsertDetective(store, saved))
@@ -128,6 +132,7 @@ export const DetectiveSetupScreen = ({
   }
 
   const selected = activeDetective(store)
+  const roster = detectiveRoster(store)
   const canSave = draft !== undefined && draft.name.trim().length > 0
   // 名簿は端末では draft が無いあいだだけ、机では常に見せる。
   const rosterVisibleOnPhone = draft === undefined
@@ -146,7 +151,7 @@ export const DetectiveSetupScreen = ({
         <button
           type="button"
           onClick={onBack}
-          className="hidden text-left lg:block lg:text-[12.5px] lg:text-nezumi"
+          className="hidden text-left lg:block lg:text-[12.5px] lg:text-nezumi lg:hover:text-kinari"
         >
           ←　シナリオを選び直す
         </button>
@@ -165,75 +170,82 @@ export const DetectiveSetupScreen = ({
         <div className="mt-4 flex flex-col gap-4 lg:mt-6 lg:block lg:gap-0">
           <span className={`hidden lg:block lg:pb-[7px] ${LEGEND}`}>探偵</span>
 
-          {store.profiles.length === 0 ? (
-            <p className="text-[11px] text-nezumi-dim leading-[1.7] lg:text-[11.5px] lg:leading-[1.8]">
-              まだ探偵がいません。作るか、名乗らずに始めることもできます。
-            </p>
-          ) : (
-            <ul className="flex flex-col border-keisen border-t">
-              {store.profiles.map((profile) => {
-                const isActive = profile.id === store.activeId
+          {/* 備え付けの一体が常に居るので、名簿が空になることはない。 */}
+          <ul className="flex flex-col border-keisen border-t">
+            {roster.map((profile) => {
+              const isActive = profile.id === store.activeId
+              const isPreset = isPresetDetective(profile.id)
 
-                return (
-                  <li
-                    key={profile.id}
-                    className={`flex items-start gap-[10px] border-keisen border-b py-[7px] pl-3 lg:gap-3 lg:py-[10px] lg:pl-[14px] ${
-                      isActive ? 'shadow-[inset_2px_0_0_var(--color-kinari)]' : ''
-                    }`}
-                  >
-                    {/*
+              return (
+                <li
+                  key={profile.id}
+                  /*
+                      選ばれている行には生成りの線が既に立っているので、触れても動かさない。
+                      それ以外の行だけ、机の上で鼠の線を立てて地を一段起こす。
+                    */
+                  className={`flex items-start gap-[10px] border-keisen border-b py-[7px] pl-3 lg:gap-3 lg:py-[10px] lg:pl-[14px] ${
+                    isActive
+                      ? 'shadow-[inset_2px_0_0_var(--color-kinari)]'
+                      : 'lg:hover:bg-sumi-2 lg:hover:shadow-[inset_2px_0_0_var(--color-nezumi)]'
+                  }`}
+                >
+                  {/*
                       行そのものが押す場所なので、ここは素のボタンのまま。名前と説明を
                       積む形は Button の一行に詰める組みとは噛み合わない。
                     */}
-                    <button
-                      type="button"
-                      onClick={() => update(setActiveDetective(store, profile.id))}
-                      className="flex min-w-0 flex-1 flex-col gap-px text-left lg:gap-0"
+                  <button
+                    type="button"
+                    onClick={() => update(setActiveDetective(store, profile.id))}
+                    className="flex min-w-0 flex-1 flex-col gap-px text-left lg:gap-0"
+                  >
+                    <span
+                      className={`text-[13px] leading-[1.75] lg:text-[13.5px] lg:leading-[1.5] ${
+                        isActive ? 'text-kinari' : 'text-nezumi'
+                      }`}
                     >
-                      <span
-                        className={`text-[13px] leading-[1.75] lg:text-[13.5px] lg:leading-[1.5] ${
-                          isActive ? 'text-kinari' : 'text-nezumi'
-                        }`}
-                      >
-                        {profile.name}
-                      </span>
+                      {profile.name}
+                    </span>
+                    <span className="text-[10.5px] text-nezumi-dim leading-[1.6] lg:text-[11.5px]">
+                      {describeDetective(profile)}
+                    </span>
+                    {profile.appearance.length > 0 && (
                       <span className="text-[10.5px] text-nezumi-dim leading-[1.6] lg:text-[11.5px]">
-                        {describeDetective(profile)}
+                        {profile.appearance}
                       </span>
-                      {profile.appearance.length > 0 && (
-                        <span className="text-[10.5px] text-nezumi-dim leading-[1.6] lg:text-[11.5px]">
-                          {profile.appearance}
-                        </span>
-                      )}
-                    </button>
+                    )}
+                  </button>
 
-                    {/* 消すほうは一段沈める。並べて置くと押し間違える。 */}
+                  {/*
+                      消すほうは一段沈める。並べて置くと押し間違える。
+                      備え付けは直しも消しもできないので、行ごと出さない。
+                    */}
+                  {!isPreset && (
                     <div className="mt-0.5 ml-auto flex flex-none gap-3 lg:gap-[14px]">
                       <button
                         type="button"
                         onClick={() => setDraft({ ...profile })}
-                        className="text-[11px] text-nezumi lg:text-[11.5px]"
+                        className="text-[11px] text-nezumi lg:text-[11.5px] lg:hover:text-kinari"
                       >
                         編集
                       </button>
                       <button
                         type="button"
                         onClick={() => update(removeDetective(store, profile.id))}
-                        className="text-[11px] text-nezumi-dim lg:text-[11.5px]"
+                        className="text-[11px] text-nezumi-dim lg:text-[11.5px] lg:hover:text-kinari"
                       >
                         削除
                       </button>
                     </div>
-                  </li>
-                )
-              })}
-            </ul>
-          )}
+                  )}
+                </li>
+              )
+            })}
+          </ul>
 
           <button
             type="button"
             onClick={() => setDraft(emptyDraft())}
-            className="self-start text-[12px] text-nezumi tracking-[0.06em] lg:mt-[14px] lg:text-[12.5px] lg:tracking-[0.08em]"
+            className="self-start text-[12px] text-nezumi tracking-[0.06em] lg:mt-[14px] lg:text-[12.5px] lg:tracking-[0.08em] lg:hover:text-kinari"
           >
             ＋ 新しい探偵をつくる
           </button>
@@ -297,13 +309,21 @@ export const DetectiveSetupScreen = ({
               >
                 {selected.appearance.length > 0 ? selected.appearance : '容姿は書かれていません。'}
               </p>
-              <button
-                type="button"
-                onClick={() => setDraft({ ...selected })}
-                className="mt-5 block text-[12.5px] text-nezumi"
-              >
-                この探偵を編集する
-              </button>
+              {/* 書かれていないときは行ごと出さない。容姿と違って、無いなら黙っていてよい。 */}
+              {selected.speech.length > 0 && (
+                <p className="mt-4 max-w-[34em] border-keisen border-t pt-4 text-[13px] text-nezumi leading-[2]">
+                  {selected.speech}
+                </p>
+              )}
+              {!isPresetDetective(selected.id) && (
+                <button
+                  type="button"
+                  onClick={() => setDraft({ ...selected })}
+                  className="mt-5 block text-[12.5px] text-nezumi"
+                >
+                  この探偵を編集する
+                </button>
+              )}
             </div>
           )
         ) : (
@@ -361,6 +381,23 @@ export const DetectiveSetupScreen = ({
                   maxLength={200}
                   rows={3}
                   placeholder="例：くたびれたコートを着た長身。目つきが鋭く、口数は少ない。"
+                  className="field-sizing-fixed resize-none leading-relaxed"
+                />
+              </label>
+
+              {/*
+                容姿より短い欄にしてある。口調は例を一つ二つ挙げれば足りて、
+                長く書けるようにすると人物設定をこちらへ書き始めてしまう。
+              */}
+              <label className="flex flex-col gap-1.5 lg:gap-[7px]" htmlFor={speechId}>
+                <span className={`block ${LEGEND}`}>口調</span>
+                <Textarea
+                  id={speechId}
+                  value={draft.speech}
+                  onChange={(event) => updateDraft({ speech: event.target.value })}
+                  maxLength={100}
+                  rows={2}
+                  placeholder="例：丁寧語だが素っ気ない。相手を名字で呼ぶ。"
                   className="field-sizing-fixed resize-none leading-relaxed"
                 />
               </label>

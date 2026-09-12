@@ -2,6 +2,8 @@ import { sql } from 'drizzle-orm'
 import { index, integer, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 import type { Detective } from './detective'
 import type { FloorPlanInput } from './floor-plan'
+import type { JudgeTuning } from './judge-tuning'
+import type { AgeGroup, Gender } from './person'
 import type { InvestigablePlace, PlaceFindings } from './place'
 import type { ScenarioEvidenceSource, ScenarioRevelationSource } from './scenario-definition'
 import type { TimelineEvent } from './timeline-event'
@@ -9,7 +11,8 @@ import type { VictimFinding } from './victim-finding'
 
 /**
  * プレイヤーが演じる探偵の形と検証は db/detective.ts が正典。
- * 年ごろと性別は列挙で、NPCの呼びかけ方はそこから引く。
+ * 年ごろと性別の列挙は db/person.ts にあり、探偵と登場人物が同じものを読む。
+ * NPCの呼びかけ方はそこから引く。
  */
 export type { Detective } from './detective'
 /**
@@ -209,6 +212,29 @@ export const characters = sqliteTable(
       .notNull()
       .references(() => scenarios.id, { onDelete: 'cascade' }),
     name: text('name').notNull(),
+    /**
+     * 幅の狭いところへ出す短い名前。アリバイ表の帯がこれを読む。
+     *
+     * 既定が空なのは、この列より前に焼かれた行があるため。移行では `name` を写して埋め、
+     * コンパイラも書かれていなければ `name` を入れるので、空のまま残る行は本来無い。
+     */
+    shortName: text('short_name').notNull().default(''),
+    /**
+     * 年ごろと性別。探偵と同じ列挙で、正典は db/person.ts。
+     *
+     * `unknown` は「書かれていない」も兼ねる。キャラクターシートはそのとき行ごと出さないので、
+     * 年ごろも性別も人物像の文章に委ねたままにできる。職業の列は持たない。
+     */
+    ageGroup: text('age_group').$type<AgeGroup>().notNull().default('unknown'),
+    gender: text('gender').$type<Gender>().notNull().default('unknown'),
+    /**
+     * Irodori-TTS へ渡す声の指定。両方 null なら、その人物は喋らない。
+     *
+     * キャラクターシートには入れない。これはNPCへ読ませる情報ではなく、
+     * 合成を呼ぶ側が読むもので、プロンプトに混ぜると声の指示を台詞として喋り出す。
+     */
+    voiceSeed: integer('voice_seed'),
+    voiceCaption: text('voice_caption'),
     /** プレイヤーへ最初から見せてよい、完全公開の人物紹介。 */
     publicIntroduction: text('public_introduction').notNull().default(''),
     personality: text('personality').notNull(),
@@ -353,9 +379,14 @@ export const messages = sqliteTable(
     sessionId: text('session_id')
       .notNull()
       .references(() => playSessions.id, { onDelete: 'cascade' }),
-    characterId: text('character_id')
-      .notNull()
-      .references(() => characters.id, { onDelete: 'cascade' }),
+    /**
+     * 話しかけた（あるいは調べた）相手。
+     *
+     * `characters` への外部キーは張らない。遺体は `victim` 固定、場所はシナリオの
+     * JSON 列が持つ ID で、どちらも `characters` に行が無いため。外部キーがあった頃は
+     * 検分の往復だけ記録ごと落としていた。
+     */
+    characterId: text('character_id').notNull(),
     role: text('role').notNull(),
     content: text('content').notNull(),
     createdAt: createdTimestamp('created_at'),
@@ -464,7 +495,6 @@ export const llmUsages = sqliteTable(
     scenarioId: text('scenario_id'),
     /** provider.ts の LlmRole。actor / judge / author。 */
     role: text('role').notNull(),
-    provider: text('provider').notNull(),
     model: text('model').notNull(),
     inputTokens: integer('input_tokens').notNull().default(0),
     outputTokens: integer('output_tokens').notNull().default(0),
@@ -481,3 +511,153 @@ export const llmUsages = sqliteTable(
     index('llm_usages_session_id_idx').on(table.sessionId),
   ],
 )
+
+/**
+ * 分析用の控え（analytics_sessions / analytics_turns）。
+ *
+ * この2表は llm_usages と同じ理由で play_sessions への外部キーを張らない。
+ * 会話ログは保持期間で消す方針のままにしつつ、プロンプトと難易度を後から
+ * 調整するための材料——プレイヤーが何を打ち、NPCが何を返し、その回に何が
+ * 出たか——だけを残すのがこの2表の存在理由なので、cascade で一緒に消えては
+ * 目的がそのまま失われる。したがって session_id / scenario_id は参照の切れた
+ * 履歴上の値であり、play_sessions と JOIN できることを前提にしてはいけない
+ * （この2表どうしの JOIN は、両方とも消えないので成立する）。
+ *
+ * 集計に使う値は列に開き、読み返すだけの本文は JSON 列に置く。
+ * 「モード別に何ターンで解けたか」を数えるのは列、「そのとき何を打ったか」を
+ * 読むのは JSON、という住み分け。
+ */
+
+/** analytics_turns.exchanges の1往復。探偵の質問とNPCの返答。 */
+export type LoggedExchange = {
+  question: string
+  answer: string
+}
+
+/**
+ * 1プレイセッション1行。開始時に入れ、告発時に結果列を埋める。
+ *
+ * 告発まで至らなかった行は結果列が NULL のまま残る。これは欠損ではなく、
+ * 「どこで諦めたか」がこの表の一番知りたいことの一つなので、
+ * 完走した行だけを入れる作りにはしない。
+ */
+export const analyticsSessions = sqliteTable(
+  'analytics_sessions',
+  {
+    /** play_sessions.id と同じ値。ただし外部キーではない（上のコメント参照）。 */
+    sessionId: text('session_id').primaryKey(),
+    scenarioId: text('scenario_id').notNull(),
+    /** 難易度モード。db/game-mode.ts の列挙。 */
+    mode: text('mode').notNull(),
+    /** 名乗らずに始められるので nullable。名前と容姿は自由記述で、そのまま入る。 */
+    detective: text('detective', { mode: 'json' }).$type<Detective>(),
+    /**
+     * 進行の上限。難易度そのものを動かす値なので、モードとは別に持つ。
+     * 同じ nohope でも上限が違えば別の難しさになり、混ぜると読み違える。
+     */
+    maxTurns: integer('max_turns').notNull(),
+    questionsPerTurn: integer('questions_per_turn').notNull(),
+    exchangesPerTopic: integer('exchanges_per_topic').notNull(),
+    startedAt: createdTimestamp('started_at'),
+    /** ここから下は告発時に埋まる。埋まっていない＝最後まで行っていない。 */
+    finishedAt: integer('finished_at', { mode: 'timestamp' }),
+    culpritCharacterId: text('culprit_character_id'),
+    culpritCorrect: integer('culprit_correct', { mode: 'boolean' }),
+    methodCorrect: integer('method_correct', { mode: 'boolean' }),
+    motiveCorrect: integer('motive_correct', { mode: 'boolean' }),
+    /** プレイヤーが書いた推理の本文。 */
+    reasoning: text('reasoning'),
+    method: text('method'),
+    motive: text('motive'),
+    /** 採点者の短評。プレイヤーの記述をどう読んだかが分かる。 */
+    methodComment: text('method_comment'),
+    motiveComment: text('motive_comment'),
+    solvedSeconds: integer('solved_seconds'),
+    questionCount: integer('question_count'),
+    evidenceFound: integer('evidence_found'),
+    /** 発見数だけでは難易度を読めないので、母数も一緒に残す。 */
+    evidenceTotal: integer('evidence_total'),
+    contradictionCount: integer('contradiction_count'),
+    accuracyPercent: integer('accuracy_percent'),
+  },
+  (table) => [
+    index('analytics_sessions_scenario_id_idx').on(table.scenarioId),
+    index('analytics_sessions_started_at_idx').on(table.startedAt),
+  ],
+)
+
+/**
+ * ask 1回（＝プレイヤーが話題を1つ投げた回）1行。
+ *
+ * 聞き込みと検分を同じ形で受ける。messages が検分を落としているのは
+ * character_id が characters への外部キーで、場所も遺体も入らないため。
+ * こちらは外部キーを持たないので、subject_kind で区別して両方入る。
+ */
+export const analyticsTurns = sqliteTable(
+  'analytics_turns',
+  {
+    id: uuidPrimaryKey('id'),
+    sessionId: text('session_id').notNull(),
+    scenarioId: text('scenario_id').notNull(),
+    /**
+     * モードは analytics_sessions から JOIN で引けるが、ここにも置く。
+     * 開始時の行の書き込みが落ちた回でも、ターン単体で難易度が読めるようにするため。
+     */
+    mode: text('mode').notNull(),
+    /** character / victim / place。sessions.ts の sourceTypeOf と同じ区別。 */
+    subjectKind: text('subject_kind').notNull(),
+    /** 人物ID、VICTIM_ID、場所ID のいずれか。 */
+    subjectId: text('subject_id').notNull(),
+    /**
+     * 何ターン目か（DO の round）と、その時点の累計質問数。
+     * DO への記録が落ちた回は取れないので nullable。
+     */
+    turnIndex: integer('turn_index'),
+    questionCount: integer('question_count'),
+    /** プレイヤーが打った文そのもの。この列がこの表の主目的。 */
+    topic: text('topic').notNull(),
+    /** 探偵の質問とNPCの返答。プロンプト調整はここを読む。 */
+    exchanges: text('exchanges', { mode: 'json' }).$type<LoggedExchange[]>().notNull(),
+    /**
+     * その回の判定。Judge が落ちた回は判定そのものが無いので nullable。
+     * 落ちた回でもプレイヤーの入力は残したいので、行ごと捨てることはしない。
+     */
+    revealedEvidenceIds: text('revealed_evidence_ids', { mode: 'json' }).$type<string[]>(),
+    revealedRevelationIds: text('revealed_revelation_ids', { mode: 'json' }).$type<string[]>(),
+    contradictionPointedOut: integer('contradiction_pointed_out', { mode: 'boolean' }),
+    npcLied: integer('npc_lied', { mode: 'boolean' }),
+    /**
+     * その回に入れてあった判定の直し（`db/judge-tuning.ts`）。判定が落ちた回は無い。
+     *
+     * 列を四つに割らず1つのJSONで持つのは、切り替え自体が試すためのもので、
+     * 増えたり減ったり、決着がついたら丸ごと消える見込みのため。
+     */
+    judgeTuning: text('judge_tuning', { mode: 'json' }).$type<JudgeTuning>(),
+    createdAt: createdTimestamp('created_at'),
+  },
+  (table) => [
+    index('analytics_turns_session_id_idx').on(table.sessionId),
+    index('analytics_turns_scenario_id_idx').on(table.scenarioId),
+    index('analytics_turns_created_at_idx').on(table.createdAt),
+  ],
+)
+
+/**
+ * Irodori-TTS の登録話者に、年ごろと性別を付けた表。
+ *
+ * TTS 側の `/speakers` は uuid と名前しか返さないので、キャラクターの `age_group` /
+ * `gender` と突き合わせるための情報がここにしか無い。値は `db/tts-speakers.ts` が
+ * Author LLM に話者名から推定させて入れる。
+ *
+ * **開発中の仮のもの。** 登録話者は既存作品の登場人物で、公開する作品には乗せられない
+ * （`src/server/tts/irodori.ts` の但し書きを参照）。声の作り分けを画面で確かめるための
+ * 足場であって、外へ出すときはこの表ごと落とす。
+ */
+export const ttsSpeakers = sqliteTable('tts_speakers', {
+  /** TTS 側の話者 UUID。こちらでは採番しない。 */
+  id: text('id').primaryKey(),
+  /** 突き合わせには使わない。推定を人が見直すときの手がかり。 */
+  name: text('name').notNull(),
+  ageGroup: text('age_group').$type<AgeGroup>().notNull().default('unknown'),
+  gender: text('gender').$type<Gender>().notNull().default('unknown'),
+})

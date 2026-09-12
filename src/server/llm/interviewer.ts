@@ -1,7 +1,7 @@
 import { type ModelMessage, streamText } from 'ai'
 import type { Env } from '@/server/env'
 import { buildDetectiveSelfBlock } from '@/server/llm/detective'
-import { type LlmChoice, resolveModel } from '@/server/llm/provider'
+import { resolveModel } from '@/server/llm/provider'
 import type { Detective } from '~/db/detective'
 
 /**
@@ -25,7 +25,7 @@ export type TopicExchange = {
   役割としては Actor と同じ「演じて喋る」仕事なので、モデルの選択も actor に相乗りする。
   専用の役割を足すと env とデプロイ設定に列が増えるが、選ぶべき値は actor と同じになる。
 
-  どの組み合わせを使うかは呼び出し側が決めて choice で渡す（src/server/routes/sessions.ts が
+  どのモデルを使うかは呼び出し側が決めて modelId で渡す（src/server/routes/sessions.ts が
   actor 用に決めたものをそのまま寄越す）。ここで役割名から引き直さないので、
   相乗りの事実はこのコメントと呼び出し側にだけ残る。
 */
@@ -43,7 +43,7 @@ export type InterviewerContext = {
   /** リクエストスコープで検証済みの設定。 */
   env: Env
   /** この呼び出しで使う組み合わせ。役割から引き直さず、呼び出し側が決めた値を使う。 */
-  choice: LlmChoice
+  modelId: string
   /** プレイヤーが演じる探偵。名乗らずに始めることもできるので undefined を許す。 */
   detective: Detective | undefined
   /** 目の前の人物の名前。人物像や秘密は渡さない。 */
@@ -77,7 +77,7 @@ const toConversation = (characterName: string, exchanges: TopicExchange[]): Mode
  */
 export const streamQuestion = ({
   env,
-  choice,
+  modelId,
   detective,
   characterName,
   topic,
@@ -86,7 +86,7 @@ export const streamQuestion = ({
   // 話題はプレイヤー由来の文字列なので、必ず user ロールに閉じ込める。
   // system 側へ回すと、指示文として読ませる経路をこちらから開くことになる。
   streamText({
-    model: resolveModel(env, choice),
+    model: resolveModel(env, modelId),
     system:
       detective === undefined
         ? INTERVIEWER_RULES

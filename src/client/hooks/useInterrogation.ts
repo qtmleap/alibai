@@ -37,6 +37,14 @@ export type ChatTurn = {
    * 投げた時点では分からず、判定が返ってきて初めて決まるので、後から立てる。
    */
   notable?: boolean
+  /**
+   * サーバに記録されたこの発言の行のID。読み上げを頼む宛先。
+   *
+   * 立つのは配信の途中で、その時点で本文は確定している。裏を返すと、これが無いのは
+   * 「まだ書いている途中」か「記録に失敗した」かのどちらかで、どちらも声は付かない。
+   * 開き直して復元した会話にも無い——読み直しに読み上げは要らないので、取りに行かない。
+   */
+  messageId?: string
 }
 
 /**
@@ -161,6 +169,34 @@ export const useInterrogation = (seed: InterrogationSeed) => {
   }
 
   /**
+   * 記録された発言のIDを、その行に立てる。
+   *
+   * 宛先は末尾からの位置で指す（`appendQuestionDelta` と同じ手）。質問のIDが届く時点で
+   * 末尾は返答待ちの空の行なので、質問はその1つ手前。返答のIDは末尾に立つ。
+   */
+  const markMessageId = (characterId: string, fromEnd: number, messageId: string) => {
+    setConversations((prev) => {
+      const current = prev[characterId]
+      const turns = current === undefined ? [] : current
+      const index = turns.length - fromEnd
+      const target = turns[index]
+
+      if (target === undefined) {
+        return prev
+      }
+
+      return {
+        ...prev,
+        [characterId]: [
+          ...turns.slice(0, index),
+          { ...target, messageId },
+          ...turns.slice(index + 1),
+        ],
+      }
+    })
+  }
+
+  /**
    * その話題が何かを引き出したことを、会話ログの上でも印にする。
    *
    * 話題の行は askedAt で一意に指せる。同じ話題から生まれた行は同じ値を持つが、
@@ -215,7 +251,9 @@ export const useInterrogation = (seed: InterrogationSeed) => {
             { role: 'assistant', text: '', askedAt },
           ]),
         onQuestion: (chunk) => appendQuestionDelta(params.characterId, chunk),
+        onQuestionId: (id) => markMessageId(params.characterId, 2, id),
         onDelta: (chunk) => appendAssistantDelta(params.characterId, chunk),
+        onAnswerId: (id) => markMessageId(params.characterId, 1, id),
         onJudgement: (judgement) => {
           if (judgement.revealedEvidences.length > 0 || judgement.revealedRevelations.length > 0) {
             markTopicNotable(params.characterId, askedAt)

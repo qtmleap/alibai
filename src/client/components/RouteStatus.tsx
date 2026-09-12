@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router'
+import { type ErrorComponentProps, Link } from '@tanstack/react-router'
 
 /**
  * ルータが直接描く3つの状態（読み込み中・見つからない・エラー）。
@@ -26,11 +26,11 @@ export const RouteNotFound = () => (
   </div>
 )
 
-export const RouteError = ({ error }: { error: Error }) => (
+export const RouteError = ({ error }: ErrorComponentProps) => (
   <div className={frame}>
     <p className="text-xs tracking-[0.3em] text-nezumi-dim">うまく開けませんでした</p>
     {/* 何が起きたかは出す。黙って戻す画面は、同じ操作をもう一度させるだけになる。 */}
-    <p className="text-sm text-nezumi">{error.message}</p>
+    <p className="text-sm text-nezumi">{error instanceof Error ? error.message : String(error)}</p>
     <Link to="/" className="text-sm text-nezumi underline">
       最初から
     </Link>

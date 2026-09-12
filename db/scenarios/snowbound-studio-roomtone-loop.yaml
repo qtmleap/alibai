@@ -158,6 +158,8 @@ characters:
   - id: manabe
     name: 真鍋伊織
     publicIntroduction: "録音所の録音技師。"
+    ageGroup: adult
+    gender: male
     personality: 音の差異に異常なほど敏感で、自分の技術に強い自負を持つ録音技師。説明は専門的だが、連続した収録ファイルを在席の客観証拠として押し出し、入力経路の話になると曖昧になる。
     goals:
       - 未公開音源を外部へ渡したことを隠したい
@@ -202,6 +204,8 @@ characters:
   - id: shirase
     name: 白瀬環
     publicIntroduction: "感覚的に物事を捉える歌手。"
+    ageGroup: young
+    gender: female
     personality: 感覚的に物事を捉える歌手。公開前情報を知人へ話したことを隠したいが、廊下で聞いた音については率直に答える。音が聞こえたため最初は真鍋が中にいると思い込んでいる。
     goals:
       - 新曲情報を知人へ漏らしたことを隠したい
@@ -225,6 +229,8 @@ characters:
   - id: takano
     name: 鷹野徹
     publicIntroduction: "録音所の制作進行。"
+    ageGroup: adult
+    gender: male
     personality: 現実的で数字に強い制作進行。契約処理の付け替えが露見するのを恐れているため冬木との事務的な衝突を小さく見せるが、音響機器の細部には疎い。
     goals:
       - 制作費の付け替えを隠したい
@@ -248,6 +254,8 @@ characters:
   - id: makimura
     name: 牧村葉月
     publicIntroduction: "配線と機材配置を記憶するのが得意な機材担当。"
+    ageGroup: young
+    gender: female
     personality: 配線と機材配置を記憶するのが得意な機材担当。高価なマイクを傷つけたことを隠したいが、パッチ盤の入力経路と廊下で見た真鍋については正確に話せる。
     goals:
       - マイクを落として傷つけたことを隠したい

@@ -51,10 +51,13 @@ scenario_truths    真相（サーバー限定。APIレスポンスに絶対含�
 characters         登場人物（公開紹介・人格・知識・秘密・目的・嘘・記憶）
 evidences          証拠（Judgeが開示を判定するための条件文）
 play_sessions      プレイセッション（匿名可。プレイヤーが演じる探偵を持つ）
-messages           会話ログ（NPC別、トークン使用量・プロバイダ・モデルも記録）
+messages           会話ログ（NPC別。トークン使用量は持たない）
 discoveries        発見済み証拠（session_id + evidence_id の複合主キー）
 results            結果（解決時間、質問回数、正解率）
 reports            UGC通報
+llm_usages         LLM呼び出しごとのトークン消費（役割・モデル別。保持期間の削除対象外）
+analytics_sessions 分析用の控え・1セッション1行（保持期間の削除対象外）
+analytics_turns    分析用の控え・ask 1回1行（保持期間の削除対象外）
 ```
 
 設計上の要点が3つあります。
@@ -65,9 +68,13 @@ reports            UGC通報
 
 **`play_sessions.user_id` が nullable。** 匿名プレイを一級市民として扱うためです。「URLから即プレイ」を掲げる以上、ログイン壁は致命的になります。
 
-**`messages.usage` にトークン使用量を記録。** LLMを使うサービスはコスト可視化を後回しにすると事故ります。`provider` / `model` も併記し、プロバイダ別・シナリオ別に集計できるようにしています。
+**トークン使用量は `llm_usages` に持つ。** LLMを使うサービスはコスト可視化を後回しにすると事故ります。会話ログ（`messages`）側には持たせません。1回の話題で Interviewer・Actor・Judge が複数回モデルを呼ぶので、会話の行と呼び出しは1対1になりませんし、`messages` は保持期間を過ぎたら消える一方でコストの履歴は残す必要があります。`llm_usages` は `role` と `model` を持ち、役割別・モデル別・シナリオ別に集計できます。宛先が互換サーバ1つになったので `provider` 列は落としました（マイグレーション 0028）。どのモデルを叩いたかは `model` だけで一意に決まります。
 
 **`scenarios.briefing` と `scenarios.floor_plan` は一覧に載せない。** 前者はゲームマスターが読み上げる事件の記録（空行区切りの段落）、後者は UI が SVG で描くための論理座標です。どちらも `GET /api/scenarios/:id` でだけ返します。選ぶ画面に長文と図が並ぶと、遊び始める前に読み疲れるためです。一覧が返すのはタイトル・カテゴリ・登場人物数・難易度・所要時間だけです。
+
+**`analytics_*` は `play_sessions` への外部キーを張らない。** `llm_usages` と同じ理由です。会話ログ（`messages`）と結果（`results`）は保持期間を過ぎたら消しますが、プロンプトと難易度を後から調整するための材料——プレイヤーが何を打ち、NPC が何を返し、その回に何が出たか——は残す必要があります。外部キーを張ると cascade で一緒に消え、この2表の存在理由がそのまま失われます。したがって `session_id` / `scenario_id` は参照の切れた履歴上の値で、`play_sessions` と JOIN できることを前提にしてはいけません（`analytics_sessions` と `analytics_turns` どうしの JOIN は、両方とも消えないので成立します）。
+
+**検分の記録は `analytics_turns` にしかない。** `messages.character_id` は `characters` への外部キーなので、場所も遺体も入りません（`src/server/routes/sessions.ts` の ask で検分だけ `messages` への insert を飛ばしています）。`analytics_turns` は外部キーを持たず `subject_kind` で区別するため、聞き込みと検分が同じ形で入ります。
 
 **`play_sessions.detective` は開始時に決めたら変えない。** プレイヤーが演じる探偵（名前・年ごろ・性別・容姿）で、Actor のプロンプトに入ります。年ごろと性別は `db/detective.ts` の列挙が正典で、自由記述ではありません。NPC の呼びかけ（老人が十代の少女に「お嬢さん」と話しかける類）をこの2つから引くため、「28」「三十路」と書き方が割れると引けなくなります。会話の途中で変わるとキャッシュのプレフィックスが崩れるうえ、NPC から見て相手が別人になります。名乗らずに始めることもできるので nullable です。
 

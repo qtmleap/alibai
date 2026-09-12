@@ -88,3 +88,13 @@ export const splitParagraphs = (text: string): string[] =>
     .filter((paragraph) => paragraph.length > 0)
     .flatMap(chunkParagraph)
     .map((paragraph) => paragraph.trim())
+
+/**
+ * 書き終わった発言を、画面に置く段落の並びに変える。
+ *
+ * このモジュールが client ではなく shared に居るのはこの関数のため。読み上げは
+ * 「この発言の N 行目」で合成を頼むので、画面が割った位置とサーバが割った位置が
+ * ずれると、出ている行と読まれる行が食い違う。両方ここを通す。
+ */
+export const messageParagraphs = (text: string): string[] =>
+  splitParagraphs(text.split(/\n+/).join('\n\n'))

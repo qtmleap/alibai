@@ -7,6 +7,7 @@ const detective = (patch: Partial<Detective>): Detective => ({
   ageGroup: 'young',
   gender: 'female',
   appearance: '',
+  speech: '',
   ...patch,
 })
 

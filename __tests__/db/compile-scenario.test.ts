@@ -393,6 +393,68 @@ describe('compileScenario: 列挙の訳し分け', () => {
     expect(alpha.personality).toBe('淡々としている。\n\n- ベータ: 同僚（距離を置いている）')
   })
 
+  test('年ごろと性別は書かれていなければ unknown になる', () => {
+    expect(alpha.ageGroup).toBe('unknown')
+    expect(alpha.gender).toBe('unknown')
+  })
+
+  test('書かれた年ごろと性別はそのまま列に入る', () => {
+    const definition = makeMinimal()
+    const written = compileOrThrow({
+      ...definition,
+      characters: definition.characters.map((character) =>
+        character.id === 'alpha'
+          ? { ...character, ageGroup: 'senior', gender: 'female' }
+          : character,
+      ),
+    }).characters[0]
+
+    if (written === undefined) throw new Error('characters[0] がありません')
+
+    expect(written.ageGroup).toBe('senior')
+    expect(written.gender).toBe('female')
+  })
+
+  test('声が書かれていなければ両方 null になる', () => {
+    expect(alpha.voiceSeed).toBeNull()
+    expect(alpha.voiceCaption).toBeNull()
+  })
+
+  test('書かれた声はそのまま列に入る', () => {
+    const definition = makeMinimal()
+    const written = compileOrThrow({
+      ...definition,
+      characters: definition.characters.map((character) =>
+        character.id === 'alpha'
+          ? { ...character, voiceSeed: 1234, voiceCaption: '落ち着いた女性の声。' }
+          : character,
+      ),
+    }).characters[0]
+
+    if (written === undefined) throw new Error('characters[0] がありません')
+
+    expect(written.voiceSeed).toBe(1234)
+    expect(written.voiceCaption).toBe('落ち着いた女性の声。')
+  })
+
+  test('シードを書き忘れた声は検証で落ちる', () => {
+    const definition = makeMinimal()
+    const result = compileScenario(
+      {
+        ...definition,
+        characters: definition.characters.map((character) =>
+          character.id === 'alpha'
+            ? { ...character, voiceCaption: '落ち着いた女性の声。' }
+            : character,
+        ),
+      },
+      { isPublished: true, newId: sequentialIds() },
+    )
+
+    expect(result.ok).toBe(false)
+    expect(result.ok ? [] : result.issues.join('\n')).toContain('voiceSeed')
+  })
+
   test('態度が無ければ括弧ごと省く', () => {
     const beta = minimal.characters[1]
     expect(beta?.personality).toBe('よく喋る。\n\n- アルファ: 同僚')

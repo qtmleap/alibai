@@ -143,6 +143,8 @@ characters:
   - id: kosaka
     name: 香坂澪
     publicIntroduction: "手先が器用で作品を丁寧に扱う修復士。"
+    ageGroup: adult
+    gender: female
     personality: 手先が器用で作品を丁寧に扱う修復士。保存庫が発見時に閉鎖されていたことを強調し、「中で事件が起きたなら自分には不可能」と話す。修復費の細部を追及されると苛立つ。
     goals:
       - 修復費の水増しを隠したい
@@ -190,6 +192,8 @@ characters:
   - id: asakura
     name: 朝倉凪
     publicIntroduction: "作品の所在を細かく管理する学芸員。"
+    ageGroup: adult
+    gender: female
     personality: 作品の所在を細かく管理する学芸員。保存庫で発見したため当初はそこが事件現場だと思い込んだ。所蔵作品の無断貸し出しを隠している。
     goals:
       - 所蔵作品を無断で貸したことを隠したい
@@ -222,6 +226,8 @@ characters:
   - id: tada
     name: 多田圭
     publicIntroduction: "画廊の警備担当。"
+    ageGroup: adult
+    gender: male
     personality: 規則を重んじる警備担当だが、自分の休憩延長だけは記録から外している。保存庫の閉鎖時刻は機械記録と照合して話せる。
     goals:
       - 無断で休憩を延ばしたことを隠したい

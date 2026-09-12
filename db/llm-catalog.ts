@@ -1,30 +1,15 @@
 import { z } from 'zod'
 
 /**
- * 選べる LLM の一覧と、役割ごとの既定。
+ * 役割ごとの LLM 設定の語彙。
  *
  * 正典はここ1箇所。サーバ・クライアント・シードのどこからでも同じものを読む
  * （`db/game-mode.ts` や `db/detective.ts` と同じ立ち位置）。
  *
- * ここが「許可リスト」を兼ねる。設定画面は認証を持たないので、モデルIDを自由入力に
- * すると通りすがりの誰でも最上位の推論モデルを指名できてしまう。選択肢をこの表に
- * 閉じ込めておけば、増やすときに必ず人が1行足すことになる。
- *
- * NOTE: モデルIDと料金は各社とも改定が速い。ここは「既定値」であって正典ではないので、
- *       採用前に必ず各社の公式ドキュメントで確認すること。
+ * 選べるモデルの一覧はここには無い。宛先が `OPENAI_URL` の互換サーバ1つになったので、
+ * 実在するモデルはそのサーバに聞く（`src/server/llm/models.ts`）。手で書いた表を持つと、
+ * サーバの構成を変えるたびに実態とずれ、しかもずれたことに気づけない。
  */
-
-export const llmProviderSchema = z.enum(['anthropic', 'openai', 'google'])
-
-export type LlmProvider = z.infer<typeof llmProviderSchema>
-
-export const LLM_PROVIDERS = llmProviderSchema.options
-
-export const LLM_PROVIDER_LABELS: Record<LlmProvider, string> = {
-  anthropic: 'Anthropic',
-  openai: 'OpenAI',
-  google: 'Google',
-}
 
 /**
  * 画面から選ばせる役割。
@@ -55,67 +40,31 @@ export const LLM_ROLE_NOTES: Record<SettableLlmRole, string> = {
 }
 
 /**
- * 役割ごとの既定モデル。
+ * 役割ごとの既定モデル。env にも設定にも何も無いときの最後の拠りどころ。
  *
- * `author` も残してあるのは、CLI がこの表を引くため。画面には出ない。
+ * 互換サーバがこのIDを持っているとは限らないので、構成に合わせて
+ * `LLM_ACTOR_MODEL` などで上書きすること。`author` も残してあるのは CLI が引くため。
  */
 export const LLM_DEFAULT_MODELS = {
-  anthropic: {
-    actor: 'claude-sonnet-5',
-    judge: 'claude-haiku-4-5',
-    author: 'claude-opus-5',
-  },
-  openai: {
-    actor: 'gpt-5.6-terra',
-    judge: 'gpt-5.6-luna',
-    author: 'gpt-5.6-sol',
-  },
-  google: {
-    actor: 'gemini-3.5-flash',
-    judge: 'gemini-3.1-flash-lite',
-    // pro 系は preview 付きのIDでしか公開されていない（`gemini-3.1-pro` は存在しない）。
-    // models API で実在を確認した上でこの値にしてある。
-    author: 'gemini-3.1-pro-preview',
-  },
+  actor: 'gpt-5.6-terra',
+  judge: 'gpt-5.6-luna',
+  author: 'gpt-5.6-sol',
 }
-
-/**
- * 画面に並べる選択肢。
- *
- * 既定表に載っているものを、そのプロバイダで選べるモデルとして開く。
- * 役割の既定でないモデルも選べる（judge に重いモデルを当てる、等を試せるようにする）。
- */
-export const LLM_CATALOG: Record<LlmProvider, { id: string; label: string }[]> = {
-  anthropic: [
-    { id: 'claude-opus-5', label: 'Claude Opus 5' },
-    { id: 'claude-sonnet-5', label: 'Claude Sonnet 5' },
-    { id: 'claude-haiku-4-5', label: 'Claude Haiku 4.5' },
-  ],
-  openai: [
-    { id: 'gpt-5.6-sol', label: 'GPT-5.6 Sol' },
-    { id: 'gpt-5.6-terra', label: 'GPT-5.6 Terra' },
-    { id: 'gpt-5.6-luna', label: 'GPT-5.6 Luna' },
-  ],
-  google: [
-    { id: 'gemini-3.1-pro-preview', label: 'Gemini 3.1 Pro (preview)' },
-    { id: 'gemini-3.5-flash', label: 'Gemini 3.5 Flash' },
-    { id: 'gemini-3.1-flash-lite', label: 'Gemini 3.1 Flash Lite' },
-  ],
-}
-
-export const isKnownModel = (provider: LlmProvider, modelId: string): boolean =>
-  LLM_CATALOG[provider].some((model) => model.id === modelId)
 
 /**
  * クライアントが送ってくる希望。
  *
- * model を素通しの文字列で受けるのは、ここで弾かないため。長さだけ見て通し、
- * 表に無いIDは `chooseLlm` が黙って捨てて既定へ落とす。400 を返すと、
- * localStorage に古いIDが残っているだけのプレイヤーを事件の途中で締め出すことになる。
- * provider だけは enum で厳格に見る（3値で安定していて、増減が設定の意味を変えるため）。
+ * model を素通しの文字列で受ける。以前はここが許可リストを兼ねていたが、選べる一覧が
+ * 互換サーバ由来になったので、突き合わせる表がもう無い。長さだけ見て通す。
+ *
+ * 400 を返さないのは、localStorage に古いIDが残っているだけのプレイヤーを
+ * 事件の途中で締め出すことになるため。互換サーバが知らないIDならそこでエラーになる。
+ *
+ * NOTE: この画面は認証を持たないので、互換サーバに載せたモデルは誰でも指名できる。
+ *       高いモデルを載せるなら、レート制限（RATE_LIMIT_MAX_CALLS）で殴られる量が
+ *       上限になることを踏まえて決めること。
  */
 export const llmOverrideSchema = z.object({
-  provider: llmProviderSchema.optional(),
   model: z.string().nonempty().max(80).optional(),
 })
 
@@ -125,5 +74,3 @@ export const llmOverridesSchema = z.object({
   actor: llmOverrideSchema.optional(),
   judge: llmOverrideSchema.optional(),
 })
-
-export type LlmOverrides = z.infer<typeof llmOverridesSchema>

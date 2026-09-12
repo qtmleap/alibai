@@ -103,6 +103,44 @@ type Story = StoryObj<typeof AccusationScreen>
 export const Default: Story = {
   render: () => <Harness />,
   play: ({ canvasElement }) => {
-    canvasElement.querySelector('input')?.click()
+    pickFirstSuspect(canvasElement)
   },
+}
+
+/**
+ * 書き上げたところ。指名も二つの欄も埋まり、提出だけが残っている。
+ *
+ * 中身は真相そのもの——モックが `#filled=1` で入れているのと同じ文面にしてある。
+ * 当てずっぽうの下書きを入れると、欄の長さも改行位置もモックと違う絵になり、
+ * 突き合わせる意味が薄れる。
+ */
+export const Filled: Story = {
+  render: () => <Harness />,
+  play: ({ canvasElement }) => {
+    pickFirstSuspect(canvasElement)
+
+    const areas = canvasElement.querySelectorAll('textarea')
+
+    write(areas[0], '帳場の奥で、書架の支柱で殴打した')
+    write(areas[1], '初版本のすり替えを水野に気づかれ、問い詰められたため')
+  },
+}
+
+/** 先頭の一人を指す。素のラジオを直に押すので、状態は本物と同じ道を通る。 */
+const pickFirstSuspect = (canvasElement: HTMLElement) => {
+  canvasElement.querySelector('input')?.click()
+}
+
+/**
+ * 欄に文字を入れる。
+ * React は value を自前の記述子で握っているので、`node.value = …` では onChange が起きない。
+ * prototype 側の setter を通してから input を投げると、本物の入力と同じ経路になる。
+ */
+const write = (node: HTMLTextAreaElement | undefined, text: string) => {
+  if (node === undefined) {
+    return
+  }
+
+  Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')?.set?.call(node, text)
+  node.dispatchEvent(new Event('input', { bubbles: true }))
 }

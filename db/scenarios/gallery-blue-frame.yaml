@@ -157,6 +157,8 @@ characters:
   - id: sakaki
     name: 榊玲
     publicIntroduction: "物静かで職人気質の修復士。"
+    ageGroup: adult
+    gender: female
     personality: 物静かで職人気質の修復士。作品の状態については細部まで説明するが、自分の判断を疑われることを極端に嫌う。鳥羽には技術を評価されていた一方、管理の厳しさを窮屈に感じていた。
     goals:
       - 作品のすり替えを隠したい
@@ -192,6 +194,8 @@ characters:
   - id: mido
     name: 御堂和也
     publicIntroduction: "洗練された物腰の画商。"
+    ageGroup: adult
+    gender: male
     personality: 洗練された物腰の画商。作品の価値と人間関係を同じように交渉材料として見る癖がある。鳥羽に不適切な提案を拒絶されたため、その面会自体を消したがっている。
     goals:
       - 鳥羽へ謝礼を持ちかけたことを隠したい
@@ -212,6 +216,8 @@ characters:
   - id: enomoto
     name: 榎本駿
     publicIntroduction: "口数の少ない警備員。"
+    ageGroup: adult
+    gender: male
     personality: 口数の少ない警備員。巡回経路と時刻はよく覚えているが、短時間居眠りしたことを処分の対象にされるのを恐れている。見た人物を必要以上に断定しない慎重さがある。
     goals:
       - 居眠りを隠したい

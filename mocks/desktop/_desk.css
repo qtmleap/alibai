@@ -704,18 +704,78 @@ select {
   grid-template-columns: repeat(2, 1fr);
   gap: 18px;
 }
+
+/* ---- 押せるものが触れられたとき ---- */
+/*
+ * 行と同じことをボタンにも言う。ただし枠を持っているので、左に一本足すと
+ * 枠の内側にもう一本増えて濁る。ボタンでは枠と字のほうを起こす。
+ * 地を上げる幅は行と揃えて --sumi-2 まで。
+ *
+ * 朱の一手だけ色を替えない。取り消せない一手が、触れただけで他の操作と
+ * 同じ顔になると、押す前の身構えがひとつ抜ける。
+ *
+ * 字だけの操作（戻る・やり直す）には起こすものが字しかないので、字だけ上げる。
+ */
+@media (hover: hover) {
+  .go:not(.off):hover {
+    background: var(--sumi-2);
+    border-color: var(--kinari);
+  }
+  .go.final:hover {
+    border-color: var(--shu);
+  }
+  .desk > .top .act:hover,
+  .askbar .btn:hover,
+  .res .foot span:hover {
+    background: var(--sumi-2);
+    border-color: var(--nezumi);
+    color: var(--kinari);
+  }
+  .desk > .top .back:hover,
+  .foot .again:hover,
+  .brief .skip:hover {
+    color: var(--kinari);
+  }
+}
 .foot .pair .go {
   letter-spacing: 0.12em;
   font-size: 14px;
 }
+
+/* ---- 押せる行の左端に立つ一本 ---- */
+/*
+ * 机の上では指が触れないので、押せる行かどうかを静止画から読み取れない。
+ * 触れているあいだだけ左端に一本立てて、そこが押せることを言う。
+ *
+ * 選ばれた行の線と同じ位置・同じ太さで引き、明るさだけを変える——
+ * 迷っているあいだの線と、決めたあとの線が別物に見えると、
+ * 触れて動いた一本が「選べた」のか「選んだ」のか分からなくなる。
+ *
+ * 枠ではなく内側の影で引く。枠だと線が出た瞬間に行の字が右へずれる。
+ * 行の側に左の余白を用意しておくのも同じ理由で、線と字を重ねないため。
+ * 顔料を持つ行（人物・場所）はその人の色で、持たない行は鼠で引く。
+ *
+ * 地も一段だけ起こす。線だけだと行のどこまでが一枚なのかが分からず、
+ * 二列に畳んだ名簿では隣の列の行を触っているように見える。値は聞き込み中の列
+ * （.chart .col.now）と同じ --sumi-2 で、これ以上は上げない——濃くすると
+ * 触れた行が箱になり、罫線で区切ってきた画面のなかで一行だけ札になる。
+ *
+ * 指の台では hover が押したあと張り付くので、ポインタのある台だけに出す。
+ */
 
 /* ---- 名簿（登場人物） ---- */
 .cast .r {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 0;
+  padding: 10px 0 10px 12px;
   border-bottom: 1px solid var(--keisen);
+}
+@media (hover: hover) {
+  .cast .r:not([disabled]):hover {
+    box-shadow: inset 2px 0 0 currentColor;
+    background: var(--sumi-2);
+  }
 }
 .cast .r:first-child {
   border-top: 1px solid var(--keisen);

@@ -141,6 +141,8 @@ characters:
   - id: morishita
     name: 森下莉央
     publicIntroduction: "生き物の状態変化には鋭いが、責任を問われると防御的になる飼育員。"
+    ageGroup: young
+    gender: female
     personality: 生き物の状態変化には鋭いが、責任を問われると防御的になる飼育員。担当展示への愛着が強く、給餌灯を自分のアリバイとして強調する。
     goals:
       - 飼育記録を改ざんしたことを隠したい
@@ -187,6 +189,8 @@ characters:
   - id: sakakibara
     name: 榊原直
     publicIntroduction: "几帳面で理屈っぽい獣医師。"
+    ageGroup: adult
+    gender: unknown
     personality: 几帳面で理屈っぽい獣医師。在庫管理ミスが表に出るのを恐れているが、給餌設備の基本仕様は把握している。
     goals:
       - 在庫記録を後から修正したことを隠したい
@@ -213,6 +217,8 @@ characters:
   - id: mikoshiba
     name: 御子柴徹
     publicIntroduction: "豪放で口数の多い潜水設備担当。"
+    ageGroup: adult
+    gender: male
     personality: 豪放で口数の多い潜水設備担当。無断の私物カメラを隠したいが、給餌装置の整備も担当しており機械の挙動には詳しい。
     goals:
       - 私物カメラの無断設置を隠したい
@@ -239,6 +245,8 @@ characters:
   - id: sagara
     name: 相良芳江
     publicIntroduction: "落ち着いた夜間警備員。"
+    ageGroup: senior
+    gender: female
     personality: 落ち着いた夜間警備員。巡回を一回省略したことだけは隠したいが、零時すぎにバックヤードで森下とすれ違った記憶は鮮明。
     goals:
       - 西展示区画の巡回を省略したことを隠したい

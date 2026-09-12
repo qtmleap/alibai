@@ -1,11 +1,11 @@
+import type { Detective } from '~/db/detective'
 import {
   AGE_GROUP_LABELS,
   AGE_GROUP_NOTES,
   type AgeGroup,
-  type Detective,
   GENDER_LABELS,
   type Gender,
-} from '~/db/detective'
+} from '~/db/person'
 
 /**
  * 探偵の人物像を、NPCが読めるプロンプトの一片に変える。
@@ -14,9 +14,9 @@ import {
  * 「相手の設定を並べる」だけでは足りない。老人が少女に向かって「お嬢さん」と言うところまで
  * 決めてやらないと、モデルはどの相手にも同じ調子で喋る。
  *
- * ただしNPC自身の年齢はキャラクターシート側にしか無い（characters に年齢の列は無く、
- * personality の文章に書かれている）。だからここでは絶対的な呼称を指定せず、
- * 「あなたのほうが年上なら」という相対的な条件で候補を渡す。判断はモデルに任せる。
+ * ただしNPC自身の年ごろはキャラクターシート側にあり、この一片からは見えない。
+ * だからここでは絶対的な呼称を指定せず、「あなたのほうが年上なら」という相対的な
+ * 条件で候補を渡す。突き合わせはシートを持っているモデルに任せる。
  */
 
 /**
@@ -94,7 +94,10 @@ export const buildDetectiveSelfBlock = (detective: Detective): string =>
     `あなたの名前は${detective.name}。`,
     `年ごろは${AGE_GROUP_LABELS[detective.ageGroup]}、性別は${GENDER_LABELS[detective.gender]}。`,
     ...(detective.appearance.length > 0 ? [`外見: ${detective.appearance}`] : []),
-    'この人物像に合った口調で話す。',
+    ...(detective.speech.length > 0 ? [`口調: ${detective.speech}`] : []),
+    // 口調が書かれていれば、それに従わせる。書かれていなければ、残りの人物像から
+    // 探らせる——ここを空にすると、どの探偵も同じ調子で喋る。
+    detective.speech.length > 0 ? 'この口調を保って話す。' : 'この人物像に合った口調で話す。',
   ].join('\n')
 
 export const buildDetectiveBlock = (detective: Detective): string => {
@@ -109,6 +112,9 @@ export const buildDetectiveBlock = (detective: Detective): string => {
     `性別: ${GENDER_LABELS[detective.gender]}`,
     // 空のまま「外見: 」と書くと、モデルが行を埋めようとして勝手に外見を作る。
     ...(detective.appearance.length > 0 ? [`外見: ${detective.appearance}`] : []),
+    // NPC からも聞こえているものなので、こちらにも渡す。相手の砕けた口ぶりに
+    // 気を悪くするか合わせるかは、NPC 自身の人物像が決める。
+    ...(detective.speech.length > 0 ? [`口調: ${detective.speech}`] : []),
     '',
     '呼びかけと態度:',
     `- あなたのほうが年上なら、${hint.fromElder} のように呼びかける。`,

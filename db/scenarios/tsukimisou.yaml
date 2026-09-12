@@ -41,6 +41,8 @@ victim:
       statement: 争った跡が無い。着衣も髪も乱れておらず、文机の上も片付いたままになっている。
     - id: numbness-signs
       statement: 唇のまわりと指先に、しびれが出たときの跡が残っている。
+    - id: postmortem-state
+      statement: 発見時、体にはまだ温かさが残っており、死後硬直も始まりかけた段階にとどまっている。
     - id: single-glass
       statement: 文机に、飲みかけのグラスが一つだけ置かれている。誰かと酌み交わした跡は無い。
     # 後継者指定を知ってから読むと意味が変わる草案。順序を作るために前提を置く。
@@ -420,6 +422,8 @@ characters:
   - id: fukagawa
     name: 深川誠也
     publicIntroduction: "気弱で愛想笑いが多い税理士。"
+    ageGroup: senior
+    gender: male
     personality: 気弱で愛想笑いが多い税理士。人当たりは柔らかいが、追い詰められるとしどろもどろになり目が泳ぐ。涼子には昔から頭が上がらない。
     goals:
       - 横領が誰にもバレないまま今夜をやり過ごしたい
@@ -453,6 +457,8 @@ characters:
   - id: mizuki
     name: 早坂美月
     publicIntroduction: "明るく気配り上手で場の空気をよく読む。"
+    ageGroup: adult
+    gender: female
     personality: 明るく気配り上手で場の空気をよく読む。涼子の親戚の中でも一番可愛がられてきた自覚がある。内心は打算的で、追い詰められると笑顔の下で早口になる。
     goals:
       - 月見荘と遺産を確実に手に入れたい
@@ -486,6 +492,8 @@ characters:
   - id: kiryu
     name: 桐生涼
     publicIntroduction: "落ち着いた物腰で観察力が鋭い医師。"
+    ageGroup: senior
+    gender: male
     personality: 落ち着いた物腰で観察力が鋭い医師。淡々と話すが、涼子への想いだけは昔から変わらず深い。
     goals:
       - 涼子への想いを誰にも知られたくない
@@ -635,9 +643,9 @@ evidences:
   # 探偵自身の検死。遺体を調べる一手を使った人だけが、刻限を自分の目で確かめられる。
   - id: postmortem-signs
     label: 遺体に残る中毒の徴候と、その進み具合
-    description: 唇のまわりと指先のしびれの跡、体の冷え方と硬直の出方。口にしてから絶命までの時間と合わせると、事切れたのは20時15分ごろになる。
+    description: 唇のまわりと指先のしびれの跡に加え、発見時には体にまだ温かさが残り、死後硬直も始まりかけた段階にとどまっている。発見時刻と合わせると、事切れたのは20時15分ごろと推定できる。
     reveal:
-      condition: プレイヤーが遺体を調べ、探偵が唇や指先の跡、体の冷え方や硬直といった死後の変化に触れたら開示する。
+      condition: プレイヤーが遺体を調べ、検分の返答で「体にまだ温かさが残り、死後硬直も始まりかけている」という所見を実際に確認し、その所見を根拠に死亡時刻を検討したら開示する。
     sources:
       - type: victim
         id: victim

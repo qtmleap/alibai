@@ -7,9 +7,16 @@ import { z } from 'zod'
 import {
   loadCharacterSheet,
   loadEligibleRevelationCandidates,
+  loadEvidenceIds,
   loadHintSubjects,
   loadJudgeRubric,
 } from '@/server/cache/scenario'
+import {
+  recordSessionOutcome,
+  recordSessionStart,
+  recordTurn,
+  type TurnJudgementRecord,
+} from '@/server/db/analytics'
 import type { Db } from '@/server/db/client'
 import { createDb } from '@/server/db/client'
 import type { Bindings, Env } from '@/server/env'
@@ -20,6 +27,7 @@ import {
   clashOf,
   deathEstimateOf,
 } from '@/server/game/alibi'
+import { acceptRevealedEvidenceIds } from '@/server/game/discovery-state'
 import { buildPlaceSheet, buildVictimSheet, type DiscoveredIds } from '@/server/game/examination'
 import { remainingHints } from '@/server/game/hints'
 import { acceptRevealedRevelationIds, type RevelationSourceType } from '@/server/game/revelations'
@@ -37,7 +45,7 @@ import { composeExaminationFocus, streamExamination } from '@/server/llm/examine
 import { createFilterState, FALLBACK_REPLY, feedChunk, finalizeFilter } from '@/server/llm/filter'
 import { streamQuestion, type TopicExchange } from '@/server/llm/interviewer'
 import { judgeTurn } from '@/server/llm/judge'
-import { chooseLlm, type LlmChoice } from '@/server/llm/provider'
+import { chooseLlms } from '@/server/llm/provider'
 import { toUsageRow } from '@/server/llm/usage'
 import { withEnv } from '@/server/middleware/env'
 import {
@@ -53,6 +61,7 @@ import {
 // クライアントの選択肢とAPIが受ける値が静かにずれる。
 import { type Detective, detectiveSchema } from '~/db/detective'
 import { type GameMode, gameModeOf, gameModeSchema } from '~/db/game-mode'
+import { DEFAULT_JUDGE_TUNING, judgeTuningSchema } from '~/db/judge-tuning'
 import { llmOverridesSchema } from '~/db/llm-catalog'
 import { findingsOfPlace, parseInvestigablePlaces } from '~/db/place'
 import { placeIdSchema, VICTIM_ID } from '~/db/scenario-definition'
@@ -176,6 +185,23 @@ type Subject = { kind: 'character' | 'victim' | 'place'; name: string; sheet: st
 /** Judge が読む出どころの型。場所は見取り図の部屋と同じ `location` に乗る。 */
 const sourceTypeOf = (kind: Subject['kind']): RevelationSourceType =>
   kind === 'place' ? 'location' : kind
+
+/**
+ * Actor 用の履歴を、判定役に読ませる会話へ書き出す。
+ *
+ * user が探偵、assistant がNPC。文字列で持っていない要素は落とす——この履歴は
+ * こちらが文字列だけを積んで作っているので、当てはまるのは将来ここに別の形を
+ * 混ぜたときだけで、そのときは読めるところまでを渡すのが安全側になる。
+ */
+const transcriptOf = (history: ModelMessage[]): string =>
+  history
+    .map((message) =>
+      typeof message.content === 'string'
+        ? `${message.role === 'user' ? '探偵' : 'NPC'}: ${message.content}`
+        : '',
+    )
+    .filter((line) => line !== '')
+    .join('\n')
 
 const loadCharacterSubject = async (
   kv: KVNamespace,
@@ -531,9 +557,26 @@ sessionRoutes.post('/api/sessions', validateCreateSession, withEnv, async (c) =>
 
   // 上限もここで固定する。送られてこなければ env の値がそのまま入るので、
   // 設定画面を知らないクライアントでも今までと同じ進行になる。
-  await session.setLimits(
-    clampLimits(createInput.limits === undefined ? {} : createInput.limits, envLimits(env)),
+  const limits = clampLimits(
+    createInput.limits === undefined ? {} : createInput.limits,
+    envLimits(env),
   )
+
+  await session.setLimits(limits)
+
+  // 分析用の控えを立てる。ここで入れておくと、告発まで至らなかったセッションが
+  // 結果列の空いた行として残り、どこで諦めたかが読める。
+  try {
+    await recordSessionStart(db, {
+      sessionId: row.id,
+      scenarioId: createInput.scenarioId,
+      mode: createInput.mode,
+      detective,
+      limits,
+    })
+  } catch (error) {
+    console.error('[sessions] failed to persist analytics session', error)
+  }
 
   // 探偵の有無に関わらず必ず呼ぶ。ここで meta() が初期化されて計時が始まるので、
   // 省くと「最初の質問を投げた瞬間」が開始時刻になり、考えていた時間がタイムから消える。
@@ -704,6 +747,13 @@ const askSchema = z.object({
    * 残っているだけのプレイヤーを、事件の途中で締め出すことになるため。
    */
   llm: llmOverridesSchema.optional(),
+  /**
+   * その回に入れてある判定の直し（`db/judge-tuning.ts`）。
+   *
+   * 送られてこなければ全部オフ、つまり今までの挙動。llm と同じで、知らない形でも
+   * 400 にはせず既定へ落とす。
+   */
+  judge: judgeTuningSchema.optional(),
 })
 
 /**
@@ -857,14 +907,20 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
 
   /*
     使うモデルはここで一度だけ決めて、以降は同じ値を配り回す。
-    役割から都度引き直すと、モデルとキャッシュ指定が別々に解決されて食い違う。
+    役割から都度引き直すと、同じ往復の中で質問と返答が違うモデルで走りうる。
     env そのものには決して混ぜない——withEnv が isolate 全体で使い回している
     オブジェクトなので、一人の選択が他のプレイヤーのリクエストへ漏れる。
   */
-  const choices: Record<'actor' | 'judge', LlmChoice> = {
-    actor: chooseLlm(env, 'actor', askInput.llm?.actor),
-    judge: chooseLlm(env, 'judge', askInput.llm?.judge),
-  }
+  const choices = await chooseLlms(env, {
+    actor: askInput.llm?.actor,
+    judge: askInput.llm?.judge,
+  })
+
+  /*
+    判定の直しも同じで、この回のぶんをここで一度決める。送られてこなければ全部オフ
+    ——この機能より前のクライアントや、設定を触っていない端末がそこへ落ちる。
+  */
+  const tuning = askInput.judge === undefined ? DEFAULT_JUDGE_TUNING : askInput.judge
 
   /*
     レート制限は「このリクエストが実際に走らせるモデル呼び出しの数」で消費する。
@@ -932,6 +988,51 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
     } = { exchanges: [], usages: [], blocked: false }
 
     /*
+      発言を書き終えた時点で messages へ入れて、その行のIDを配る。
+
+      読み上げは「この発言の N 行目を読んで」と頼む形なので、画面が行を出す前に
+      IDが要る。話題が終わってからまとめて書いていた頃は、配れるIDが無かった。
+
+      話題の行は最初の1回だけ、質問と一緒に入れる。往復が一つも成立しなかった話題は
+      何も残さない、という性質をそこで保つ。
+
+      書けなくてもIDを配らないだけで、配信は止めない。IDの無い行は声が付かず、
+      画面はこれまで通りの時間送りで出す——記録の取りこぼしでプレイを止めない。
+    */
+    const recorded = { topic: false }
+
+    const record = async (
+      role: 'user' | 'assistant',
+      content: string,
+      event: 'question-id' | 'answer-id',
+    ) => {
+      const id = crypto.randomUUID()
+
+      try {
+        await db.insert(messages).values([
+          ...(recorded.topic
+            ? []
+            : [
+                {
+                  sessionId,
+                  characterId: askInput.characterId,
+                  role: 'topic',
+                  content: askInput.topic,
+                },
+              ]),
+          { id, sessionId, characterId: askInput.characterId, role, content },
+        ])
+        recorded.topic = true
+      } catch (error) {
+        console.error('[ask] failed to record message', error)
+
+        return
+      }
+
+      await stream.writeSSE({ event, data: id })
+    }
+
+    /*
       往復の上限はセッションに固定された値。ここが1つの話題のコストを決める。
       検分だけは1回きり——相手が喋らないので、答えを受けて掘り下げる相手が居ない。
     */
@@ -954,7 +1055,7 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
       if (examining) {
         const focus = await composeExaminationFocus({
           env,
-          choice: choices.actor,
+          modelId: choices.actor,
           intentRules,
           detective,
           topic: askInput.topic,
@@ -971,7 +1072,7 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
 
       const asking = streamQuestion({
         env,
-        choice: choices.actor,
+        modelId: choices.actor,
         detective,
         characterName: subject.name,
         topic: askInput.topic,
@@ -1003,7 +1104,6 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
 
       collected.usages.push(
         toUsageRow({
-          choice: choices.actor,
           role: 'actor',
           model: interviewer.model,
           usage: interviewer.usage,
@@ -1019,10 +1119,12 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
         break
       }
 
+      await record('user', interviewer.question, 'question-id')
+
       const result = examining
         ? streamExamination({
             env,
-            choice: choices.actor,
+            modelId: choices.actor,
             examinationRules,
             sheet: subject.sheet,
             detective,
@@ -1031,7 +1133,7 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
           })
         : streamNpcReply({
             env,
-            choice: choices.actor,
+            modelId: choices.actor,
             gameRules: GAME_RULES,
             characterSheet: subject.sheet,
             detective,
@@ -1058,7 +1160,6 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
 
         collected.usages.push(
           toUsageRow({
-            choice: choices.actor,
             role: 'actor',
             model: response.modelId,
             usage,
@@ -1076,13 +1177,18 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
         break
       }
 
+      await record('assistant', streamed.text, 'answer-id')
+
       collected.exchanges.push({ question: interviewer.question, answer: streamed.text })
     }
 
     if (collected.blocked) {
-      // 秘匿キーワードの漏洩を検知。この往復はDBにもDOにも記録せず、
+      // 秘匿キーワードの漏洩を検知。漏れた返答はDBにもDOにも記録せず、
       // プレイヤーには当たり障りのない代替応答を返す。すでに安全な断片は流れているので、
       // 「話の途中で言葉を止めた」ように読める文で締める。
+      //
+      // 探偵の質問のほうは、この時点で既に messages に入っている（record）。
+      // 漏れているのは相手の返答で、こちらは探偵が自分で言ったことなので残してよい。
       //
       // 同じ話題の中で先に成立した往復は捨てない。プレイヤーはもう読んでいるし、
       // それ自体は漏洩していない。捨てると画面の会話と記録が食い違う。
@@ -1107,6 +1213,13 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
       round: undefined,
     }
 
+    /*
+      判定を try の外へ持ち出すための入れ物。分析用の控えは Judge が落ちた回も
+      書きたい（プレイヤーが何を打ったかは残す）ので、判定の成否と行の有無を
+      切り離しておく必要がある。すぐ上の persisted と同じ手。
+    */
+    const judgementRecord: { value: TurnJudgementRecord | undefined } = { value: undefined }
+
     try {
       const appended = await session.appendTopic(
         askInput.characterId,
@@ -1117,45 +1230,8 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
       persisted.questionCount = appended.questionCount
       persisted.round = appended.round
 
-      /*
-        会話ログとコストは別のテーブルへ、同時に書く。ここは Judge の手前なので、
-        直列にすると往復ぶんだけ判定の開始が遅れる。
-
-        話題そのものも1行として残す。探偵の質問だけを並べると、プレイヤーが
-        何を指示したのかが後から辿れない。
-
-        検分だけは messages に残さない。あの列は characters への外部キーを持っていて、
-        被害者も場所も characters に居ないため入らない。読み返しに使うのは DO の側なので
-        （履歴の復元も判定もそちらを見る）、プレイには影響しない。
-        あの表は後から分析するための控えなので、そこだけ欠けることになる。
-      */
-      await Promise.all([
-        examining
-          ? Promise.resolve()
-          : db.insert(messages).values([
-              {
-                sessionId,
-                characterId: askInput.characterId,
-                role: 'topic',
-                content: askInput.topic,
-              },
-              ...collected.exchanges.flatMap((exchange) => [
-                {
-                  sessionId,
-                  characterId: askInput.characterId,
-                  role: 'user',
-                  content: exchange.question,
-                },
-                {
-                  sessionId,
-                  characterId: askInput.characterId,
-                  role: 'assistant',
-                  content: exchange.answer,
-                },
-              ]),
-            ]),
-        db.insert(llmUsages).values(collected.usages),
-      ])
+      // 会話ログは往復ごとに書き終えている（record）。ここに残るのはコストだけ。
+      await db.insert(llmUsages).values(collected.usages)
     } catch (error) {
       console.error('[ask] failed to persist turn', error)
     }
@@ -1164,7 +1240,7 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
     // judgementイベントを送らずにdoneへ進むだけにする(500にしない)。
     try {
       const current = await session.snapshot()
-      const [rubric, revelationCandidates] = await Promise.all([
+      const [rubric, revelationCandidates, scenarioEvidenceIds] = await Promise.all([
         loadJudgeRubric(c.env.SCENARIO_CACHE, db, scenarioId),
         loadEligibleRevelationCandidates(c.env.SCENARIO_CACHE, db, scenarioId, {
           // 場所は `location`。作者が `type: location` で書いた出どころと同じ道に乗る。
@@ -1172,6 +1248,10 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
           discoveredEvidenceIds: current.discoveredEvidenceIds,
           discoveredRevelationIds: current.discoveredRevelationIds,
         }),
+        // 突き合わせを入れていない回は引かない。KVへの読みが1回増えるだけの回になる。
+        tuning.checkEvidenceIds
+          ? loadEvidenceIds(c.env.SCENARIO_CACHE, db, scenarioId)
+          : Promise.resolve([]),
       ])
       const candidateBlock =
         revelationCandidates.length === 0
@@ -1185,38 +1265,65 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
       const transcript = collected.exchanges
         .map((entry) => `探偵: ${entry.question}\nNPC: ${entry.answer}`)
         .join('\n\n')
-      const exchange = `プレイヤーが指定した話題: ${askInput.topic}\n\n${transcript}\n\n今回判定可能なRevelation:\n${candidateBlock}`
-      const judged = await judgeTurn({ env, choice: choices.judge, rubric, exchange })
+      /*
+        矛盾の判定には、この相手とのそれまでのやり取りが要る。「過去の発言との矛盾を
+        指摘できたか」を訊いておきながら、渡しているのが今回のぶんだけでは、
+        突き合わせる相手がない。
+
+        渡すのはこの相手との分だけ（`history` が既にそう絞られている）。他の人物との
+        会話まで混ぜると、別人が別のことを言っただけの食い違いを矛盾と読みはじめる。
+
+        中身を見ずに `transcriptOf` へ通してから空かどうかを見るのは、DO 越しの
+        戻り値の型が never に潰れていて、配列として触れないため（1131 行の渡し方と同じ）。
+      */
+      const priorTranscript = tuning.contradictionNeedsHistory ? transcriptOf(history) : ''
+      const priorBlock =
+        priorTranscript === '' ? '' : `\n\nこの相手とのこれまでのやり取り:\n${priorTranscript}`
+      const exchange = `プレイヤーが指定した話題: ${askInput.topic}${priorBlock}\n\n今回のやり取り:\n${transcript}\n\n今回判定可能なRevelation:\n${candidateBlock}`
+      const judged = await judgeTurn({ env, modelId: choices.judge, rubric, exchange, tuning })
       const judgement = judged.judgement
       const revealedRevelationIds = acceptRevealedRevelationIds(
         revelationCandidates,
         judgement.revealedRevelationIds,
       )
+      const revealedEvidenceIds = tuning.checkEvidenceIds
+        ? acceptRevealedEvidenceIds(
+            scenarioEvidenceIds,
+            current.discoveredEvidenceIds,
+            judgement.revealedEvidenceIds,
+          )
+        : judgement.revealedEvidenceIds
 
       const snapshot = await session.recordJudgement({
-        revealedEvidenceIds: judgement.revealedEvidenceIds,
+        revealedEvidenceIds,
         revealedRevelationIds,
         contradictionPointedOut: judgement.contradictionPointedOut,
         npcLied: judgement.npcLied,
       })
 
+      judgementRecord.value = {
+        revealedEvidenceIds,
+        revealedRevelationIds,
+        contradictionPointedOut: judgement.contradictionPointedOut,
+        npcLied: judgement.npcLied,
+        tuning,
+      }
+
       // 実りのあった話題に印を付ける。会話ログを遡ったときに、どこが効いたのかが
       // 分かるようにするためのもの。往復番号が要るので、記録そのものが落ちていた
       // 回は印も付けない。
-      const yielded = judgement.revealedEvidenceIds.length > 0 || revealedRevelationIds.length > 0
+      const yielded = revealedEvidenceIds.length > 0 || revealedRevelationIds.length > 0
 
       if (yielded && persisted.round !== undefined) {
         await session.markTopicYield(askInput.characterId, persisted.round)
       }
 
       await Promise.all([
-        judgement.revealedEvidenceIds.length === 0
+        revealedEvidenceIds.length === 0
           ? Promise.resolve()
           : db
               .insert(discoveries)
-              .values(
-                judgement.revealedEvidenceIds.map((evidenceId) => ({ sessionId, evidenceId })),
-              )
+              .values(revealedEvidenceIds.map((evidenceId) => ({ sessionId, evidenceId })))
               .onConflictDoNothing(),
         revealedRevelationIds.length === 0
           ? Promise.resolve()
@@ -1227,7 +1334,7 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
       ])
 
       const [revealedRows, revealedRevelationRows] = await Promise.all([
-        judgement.revealedEvidenceIds.length === 0
+        revealedEvidenceIds.length === 0
           ? Promise.resolve([])
           : db
               .select({
@@ -1236,7 +1343,7 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
                 description: evidences.description,
               })
               .from(evidences)
-              .where(inArray(evidences.id, judgement.revealedEvidenceIds)),
+              .where(inArray(evidences.id, revealedEvidenceIds)),
         revealedRevelationIds.length === 0
           ? Promise.resolve([])
           : db
@@ -1300,7 +1407,6 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
       try {
         await db.insert(llmUsages).values(
           toUsageRow({
-            choice: choices.judge,
             role: 'judge',
             model: judged.model,
             usage: judged.usage,
@@ -1314,6 +1420,32 @@ sessionRoutes.post('/api/sessions/:id/ask', validateAsk, withEnv, async (c) => {
       }
     } catch (error) {
       console.error('[ask] judge failed', error)
+    }
+
+    /*
+      分析用の控え。judge の try/catch を抜けた後に書くのは、判定が落ちた回でも
+      プレイヤーが打った文と NPC の返答を残すため。messages と違って外部キーを
+      持たないので、検分（場所・遺体）もここには普通に入る——保持期間を越えて
+      残る入力の記録は、今のところこの表だけ。
+    */
+    try {
+      await recordTurn(db, {
+        sessionId,
+        scenarioId,
+        mode: meta.mode,
+        subjectKind: subject.kind,
+        subjectId: askInput.characterId,
+        turnIndex: persisted.round,
+        questionCount: persisted.questionCount,
+        topic: askInput.topic,
+        exchanges: collected.exchanges.map((exchange) => ({
+          question: exchange.question,
+          answer: exchange.answer,
+        })),
+        judgement: judgementRecord.value,
+      })
+    } catch (error) {
+      console.error('[ask] failed to persist analytics turn', error)
     }
 
     await stream.writeSSE({ event: 'done', data: '' })
@@ -1373,7 +1505,7 @@ sessionRoutes.post('/api/sessions/:id/accuse', validateAccuse, withEnv, async (c
   const accuseInput = c.get('accuseInput')
   const sessionId = accuseInput.sessionId
   const env = c.get('env')
-  const judgeChoice = chooseLlm(env, 'judge', accuseInput.llm?.judge)
+  const judgeChoice = (await chooseLlms(env, { judge: accuseInput.llm?.judge })).judge
 
   // LLMを呼ぶ口になったので ask と同じ上限を通す。認証がまだ無いのでキーはIP。
   const clientIp = c.req.header('cf-connecting-ip')
@@ -1420,7 +1552,7 @@ sessionRoutes.post('/api/sessions/:id/accuse', validateAccuse, withEnv, async (c
 
   const graded = await gradeDeduction({
     env,
-    choice: judgeChoice,
+    modelId: judgeChoice,
     // method / motive が空のシナリオでは summary を的に使う。採点の精度は落ちるが、
     // 古いシナリオで推理パートごと成立しなくなるよりはいい。
     truth: {
@@ -1490,11 +1622,33 @@ sessionRoutes.post('/api/sessions/:id/accuse', validateAccuse, withEnv, async (c
     console.error('[accuse] failed to persist result', error)
   }
 
+  // 分析用の控えにも結果を書く。results と同じ値だが、あちらは保持期間で消える。
+  // 開始時の行が落ちていても拾えるよう、update ではなく upsert にしてある。
+  try {
+    await recordSessionOutcome(db, {
+      sessionId,
+      scenarioId,
+      mode: meta.mode,
+      detective: meta.detective === null ? undefined : meta.detective,
+      limits: limitsOf(finalSnapshot.limits, env),
+      culpritCharacterId: accuseInput.culpritCharacterId,
+      culpritCorrect: correct,
+      reasoning: accuseInput.reasoning,
+      method: accuseInput.method,
+      motive: accuseInput.motive,
+      methodComment: graded.grade.methodComment,
+      motiveComment: graded.grade.motiveComment,
+      evidenceTotal: evidenceCountRows.length,
+      score,
+    })
+  } catch (error) {
+    console.error('[accuse] failed to persist analytics outcome', error)
+  }
+
   // 採点は既に届いているので、集計の失敗を採点の失敗として扱わない。
   try {
     await db.insert(llmUsages).values(
       toUsageRow({
-        choice: judgeChoice,
         role: 'judge',
         model: graded.model,
         usage: graded.usage,

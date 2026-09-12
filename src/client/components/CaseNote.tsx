@@ -6,7 +6,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/client/components/ui/dialog'
-import { splitParagraphs } from '@/client/lib/paragraphs'
+import { splitParagraphs } from '@/shared/paragraphs'
 
 type Props = {
   briefing: string

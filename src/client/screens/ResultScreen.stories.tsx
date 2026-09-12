@@ -50,7 +50,7 @@ const board = {
   people,
   segments,
   span: { from: '18:20', to: '19:20' },
-  deadline: { at: '18:50', label: '死亡' },
+  deadline: { at: '18:50', label: '死亡', foundAt: '19:15' },
   /** 刻限そのものを指した回。端末の目盛りでは真相と重なる。 */
   accusedAt: '18:50',
   truth: [

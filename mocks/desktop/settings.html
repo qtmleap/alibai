@@ -16,6 +16,9 @@
       /* 数は打ち替えられる。枠と高さは _desk.css の .num のまま借りる。 */
       .set .num { background: none; width: 100%; }
       .set .back { text-decoration: none; }
+      @media (hover: hover) {
+        .set .back:hover { color: var(--kinari); }
+      }
     </style>
   </head>
   <body>
@@ -31,7 +34,7 @@
         <div class="grp" data-mock-id="ALI_SET_04">
           <span class="label">使うモデル</span>
           <div id="roles"></div>
-          <p class="fine" data-mock-id="ALI_SET_08">Google は APIキーが未設定のため選べません。</p>
+          <p class="fine" id="nomodels" data-mock-id="ALI_SET_08"></p>
         </div>
 
         <div class="grp" data-mock-id="ALI_SET_09">
@@ -49,6 +52,17 @@
             </div>
           </div>
           <p class="sum" id="sum" data-mock-id="ALI_SET_11"></p>
+        </div>
+
+        <!--
+          判定役の振る舞いを一つずつ試すための区画。
+          どれが効くかは遊んでみないと分からないので、入れた回と切った回を混ぜて
+          遊べるようにここへ置く。決着がついたら、勝った側を既定に畳んでこの区画ごと消える。
+        -->
+        <div class="grp" data-mock-id="ALI_SET_17">
+          <span class="label">判定の調整</span>
+          <p class="fine">判定役の振る舞いを一つずつ試せます。既定はすべてオフで、入れたものだけ判定の出方が変わります。</p>
+          <div id="judge"></div>
         </div>
 
         <!--
@@ -74,6 +88,23 @@
           </div>
           <p class="fine" id="brieffine"></p>
         </div>
+
+        <!--
+          聞き込みの声。記録の見せ方と同じで、会話の最中に切り替えを置くと毎回そこで手が止まる。
+          読み上げているあいだ、次の行は出てこない——速さを決める値でもあるので、
+          始める前にここで決めてもらう。
+        -->
+        <div class="grp" data-mock-id="ALI_SET_15">
+          <span class="label">聞き込み</span>
+          <div class="role">
+            <div>
+              <div class="nm">読み上げ</div>
+              <div class="ps">読み終わるまで次の行を待ちます</div>
+            </div>
+            <div class="modes" id="voice" data-mock-id="ALI_SET_16"></div>
+          </div>
+          <p class="fine">読み上げないときは、これまで通り一定の間で流れます。</p>
+        </div>
       </div>
     </div>
 
@@ -83,15 +114,26 @@
       ;(function () {
         // 設定は物語の外の値なので、事件データではなくここに素で置く。
         var unset = Mock.str('unset', '0') === '1'
+        /*
+          互換サーバが返すモデルIDは「提供元,モデル」のカンマ区切り。
+          欄を二つに割るのは、一覧が全提供元ぶん一列に並ぶと二十行を超えるため。
+          並べる値はここで割ったもので、保存されるのは連結し直した一つの文字列。
+        */
+        var nomodels = Mock.str('nomodels', '0') === '1'
+        var chosen = unset || nomodels ? null : 'claude-code,claude-opus-5'
         var roles = [
           {
             name: '会話',
             note: 'NPCの受け答えと、探偵が組み立てる質問',
-            provider: unset ? null : 'Anthropic',
-            model: unset ? null : 'Claude Sonnet 5',
+            provider: chosen && chosen.split(',')[0],
+            model: chosen && chosen.split(',')[1],
           },
           { name: '判定', note: '証拠の開示と、推理の採点', provider: null, model: null },
         ]
+
+        document.getElementById('nomodels').textContent = nomodels
+          ? 'モデルの一覧が空です。APIキーが未設定か、モデルサーバに繋がっていません。'
+          : ''
 
         // 提供元が決まるまでモデルは触れない。枠を地に沈めて、押せないことを枠で言う。
         var cell = function (value, locked, id) {
@@ -183,16 +225,70 @@
         }
         choices('brief', [{ key: 'typewriter', name: '一段落ずつ' }, { key: 'crawl', name: 'せり上がる' }], brief, true)
         choices('sound', [{ key: 'on', name: '鳴らす' }, { key: 'off', name: '鳴らさない' }], sound, pickable)
+        choices(
+          'voice',
+          [{ key: 'on', name: '読み上げる' }, { key: 'off', name: '読み上げない' }],
+          Mock.str('voice', 'on'),
+          true,
+        )
 
         document.getElementById('brieffine').textContent = pickable
           ? '一段落ずつは、読む速さをあなたが握ります。'
           : 'せり上がるは速さが決まっているぶん、音は鳴りません。'
 
+        /*
+          判定の直しは四つとも入切だけ。名前と説明の出どころは db/judge-tuning.ts で、
+          ここはその写し——増減したときは向こうを直してからここへ写す。
+        */
+        var JUDGE = [
+          { key: 'checkEvidenceIds', name: '証拠のIDを確かめる', note: '実在しない証拠や、すでに見つけた証拠を弾く' },
+          {
+            key: 'contradictionNeedsHistory',
+            name: '矛盾の判定に前のやり取りを渡す',
+            note: '前の発言と食い違っているかを、実際に読み比べて決める',
+          },
+          { key: 'fixedTemperature', name: '判定の揺れを抑える', note: '同じやり取りなら毎回同じ判定になるようにする' },
+          { key: 'retryOnce', name: '判定が落ちたらやり直す', note: '一度だけやり直す。落ちた回は発見が丸ごと消えるため' },
+        ]
+
+        document.getElementById('judge').innerHTML = JUDGE.map(function (t) {
+          return (
+            '<div class="role" data-mock-id="ALI_SET_18">' +
+            '<div><div class="nm">' +
+            Mock.esc(t.name) +
+            '</div><div class="ps">' +
+            Mock.esc(t.note) +
+            '</div></div>' +
+            '<div class="modes" id="judge-' +
+            t.key +
+            '" data-mock-id="ALI_SET_19"></div></div>'
+          )
+        }).join('')
+
+        JUDGE.forEach(function (t) {
+          choices(
+            'judge-' + t.key,
+            [{ key: 'on', name: '入れる' }, { key: 'off', name: '入れない' }],
+            Mock.str(t.key, 'off'),
+            true,
+          )
+        })
+
         Array.prototype.forEach.call(document.querySelectorAll('[data-set]'), function (el) {
           el.addEventListener('click', function () {
             var kv = el.dataset.set.split('=')
-            location.hash =
-              'brief=' + (kv[0] === 'brief' ? kv[1] : brief) + '&sound=' + (kv[0] === 'sound' ? kv[1] : sound)
+            // 判定の欄は id が judge- 付き。ハッシュへ書くときは接頭辞を外す。
+            var name = kv[0].indexOf('judge-') === 0 ? kv[0].slice(6) : kv[0]
+            var state = { brief: brief, sound: sound }
+            JUDGE.forEach(function (t) {
+              state[t.key] = Mock.str(t.key, 'off')
+            })
+            state[name] = kv[1]
+            location.hash = Object.keys(state)
+              .map(function (k) {
+                return k + '=' + state[k]
+              })
+              .join('&')
             location.reload()
           })
         })

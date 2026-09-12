@@ -1,0 +1,1 @@
+ALTER TABLE `analytics_turns` ADD `judge_tuning` text;

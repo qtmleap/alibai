@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import type { Env } from '@/server/env'
-import { cacheHint, chooseLlm, hasApiKey } from '@/server/llm/provider'
+import { chooseLlm, chooseLlms } from '@/server/llm/provider'
 import { toUsageRow } from '@/server/llm/usage'
 import { LLM_DEFAULT_MODELS } from '~/db/llm-catalog'
 
@@ -9,18 +9,11 @@ import { LLM_DEFAULT_MODELS } from '~/db/llm-catalog'
  * 残りは型を満たすだけの値で埋める。
  */
 const makeEnv = (overrides: Partial<Env>): Env => ({
-  LLM_ACTOR_PROVIDER: 'anthropic',
-  LLM_JUDGE_PROVIDER: 'anthropic',
-  LLM_AUTHOR_PROVIDER: 'anthropic',
   LLM_ACTOR_MODEL: undefined,
   LLM_JUDGE_MODEL: undefined,
   LLM_AUTHOR_MODEL: undefined,
-  ANTHROPIC_API_KEY: 'key-anthropic',
   OPENAI_API_KEY: 'key-openai',
-  GOOGLE_GENERATIVE_AI_API_KEY: undefined,
-  ANTHROPIC_BASE_URL: undefined,
-  OPENAI_BASE_URL: undefined,
-  GOOGLE_GENERATIVE_AI_BASE_URL: undefined,
+  OPENAI_URL: undefined,
   MAX_TURNS: 5,
   QUESTIONS_PER_TURN: 1,
   RATE_LIMIT_MAX_CALLS: 420,
@@ -29,109 +22,127 @@ const makeEnv = (overrides: Partial<Env>): Env => ({
   ...overrides,
 })
 
+/** 一覧を返す互換サーバの代わり。テストからネットワークを切る。 */
+const lists =
+  (...ids: string[]) =>
+  async () =>
+    ids
+
+const configured = makeEnv({ OPENAI_URL: 'https://gateway.example.internal/v1' })
+
 describe('chooseLlm: 優先順位', () => {
-  test('指定が無ければ env のプロバイダと既定表のモデル', () => {
-    expect(chooseLlm(makeEnv({}), 'actor')).toEqual({
-      provider: 'anthropic',
-      modelId: LLM_DEFAULT_MODELS.anthropic.actor,
-    })
+  test('env のモデル指定があればそれを使う', async () => {
+    const env = makeEnv({ LLM_ACTOR_MODEL: 'my-local-model' })
+
+    expect(await chooseLlm(env, 'actor', undefined, lists('other'))).toBe('my-local-model')
   })
 
-  test('env のモデル指定があればそれを使う', () => {
-    const env = makeEnv({ LLM_ACTOR_MODEL: 'claude-opus-5' })
+  test('プレイヤーの指定は env より優先される', async () => {
+    const env = makeEnv({ LLM_ACTOR_MODEL: 'my-local-model' })
 
-    expect(chooseLlm(env, 'actor').modelId).toBe('claude-opus-5')
-  })
-
-  test('プレイヤーの指定は env より優先される', () => {
-    const choice = chooseLlm(makeEnv({}), 'actor', {
-      provider: 'openai',
-      model: 'gpt-5.6-luna',
-    })
-
-    expect(choice).toEqual({ provider: 'openai', modelId: 'gpt-5.6-luna' })
+    expect(await chooseLlm(env, 'actor', { model: 'another-model' }, lists())).toBe('another-model')
   })
 
   /*
-    ここが一番静かに壊れるところ。env の LLM_ACTOR_MODEL は anthropic 向けの値なので、
-    プロバイダだけ openai に変えて引き継ぐと openai に claude のIDを投げることになる。
+    突き合わせる許可リストはもう無い。互換サーバに何が生えているかはここからは
+    分からないので、見慣れないIDでも既定へ落とさずそのまま通す。
+    通らないIDなら互換サーバがエラーを返す。
   */
-  test('プロバイダを変えたら env のモデルIDは引き継がず、既定表から引き直す', () => {
-    const env = makeEnv({ LLM_ACTOR_MODEL: 'claude-opus-5' })
-    const choice = chooseLlm(env, 'actor', { provider: 'openai' })
-
-    expect(choice).toEqual({ provider: 'openai', modelId: LLM_DEFAULT_MODELS.openai.actor })
-  })
-
-  test('役割ごとに既定のモデルが違う', () => {
-    const env = makeEnv({})
-
-    expect(chooseLlm(env, 'actor').modelId).not.toBe(chooseLlm(env, 'judge').modelId)
+  test('見慣れないモデルIDでも捨てずに通す', async () => {
+    expect(await chooseLlm(makeEnv({}), 'actor', { model: 'who-knows-9' }, lists())).toBe(
+      'who-knows-9',
+    )
   })
 })
 
-describe('chooseLlm: 信用しない入力', () => {
-  test('カタログに無いモデルIDは黙って捨て、既定へ落とす', () => {
-    const choice = chooseLlm(makeEnv({}), 'actor', {
-      provider: 'anthropic',
-      model: 'claude-imaginary-9',
-    })
+describe('chooseLlm: 一覧から既定を選ぶ', () => {
+  test('既定表と同じ名前が一覧にあればそれを採る', async () => {
+    const chosen = await chooseLlm(
+      configured,
+      'actor',
+      undefined,
+      lists('something-else', LLM_DEFAULT_MODELS.actor),
+    )
 
-    expect(choice.modelId).toBe(LLM_DEFAULT_MODELS.anthropic.actor)
+    expect(chosen).toBe(LLM_DEFAULT_MODELS.actor)
   })
 
   /*
-    キーの無いプロバイダを通すと、応答を流し始めてから SDK の中で落ちる。
-    一番後味の悪い壊れ方なので、選ばれても env のプロバイダのまま進む。
+    接頭辞で経由先を表すゲートウェイがあり、素の名前は一つも生えていない。
+    末尾が一致するIDを拾えないと、必ず存在しないモデルを指名することになる。
   */
-  test('APIキーが無いプロバイダの指定は無視する', () => {
-    const choice = chooseLlm(makeEnv({}), 'actor', { provider: 'google' })
+  test('接頭辞付きのIDでも末尾が一致すれば拾う', async () => {
+    const chosen = await chooseLlm(
+      configured,
+      'actor',
+      undefined,
+      lists('alpha,other-model', `alpha,${LLM_DEFAULT_MODELS.actor}`),
+    )
 
-    expect(choice.provider).toBe('anthropic')
+    expect(chosen).toBe(`alpha,${LLM_DEFAULT_MODELS.actor}`)
   })
 
-  test('キーが有れば同じ指定が通る', () => {
-    const env = makeEnv({ GOOGLE_GENERATIVE_AI_API_KEY: 'key-google' })
+  test('希望が一つも無ければ一覧の先頭に落ちる', async () => {
+    expect(await chooseLlm(configured, 'actor', undefined, lists('only-this'))).toBe('only-this')
+  })
 
-    expect(chooseLlm(env, 'actor', { provider: 'google' }).provider).toBe('google')
+  /*
+    一覧が引けないときに既定表をそのまま返すのは、動かすためではなく、
+    モデル名がエラーに出るぶん原因が分かるようにするため。
+  */
+  test('一覧が空なら既定表をそのまま返す', async () => {
+    expect(await chooseLlm(configured, 'actor', undefined, lists())).toBe(LLM_DEFAULT_MODELS.actor)
+  })
+
+  test('鍵が無ければ一覧を引きに行かない', async () => {
+    const asked = { count: 0 }
+
+    await chooseLlm(makeEnv({ OPENAI_API_KEY: undefined }), 'actor', undefined, async () => {
+      asked.count += 1
+
+      return []
+    })
+
+    expect(asked.count).toBe(0)
   })
 })
 
-describe('hasApiKey', () => {
-  test('鍵の有無だけを見る', () => {
-    const env = makeEnv({})
+describe('chooseLlms', () => {
+  test('役割ごとに別のモデルを返す', async () => {
+    const chosen = await chooseLlms(
+      configured,
+      {},
+      lists(`x,${LLM_DEFAULT_MODELS.actor}`, `x,${LLM_DEFAULT_MODELS.judge}`),
+    )
 
-    expect(hasApiKey(env, 'anthropic')).toBe(true)
-    expect(hasApiKey(env, 'google')).toBe(false)
-  })
-})
-
-/*
-  cacheHint が env と role ではなく決定済みの choice を受けるのは、
-  「モデルは openai なのに anthropic のキャッシュ指定が付く」ズレを型で書けなくするため。
-*/
-describe('cacheHint', () => {
-  test('anthropic のときだけキャッシュ指定を返す', () => {
-    expect(cacheHint({ provider: 'anthropic', modelId: 'claude-sonnet-5' })).toEqual({
-      anthropic: { cacheControl: { type: 'ephemeral' } },
+    expect(chosen).toEqual({
+      actor: `x,${LLM_DEFAULT_MODELS.actor}`,
+      judge: `x,${LLM_DEFAULT_MODELS.judge}`,
     })
   })
 
-  test('他のプロバイダでは空', () => {
-    expect(cacheHint({ provider: 'openai', modelId: 'gpt-5.6-terra' })).toEqual({})
-    expect(cacheHint({ provider: 'google', modelId: 'gemini-3.5-flash' })).toEqual({})
+  /* 両方とも決まっているなら、一覧を引く理由が無い。 */
+  test('両方指定されていれば一覧を引かない', async () => {
+    const asked = { count: 0 }
+    const env = makeEnv({ LLM_ACTOR_MODEL: 'a', LLM_JUDGE_MODEL: 'b' })
+    const chosen = await chooseLlms(env, {}, async () => {
+      asked.count += 1
+
+      return []
+    })
+
+    expect(chosen).toEqual({ actor: 'a', judge: 'b' })
+    expect(asked.count).toBe(0)
   })
 })
 
 describe('toUsageRow', () => {
   /*
-    使用量の provider 列は env ではなく実際に使った choice から取る。
-    env から引き直すと、プレイヤーがプロバイダを差し替えたセッションの記録が
-    静かに嘘になり、コストの内訳が追えなくなる。
+    model は設定値ではなく応答が名乗ったIDを入れる。設定から引き直すと、
+    互換サーバが別名へ振り替えたときに記録が静かに嘘になる。
   */
-  test('env ではなく実際に使ったプロバイダを記録する', () => {
+  test('実際に応答したモデルを記録する', () => {
     const row = toUsageRow({
-      choice: { provider: 'openai', modelId: 'gpt-5.6-terra' },
       role: 'actor',
       model: 'gpt-5.6-terra',
       usage: { inputTokens: 10, outputTokens: 20, totalTokens: 30 },
@@ -140,16 +151,15 @@ describe('toUsageRow', () => {
       scenarioId: 'scenario-1',
     })
 
-    expect(row.provider).toBe('openai')
+    expect(row.model).toBe('gpt-5.6-terra')
     expect(row.role).toBe('actor')
     expect(row.inputTokens).toBe(10)
   })
 
   test('未報告のトークン数は0として数える', () => {
     const row = toUsageRow({
-      choice: { provider: 'anthropic', modelId: 'claude-sonnet-5' },
       role: 'judge',
-      model: 'claude-sonnet-5',
+      model: 'gpt-5.6-luna',
       usage: { inputTokens: undefined, outputTokens: undefined, totalTokens: undefined },
       providerMetadata: undefined,
       sessionId: 'session-1',

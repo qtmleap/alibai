@@ -29,7 +29,11 @@ type Board = {
   people: AlibiPerson[]
   segments: AlibiSegment[]
   span: { from: string; to: string }
-  deadline: { at: string; label: string }
+  /**
+   * 死亡推定の刻限。`foundAt`（遺体発見）は迷宮入りのときだけ盤面に出す——
+   * 解決した回は真相の実線一本で足り、発見時刻まで並べると線が二重に立つ。
+   */
+  deadline: { at: string; label: string; foundAt?: string }
   /**
    * 告発で指した時刻。端末はアリバイ表を持てないので、真相との隔たりをこれ一つで見せる。
    * 表と同じく、まだサーバから降ってこない。
@@ -140,8 +144,8 @@ const FOOT =
 
 const footOf = (main: boolean): string =>
   main
-    ? `${FOOT} border-nezumi font-mincho text-kinari tracking-[0.16em]`
-    : `${FOOT} border-keisen text-nezumi`
+    ? `${FOOT} border-nezumi font-mincho text-kinari tracking-[0.16em] lg:hover:bg-sumi-2`
+    : `${FOOT} border-keisen text-nezumi lg:hover:border-nezumi lg:hover:bg-sumi-2 lg:hover:text-kinari`
 
 /**
  * 上から順に出すときの刻み。
@@ -156,7 +160,15 @@ const ROW_STAGGER_MS = 200
  * `at` は上から何番目か。渡さなければ他と一緒に出る——順に読ませたいのは
  * 判定の三行だけで、記録は表として一度に見えたほうが早い。
  */
-const Row = ({ label, at = 0, children }: { label: string; at?: number; children: ReactNode }) => (
+const Row = ({
+  label,
+  at = 0,
+  children,
+}: {
+  label: ReactNode
+  at?: number
+  children: ReactNode
+}) => (
   <div
     className="row-in flex items-baseline justify-between gap-4 border-keisen border-b py-[7px] text-[12.5px] leading-[1.75] lg:py-[9px] lg:text-[13.5px] lg:leading-[1.8]"
     style={{ animationDelay: `${at * ROW_STAGGER_MS}ms` }}
@@ -304,13 +316,14 @@ export const ResultScreen = ({ accuseResult, board, onRetry, onRestart }: Props)
                 segments={board.segments}
                 span={board.span}
                 /*
-                  結果は答え合わせが済んだ後なので、刻限は一本の実線に落ちる。
-                  窓（まだ分かっていない幅）はここには残らない——残っていたら、
-                  それは答え合わせが終わっていないということ。
+                  刻限は答え合わせの結果そのもの。解決した回だけ一本の実線に落ちる——
+                  迷宮入りでは死亡推定を確定させていないので、盤面と同じ点線の窓のまま。
+                  真相の 18:50 をここに実線で引いてしまうと、外れた回にも答えを見せることになる。
                 */
                 deadline={{
-                  label: board.deadline.label,
-                  death: { kind: 'fixed', at: board.deadline.at },
+                  foundAt: solved ? undefined : board.deadline.foundAt,
+                  label: solved ? board.deadline.label : '死亡推定',
+                  death: solved ? { kind: 'fixed', at: board.deadline.at } : { kind: 'unknown' },
                 }}
                 truth={solved ? board.truth : undefined}
               />
@@ -407,7 +420,20 @@ export const ResultScreen = ({ accuseResult, board, onRetry, onRestart }: Props)
               <Row label={solved ? '解決タイム' : 'かかった時間'}>
                 <span className={AT}>{elapsed}</span>
               </Row>
-              <Row label="質問回数">{result.questionCount}回</Row>
+              {/*
+                訊くだけでなく遺体も現場も調べる。全部まとめて「手」なので、
+                端末では質問と呼ばない——机は横幅があるぶん「質問回数」で言い切れる。
+              */}
+              <Row
+                label={
+                  <>
+                    <span className="lg:hidden">使ったターン</span>
+                    <span className="hidden lg:inline">質問回数</span>
+                  </>
+                }
+              >
+                {result.questionCount}回
+              </Row>
               <Row label="発見した証拠">{result.evidenceFound}個</Row>
             </div>
           </Group>

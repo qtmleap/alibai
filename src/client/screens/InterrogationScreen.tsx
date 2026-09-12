@@ -6,18 +6,19 @@ import {
   type Deadline,
 } from '@/client/components/AlibiChart'
 import { CaseNoteDialog } from '@/client/components/CaseNote'
-import { edgeOf, inkOf, surfaceOf } from '@/client/components/CharacterAvatar'
+import { edgeOf, inkOf } from '@/client/components/CharacterAvatar'
 import { FloorPlanMap } from '@/client/components/FloorPlan'
 import { NewFactBand } from '@/client/components/NewFactBand'
 import { TurnAnnounce } from '@/client/components/TurnAnnounce'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/client/components/ui/dialog'
 import type { ChatTurn, UseInterrogation } from '@/client/hooks/useInterrogation'
 import { useLitFix } from '@/client/hooks/useLitFix'
-import { usePacedReveal } from '@/client/hooks/usePacedReveal'
-import { fetchSessionState } from '@/client/lib/api'
+import { useVoicedReveal } from '@/client/hooks/useVoicedReveal'
+import { fetchSessionState, voiceUrl } from '@/client/lib/api'
 import { formatSeconds } from '@/client/lib/format'
-import { settledSentences } from '@/client/lib/paragraphs'
 import type { InvestigablePlace, ScenarioDetail, SessionState } from '@/client/lib/schemas'
+import { InterrogationRail } from '@/client/screens/InterrogationRail'
+import { buildBlocks, capLines, tintTimes, toMinutes } from '@/client/screens/interrogation-log'
 import { MAX_TOPIC_CHARS } from '@/shared/turns'
 import { VICTIM_ID } from '~/db/scenario-definition'
 
@@ -127,234 +128,6 @@ const lastSpokenId = (
     },
     { id: fallback, at: -1 },
   ).id
-
-const toMinutes = (hhmm: string): number => {
-  const [h, m] = hhmm.split(':')
-
-  return h === undefined || m === undefined ? 0 : Number(h) * 60 + Number(m)
-}
-
-/* ---- 会話のなかの確定時刻 ---- */
-
-const KANJI_DIGITS = new Map([
-  ['〇', 0],
-  ['零', 0],
-  ['一', 1],
-  ['二', 2],
-  ['三', 3],
-  ['四', 4],
-  ['五', 5],
-  ['六', 6],
-  ['七', 7],
-  ['八', 8],
-  ['九', 9],
-])
-
-/** 「六時二十三分」「午後七時八分」「19:08」。時だけ・分だけの言い回しは拾わない。 */
-const TIME_PATTERN =
-  /(?:午前|午後)?(?:[〇零一二三四五六七八九十]+|\d{1,2})時(?:[〇零一二三四五六七八九十]+|\d{1,2})分|\d{1,2}:\d{2}/g
-
-const kanjiNumber = (text: string): number => {
-  const ten = text.indexOf('十')
-
-  if (ten === -1) {
-    return Array.from(text).reduce((sum, char) => {
-      const digit = KANJI_DIGITS.get(char)
-
-      return sum * 10 + (digit === undefined ? 0 : digit)
-    }, 0)
-  }
-
-  const upper = ten === 0 ? 1 : kanjiNumber(text.slice(0, ten))
-  const lower = text.slice(ten + 1)
-
-  return upper * 10 + (lower.length === 0 ? 0 : kanjiNumber(lower))
-}
-
-const numberOf = (text: string): number => (/^\d+$/.test(text) ? Number(text) : kanjiNumber(text))
-
-/** 表記を分に直す。午前・午後は読まない——時計回りの12時間ぶんは呼ぶ側で試す。 */
-const minutesOfExpression = (text: string): number | undefined => {
-  const body = text.replace(/^(?:午前|午後)/, '')
-  const [hh, mm] = body.includes(':') ? body.split(':') : body.replace(/分$/, '').split('時')
-
-  return hh === undefined || mm === undefined ? undefined : numberOf(hh) * 60 + numberOf(mm)
-}
-
-const HALF_DAY_MINUTES = 12 * 60
-
-/** at は文の中での位置。同じ字面が二度出ても鍵がぶつからない。 */
-type Piece = { at: number; text: string; ink: string | undefined }
-
-/**
- * 確定した時刻を、その時刻が立つ列の顔料で染める。
- *
- * 喋っている人の色ではない。「六時二十三分に来た」と牧野が言っても、
- * その線が立つのは黒田の列なので、字も黒田の色になる。
- */
-const tintTimes = (text: string, inks: Map<number, string>): Piece[] => {
-  const found = Array.from(text.matchAll(TIME_PATTERN))
-  const marked = found.reduce<{ pieces: Piece[]; at: number }>(
-    (acc, match) => {
-      const minutes = minutesOfExpression(match[0])
-
-      if (minutes === undefined || match.index === undefined) {
-        return acc
-      }
-
-      const noon = inks.get(minutes)
-      const ink = noon === undefined ? inks.get(minutes + HALF_DAY_MINUTES) : noon
-
-      return ink === undefined
-        ? acc
-        : {
-            pieces: [
-              ...acc.pieces,
-              { at: acc.at, text: text.slice(acc.at, match.index), ink: undefined },
-              { at: match.index, text: match[0], ink },
-            ],
-            at: match.index + match[0].length,
-          }
-    },
-    { pieces: [], at: 0 },
-  )
-
-  return [...marked.pieces, { at: marked.at, text: text.slice(marked.at), ink: undefined }]
-}
-
-/* ---- 会話の塊 ---- */
-
-/** who は登場順の添字。探偵は列を持たないので -1。 */
-type Block = {
-  id: string
-  who: number
-  name: string
-  /** 名前の色と縦罫。人は登場順の顔料、場所は灰、探偵は罫線と同じ色。 */
-  ink: string
-  edge: string
-  lines: { id: string; text: string }[]
-}
-
-/**
- * 相手ごとに分かれている会話を、一本の時系列に並べ直して塊にまとめる。
- *
- * 画面に映るログは一本きり。誰に何を聞いたかが順に流れるので、
- * 相手を切り替えても読んでいた場所が消えない。
- */
-const buildBlocks = (
-  /** 話題を投げられる相手。被害者と場所を含むので ScenarioDetail['characters'] より広い。 */
-  characters: { id: string; logName: string; ink: string; edge: string }[],
-  conversations: Record<string, ChatTurn[]>,
-  askerName: string,
-  /** 今まさに返答が流れてきている相手。書きかけの一文を伏せるのに要る。 */
-  askingCharacterId: string | undefined,
-): Block[] => {
-  const said = characters.flatMap((character, index) => {
-    const turns = turnsOf(conversations, character.id)
-    // 流れている最中なのは、訊いている相手の末尾の返答だけ。
-    const streamingSeq = character.id === askingCharacterId ? turns.length - 1 : -1
-
-    return (
-      turns
-        .map((turn, seq) => ({
-          turn,
-          seq,
-          index,
-          name: character.logName,
-          ink: character.ink,
-          edge: character.edge,
-          streaming: seq === streamingSeq && turn.role === 'assistant',
-        }))
-        // 話題はプレイヤーの指示であって発言ではない。探偵が投げた質問のほうが残る。
-        .filter(({ turn }) => turn.role !== 'topic' && turn.text.length > 0)
-    )
-  })
-
-  const ordered = [...said].sort((a, b) =>
-    a.turn.askedAt === b.turn.askedAt ? a.seq - b.seq : a.turn.askedAt - b.turn.askedAt,
-  )
-  const blocks: Block[] = []
-
-  for (const item of ordered) {
-    const who = item.turn.role === 'user' ? -1 : item.index
-    const id = `${item.index}:${item.turn.id}`
-    const lines = settledSentences(item.turn.text, item.streaming).map((text, at) => ({
-      id: `${id}:${at}`,
-      text,
-    }))
-
-    // 一文目が出来上がるまでは何も置かない。名前だけ先に出ると、
-    // 誰かが口を開いたまま黙っているように見える。
-    if (lines.length === 0) {
-      continue
-    }
-
-    const last = blocks[blocks.length - 1]
-
-    // 同じ人が続けて喋るあいだ、名前は一度きり。縦罫だけが最後まで伸びる。
-    if (last !== undefined && last.who === who) {
-      last.lines.push(...lines)
-      continue
-    }
-
-    blocks.push({
-      id,
-      who,
-      name: who === -1 ? askerName : item.name,
-      ink: who === -1 ? 'text-nezumi-dim' : item.ink,
-      edge: who === -1 ? 'border-keisen' : item.edge,
-      lines,
-    })
-  }
-
-  return blocks
-}
-
-/**
- * 出してよい行数まで塊を切り詰める。
- *
- * 塊ごとではなく通しで数えるので、探偵の質問と相手の一文目のあいだにも間が入る。
- * 行が一つも残らない塊は落とす——名前だけが立って、口を開けたまま黙っているように
- * 見えるのを避けるため。
- */
-const capLines = (blocks: Block[], limit: number): Block[] =>
-  blocks.reduce<{ left: number; kept: Block[] }>(
-    (acc, block) => {
-      const lines = block.lines.slice(0, acc.left)
-
-      return {
-        left: acc.left - lines.length,
-        kept: lines.length === 0 ? acc.kept : [...acc.kept, { ...block, lines }],
-      }
-    },
-    { left: limit, kept: [] },
-  ).kept
-
-/* ---- 端末の時刻軸 ---- */
-
-type Pin = { id: string; left: string; surface: string; solid: boolean }
-
-/**
- * 帯の目盛りは供述の数だけ立つ。
- * 帯は左右 10px の余白の内側に引かれているので、％だけで置くと線からずれる。
- */
-const railPins = (
-  segments: AlibiSegment[],
-  keys: string[],
-  span: { from: number; length: number },
-): Pin[] =>
-  segments.map((segment, index) => {
-    // 「19:08　受付」のように端が記録で留まっているなら、そちらが立つ時刻。
-    const fixed = segment.fix === undefined ? undefined : segment.fix.split('　')[0]
-    const ratio = (toMinutes(fixed === undefined ? segment.from : fixed) - span.from) / span.length
-
-    return {
-      id: `${segment.who}-${segment.from}-${index}`,
-      left: `calc(10px + (100% - 20px) * ${ratio.toFixed(3)})`,
-      surface: surfaceOf(keys.indexOf(segment.who)),
-      solid: segment.kind === 'solid',
-    }
-  })
 
 /**
  * 聞き込みのメイン画面。
@@ -555,6 +328,11 @@ export const InterrogationScreen = ({
     ...scenario.characters.map((character, index) => ({
       id: character.id,
       name: character.name,
+      /*
+       * 相手を替える並びに出す名前。端末の上部バーは幅が無いので、三人並ぶと
+       * 姓名では折り返す。短い名前はサーバが必ず返すので、ここで姓を切り出さない。
+       */
+      shortName: character.shortName,
       logName: character.name,
       introduction: character.publicIntroduction,
       ink: inkOf(index),
@@ -573,6 +351,8 @@ export const InterrogationScreen = ({
           {
             id: VICTIM_ID,
             name: scenario.victim.name,
+            // 遺体には短い名前が無い（scenarioDetail の victim は name しか持たない）。
+            shortName: scenario.victim.name,
             logName: '所見',
             introduction: `被害者・${scenario.victim.introduction}`,
             ink: inkOf(scenario.characters.length),
@@ -584,6 +364,7 @@ export const InterrogationScreen = ({
     ...places.map((place) => ({
       id: place.id,
       name: place.name,
+      shortName: place.shortName,
       logName: '所見',
       /*
        * 名札の下に出すのは佇まいのほう。introduction は名簿に出す紹介で、
@@ -697,24 +478,23 @@ export const InterrogationScreen = ({
   )
 
   const said = buildBlocks(subjects, conversations, askerName, askingCharacterId)
-  const shown = usePacedReveal(
-    said.reduce((count, block) => count + block.lines.length, 0),
-    isAsking,
+  /*
+   * 通す順に並べた、行ごとの音の在りか。記録の済んでいない行（書いている途中・
+   * 記録に失敗した行）には無く、そこは声の無かった頃と同じ時間送りで出る。
+   */
+  const voices = said.flatMap((block) =>
+    block.lines.map((line) =>
+      line.voice === undefined
+        ? undefined
+        : voiceUrl(sessionId, line.voice.messageId, line.voice.line),
+    ),
   )
+  const total = voices.length
+  const { shown, speaking } = useVoicedReveal(voices, isAsking)
   const blocks = capLines(said, shown)
+  /** 返答が出そろって、こちらの番になっているか。合図の印を置いてよい状態。 */
+  const settled = !isAsking && shown >= total && !speaking
   const timeWindow = scenario.timeWindow
-  const pins =
-    timeWindow === null
-      ? []
-      : railPins(
-          alibi.segments,
-          people.map((person) => person.key),
-          {
-            from: toMinutes(timeWindow.start),
-            length: toMinutes(timeWindow.end) - toMinutes(timeWindow.start),
-          },
-        )
-  const lastSolid = pins.filter((pin) => pin.solid).at(-1)
 
   /**
    * 資料への入口と、まだ見つかっていないものの数。
@@ -784,7 +564,7 @@ export const InterrogationScreen = ({
                 onClick={() => setActiveCharacterId(subject.id)}
                 className={`${switchClass} text-nezumi-dim hover:text-nezumi`}
               >
-                {subject.name}
+                {subject.shortName}
                 {subject.remaining === undefined ? null : (
                   <span className="ml-1.5">あと {subject.remaining}</span>
                 )}
@@ -921,17 +701,19 @@ export const InterrogationScreen = ({
           )}
 
           <div className="mt-2 flex items-center gap-5 text-[10.5px] text-nezumi-dim leading-[1.4]">
+            {/*
+              見本・呼び名・意味を、それぞれ間合いを空けて並べる。呼び名と意味を
+              一続きの字にすると、和字間隔ぶんしか離れず、どこまでが呼び名か読み取れない。
+            */}
             <span className="inline-flex items-center gap-1.5">
               <span aria-hidden="true" className="h-[3px] w-3.5 bg-nezumi" />
-              <span>
-                <span className="text-nezumi">実線</span>　裏付けあり
-              </span>
+              <span className="text-nezumi">実線</span>
+              <span>　裏付けあり</span>
             </span>
             <span className="inline-flex items-center gap-1.5">
               <span aria-hidden="true" className="w-3.5 border-nezumi-dim border-t border-dashed" />
-              <span>
-                <span className="text-nezumi">破線</span>　本人の申告のみ
-              </span>
+              <span className="text-nezumi">破線</span>
+              <span>　本人の申告のみ</span>
             </span>
           </div>
 
@@ -939,41 +721,15 @@ export const InterrogationScreen = ({
           <div className="mt-auto pt-4">{tools('border-keisen border-t pt-2.5')}</div>
         </section>
 
-        {/*
-          端末の時刻軸。目盛りは供述の数だけ立ち、裏付けの取れた最後の一本に白が立つ。
-          机のアリバイ表と同じものを、幅の無い画面で言い換えている。
-        */}
+        {/* 端末の時刻軸。目盛りは供述の数だけ立ち、裏付けの取れた最後の一本に白が立つ。 */}
         {timeWindow === null ? null : (
-          <section
-            aria-label="時刻軸"
-            className="relative h-[46px] shrink-0 border-keisen border-b px-2.5 lg:hidden"
-          >
-            <span className="absolute top-0 left-2.5 font-mono text-[9.5px] text-nezumi-dim tracking-[0.24em] tabular-nums">
-              {timeWindow.start}
-            </span>
-            <span className="absolute top-0 right-2.5 font-mono text-[9.5px] text-nezumi-dim tracking-[0.24em] tabular-nums">
-              {timeWindow.end}
-            </span>
-            <span className="absolute top-[28px] right-2.5 left-2.5 h-px bg-keisen" />
-            {pins.map((pin) => (
-              <span
-                key={pin.id}
-                className={`absolute top-[22px] h-[13px] w-[2px] ${pin.surface} ${
-                  pin.solid ? '' : 'opacity-[0.32]'
-                }`}
-                style={{ left: pin.left }}
-              />
-            ))}
-            {lastSolid === undefined ? null : (
-              <span
-                className="absolute top-[18px] h-[22px] w-px bg-kinari"
-                style={{ left: lastSolid.left }}
-              />
-            )}
-          </section>
+          <InterrogationRail
+            span={timeWindow}
+            segments={alibi.segments}
+            keys={people.map((person) => person.key)}
+            deadline={alibi.deadline}
+          />
         )}
-
-        <div className="shrink-0 lg:hidden">{tools('border-keisen border-b px-3 py-1.5')}</div>
 
         <div className="flex min-h-0 flex-1 flex-col lg:min-h-0 lg:px-[34px] lg:pt-6 lg:pb-[22px]">
           <div className="hidden lg:block lg:max-w-[560px] lg:shrink-0 lg:border-keisen lg:border-b lg:pb-[14px]">
@@ -988,6 +744,12 @@ export const InterrogationScreen = ({
             途切れではなく「まだ上に続いている」ことを示す。
           */}
           <div className="relative flex min-h-0 flex-1 flex-col lg:max-w-[560px]">
+            {/*
+              端末では絶対配置で会話の中央へ被さるので、この位置に書いても見た目は動かない。
+              机では流れの中に入り、名札の下・会話の上に置かれる。
+            */}
+            {newFact !== undefined && <NewFactBand key={newFact.key} text={newFact.text} />}
+
             <div
               ref={logRef}
               className="flex min-h-0 flex-1 flex-col overflow-y-auto p-3 lg:p-0 lg:pt-5"
@@ -999,7 +761,7 @@ export const InterrogationScreen = ({
                   </p>
                 )}
 
-                {blocks.map((block) => (
+                {blocks.map((block, blockAt) => (
                   <div
                     key={block.id}
                     className={`flex flex-col gap-[7px] border-l pl-2.5 lg:gap-2 lg:pl-[14px] ${block.edge}`}
@@ -1009,7 +771,7 @@ export const InterrogationScreen = ({
                     >
                       {block.name}
                     </span>
-                    {block.lines.map((line) => (
+                    {block.lines.map((line, lineAt) => (
                       <p
                         key={line.id}
                         className={`line-in whitespace-pre-wrap break-words text-[12.5px] leading-[1.95] lg:text-[14px] lg:leading-[2.05] ${
@@ -1024,6 +786,21 @@ export const InterrogationScreen = ({
                             {piece.text}
                           </span>
                         ))}
+                        {/*
+                          返答が言い終わった合図。いちばん新しい塊の末尾にだけ置く。
+                          次の一手を待たせる印なので、色は持たせない。
+                        */}
+                        {settled &&
+                          block.who !== -1 &&
+                          blockAt === blocks.length - 1 &&
+                          lineAt === block.lines.length - 1 && (
+                            <span
+                              aria-hidden="true"
+                              className="ml-[5px] text-[10px] text-nezumi-dim lg:text-[11px]"
+                            >
+                              ▼
+                            </span>
+                          )}
                       </p>
                     ))}
                   </div>
@@ -1050,11 +827,16 @@ export const InterrogationScreen = ({
               aria-hidden="true"
               className="pointer-events-none absolute inset-x-0 top-0 hidden h-[54px] bg-gradient-to-b from-sumi to-transparent lg:block"
             />
-
-            {newFact !== undefined && <NewFactBand key={newFact.key} text={newFact.text} />}
           </div>
 
           {error !== undefined && <p className="px-3 text-nezumi text-sm lg:px-0">{error}</p>}
+
+          {/*
+            端末には余りが無いので、資料への入口は会話の下端へ添える。帯の下に一段
+            置くと、そこがモックで刻限の出ている場所なので、盤面の一部に見えてしまう。
+            罫線は足さない——すぐ下の「訊けそうなこと」がもう一本引いている。
+          */}
+          <div className="shrink-0 px-3 pb-1.5 lg:hidden">{tools('')}</div>
 
           {/* 訊けそうなこと。畳んであり、押すと開く。 */}
           {!exhausted && (
@@ -1143,7 +925,7 @@ export const InterrogationScreen = ({
                   type="button"
                   onClick={handleAsk}
                   disabled={isAsking || inputText.trim().length === 0}
-                  className="shrink-0 border border-keisen px-3.5 py-[7px] text-[12px] hover:border-nezumi-dim disabled:opacity-40 lg:px-[22px] lg:py-2 lg:text-[13px]"
+                  className="shrink-0 border border-keisen px-3.5 py-[7px] text-[12px] disabled:opacity-40 disabled:hover:border-keisen disabled:hover:bg-transparent lg:px-[22px] lg:py-2 lg:text-[13px] lg:hover:border-nezumi lg:hover:bg-sumi-2 lg:hover:text-kinari"
                 >
                   {isAsking ? '…' : examining ? '調べる' : '訊く'}
                 </button>
