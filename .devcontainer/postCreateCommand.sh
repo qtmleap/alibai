@@ -29,6 +29,16 @@ if [ -f package.json ]; then
   fi
 fi
 
+# Playwright's browser for the screenshot tool (.claude/skills/mock-shot).
+# The shared libraries it links against are declared in devcontainer.json's
+# apt-packages feature — without them the browser dies at launch with
+# "libglib-2.0.so.0: cannot open shared object file".
+# The installs above pass --ignore-scripts, so package.json's postinstall does not
+# fire here — call it explicitly.
+if [ -x node_modules/.bin/playwright ]; then
+  bun run postinstall || echo "[postCreate] browser download failed — run 'bun run postinstall'"
+fi
+
 # Apply migrations and load the scenarios into the local D1 database.
 # Both run against .wrangler/state, so no network and no database container.
 if [ -n "$(ls -A db/migrations 2>/dev/null)" ]; then

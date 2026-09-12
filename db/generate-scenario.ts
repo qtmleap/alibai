@@ -1,7 +1,7 @@
 import { generateObject, jsonSchema } from 'ai'
 import { z } from 'zod'
 import { parseEnv } from '@/server/env'
-import { cacheHint, chooseLlm, resolveModel } from '@/server/llm/provider'
+import { chooseLlm, resolveModel } from '@/server/llm/provider'
 import { type AuthorGenerate, describeIssues, runAuthor } from './author'
 import { scenarioDefinitionShapeSchema } from './scenario-definition'
 import { toScenarioYaml } from './scenario-file'
@@ -43,7 +43,7 @@ if (premise === undefined || premise.trim() === '') {
 }
 
 const env = parseEnv(process.env)
-const choice = chooseLlm(env, 'author')
+const choice = await chooseLlm(env, 'author')
 const model = resolveModel(env, choice)
 
 /*
@@ -75,7 +75,6 @@ const generate: AuthorGenerate = async (request) => {
     schema: outputSchema,
     system: SYSTEM_PROMPT,
     prompt,
-    providerOptions: cacheHint(choice),
   })
 
   console.log(`  トークン: 入力 ${result.usage.inputTokens} / 出力 ${result.usage.outputTokens}`)
@@ -84,7 +83,7 @@ const generate: AuthorGenerate = async (request) => {
 }
 
 console.log(`題材: ${premise}`)
-console.log(`モデル: ${choice.provider} / ${choice.modelId}`)
+console.log(`モデル: ${choice}`)
 
 const result = await runAuthor({ premise, generate, maxAttempts: MAX_ATTEMPTS })
 

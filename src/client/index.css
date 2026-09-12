@@ -297,22 +297,27 @@ body {
  * 箱にはせず、二本の罫線と薄い覆いだけ。操作は塞がず 2.6 秒で引く。
  * 祝わない——増えたのは事実であって、手柄ではないので。
  */
+/*
+ * 縦の中央寄せはここに書かない。器の側（-translate-y-1/2）が持つ。
+ * 動きを切ってある人には下の @media でこの animation ごと none になるので、
+ * ここが中央寄せを兼ねていると、その人にだけ帯が半分ぶん下へずれる。
+ */
 @keyframes band {
   0% {
     opacity: 0;
-    transform: translateY(-50%) scaleY(0.86);
+    transform: scaleY(0.86);
   }
   11% {
     opacity: 1;
-    transform: translateY(-50%) scaleY(1);
+    transform: scaleY(1);
   }
   84% {
     opacity: 1;
-    transform: translateY(-50%) scaleY(1);
+    transform: scaleY(1);
   }
   100% {
     opacity: 0;
-    transform: translateY(-50%) scaleY(1);
+    transform: scaleY(1);
   }
 }
 

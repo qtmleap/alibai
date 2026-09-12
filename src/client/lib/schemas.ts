@@ -2,9 +2,9 @@ import { z } from 'zod'
 import { detectiveSchema } from '~/db/detective'
 import { floorPlanSchema } from '~/db/floor-plan'
 import { gameModeSchema, hintSchema } from '~/db/game-mode'
-import { llmProviderSchema, settableLlmRoleSchema } from '~/db/llm-catalog'
+import { settableLlmRoleSchema } from '~/db/llm-catalog'
 import { investigablePlaceSchema } from '~/db/place'
-import { VICTIM_ID } from '~/db/scenario-definition'
+import { placeIdSchema, VICTIM_ID } from '~/db/scenario-definition'
 
 /**
  * サーバのレスポンスは fetch の時点では unknown。
@@ -31,6 +31,13 @@ export const scenarioListSchema = z.array(scenarioSummarySchema)
 export const characterSchema = z.object({
   id: z.uuid(),
   name: z.string().nonempty(),
+  /**
+   * 幅の狭いところへ出す短い名前。アリバイ表の帯がこれを読む。
+   *
+   * サーバは書かれていない行にも `name` を写して返すので、常に値がある。
+   * 画面側で姓を切り出さないこと——一文字姓や外国名で切る位置が決まらない。
+   */
+  shortName: z.string().nonempty(),
   publicIntroduction: z.string().nonempty(),
 })
 
@@ -303,10 +310,15 @@ export const historyExchangeSchema = z.object({
 /**
  * 話しかけた相手のID。
  *
- * 登場人物は uuid だが、被害者だけは決め打ちの `victim`（採番する先が一人しか無い）。
- * ここを uuid で縛ると、遺体を調べたセッションが復元できずに画面ごと落ちる。
+ * 登場人物は uuid、被害者は決め打ちの `victim`、場所は作者が書いたローカルID。
+ * 三者は形で見分けられるので、どれを指しているかは常に決まる（`placeIdSchema`）。
+ *
+ * ここを狭く縛ると、その相手を含むセッションが復元できずに**画面ごと落ちる**。
+ * 履歴は聞き込みの画面へ入った瞬間に読むので、一手も打たないうちに落ちる。
+ * 実際、場所を足したとき `victim` までしか許しておらず、場所を持つ事件が
+ * 開いた時点で必ず落ちた。相手を増やしたらここも必ず増やすこと。
  */
-const subjectIdSchema = z.union([z.uuid(), z.literal(VICTIM_ID)])
+const subjectIdSchema = z.union([z.uuid(), z.literal(VICTIM_ID), placeIdSchema])
 
 export const sessionHistorySchema = z.object({
   sessionId: z.uuid(),
@@ -321,20 +333,14 @@ export const sessionHistorySchema = z.object({
 /**
  * 設定画面が選択肢を組み立てるための材料（GET /api/settings/llm）。
  *
- * available はキーが設定されているかの真偽値だけ。鍵も、その長さも、
- * ゲートウェイの向き先も返ってこない。
+ * 鍵も、その長さも、互換サーバの向き先も返ってこない。models が空なら
+ * 「鍵が未設定」か「互換サーバに繋がらなかった」のどちらかで、画面から区別は付かない。
  */
 const limitBoundSchema = z.object({ value: z.int().positive().optional(), max: z.int().positive() })
 
 export const llmSettingsResponseSchema = z.object({
-  providers: z.array(
-    z.object({
-      id: llmProviderSchema,
-      label: z.string().nonempty(),
-      available: z.boolean(),
-      models: z.array(z.object({ id: z.string().nonempty(), label: z.string().nonempty() })),
-    }),
-  ),
+  /** 互換サーバの `/v1/models` 由来。手で書いた表ではないので、ID を列挙で縛らない。 */
+  models: z.array(z.object({ id: z.string().nonempty(), label: z.string().nonempty() })),
   roles: z.array(
     z.object({
       id: settableLlmRoleSchema,
@@ -358,8 +364,9 @@ export const apiErrorSchema = z.object({
 
 export type ScenarioSummary = z.infer<typeof scenarioSummarySchema>
 export type CharacterSheet = z.infer<typeof characterSchema>
-export type { AgeGroup, Detective, Gender } from '~/db/detective'
+export type { Detective } from '~/db/detective'
 export type { FloorPlan, Room } from '~/db/floor-plan'
+export type { AgeGroup, Gender } from '~/db/person'
 export type ScenarioDetail = z.infer<typeof scenarioDetailSchema>
 export type CreateSessionResponse = z.infer<typeof createSessionResponseSchema>
 export type Discovery = z.infer<typeof discoverySchema>
@@ -373,10 +380,5 @@ export type AccuseResult = z.infer<typeof accuseResultSchema>
 export type SessionHistory = z.infer<typeof sessionHistorySchema>
 export type { GameMode, Hint, SubjectCount } from '~/db/game-mode'
 export type LlmSettingsResponse = z.infer<typeof llmSettingsResponseSchema>
-// 選択肢の正典は db/llm-catalog.ts。ここで並べ直すと画面とAPIの受け入れ値がずれる。
-export {
-  LLM_CATALOG,
-  LLM_PROVIDER_LABELS,
-  type LlmProvider,
-  type SettableLlmRole,
-} from '~/db/llm-catalog'
+// 役割の正典は db/llm-catalog.ts。ここで並べ直すと画面とAPIの受け入れ値がずれる。
+export type { SettableLlmRole } from '~/db/llm-catalog'

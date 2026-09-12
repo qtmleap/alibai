@@ -162,6 +162,62 @@
       "when": 1788379031994,
       "tag": "0022_scenario-place-public-copy-safety",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "6",
+      "when": 1788790609383,
+      "tag": "0023_analytics-tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "6",
+      "when": 1788830884765,
+      "tag": "0024_character-short-name",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "6",
+      "when": 1788834040283,
+      "tag": "0026_character-age-gender",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "6",
+      "when": 1788845199807,
+      "tag": "0027_character-voice",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "6",
+      "when": 1788865661202,
+      "tag": "0028_llm-usage-drop-provider",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "6",
+      "when": 1788937520736,
+      "tag": "0029_tts-speakers",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "6",
+      "when": 1788940795359,
+      "tag": "0030_messages-drop-character-fk",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "6",
+      "when": 1788975525922,
+      "tag": "0031_skinny_pet_avengers",
+      "breakpoints": true
     }
   ]
 }

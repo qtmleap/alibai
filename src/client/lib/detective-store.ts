@@ -26,6 +26,40 @@ export type DetectiveStore = z.infer<typeof detectiveStoreSchema>
 
 export const EMPTY_STORE: DetectiveStore = { profiles: [], activeId: undefined }
 
+/**
+ * 備え付けの探偵。作らなくても、この一体を選べばすぐ事件に向かえる。
+ *
+ * localStorage には書かない。保管庫は「プレイヤーが作ったもの」だけを持ち、
+ * 備え付けは名簿に並べるときに前へ足す。書き込むと、消せない行が保存され続けるうえ、
+ * 中身を直したときに古い写しが各人の端末に残る。
+ *
+ * 【外に出す前に必ず外すこと】
+ * 「橘シェリー」は既存作品の登場人物で、声も実在の声優に紐づく登録話者を借りている。
+ * src/server/tts/irodori.ts の但し書きと同じ扱いで、公開に向かうときは
+ * DETECTIVE_SPEAKER_ID と一緒にこの定数ごと落とす。
+ */
+export const TACHIBANA_SHERRY: StoredDetective = {
+  id: 'preset:tachibana-sherry',
+  name: '橘シェリー',
+  ageGroup: 'teen',
+  gender: 'female',
+  appearance:
+    '水色の髪を三つ編みでまとめた団子頭に、オレンジの瞳。右の横髪に金と黒の小さなリボン。紺と青と水色のチェックのシャーロックハットとスカート、くすんだ水色のウェストコートの上に紺のインバネスコート。左足だけ黒いタイツ。どんなときもにこやかで、楽しそうなことには迷わず飛びつく。気になったことはとことん追いかけ、周りを驚かせることもある。',
+  speech: 'いつもですます口調。明るく弾んだ調子で、面白がっているのがそのまま声に出る。',
+}
+
+export const PRESET_DETECTIVES: StoredDetective[] = [TACHIBANA_SHERRY]
+
+/** 備え付けかどうか。編集と削除を出すかがここで決まる。 */
+export const isPresetDetective = (id: string): boolean =>
+  PRESET_DETECTIVES.some((preset) => preset.id === id)
+
+/** 名簿。備え付けが先、そのあとに作った順で並ぶ。 */
+export const detectiveRoster = (store: DetectiveStore): StoredDetective[] => [
+  ...PRESET_DETECTIVES,
+  ...store.profiles,
+]
+
 const STORAGE_KEY = 'alibai:detectives'
 
 /**
@@ -46,6 +80,14 @@ const legacyStoredDetectiveSchema = z.object({
   gender: z.string().max(20),
   appearance: z.string().max(200),
 })
+
+/**
+ * 口調の欄が無かった頃の形。空の口調として読み替える。
+ *
+ * 足したばかりの欄なので、保管庫にある探偵はまだ誰も持っていない。ここを飛ばすと
+ * 全員が今の形にも旧い形にも当てはまらなくなり、次に開いた瞬間まとめて消える。
+ */
+const speechlessStoredDetectiveSchema = storedDetectiveSchema.omit({ speech: true })
 
 /** 中身の検証は1人ずつやるので、ここでは器の形だけ見る。 */
 const looseStoreSchema = z.object({
@@ -119,6 +161,12 @@ const recoverProfile = (raw: unknown): StoredDetective[] => {
     return [current.data]
   }
 
+  const speechless = speechlessStoredDetectiveSchema.safeParse(raw)
+
+  if (speechless.success) {
+    return [{ ...speechless.data, speech: '' }]
+  }
+
   const legacy = legacyStoredDetectiveSchema.safeParse(raw)
 
   if (!legacy.success) {
@@ -132,6 +180,7 @@ const recoverProfile = (raw: unknown): StoredDetective[] => {
       ageGroup: toAgeGroup(legacy.data.age),
       gender: toGender(legacy.data.gender),
       appearance: legacy.data.appearance,
+      speech: '',
     },
   ]
 }
@@ -161,7 +210,9 @@ export const parseDetectiveStore = (raw: unknown): ParsedStore => {
   const profiles = loose.data.profiles.flatMap(recoverProfile)
   // 選択中だった探偵が復元できなかったなら、選択は外す。
   // 居ない相手を選んだままにすると、そのまま事件に向かえてしまう。
-  const activeId = profiles.some((profile) => profile.id === loose.data.activeId)
+  const activeId = detectiveRoster({ profiles, activeId: undefined }).some(
+    (profile) => profile.id === loose.data.activeId,
+  )
     ? loose.data.activeId
     : undefined
 
@@ -176,7 +227,7 @@ export const parseDetectiveStore = (raw: unknown): ParsedStore => {
  * プレイが始まってしまう。
  */
 export const activeDetective = (store: DetectiveStore): StoredDetective | undefined =>
-  store.profiles.find((profile) => profile.id === store.activeId)
+  detectiveRoster(store).find((profile) => profile.id === store.activeId)
 
 /**
  * 追加または更新。同じ id があれば置き換え、無ければ末尾に足す。
@@ -207,7 +258,7 @@ export const removeDetective = (store: DetectiveStore, id: string): DetectiveSto
 
 /** 選択の切り替え。存在しない id を渡された場合は何も変えない。 */
 export const setActiveDetective = (store: DetectiveStore, id: string): DetectiveStore =>
-  store.profiles.some((profile) => profile.id === id) ? { ...store, activeId: id } : store
+  detectiveRoster(store).some((profile) => profile.id === id) ? { ...store, activeId: id } : store
 
 /** 名乗らずに始めるときのために、選択を外す。 */
 export const clearActiveDetective = (store: DetectiveStore): DetectiveStore => ({
@@ -221,6 +272,7 @@ export const toDetective = (stored: StoredDetective): Detective => ({
   ageGroup: stored.ageGroup,
   gender: stored.gender,
   appearance: stored.appearance,
+  speech: stored.speech,
 })
 
 export const newDetectiveId = (): string => crypto.randomUUID()

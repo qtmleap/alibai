@@ -237,27 +237,17 @@ describe('POST /api/sessions/:id/ask のモデル指定', () => {
     llm,
   })
 
-  test('提供元が列挙の外なら 400（3値で安定しているので厳格に見る）', async () => {
-    const res = await postJson(
-      `/api/sessions/${SESSION_ID}/ask`,
-      askBody({
-        actor: { provider: 'nope' },
-      }),
-    )
-
-    expect(res.status).toBe(400)
-  })
-
   /*
-    知らないモデルIDでは弾かない。localStorage に古い設定が残っているだけの
-    プレイヤーを事件の途中で締め出すことになるので、サーバ側で既定へ落とす。
+    知らないモデルIDでは弾かない。突き合わせる許可リストはもう無く、
+    localStorage に古い設定が残っているだけのプレイヤーを事件の途中で
+    締め出すことにもなるため、そのまま通して互換サーバに任せる。
     ここでは「400 にはならない」ことだけを確かめる（先へ進むとバインディングに触る）。
   */
   test('知らないモデルIDでは 400 にしない', async () => {
     const res = await postJson(
       `/api/sessions/${SESSION_ID}/ask`,
       askBody({
-        actor: { provider: 'openai', model: 'gpt-imaginary-9' },
+        actor: { model: 'gpt-imaginary-9' },
       }),
     )
 

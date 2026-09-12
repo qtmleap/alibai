@@ -1,4 +1,5 @@
 import { count, eq } from 'drizzle-orm'
+import { z } from 'zod'
 import type { Db } from '@/server/db/client'
 import type { HintItem, HintSource } from '@/server/game/hints'
 import {
@@ -7,6 +8,7 @@ import {
   type RevelationEligibilityContext,
   type RevelationRule,
 } from '@/server/game/revelations'
+import { AGE_GROUP_LABELS, AGE_GROUP_NOTES, GENDER_LABELS } from '~/db/person'
 import { parseInvestigablePlaces } from '~/db/place'
 import { VICTIM_ID } from '~/db/scenario-definition'
 import { characters, evidences, revelations, scenarios } from '~/db/schema'
@@ -24,29 +26,51 @@ const CHARACTER_TTL_SECONDS = 3600
 const SCENARIO_LIST_TTL_SECONDS = 60
 const JUDGE_RUBRIC_TTL_SECONDS = 3600
 
-const characterKey = (characterId: string) => `character:v2:${characterId}`
+// 版を付けてある。シートの文面を直しても、版を上げないと TTL のあいだ古いシートが読まれる。
+const characterKey = (characterId: string) => `character:v3:${characterId}`
 /*
  * 版を付けてある。ルーブリックは1時間キャッシュされるので、版が無いと
  * 指示を直しても最大1時間は古い文面のまま判定が走る（デプロイ直後が一番危ない）。
  */
-const judgeRubricKey = (scenarioId: string) => `judge-rubric:v2:${scenarioId}`
+const judgeRubricKey = (scenarioId: string) => `judge-rubric:v3:${scenarioId}`
 const judgeRevelationsKey = (scenarioId: string) => `judge-revelations:${scenarioId}`
+const evidenceIdsKey = (scenarioId: string) => `evidence-ids:${scenarioId}`
 // 版を付けてある。数える相手の並びが変わっても、1時間の TTL を待たずに切り替わるように。
 const hintSubjectsKey = (scenarioId: string) => `hint-subjects:v2:${scenarioId}`
 const SCENARIO_LIST_KEY = 'scenarios:published'
 
 /**
+ * 年ごろと性別を人物像の一行目に置く。
+ *
+ * 見出しを増やさないのは、src/server/game/rules.ts が「人物像・知識・秘密・目的・嘘・記憶」の
+ * 6つを閉じた列挙で並べていて、そこに無い見出しは「使ってよいと言われていない情報」になるため。
+ * `unknown` の側を落とすのは、書かれていないことと「不詳という設定」を区別しないから。
+ * 落とせば、これまでどおり personality の文章だけが読まれる。
+ */
+const describePerson = (row: typeof characters.$inferSelect) =>
+  [
+    row.ageGroup === 'unknown'
+      ? undefined
+      : `年ごろは${AGE_GROUP_LABELS[row.ageGroup]}（${AGE_GROUP_NOTES[row.ageGroup]}）。`,
+    row.gender === 'unknown' ? undefined : `性別は${GENDER_LABELS[row.gender]}。`,
+  ]
+    .filter((part) => part !== undefined)
+    .join('')
+
+/**
  * NPCのプロンプトになる上限。全員共通の公開事件記録と、そのNPC自身の characters 行だけを使う。
  * scenario_truths や他人物の内部情報はここへ持ち込まない。
  */
-export const buildCharacterSheet = (row: typeof characters.$inferSelect, briefing: string) =>
-  `# ${row.name}
+export const buildCharacterSheet = (row: typeof characters.$inferSelect, briefing: string) => {
+  const person = describePerson(row)
+
+  return `# ${row.name}
 
 ## 事件の公開記録
 ${briefing}
 
 ## 人物像
-${row.personality}
+${person === '' ? row.personality : `${person}\n${row.personality}`}
 
 ## 知っていること
 ${row.knowledge}
@@ -62,6 +86,7 @@ ${row.lies}
 
 ## 記憶
 ${row.memories}`
+}
 
 /**
  * キャラクターシートは会話中まったく変化しない。毎ターンDBを叩くのは無駄なのでKVに置く。
@@ -190,6 +215,8 @@ export const loadJudgeRubric = async (
   const rubric = `あなたはマーダーミステリーの進行審判である。プレイヤーが指定した話題と、それを受けて探偵がNPCと交わしたやり取りを読み、以下を判定する。やり取りは同じ話題について複数の往復にわたることがあり、その全体をまとめて1回として判定する。
 
 - revealedEvidenceIds: 今回のやり取りで開示条件を満たした証拠のIDを列挙する。満たしていなければ空配列。
+  **プレイヤーが条件に関係する言葉を質問しただけでは、開示条件を満たしたことにならない。** NPCの返答または検分の返答で、条件に必要な事実が実際に確認されていること。
+  返答が「分からない」「確認できない」「その所見はない」など、必要な事実を否定または不明としている場合は、質問側に同じ言葉が含まれていても絶対に開示しない。
 - revealedRevelationIds: ユーザーメッセージ末尾の「今回判定可能なRevelation」に列挙された候補のうち、今回の会話で条件を満たしたIDだけを列挙する。候補外のIDを推測してはいけない。満たしていなければ空配列。
 - contradictionPointedOut: 探偵が過去の発言との矛盾を指摘できていたら true。
 - npcLied: NPCの返答が、その場しのぎの嘘や誤誘導を含んでいたら true。
@@ -209,6 +236,39 @@ ${evidenceList}`
   await kv.put(judgeRubricKey(scenarioId), rubric, { expirationTtl: JUDGE_RUBRIC_TTL_SECONDS })
 
   return rubric
+}
+
+/**
+ * そのシナリオに実在する証拠のID。判定が返したIDを突き合わせるためだけに使う。
+ *
+ * 判定ルールと同じ行から作れるが、あちらは1本の文字列なので読み返せない。
+ * 条件文を含まないぶん短く、真相も混ざらないので、別の鍵で持つ。
+ */
+export const loadEvidenceIds = async (
+  kv: KVNamespace,
+  db: Db,
+  scenarioId: string,
+): Promise<string[]> => {
+  const cached = await kv.get(evidenceIdsKey(scenarioId), 'json')
+
+  const parsed = z.array(z.string().nonempty()).safeParse(cached)
+
+  if (parsed.success) {
+    return parsed.data
+  }
+
+  const rows = await db
+    .select({ id: evidences.id })
+    .from(evidences)
+    .where(eq(evidences.scenarioId, scenarioId))
+
+  const ids = rows.map((row) => row.id)
+
+  await kv.put(evidenceIdsKey(scenarioId), JSON.stringify(ids), {
+    expirationTtl: JUDGE_RUBRIC_TTL_SECONDS,
+  })
+
+  return ids
 }
 
 const loadRevelationRules = async (
@@ -361,6 +421,7 @@ export const invalidateScenario = async (
     kv.delete(SCENARIO_LIST_KEY),
     kv.delete(judgeRubricKey(scenarioId)),
     kv.delete(judgeRevelationsKey(scenarioId)),
+    kv.delete(evidenceIdsKey(scenarioId)),
     kv.delete(hintSubjectsKey(scenarioId)),
     ...characterIds.map((id) => kv.delete(characterKey(id))),
   ])

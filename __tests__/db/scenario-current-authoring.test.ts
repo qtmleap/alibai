@@ -329,6 +329,22 @@ describe('scenario current authoring guide', () => {
     expect(violations).toEqual([])
   })
 
+  test('月見荘で遺体から死亡推定を開くなら、体温と硬直の所見を遺体側にも持つ', async () => {
+    const tsukimisou = (await scenarios()).find(({ file }) => file === 'tsukimisou.yaml')?.scenario
+
+    expect(tsukimisou).toBeDefined()
+    if (tsukimisou === undefined) return
+
+    const postmortem = tsukimisou.evidences.find((evidence) => evidence.id === 'postmortem-signs')
+    const findings =
+      tsukimisou.victim?.findings.map((finding) => finding.statement).join('\n') ?? ''
+
+    expect(postmortem?.revealsDeathTime).toBe(true)
+    expect(postmortem?.sources.some((source) => source.type === 'victim')).toBe(true)
+    expect(findings).toMatch(/温か|体温/)
+    expect(findings).toContain('硬直')
+  })
+
   test('精読で場所調査が有効と判断した事件には、空振りしない調査場所を置く', async () => {
     const violations: string[] = []
 

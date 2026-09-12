@@ -26,10 +26,18 @@ export const SCENARIO: ScenarioDetail = {
   difficulty: 2,
   estimatedMinutes: 10,
   synopsis: '閉店後の一時間。この六十分を、誰かひとりだけが説明しきれずにいます。',
+  /*
+   * 文面は mocks/_case.js の `briefLong` に揃えてある。
+   *
+   * モックは事件の記録を二本持つ——読み上げ用の `brief`（三段落）と、
+   * 支度の机で読みながら選ぶための `briefLong`（三人の申し立てを一段落ぶん足したもの）。
+   * こちらの `ScenarioDetail` は `briefing` 一本なので、その使い分けは再現できない。
+   * 長いほうに寄せてあるぶん、読み上げの画面だけモックより一段落多い。
+   */
   briefing: [
     '——事件の記録を読み上げます。',
     '午後七時十五分、商店街の古書店「青雨堂」で、店主の水野英治が店の奥で死亡しているのが見つかりました。外は夕方から激しい雨。閉店時刻は午後六時半でしたが、店内には高価な初版本の商談があり、何人かが遅くまで出入りしていました。',
-    '事件に関わるのは三人です。店員の牧野千尋、常連の収集家・黒田征司、向かいの喫茶店主・瀬名真琴。',
+    '事件に関わるのは三人です。店員の牧野千尋、常連の収集家・黒田征司、向かいの喫茶店主・瀬名真琴。牧野は「六時三十五分には発送のため郵便局へ出た」と話し、黒田は「閉店後は店の奥へ入っていない」と言い、瀬名は「店内の揉め事は何も知らない」と答えています。',
     '雨の日の商店街では、誰がどこにいたかが意外によく見えます。時刻の入った記録と三人の証言を照らし合わせ、嘘の理由と事件の真相を分けて考えてください。',
   ].join('\n\n'),
   floorPlan: null,
@@ -64,9 +72,24 @@ export const SCENARIO: ScenarioDetail = {
     },
   ],
   characters: [
-    { id: MAKINO, name: '牧野千尋', publicIntroduction: '店員。書誌と発送手順には強い' },
-    { id: KURODA, name: '黒田征司', publicIntroduction: '収集家。初版本の商談に来ていた' },
-    { id: SENA, name: '瀬名真琴', publicIntroduction: '向かいの喫茶店主。雨脚を見ていた' },
+    {
+      id: MAKINO,
+      name: '牧野千尋',
+      shortName: '牧野',
+      publicIntroduction: '店員。書誌と発送手順には強い',
+    },
+    {
+      id: KURODA,
+      name: '黒田征司',
+      shortName: '黒田',
+      publicIntroduction: '収集家。初版本の商談に来ていた',
+    },
+    {
+      id: SENA,
+      name: '瀬名真琴',
+      shortName: '瀬名',
+      publicIntroduction: '向かいの喫茶店主。雨脚を見ていた',
+    },
   ],
 }
 
@@ -310,6 +333,7 @@ export const DETECTIVES: DetectiveStore = {
       ageGroup: 'adult',
       gender: 'female',
       appearance: '背の低い痩身。読みかけの文庫をいつも外套の右に入れている。',
+      speech: '丁寧語だが素っ気ない。相手を名字で呼ぶ。',
     },
     {
       id: 'tohru',
@@ -317,36 +341,26 @@ export const DETECTIVES: DetectiveStore = {
       ageGroup: 'elder',
       gender: 'male',
       appearance: '白髪を短く刈った長身。杖はつくが足取りは速い。',
+      speech: '',
     },
-    { id: 'ash', name: '灰かぶり', ageGroup: 'unknown', gender: 'unknown', appearance: '' },
+    {
+      id: 'ash',
+      name: '灰かぶり',
+      ageGroup: 'unknown',
+      gender: 'unknown',
+      appearance: '',
+      speech: '',
+    },
   ],
   activeId: 'akari',
 }
 
-/** Google だけキー未設定。選べない提供元がある状態を見る。 */
+/** 互換サーバが数種類を返している状態。名前の付け方はサーバ次第なので、揃えない。 */
 export const LLM_SETTINGS: LlmSettingsResponse = {
-  providers: [
-    {
-      id: 'anthropic',
-      label: 'Anthropic',
-      available: true,
-      models: [
-        { id: 'claude-sonnet-5', label: 'Claude Sonnet 5' },
-        { id: 'claude-opus-5', label: 'Claude Opus 5' },
-      ],
-    },
-    {
-      id: 'openai',
-      label: 'OpenAI',
-      available: true,
-      models: [{ id: 'gpt-5', label: 'GPT-5' }],
-    },
-    {
-      id: 'google',
-      label: 'Google',
-      available: false,
-      models: [{ id: 'gemini-3-pro', label: 'Gemini 3 Pro' }],
-    },
+  models: [
+    { id: 'gpt-5.6-terra', label: 'gpt-5.6-terra' },
+    { id: 'gpt-5.6-luna', label: 'gpt-5.6-luna' },
+    { id: 'claude-sonnet-5', label: 'claude-sonnet-5' },
   ],
   roles: [
     { id: 'actor', label: '会話', note: 'NPCの受け答えと、探偵が組み立てる質問' },

@@ -200,16 +200,18 @@ const MotionCatalogue = () => (
       <Motion
         index="四"
         name="新事実発見"
-        why="記録は聞き込み中に画面上にないので、増えたことを帯で被せて知らせます。箱にはせず、二本の罫線と薄い覆いだけ。操作は塞がず 2.6 秒で引きます。祝いはしません——増えたのは事実であって手柄ではないので。"
+        why="記録は聞き込み中に画面上にないので、増えたことを帯で被せて知らせます。箱にはせず、二本の罫線だけ。後ろの字と重ならないよう地は透かしません。操作は塞がず 2.6 秒で引きます。祝いはしません——増えたのは事実であって手柄ではないので。"
       >
         <div className="relative flex h-full items-center overflow-hidden">
           <span className="text-[12px] leading-[1.9] text-nezumi-dim">
             窓口の受付は午後七時八分でした。レシートも残っています。
           </span>
-          <span className="band absolute inset-x-0 top-1/2 flex flex-col gap-[3px] border-asagi border-t border-b bg-sumi/95 py-[9px] [transform:translateY(-50%)]">
-            <span className="font-mono text-[9.5px] tracking-[0.24em] text-asagi-fg">新事実</span>
-            <span className="text-[12px] leading-[1.6]">
-              牧野は午後六時三十五分に店を出たと述べた
+          <span className="-translate-y-1/2 absolute inset-x-0 top-1/2 block">
+            <span className="band flex flex-col gap-[3px] border-asagi border-t border-b bg-sumi px-3 py-[9px]">
+              <span className="font-mono text-[9.5px] tracking-[0.24em] text-asagi-fg">新事実</span>
+              <span className="text-[12px] leading-[1.6]">
+                牧野は午後六時三十五分に店を出たと述べた
+              </span>
             </span>
           </span>
         </div>

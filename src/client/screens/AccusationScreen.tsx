@@ -1,4 +1,4 @@
-import { useId, useState } from 'react'
+import { type ReactNode, useId, useState } from 'react'
 import { AlibiChart, type AlibiPerson, type AlibiSegment } from '@/client/components/AlibiChart'
 import { CharacterAvatar, inkOf, surfaceOf } from '@/client/components/CharacterAvatar'
 import { Button } from '@/client/components/ui/button'
@@ -118,17 +118,69 @@ export const AccusationScreen = ({
         ]),
   ]
 
-  /** 帯のなかでの位置。端末側は幅が端末に依るので、px ではなく % で置く。 */
-  const ratio = (at: string): string => {
+  /** 帯のなかでの位置（%）。端末側は幅が端末に依るので、px ではなく % で置く。 */
+  const ratioNum = (at: string): number => {
     if (timeWindow === null) {
-      return '0%'
+      return 0
     }
 
     const from = toMinutes(timeWindow.start)
     const length = toMinutes(timeWindow.end) - from
 
-    return `${(((toMinutes(at) - from) / length) * 100).toFixed(1)}%`
+    return ((toMinutes(at) - from) / length) * 100
   }
+  const ratio = (at: string): string => `${ratioNum(at).toFixed(1)}%`
+  const leftOf = (pct: number): string => `${pct.toFixed(1)}%`
+  /** 端に寄った札は文字が画面の外へ出ないよう内側へ折り返す（机の DeadlineLabel と同じ判断）。 */
+  const railLabelAlign = (pct: number): string =>
+    pct < 24 ? '' : pct >= 72 ? '-translate-x-full text-right' : '-translate-x-1/2'
+
+  /*
+   * 端末の帯に置く「遺体発見・死亡推定」の印。机の AlibiChart（DeadlineMarks）と同じ規則を
+   * 横向きに言い換えたもの——遺体発見は常に実線、死亡推定は手に入れた確度で描き分ける。
+   * この画面だけの帯なので、机の縦向きの実装をそのまま流用できない。
+   */
+  const deathInfo = deadlineOf(scenario.victim, interrogation.estimatedDeathAt)
+
+  /** 一点を指す印。裏の取れていない見立てだけ点線にする（実線＝盤面が保証した情報）。 */
+  const RailTick = ({ pct, dotted }: { pct: number; dotted: boolean }) => (
+    <span
+      aria-hidden="true"
+      className={`absolute top-[4px] bottom-[48px] ${
+        dotted ? 'w-0 border-l border-l-nezumi-dim border-dotted' : 'w-px bg-nezumi-dim'
+      }`}
+      style={{ left: leftOf(pct) }}
+    />
+  )
+
+  /** 幅を指す窓。両端に返しを付け、面は塗らない（帯の色と競わせないため）。 */
+  const RailWindow = ({
+    fromPct,
+    toPct,
+    dotted,
+  }: {
+    fromPct: number
+    toPct: number
+    dotted: boolean
+  }) => (
+    <span
+      aria-hidden="true"
+      className={`before:-top-[3px] after:-top-[3px] absolute top-[88px] before:absolute before:left-0 before:h-[7px] before:w-px before:bg-nezumi-dim before:content-[''] after:absolute after:right-0 after:h-[7px] after:w-px after:bg-nezumi-dim after:content-[''] ${
+        dotted ? 'h-0 border-t border-t-nezumi-dim border-dotted' : 'h-px bg-nezumi-dim'
+      }`}
+      style={{ left: leftOf(fromPct), width: leftOf(toPct - fromPct) }}
+    />
+  )
+
+  /** 印の傍らに置く一行の札。等幅は時刻にだけ使う。 */
+  const RailLabel = ({ pct, children }: { pct: number; children: ReactNode }) => (
+    <span
+      className={`absolute top-[94px] whitespace-nowrap font-mincho text-[9.5px] text-nezumi tracking-[0.06em] ${railLabelAlign(pct)}`}
+      style={{ left: leftOf(pct) }}
+    >
+      {children}
+    </span>
+  )
 
   const canSubmit =
     culpritCharacterId !== undefined &&
@@ -173,7 +225,7 @@ export const AccusationScreen = ({
         <button
           type="button"
           onClick={onBack}
-          className="flex items-center gap-2 font-mono text-[9.5px] text-nezumi-dim tracking-[0.24em] lg:gap-3 lg:font-gothic lg:text-[12px] lg:tracking-normal"
+          className="flex items-center gap-2 font-mono text-[9.5px] text-nezumi-dim tracking-[0.24em] lg:gap-3 lg:font-gothic lg:text-[12px] lg:tracking-normal lg:hover:text-kinari"
         >
           {/* 矢印と文字の間合いは端末と机で違う。空白の文字を挟まず、間で開ける。 */}
           <span aria-hidden="true">←</span>
@@ -259,7 +311,7 @@ export const AccusationScreen = ({
             区間は薄く——机の実線／破線と同じ区別を、線の太さではなく濃さで言い換える。
           */}
           {timeWindow === null ? null : (
-            <div className="relative mt-[18px] mb-[14px] h-[106px] shrink-0 lg:hidden">
+            <div className="relative mt-[18px] mb-[14px] h-[136px] shrink-0 lg:hidden">
               {scenario.characters.map((character, index) => (
                 <div
                   key={character.id}
@@ -269,7 +321,8 @@ export const AccusationScreen = ({
                   <span
                     className={`-translate-y-[13px] absolute left-0 text-[10px] ${inkOf(index)}`}
                   >
-                    {character.name}
+                    {/* 帯の左端に置く名。段の幅は 3px しかないので、名字だけに畳む。 */}
+                    {character.shortName}
                   </span>
                   {segments
                     .filter((segment) => segment.who === character.id)
@@ -291,7 +344,7 @@ export const AccusationScreen = ({
               {/* 死亡推定は掴んで動かす目盛りと同じ描き方。ここは動かないが、朱で立てて唯一の刻限だと示す。 */}
               {deadline === undefined ? null : (
                 <span
-                  className="absolute top-[-4px] bottom-[18px] w-[1.5px] bg-shu"
+                  className="absolute top-[-4px] bottom-[57px] w-[1.5px] bg-shu"
                   style={{ left: ratio(deadline.at) }}
                 >
                   <span
@@ -304,9 +357,82 @@ export const AccusationScreen = ({
                 </span>
               )}
 
+              {/*
+                帯の下、軸の上に置く刻限の一段。遺体発見は常に実線、死亡推定は確度で描き分ける
+                （机の AlibiChart と同じ規則）。指名の目盛りと重なると読めなくなるので、
+                段の下（top:4〜88px）だけを使い、上の帯へは踏み込まない。
+              */}
+              {deathInfo === undefined ? null : (
+                <>
+                  {deathInfo.foundAt === undefined ? null : (
+                    <>
+                      <RailTick pct={ratioNum(deathInfo.foundAt)} dotted={false} />
+                      <RailLabel pct={ratioNum(deathInfo.foundAt)}>
+                        {'遺体発見　'}
+                        <span className="text-[9px] text-nezumi-dim">{deathInfo.foundAt}</span>
+                      </RailLabel>
+                    </>
+                  )}
+
+                  {deathInfo.death === undefined ? null : deathInfo.death.kind === 'fixed' ? (
+                    <>
+                      <RailTick pct={ratioNum(deathInfo.death.at)} dotted={false} />
+                      <RailLabel pct={ratioNum(deathInfo.death.at)}>
+                        {`${deathInfo.label}　`}
+                        <span className="text-[9px] text-nezumi-dim">{deathInfo.death.at}</span>
+                      </RailLabel>
+                    </>
+                  ) : deathInfo.death.kind === 'range' ? (
+                    <>
+                      <RailWindow
+                        fromPct={ratioNum(deathInfo.death.from)}
+                        toPct={ratioNum(deathInfo.death.to)}
+                        dotted={false}
+                      />
+                      <RailLabel
+                        pct={(ratioNum(deathInfo.death.from) + ratioNum(deathInfo.death.to)) / 2}
+                      >
+                        {`${deathInfo.label}　`}
+                        <span className="text-[9px] text-nezumi-dim">
+                          {`${deathInfo.death.from}–${deathInfo.death.to}`}
+                        </span>
+                      </RailLabel>
+                    </>
+                  ) : deathInfo.death.kind === 'claimed' ? (
+                    <>
+                      <RailTick pct={ratioNum(deathInfo.death.at)} dotted={true} />
+                      <RailLabel pct={ratioNum(deathInfo.death.at)}>
+                        {`${deathInfo.label}　`}
+                        <span className="text-[9px] text-nezumi-dim">{`? ${deathInfo.death.at}`}</span>
+                        {/* 誰の見立てかは札の尾に続ける。机には線の下の一段があるが、端末にその段が無いため。 */}
+                        <span
+                          className={`ml-[6px] ${inkOf(HUES.indexOf(deathInfo.death.by.hue))}`}
+                        >{`${deathInfo.death.by.name}の見立て`}</span>
+                      </RailLabel>
+                    </>
+                  ) : (
+                    // 不明。どこか一点を指せないので、分かっている幅ぜんぶを点線の窓で囲う。
+                    <>
+                      <RailWindow
+                        fromPct={0}
+                        toPct={deathInfo.foundAt === undefined ? 100 : ratioNum(deathInfo.foundAt)}
+                        dotted={true}
+                      />
+                      <RailLabel
+                        pct={
+                          (deathInfo.foundAt === undefined ? 100 : ratioNum(deathInfo.foundAt)) / 2
+                        }
+                      >
+                        {`${deathInfo.label}　`}
+                        <span className="text-[9px] text-nezumi-dim">?</span>
+                      </RailLabel>
+                    </>
+                  )}
+                </>
+              )}
+
               <div className="absolute inset-x-0 bottom-0 flex justify-between border-keisen border-t pt-[5px]">
                 <span className={CLOCK}>{timeWindow.start}</span>
-                {deadline === undefined ? null : <span className={CLOCK}>{deadline.at}</span>}
                 <span className={CLOCK}>{timeWindow.end}</span>
               </div>
             </div>
@@ -325,8 +451,12 @@ export const AccusationScreen = ({
                 return (
                   <label
                     key={character.id}
-                    className={`flex cursor-pointer items-center gap-[10px] border-keisen border-b py-[10px] text-[13px] has-[:focus-visible]:ring-1 has-[:focus-visible]:ring-nezumi lg:border-t lg:px-[14px] lg:py-[13px] lg:text-[13.5px] ${
-                      picked ? 'lg:border-b-shu' : ''
+                    /*
+                      触れた列にその人の顔料で線を立てる（指した相手は朱）。名前の色を
+                      行そのものに持たせて currentColor で引く——名簿の行と同じ引き方。
+                    */
+                    className={`flex cursor-pointer items-center gap-[10px] border-keisen border-b py-[10px] text-[13px] has-[:focus-visible]:ring-1 has-[:focus-visible]:ring-nezumi lg:border-t lg:px-[14px] lg:py-[13px] lg:text-[13.5px] lg:hover:bg-sumi-2 lg:hover:shadow-[inset_2px_0_0_currentColor] ${
+                      picked ? 'text-shu lg:border-b-shu' : inkOf(index)
                     } ${index === 0 ? '' : 'lg:border-l'}`}
                   >
                     {/* ラジオは見た目を持たせず、行そのものを押す場所にする。

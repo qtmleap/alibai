@@ -1,12 +1,12 @@
 import type { LanguageModelUsage, ProviderMetadata } from 'ai'
-import type { LlmChoice, LlmRole } from '@/server/llm/provider'
+import type { LlmRole } from '@/server/llm/provider'
 import type { llmUsages } from '~/db/schema'
 
 /**
  * LLM呼び出しの結果を llm_usages の1行に均す。
  *
- * actor と judge で同じ変換が要るのでここに置く。プロバイダごとに
- * 「どのフィールドに何が入るか」が違い、素直に書くと取りこぼすため。
+ * actor と judge で同じ変換が要るのでここに置く。未報告のトークン数の埋め方と、
+ * メタデータの読み方を1箇所に閉じ込めておかないと、呼び出しごとに取りこぼす。
  */
 
 /** usage のトークン数は軒並み number | undefined。未報告は0として数える。 */
@@ -16,9 +16,11 @@ const tokenCount = (value: number | undefined): number => (value === undefined ?
  * キャッシュ「書き込み」量。
  *
  * usage には入っておらず providerMetadata 側にしかないので、明示的に拾う。
- * Anthropicではキャッシュ書き込みが通常の入力より高い。ここを落とすと、
- * actor.ts が組んだキャッシュ設計の一番高い部分が請求書にだけ現れることになる。
- * anthropic以外のプロバイダはこのキーを持たないので0になる。
+ * キャッシュ書き込みを通常の入力より高く取るモデルがあり、ここを落とすと
+ * 一番高い部分が請求書にだけ現れることになる。
+ *
+ * 読んでいる `anthropic` は AI SDK がメタデータに付ける名前で、設定とは関係ない。
+ * 互換サーバがこの形で返さなければ 0 のままになる。
  */
 const cacheCreationTokens = (metadata: ProviderMetadata | undefined): number => {
   const value = metadata?.anthropic?.cacheCreationInputTokens
@@ -27,11 +29,6 @@ const cacheCreationTokens = (metadata: ProviderMetadata | undefined): number => 
 }
 
 export type UsageInput = {
-  /**
-   * その呼び出しで実際に使った組み合わせ。env から引き直さないこと。
-   * プレイヤーが画面でプロバイダを差し替えている場合、env の値は実態と食い違う。
-   */
-  choice: LlmChoice
   role: LlmRole
   /** 実際に応答したモデル。設定値ではなくレスポンスの modelId を渡すこと。 */
   model: string
@@ -46,7 +43,6 @@ export const toUsageRow = (input: UsageInput): typeof llmUsages.$inferInsert => 
   sessionId: input.sessionId,
   scenarioId: input.scenarioId,
   role: input.role,
-  provider: input.choice.provider,
   model: input.model,
   inputTokens: tokenCount(input.usage.inputTokens),
   outputTokens: tokenCount(input.usage.outputTokens),

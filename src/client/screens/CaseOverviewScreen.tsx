@@ -119,19 +119,32 @@ const NameRow = ({
   onClick,
 }: RowProps) => (
   <li className={`border-keisen border-b ${topRule ? 'lg:border-t' : ''}`}>
+    {/*
+      行の色にその人の顔料を持たせ、触れたときの線を currentColor で立てる。
+      色を決め打ちにすると、どの行を触っても同じ色の線が出て、行と人の結びつきが切れる。
+      押せない行（調べられない遺体）には出さない——反応があると押せると読める。
+    */}
     <button
       type="button"
       disabled={disabled}
       onClick={onClick}
       aria-pressed={active}
-      className="flex w-full items-center gap-2.5 py-[7px] text-left lg:gap-3 lg:py-2.5"
+      className={`flex w-full items-center gap-2.5 py-[7px] text-left lg:gap-3 lg:py-2.5 lg:pl-3 ${nameInk} ${
+        disabled ? '' : 'lg:hover:bg-sumi-2 lg:hover:shadow-[inset_2px_0_0_currentColor]'
+      }`}
     >
       {mark}
       <span className="flex min-w-0 flex-col gap-px lg:gap-0">
         <span className={`text-[13px] leading-[1.75] lg:text-[13.5px] lg:leading-[1.5] ${nameInk}`}>
           {name}
         </span>
-        <span className="text-[10.5px] text-nezumi-dim leading-[1.6] lg:text-[11.5px]">
+        {/*
+          机では一行に切る。紹介文は事件ごとに長さがまちまちで、折り返した行だけ背が伸び、
+          二列に畳んだ名簿では段ごと高さが変わる——触れたときの帯の高さも行によって変わってしまう。
+          モックの名簿は短い肩書ひとことで組んであるので、そちらの佇まいに合わせる。
+          （データが短い紹介文を持つようになったら、この切り落としは要らなくなる）
+        */}
+        <span className="text-[10.5px] text-nezumi-dim leading-[1.6] lg:truncate lg:text-[11.5px]">
           {introduction}
         </span>
       </span>
@@ -293,7 +306,7 @@ export const CaseOverviewScreen = ({
           <AlertDialogTrigger asChild>
             <button
               type="button"
-              className="font-mono text-[9.5px] text-nezumi-dim leading-[1.75] tracking-[0.24em] lg:font-gothic lg:text-xs lg:tracking-normal"
+              className="font-mono text-[9.5px] text-nezumi-dim leading-[1.75] tracking-[0.24em] lg:font-gothic lg:text-xs lg:tracking-normal lg:hover:text-kinari"
             >
               ←　事件を選ぶ
             </button>
@@ -333,8 +346,12 @@ export const CaseOverviewScreen = ({
             </span>
           </div>
 
-          {/* 事件の幅が長いと表は画面より背が高くなる。縮めずにここで送る（聞き込みと同じ）。 */}
-          <div className="min-h-0 flex-1 overflow-y-auto">
+          {/*
+            事件の幅が長いと表は画面より背が高くなる。縮めずにここで送る（聞き込みと同じ）。
+            伸びはしない（flex-1 を持たない）——余りを飲ませると、短い事件で凡例が
+            表から離れて画面の下端まで落ちる。溢れたときだけ縮んで、中を送る。
+          */}
+          <div className="min-h-0 shrink overflow-y-auto pb-2">
             <AlibiChart
               people={[...people, ...victimColumn]}
               segments={[]}
@@ -356,7 +373,7 @@ export const CaseOverviewScreen = ({
             線の意味は表のそばに置く。色は顔料に使い切っているので、
             裏付けの有無は実線と破線で分ける。
           */}
-          <div className="mt-4 flex items-center gap-5 text-[10.5px] text-nezumi-dim leading-[1.4]">
+          <div className="mt-2 flex items-center gap-5 text-[10.5px] text-nezumi-dim leading-[1.4]">
             <span className="inline-flex items-center gap-1.5">
               <span className="h-[3px] w-[14px] bg-nezumi" />
               <span className="text-nezumi">実線</span>

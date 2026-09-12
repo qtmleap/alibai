@@ -3,11 +3,15 @@ import {
   activeDetective,
   clearActiveDetective,
   type DetectiveStore,
+  detectiveRoster,
   EMPTY_STORE,
+  isPresetDetective,
+  PRESET_DETECTIVES,
   parseDetectiveStore,
   removeDetective,
   type StoredDetective,
   setActiveDetective,
+  TACHIBANA_SHERRY,
   toDetective,
   upsertDetective,
 } from '@/client/lib/detective-store'
@@ -18,6 +22,7 @@ const profile = (id: string, name: string): StoredDetective => ({
   ageGroup: 'young',
   gender: 'female',
   appearance: 'くたびれたコート',
+  speech: '',
 })
 
 const akari = profile('a', '日下部 灯')
@@ -109,6 +114,39 @@ describe('activeDetective', () => {
   })
 })
 
+describe('備え付けの探偵', () => {
+  test('1人も作っていなくても名簿には並ぶ', () => {
+    expect(detectiveRoster(EMPTY_STORE)).toEqual(PRESET_DETECTIVES)
+  })
+
+  test('作った探偵より前に並ぶ', () => {
+    const store: DetectiveStore = { profiles: [akari], activeId: undefined }
+
+    expect(detectiveRoster(store).map((p) => p.id)).toEqual([TACHIBANA_SHERRY.id, 'a'])
+  })
+
+  test('選べる', () => {
+    const selected = setActiveDetective(EMPTY_STORE, TACHIBANA_SHERRY.id)
+
+    expect(activeDetective(selected)?.name).toBe('橘シェリー')
+  })
+
+  test('選んでも保管庫には書かれない', () => {
+    expect(setActiveDetective(EMPTY_STORE, TACHIBANA_SHERRY.id).profiles).toEqual([])
+  })
+
+  test('選択中のまま読み直しても、選択が外れない', () => {
+    const parsed = parseDetectiveStore({ profiles: [], activeId: TACHIBANA_SHERRY.id })
+
+    expect(parsed.store.activeId).toBe(TACHIBANA_SHERRY.id)
+  })
+
+  test('備え付けかどうかを見分けられる', () => {
+    expect(isPresetDetective(TACHIBANA_SHERRY.id)).toBe(true)
+    expect(isPresetDetective('a')).toBe(false)
+  })
+})
+
 describe('clearActiveDetective', () => {
   test('選択だけ外し、保存済みの探偵は消さない', () => {
     const store: DetectiveStore = { profiles: [akari, tsubaki], activeId: 'a' }
@@ -126,6 +164,7 @@ describe('toDetective', () => {
       ageGroup: 'young',
       gender: 'female',
       appearance: 'くたびれたコート',
+      speech: '',
     })
   })
 })
@@ -150,8 +189,9 @@ describe('parseDetectiveStore', () => {
         ageGroup: 'young',
         gender: 'female',
         appearance: 'くたびれたコート',
+        speech: '',
       },
-      { id: 'b', name: '八千代 椿', ageGroup: 'elder', gender: 'male', appearance: '' },
+      { id: 'b', name: '八千代 椿', ageGroup: 'elder', gender: 'male', appearance: '', speech: '' },
     ])
     expect(parsed.store.activeId).toBe('a')
   })
@@ -187,6 +227,15 @@ describe('parseDetectiveStore', () => {
     const parsed = parseDetectiveStore({ profiles: [legacy.profiles[1]], activeId: 'a' })
 
     expect(parsed.store.activeId).toBeUndefined()
+  })
+
+  test('口調の欄が無かった頃の探偵を、消さずに空の口調で読み替える', () => {
+    const { speech, ...speechless } = akari
+    const parsed = parseDetectiveStore({ profiles: [speechless], activeId: 'a' })
+
+    expect(parsed.migrated).toBe(true)
+    expect(parsed.store.profiles).toEqual([{ ...akari, speech: '' }])
+    expect(parsed.store.activeId).toBe('a')
   })
 
   test('今の形はそのまま通り、書き戻しも起こさない', () => {

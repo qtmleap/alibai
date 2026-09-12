@@ -1,7 +1,6 @@
 import { z } from 'zod'
 import type { PlaySession } from '@/server/do/play-session'
 import type { RateLimiter } from '@/server/do/rate-limiter'
-import { llmProviderSchema } from '~/db/llm-catalog'
 
 /**
  * Workers のバインディング。
@@ -54,36 +53,28 @@ const optionalString = z.preprocess(
  * 未設定のまま動きだして、プレイ中に初めて落ちる事故を防ぐ。
  */
 const schema = z.object({
-  // 役割ごとに使うプロバイダ。3社を混在させてよい。
-  // 値の正典は db/llm-catalog.ts。ここで列挙し直すと、選択肢と受け入れ値が静かにずれる。
-  LLM_ACTOR_PROVIDER: llmProviderSchema.default('openai'),
-  LLM_JUDGE_PROVIDER: llmProviderSchema.default('openai'),
-  LLM_AUTHOR_PROVIDER: llmProviderSchema.default('openai'),
-
-  // 明示するとプロバイダ既定のモデルIDを上書きできる。
+  // 役割ごとに使うモデル。未設定なら db/llm-catalog.ts の既定。
+  // 互換サーバ独自のモデル名もそのまま書ける（突き合わせる表を持たないため）。
   LLM_ACTOR_MODEL: optionalString,
   LLM_JUDGE_MODEL: optionalString,
   LLM_AUTHOR_MODEL: optionalString,
 
-  // 使うプロバイダの分だけあればよい。
-  ANTHROPIC_API_KEY: optionalString,
+  /** 互換サーバの鍵。鍵を要らないサーバでも何か入れること（後述）。 */
   OPENAI_API_KEY: optionalString,
-  GOOGLE_GENERATIVE_AI_API_KEY: optionalString,
 
   /*
-    自前のゲートウェイを挟むときの向き先。未設定なら各社の本番エンドポイント。
+    LLMの向き先。どのモデルを選んでもここ1つへ、OpenAI互換の
+    `/chat/completions` として投げる（src/server/llm/provider.ts）。
+    選べるモデルの一覧もここに聞く（src/server/llm/models.ts）。
 
     ここを env として明示的に持つ必要がある。AI SDK は baseURL を渡さないと
     process.env の同名変数を見にいくが、Workers の isolate に process.env は無い。
-    .env に置いただけではローカルでしか効かず、デプロイした瞬間に本家へ向き直る——
+    .dev.vars に置いただけではローカルでしか効かず、デプロイした瞬間に本家へ向き直る——
     しかも例外は出ないので、請求とレイテンシが変わるまで誰も気づかない。
 
-    各社ともパスの接頭辞まで含めた値を入れること
-    （OpenAI 互換なら末尾は /v1、Google は /v1beta）。
+    パスの接頭辞まで含めた値を入れること（末尾は `/v1`）。
   */
-  ANTHROPIC_BASE_URL: optionalString,
-  OPENAI_BASE_URL: optionalString,
-  GOOGLE_GENERATIVE_AI_BASE_URL: optionalString,
+  OPENAI_URL: optionalString,
 
   /** 1プレイで使えるターン数。使い切ると質問できなくなり、推理に進む。 */
   MAX_TURNS: z.coerce.number().int().positive().default(15),
@@ -107,6 +98,12 @@ const schema = z.object({
    * llm_usages はこの対象外（コストの履歴は保持期間に引きずらせない）。
    */
   RETENTION_DAYS: z.coerce.number().int().positive().default(90),
+
+  /**
+   * 読み上げサーバ。未設定なら誰も喋らない（画面は今までどおり文字だけで進む）。
+   * 末尾のスラッシュは有っても無くてもよい。
+   */
+  TTS_URL: optionalString,
 })
 
 export type Env = z.infer<typeof schema>

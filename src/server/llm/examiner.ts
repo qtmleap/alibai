@@ -8,7 +8,7 @@ import {
 import type { Env } from '@/server/env'
 import { buildDetectiveBlock, buildDetectiveSelfBlock } from '@/server/llm/detective'
 import type { TopicExchange } from '@/server/llm/interviewer'
-import { cacheHint, type LlmChoice, resolveModel } from '@/server/llm/provider'
+import { resolveModel } from '@/server/llm/provider'
 import type { Detective } from '~/db/detective'
 
 export type ExaminationFocusResult = {
@@ -31,7 +31,7 @@ export type ExaminationFocusResult = {
  */
 export const composeExaminationFocus = async (params: {
   env: Env
-  choice: LlmChoice
+  modelId: string
   /** 何を調べに行くかの決まり。相手が遺体か場所かで文面が変わる。 */
   intentRules: string
   detective: Detective | undefined
@@ -42,7 +42,7 @@ export const composeExaminationFocus = async (params: {
 }): Promise<ExaminationFocusResult> => {
   // 調べどころはプレイヤー由来の文字列なので、必ず user ロールに閉じ込める。
   const result = await generateText({
-    model: resolveModel(params.env, params.choice),
+    model: resolveModel(params.env, params.modelId),
     system:
       params.detective === undefined
         ? params.intentRules
@@ -70,7 +70,7 @@ export const composeExaminationFocus = async (params: {
 
 export type ExaminationContext = {
   env: Env
-  choice: LlmChoice
+  modelId: string
   /**
    * 検分の語り口の決まり。会話中変わらないので先頭に置く。
    * 遺体なら `EXAMINATION_RULES`、場所なら `PLACE_EXAMINATION_RULES`。
@@ -85,13 +85,14 @@ export type ExaminationContext = {
   utterance: string
 }
 
-const buildDetectiveMessages = (detective: Detective | undefined): ModelMessage[] =>
-  detective === undefined ? [] : [{ role: 'system', content: buildDetectiveBlock(detective) }]
+/** 探偵の人物像。名乗らずに始めることもできるので、無ければ前置きごと出さない。 */
+const detectiveBlocks = (detective: Detective | undefined): string[] =>
+  detective === undefined ? [] : [buildDetectiveBlock(detective)]
 
 /**
  * 検分を書き起こす。遺体でも場所でも、渡すものが変わるだけで作りは同じ。
  *
- * 作りは `streamNpcReply` と同じ（プレフィックスを二段に分けてキャッシュを効かせる）。
+ * 作りは `streamNpcReply` と同じ（変わらない前置きを先に置いてキャッシュを効かせる）。
  * 違うのは相手が喋らないことだけで、渡すのが人物像ではなく所見のシートになる。
  *
  * ここは**言い換えだけをさせる経路**で、所見そのものはシナリオが決めている。
@@ -100,7 +101,7 @@ const buildDetectiveMessages = (detective: Detective | undefined): ModelMessage[
  */
 export const streamExamination = ({
   env,
-  choice,
+  modelId,
   examinationRules,
   sheet,
   detective,
@@ -108,23 +109,9 @@ export const streamExamination = ({
   utterance,
 }: ExaminationContext) =>
   streamText({
-    model: resolveModel(env, choice),
-    // 理由は streamNpcReply と同じ。ブロックごとにキャッシュの区切りを打つため。
-    allowSystemInMessages: true,
-    messages: [
-      {
-        role: 'system',
-        content: examinationRules,
-        providerOptions: cacheHint(choice),
-      },
-      {
-        role: 'system',
-        content: sheet,
-        providerOptions: cacheHint(choice),
-      },
-      ...buildDetectiveMessages(detective),
-      ...history,
-      { role: 'user', content: utterance },
-    ],
+    model: resolveModel(env, modelId),
+    // 理由は streamNpcReply と同じ。前置きは system オプションに一本化する。
+    system: [examinationRules, sheet, ...detectiveBlocks(detective)].join('\n\n'),
+    messages: [...history, { role: 'user', content: utterance }],
     maxOutputTokens: 1024,
   })

@@ -3,6 +3,7 @@ import type { Bindings } from '@/server/env'
 import { scenarioRoutes } from '@/server/routes/scenarios'
 import { sessionRoutes } from '@/server/routes/sessions'
 import { settingsRoutes } from '@/server/routes/settings'
+import { voiceRoutes } from '@/server/routes/voice'
 
 const app = new Hono<{ Bindings: Bindings }>()
 
@@ -18,6 +19,7 @@ app.get('/api/health', (c) => c.json({ status: 'ok' }))
 app.route('/', scenarioRoutes)
 app.route('/', sessionRoutes)
 app.route('/', settingsRoutes)
+app.route('/', voiceRoutes)
 
 app.onError((error, c) => {
   console.error('[unhandled]', error)

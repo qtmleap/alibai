@@ -132,6 +132,8 @@ characters:
   - id: mizuki
     name: 水城奈央
     publicIntroduction: "修復設計士。"
+    ageGroup: adult
+    gender: female
     personality: 理屈が明快な修復設計士で、建物の構造と工事手順に詳しい。鐘は高瀬が鳴らしたという前提を強調し、自分だけが仮設試験線を熟知していることには触れたがらない。
     goals:
       - 架空の追加工事請求を隠したい
@@ -168,6 +170,8 @@ characters:
   - id: kurokawa
     name: 黒川玲
     publicIntroduction: "文献には厳密だが建築設備には疎い研究者。"
+    ageGroup: adult
+    gender: female
     personality: 文献には厳密だが建築設備には疎い研究者。鐘を聞いたことは確かだが、音が鳴る仕組みまでは知らない。撮影禁止史料を写したことを隠している。
     goals:
       - 禁止史料の無断撮影を隠したい
@@ -194,6 +198,8 @@ characters:
   - id: genda
     name: 玄田修
     publicIntroduction: "長年勤める管理人。"
+    ageGroup: senior
+    gender: male
     personality: 長年勤める管理人。鍵の扱いにはうるさいが、工事中の仮設設備には疎い。無断で予備鍵を作ったため、鍵の話題になると妙に防御的になる。
     goals:
       - 無許可の予備鍵を隠したい

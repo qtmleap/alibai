@@ -152,6 +152,12 @@ const compileDefinition = (
     id: characterUuid(character.id),
     scenarioId,
     name: character.name,
+    // 書かれていなければフルネームをそのまま。帯が窮屈になるだけで、表示は壊れない。
+    shortName: character.shortName === undefined ? character.name : character.shortName,
+    ageGroup: character.ageGroup,
+    gender: character.gender,
+    voiceSeed: character.voiceSeed === undefined ? null : character.voiceSeed,
+    voiceCaption: character.voiceCaption === undefined ? null : character.voiceCaption,
     publicIntroduction: character.publicIntroduction,
     /*
       関係は「事実」ではなく「相手への態度」なので、知っていることに混ぜると
