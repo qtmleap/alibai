@@ -257,7 +257,11 @@ export const SettingsScreen = ({
           判定役の振る舞いを一つずつ試せます。既定はすべてオフで、入れたものだけ判定の出方が変わります。
         </p>
 
-        <div className="flex flex-col gap-[13px] lg:mt-[14px] lg:gap-0 lg:border-keisen lg:border-t">
+        {/*
+          端末でも行のあいだを空けない。他の節は二つ三つの行が離れて並ぶが、ここは四つで一組
+          ——同じ 13px を挟むと、切り替えが四つの節に分かれて見える。
+        */}
+        <div className="flex flex-col lg:border-keisen lg:border-t">
           {JUDGE_TUNING_KEYS.map((key) => (
             <ChoiceRow
               key={key}

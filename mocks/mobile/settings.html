@@ -56,6 +56,16 @@
           <p class="sum" style="margin: 0" id="sum" data-mock-id="ALI_SET_11"></p>
         </div>
 
+        <!--
+          判定役の振る舞いを一つずつ試すための区画。どれが効くかは遊んでみないと分からないので、
+          入れた回と切った回を混ぜて遊べるようにここへ置く。決着がついたら区画ごと消える。
+        -->
+        <div class="grp" data-mock-id="ALI_SET_17">
+          <div class="label">判定の調整</div>
+          <p class="fine" style="margin: 0">判定役の振る舞いを一つずつ試せます。既定はすべてオフで、入れたものだけ判定の出方が変わります。</p>
+          <div id="judge"></div>
+        </div>
+
         <!-- 演出の好み。記録の画面に切り替えを置くと毎回そこで一拍止まるので、こちらへ寄せる。 -->
         <div class="grp" data-mock-id="ALI_SET_12">
           <div class="label">事件の記録</div>
@@ -209,14 +219,64 @@
           ? '一段落ずつは、読む速さをあなたが握ります。'
           : 'せり上がるは速さが決まっているぶん、音は鳴りません。'
 
+        /*
+          判定の直しは四つとも入切だけ。名前と説明の出どころは db/judge-tuning.ts で、
+          ここはその写し——増減したときは向こうを直してからここへ写す。
+
+          狭い画面では名前・説明・入切を縦に積む。打鍵音の行と同じ組みで、
+          説明が操作の直前に来るぶん、名前に貼り付けると一かたまりに見える。
+        */
+        var JUDGE = [
+          { key: 'checkEvidenceIds', name: '証拠のIDを確かめる', note: '実在しない証拠や、すでに見つけた証拠を弾く' },
+          {
+            key: 'contradictionNeedsHistory',
+            name: '矛盾の判定に前のやり取りを渡す',
+            note: '前の発言と食い違っているかを、実際に読み比べて決める',
+          },
+          { key: 'fixedTemperature', name: '判定の揺れを抑える', note: '同じやり取りなら毎回同じ判定になるようにする' },
+          { key: 'retryOnce', name: '判定が落ちたらやり直す', note: '一度だけやり直す。落ちた回は発見が丸ごと消えるため' },
+        ]
+
+        document.getElementById('judge').innerHTML = JUDGE.map(function (t) {
+          return (
+            '<div class="role" data-mock-id="ALI_SET_18">' +
+            '<div class="nm">' +
+            Mock.esc(t.name) +
+            '</div><div class="ps" style="margin: 0">' +
+            Mock.esc(t.note) +
+            '</div><div class="modes" id="judge-' +
+            t.key +
+            '" data-mock-id="ALI_SET_19"></div></div>'
+          )
+        }).join('')
+
+        JUDGE.forEach(function (t) {
+          choices(
+            'judge-' + t.key,
+            [
+              { key: 'on', name: '入れる' },
+              { key: 'off', name: '入れない' },
+            ],
+            Mock.str(t.key, 'off'),
+            true,
+          )
+        })
+
         Array.prototype.forEach.call(document.querySelectorAll('[data-set]'), function (el) {
           el.addEventListener('click', function () {
             var kv = el.dataset.set.split('=')
-            location.hash =
-              'brief=' +
-              (kv[0] === 'brief' ? kv[1] : brief) +
-              '&sound=' +
-              (kv[0] === 'sound' ? kv[1] : sound)
+            // 判定の欄は id が judge- 付き。ハッシュへ書くときは接頭辞を外す。
+            var name = kv[0].indexOf('judge-') === 0 ? kv[0].slice(6) : kv[0]
+            var state = { brief: brief, sound: sound }
+            JUDGE.forEach(function (t) {
+              state[t.key] = Mock.str(t.key, 'off')
+            })
+            state[name] = kv[1]
+            location.hash = Object.keys(state)
+              .map(function (k) {
+                return k + '=' + state[k]
+              })
+              .join('&')
             location.reload()
           })
         })
