@@ -1,0 +1,481 @@
+diff --git a/.env.example b/.env.example
+index 3f55ec3dcc9a1476313fed51dc4ab1ef02fbbf0f..6a70547d4d53e1676b0f77639d79177ad0fdcbd0 100644
+--- a/.env.example
++++ b/.env.example
+@@ -27,3 +27,15 @@ LLM_AUTHOR_PROVIDER=anthropic
+ ANTHROPIC_API_KEY=
+ OPENAI_API_KEY=
+ GOOGLE_GENERATIVE_AI_API_KEY=
++
++# --- TTS: OpenAI互換の読み上げAPI ---
++# /v1 までのベースURL。実際の送信先は ${TTS_URL}/audio/speech。
++TTS_URL=https://ai.qleap.jp/v1
++# 必須: 上流で公開されているTTSモデルIDを指定する。モデル名は自動で推測しない。
++# TTS_URL または TTS_MODEL が空なら音声は無効（文字だけのプレイは継続）。
++TTS_MODEL=
++# 認証が必要なサーバのBearerキー。OPENAI_API_KEYは自動流用しない。
++TTS_API_KEY=
++# ローカルでは .dev.vars がある場合はそちらに設定する。
++# 本番は同名のWorkers設定/secretへ登録する。実キーはこのファイルに書かない。
++# 既存の話者IDを voice に渡すので、新しい上流にも同じIDの話者登録が必要。
+diff --git a/__tests__/api/voice.test.ts b/__tests__/api/voice.test.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..6a899b63bda3ab5d886b0bad02165ad7e40a342f
+--- /dev/null
++++ b/__tests__/api/voice.test.ts
+@@ -0,0 +1,177 @@
++import { afterEach, describe, expect, mock, spyOn, test } from 'bun:test'
++import { Hono } from 'hono'
++import { voiceRoutes } from '@/server/routes/voice'
++import { DETECTIVE_SPEAKER_ID } from '@/server/tts/irodori'
++
++const app = new Hono().route('/', voiceRoutes)
++const SESSION_ID = '8571c162-a7d4-4be9-a14c-2d4ea2780d4f'
++const MESSAGE_ID = 'a6659024-df73-4e52-b5c3-daa20ed206da'
++const PATH = `/api/sessions/${SESSION_ID}/messages/${MESSAGE_ID}/voice?line=0`
++const BASE_URL = 'https://ai.qleap.jp/v1'
++
++/** D1のI/O境界だけを代替し、ルートとDrizzleのSQL生成・行の復元は実物を通す。 */
++const fixture = (rows: (string | null)[][] = [['確認します。', 'user', 'victim', null]]) => {
++  const queries: string[] = []
++  const bindings: unknown[][] = []
++  const DB = {
++    prepare: (query: string) => {
++      queries.push(query)
++      return {
++        bind: (...values: unknown[]) => {
++          bindings.push(values)
++          return { raw: async () => rows }
++        },
++      }
++    },
++  }
++  const env = { DB, TTS_URL: BASE_URL, TTS_MODEL: 'test-tts', TTS_API_KEY: 'test-key' }
++  return { env, queries, bindings }
++}
++
++const capture = (
++  response = new Response(new Uint8Array([82, 73, 70, 70]), {
++    headers: { 'Content-Type': 'audio/wav' },
++  }),
++) => {
++  const requests: Request[] = []
++  spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
++    requests.push(new Request(input, init))
++    return response
++  })
++  return requests
++}
++
++const firstRequest = (requests: Request[]): Request => {
++  const request = requests[0]
++  if (request === undefined) throw new Error('TTS request was not sent')
++  return request
++}
++
++afterEach(() => mock.restore())
++
++describe('voice route', () => {
++  test('不正なIDは設定やDBに触る前に400', async () => {
++    const response = await app.request('/api/sessions/invalid/messages/invalid/voice?line=0')
++    expect(response.status).toBe(400)
++  })
++
++  test.each(['TTS_URL', 'TTS_MODEL'])('%s が空ならDBにも上流にも触れず503', async (key) => {
++    const { env, queries } = fixture()
++    const requests = capture()
++    const response = await app.request(PATH, undefined, { ...env, [key]: '' })
++    expect(response.status).toBe(503)
++    expect(queries).toEqual([])
++    expect(requests).toEqual([])
++  })
++
++  test('保存済みの発言を探偵の声で送り、音声だけを返す', async () => {
++    const { env, queries, bindings } = fixture()
++    const requests = capture()
++    const response = await app.request(PATH, undefined, env)
++    expect(response.status).toBe(200)
++    expect(response.headers.get('Content-Type')).toBe('audio/wav')
++    expect(response.headers.get('Cache-Control')).toBe('private, max-age=86400')
++    expect(response.headers.has('Authorization')).toBe(false)
++    expect(new Uint8Array(await response.arrayBuffer())).toEqual(new Uint8Array([82, 73, 70, 70]))
++    const request = firstRequest(requests)
++    expect(request.url).toBe(`${BASE_URL}/audio/speech`)
++    expect(request.headers.get('Authorization')).toBe('Bearer test-key')
++    expect(await request.json()).toEqual({
++      model: 'test-tts',
++      input: '確認します。',
++      voice: DETECTIVE_SPEAKER_ID,
++      response_format: 'wav',
++    })
++    expect(queries[0]).toContain('session_id')
++    expect(bindings[0]).toContain(SESSION_ID)
++    expect(bindings[0]).toContain(MESSAGE_ID)
++  })
++
++  test('指定された行だけを読み上げる', async () => {
++    const { env } = fixture([['一行目です。\n二行目です。', 'user', 'victim', null]])
++    const requests = capture()
++    const response = await app.request(PATH.replace('line=0', 'line=1'), undefined, env)
++    expect(response.status).toBe(200)
++    expect(await firstRequest(requests).json()).toEqual({
++      model: 'test-tts',
++      input: '二行目です。',
++      voice: DETECTIVE_SPEAKER_ID,
++      response_format: 'wav',
++    })
++  })
++
++  test('TTS専用キーがなければLLM用のキーを別の宛先へ流用しない', async () => {
++    const { env } = fixture()
++    const requests = capture()
++    const response = await app.request(PATH, undefined, {
++      ...env,
++      TTS_API_KEY: '',
++      OPENAI_API_KEY: 'private-llm-key',
++    })
++    expect(response.status).toBe(200)
++    expect(firstRequest(requests).headers.has('Authorization')).toBe(false)
++  })
++
++  test('上流が別の音声形式を返してもWAVと偽らない', async () => {
++    const { env } = fixture()
++    capture(new Response('audio', { headers: { 'Content-Type': 'audio/mpeg' } }))
++    const response = await app.request(PATH, undefined, env)
++    expect(response.status).toBe(200)
++    expect(response.headers.get('Content-Type')).toBe('audio/mpeg')
++  })
++
++  test.each([401, 429, 500])('上流のHTTP %s は本文を漏らさず502', async (status) => {
++    const { env } = fixture()
++    capture(new Response('sensitive upstream details', { status }))
++    const response = await app.request(PATH, undefined, env)
++    expect(response.status).toBe(502)
++    expect(await response.json()).toEqual({ error: 'synthesis failed' })
++  })
++
++  test('通信例外を音声だけの502に変換する', async () => {
++    const { env } = fixture()
++    spyOn(globalThis, 'fetch').mockRejectedValue(new Error('private network details'))
++    const response = await app.request(PATH, undefined, env)
++    expect(response.status).toBe(502)
++    expect(await response.json()).toEqual({ error: 'synthesis failed' })
++  })
++
++  test('200でも音声ではないJSONは返さない', async () => {
++    const { env } = fixture()
++    capture(Response.json({ error: 'private details' }))
++    const response = await app.request(PATH, undefined, env)
++    expect(response.status).toBe(502)
++    expect(await response.json()).toEqual({ error: 'synthesis failed' })
++  })
++
++  test('音声ヘッダーだけで本文がなければ502', async () => {
++    const { env } = fixture()
++    capture(new Response(null, { headers: { 'Content-Type': 'audio/wav' } }))
++    const response = await app.request(PATH, undefined, env)
++    expect(response.status).toBe(502)
++  })
++
++  test('セッション内に発言がなければ上流を呼ばず404', async () => {
++    const { env } = fixture([])
++    const requests = capture()
++    const response = await app.request(PATH, undefined, env)
++    expect(response.status).toBe(404)
++    expect(requests).toEqual([])
++  })
++
++  test('口にしていない話題を合成しない', async () => {
++    const { env } = fixture([['調べる話題', 'topic', 'victim', null]])
++    const requests = capture()
++    const response = await app.request(PATH, undefined, env)
++    expect(response.status).toBe(404)
++    expect(requests).toEqual([])
++  })
++
++  test('存在しない行は合成しない', async () => {
++    const { env } = fixture()
++    const requests = capture()
++    const response = await app.request(PATH.replace('line=0', 'line=99'), undefined, env)
++    expect(response.status).toBe(404)
++    expect(requests).toEqual([])
++  })
++})
+diff --git a/__tests__/server/tts.test.ts b/__tests__/server/tts.test.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..7c4472370f87e6f576f6f6b5c2075d7569126624
+--- /dev/null
++++ b/__tests__/server/tts.test.ts
+@@ -0,0 +1,127 @@
++import { afterEach, describe, expect, mock, spyOn, test } from 'bun:test'
++import { parseEnv } from '@/server/env'
++import { synthesize } from '@/server/tts/irodori'
++
++const BASE_URL = 'https://ai.qleap.jp/v1'
++const VOICE = { speakerId: 'test-speaker' }
++const OPTIONS = { model: 'test-tts', apiKey: 'test-key' }
++
++const capture = (
++  response = new Response('audio', { headers: { 'Content-Type': 'audio/wav' } }),
++) => {
++  const requests: Request[] = []
++  spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
++    requests.push(new Request(input, init))
++    return response
++  })
++  return { requests, response }
++}
++
++const firstRequest = (requests: Request[]): Request => {
++  const request = requests[0]
++  if (request === undefined) throw new Error('TTS request was not sent')
++  return request
++}
++
++afterEach(() => mock.restore())
++
++describe('OpenAI-compatible TTS', () => {
++  test.each([BASE_URL, `${BASE_URL}/`, `${BASE_URL}///`])(
++    'ベースURL %s から audio/speech を呼ぶ',
++    async (baseUrl) => {
++      const { requests } = capture()
++      await synthesize(baseUrl, '確認します。', VOICE, OPTIONS)
++      const request = firstRequest(requests)
++      expect(request.url).toBe(`${BASE_URL}/audio/speech`)
++      expect(request.method).toBe('POST')
++    },
++  )
++
++  test('登録話者・モデル・日本語の本文を互換形式で送り、WAVを明示する', async () => {
++    const { requests } = capture()
++    const text = '「記録」を確認します。\n次の行です。'
++    await synthesize(BASE_URL, text, VOICE, OPTIONS)
++    expect(await firstRequest(requests).json()).toEqual({
++      model: OPTIONS.model,
++      input: text,
++      voice: VOICE.speakerId,
++      response_format: 'wav',
++    })
++  })
++
++  test('APIキーをBearerヘッダーにだけ載せる', async () => {
++    const { requests } = capture()
++    await synthesize(BASE_URL, '確認します。', VOICE, OPTIONS)
++    const request = firstRequest(requests)
++    expect(request.headers.get('Authorization')).toBe('Bearer test-key')
++    expect(request.headers.get('Content-Type')).toBe('application/json')
++    expect(request.headers.get('Accept')).toBe('audio/wav')
++    expect(request.url).not.toContain(OPTIONS.apiKey)
++    expect(await request.text()).not.toContain(OPTIONS.apiKey)
++  })
++
++  test.each([undefined, ''])('APIキーが %s ならAuthorizationを送らない', async (apiKey) => {
++    const { requests } = capture()
++    await synthesize(BASE_URL, '確認します。', VOICE, { model: OPTIONS.model, apiKey })
++    expect(firstRequest(requests).headers.has('Authorization')).toBe(false)
++  })
++
++  test('キャンセルを上流のリクエストへ伝える', async () => {
++    const { requests } = capture()
++    const controller = new AbortController()
++    await synthesize(BASE_URL, '確認します。', VOICE, { ...OPTIONS, signal: controller.signal })
++    controller.abort()
++    expect(firstRequest(requests).signal.aborted).toBe(true)
++  })
++
++  test('認証付きリクエストのリダイレクトを追わない', async () => {
++    const { requests } = capture()
++    await synthesize(BASE_URL, '確認します。', VOICE, OPTIONS)
++    expect(firstRequest(requests).redirect).toBe('error')
++  })
++
++  test('音声をバッファリングせず上流のResponseを返す', async () => {
++    const { response } = capture()
++    const result = await synthesize(BASE_URL, '確認します。', VOICE, OPTIONS)
++    expect(result).toBe(response)
++    expect(response.bodyUsed).toBe(false)
++  })
++
++  test.each([401, 429, 500])('HTTP %s を呼び出し側で判定できる形で返す', async (status) => {
++    const { response } = capture(new Response('upstream error', { status }))
++    const result = await synthesize(BASE_URL, '確認します。', VOICE, OPTIONS)
++    expect(result).toBe(response)
++    expect(result.status).toBe(status)
++    expect(result.ok).toBe(false)
++  })
++
++  test('通信例外は呼び出し側へ伝える', async () => {
++    spyOn(globalThis, 'fetch').mockRejectedValue(new Error('network unavailable'))
++    await expect(synthesize(BASE_URL, '確認します。', VOICE, OPTIONS)).rejects.toThrow(
++      'network unavailable',
++    )
++  })
++})
++
++describe('TTS environment', () => {
++  test('接続先・モデル・専用キーをWorkersの設定から読む', () => {
++    const env = parseEnv({ TTS_URL: BASE_URL, TTS_MODEL: 'custom-tts', TTS_API_KEY: 'tts-key' })
++    expect(env.TTS_URL).toBe(BASE_URL)
++    expect(env.TTS_MODEL).toBe('custom-tts')
++    expect(env.TTS_API_KEY).toBe('tts-key')
++  })
++
++  test('空欄のTTS設定は未設定として扱う', () => {
++    const env = parseEnv({ TTS_URL: '', TTS_MODEL: '', TTS_API_KEY: '' })
++    expect(env.TTS_URL).toBeUndefined()
++    expect(env.TTS_MODEL).toBeUndefined()
++    expect(env.TTS_API_KEY).toBeUndefined()
++  })
++
++  test('TTSを設定しなくても、文字だけのプレイ用の設定を読める', () => {
++    const env = parseEnv({ OPENAI_API_KEY: 'llm-only-key' })
++    expect(env.TTS_URL).toBeUndefined()
++    expect(env.TTS_MODEL).toBeUndefined()
++    expect(env.TTS_API_KEY).toBeUndefined()
++  })
++})
+diff --git a/src/server/env.ts b/src/server/env.ts
+index f1d70cbbc390da0bda45a240122302157dc8ea81..432fbc1da1ea8250f8a6e3558a3b5306cb38bb82 100644
+--- a/src/server/env.ts
++++ b/src/server/env.ts
+@@ -100,10 +100,14 @@ const schema = z.object({
+   RETENTION_DAYS: z.coerce.number().int().positive().default(90),
+ 
+   /**
+-   * 読み上げサーバ。未設定なら誰も喋らない（画面は今までどおり文字だけで進む）。
+-   * 末尾のスラッシュは有っても無くてもよい。
++   * OpenAI互換の読み上げサーバ。`/v1` まで含める（末尾スラッシュは任意）。
++   * TTS_URL または TTS_MODEL が未設定なら、画面は文字だけで進む。
+    */
+   TTS_URL: optionalString,
++  /** 上流で公開されているTTSモデルID。互換サーバごとに違うため推測しない。 */
++  TTS_MODEL: optionalString,
++  /** TTS専用のBearerキー。OPENAI_API_KEYを別の宛先へ自動で流用しない。 */
++  TTS_API_KEY: optionalString,
+ })
+ 
+ export type Env = z.infer<typeof schema>
+diff --git a/src/server/routes/voice.ts b/src/server/routes/voice.ts
+index de404b522093e6d177eb45535ee2e4afa944e577..eba28b2745f0ca2bf28f3b6ad9ee0026c63054a7 100644
+--- a/src/server/routes/voice.ts
++++ b/src/server/routes/voice.ts
+@@ -50,9 +50,11 @@ const validateIds = createMiddleware<{
+ 
+ voiceRoutes.get('/api/sessions/:id/messages/:messageId/voice', validateIds, withEnv, async (c) => {
+   const ids = c.get('ids')
+-  const baseUrl = c.get('env').TTS_URL
++  const env = c.get('env')
++  const baseUrl = env.TTS_URL
++  const model = env.TTS_MODEL
+ 
+-  if (baseUrl === undefined) {
++  if (baseUrl === undefined || model === undefined) {
+     return c.json({ error: 'voice is not configured' }, 503)
+   }
+ 
+@@ -96,9 +98,26 @@ voiceRoutes.get('/api/sessions/:id/messages/:messageId/voice', validateIds, with
+     return c.json({ error: 'character has no voice' }, 404)
+   }
+ 
+-  const upstream = await synthesize(baseUrl, text, { speakerId })
++  const upstream = await synthesize(
++    baseUrl,
++    text,
++    { speakerId },
++    {
++      model,
++      apiKey: env.TTS_API_KEY,
++      signal: c.req.raw.signal,
++    },
++  ).catch(() => undefined)
++
++  if (upstream === undefined || !upstream.ok || upstream.body === null) {
++    await upstream?.body?.cancel().catch(() => undefined)
++    return c.json({ error: 'synthesis failed' }, 502)
++  }
+ 
+-  if (!upstream.ok) {
++  // 互換サーバのJSONエラーを音声と偽って返さない。上流の本文やヘッダーは公開しない。
++  const contentType = upstream.headers.get('Content-Type')
++  if (contentType === null || !contentType.toLowerCase().startsWith('audio/')) {
++    await upstream.body.cancel().catch(() => undefined)
+     return c.json({ error: 'synthesis failed' }, 502)
+   }
+ 
+@@ -108,7 +127,7 @@ voiceRoutes.get('/api/sessions/:id/messages/:messageId/voice', validateIds, with
+   */
+   return new Response(upstream.body, {
+     headers: {
+-      'Content-Type': 'audio/wav',
++      'Content-Type': contentType,
+       'Cache-Control': 'private, max-age=86400',
+     },
+   })
+diff --git a/src/server/tts/irodori.ts b/src/server/tts/irodori.ts
+index bb59345af300f71a7266dbb54b01c515af6bf1b5..62e8d7b27f12f2841ad3c5e3abc2aa1be07e893e 100644
+--- a/src/server/tts/irodori.ts
++++ b/src/server/tts/irodori.ts
+@@ -1,12 +1,11 @@
+ /**
+  * Irodori-TTS へ台詞を投げて音声を受け取る。
+  *
+- * 仕様の正典は各デプロイの `/openapi.json`。この実装は `POST /synth` を持つ形に合わせてある。
+- *
+- * 声の指定は `speaker_id`（登録済み話者）と `caption`（自由記述）の排他。
++ * OpenAI互換の `POST /audio/speech` を使う。baseUrl は `/v1` まで含める。
++ * 登録済み話者のIDは `voice` に載せ、モデルは上流で有効なIDを呼び出し側が指定する。
+  *
+  * 【外に出す前に必ず外すこと】
+- * いま使っているのは speaker_id のほう。登録話者は既存作品の登場人物で、しかも一体ずつに
++ * いま使っているのは登録話者のほう。登録話者は既存作品の登場人物で、しかも一体ずつに
+  * 実在の声優名が紐づいている。開発中に声の付いた画を確かめるための仮配線であって、
+  * このまま公開すると、本人の同意なく複製された声を配ることになる。
+  * 公開に向かうときは caption 側（`voiceCaption` / `voiceSeed` の列）へ戻す。
+@@ -104,16 +103,41 @@ export const assignSpeakers = <T extends Speaker>(
+ /** 登録話者で鳴らす。細かい調整は送らない——話者ごとの既定が上流にある。 */
+ export type Voice = { speakerId: string }
+ 
++/** 接続先ごとの設定。認証情報をDBの話者データやクライアントへ混ぜない。 */
++export type SpeechOptions = {
++  model: string
++  apiKey?: string
++  signal?: AbortSignal
++}
++
+ /**
+  * 上流の応答をそのまま返す。本文を isolate に溜めないのは、48kHz の wav が
+  * 短い台詞でも数百KBあり、同時に喋る人数だけ積み上がるため。
+  *
+- * 失敗しても throw しない。声が出ないことでプレイを止めたくないので、
+- * 呼び出し側が「音は無し」として畳めるように応答をそのまま渡す。
++ * HTTPエラーは応答のまま返す。通信例外とキャンセルはrejectするので、
++ * 呼び出し側で音声だけの失敗に変換する。本文や認証情報をエラーとして公開しない。
+  */
+-export const synthesize = async (baseUrl: string, text: string, voice: Voice): Promise<Response> =>
+-  fetch(`${baseUrl.replace(/\/+$/, '')}/synth`, {
++export const synthesize = async (
++  baseUrl: string,
++  text: string,
++  voice: Voice,
++  options: SpeechOptions,
++): Promise<Response> =>
++  fetch(`${baseUrl.replace(/\/+$/, '')}/audio/speech`, {
+     method: 'POST',
+-    headers: { 'Content-Type': 'application/json', Accept: 'audio/wav' },
+-    body: JSON.stringify({ text, speaker_id: voice.speakerId }),
++    headers: {
++      'Content-Type': 'application/json',
++      Accept: 'audio/wav',
++      ...(options.apiKey === undefined || options.apiKey === ''
++        ? {}
++        : { Authorization: `Bearer ${options.apiKey}` }),
++    },
++    body: JSON.stringify({
++      model: options.model,
++      input: text,
++      voice: voice.speakerId,
++      response_format: 'wav',
++    }),
++    signal: options.signal,
++    redirect: 'error',
+   })

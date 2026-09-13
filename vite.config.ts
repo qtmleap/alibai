@@ -72,7 +72,7 @@ const mockPreview = (): PluginOption => ({
 
 export default defineConfig({
   server: {
-    port: 15075,
+    port: 15375,
     // Dev Container の外（ホストのブラウザ）から到達できるようにする
     host: true,
   },
