@@ -702,7 +702,6 @@ describe('scenarioSolutionSchema', () => {
     summary: '真相',
     method: '毒殺',
     motive: '怨恨',
-    requiredFacts: ['fact'],
     secretKeywords: ['秘密'],
   }
 

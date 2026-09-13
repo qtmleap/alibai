@@ -45,9 +45,13 @@ victim:
       statement: 発見時、体にはまだ温かさが残っており、死後硬直も始まりかけた段階にとどまっている。
     - id: single-glass
       statement: 文机に、飲みかけのグラスが一つだけ置かれている。誰かと酌み交わした跡は無い。
+    - id: study-bottle
+      statement: 文机には瓶も一本置かれている。瓶とグラスがあることは確認できるが、中身の分析結果まではこの所見から分からない。
+    - id: heir-designation
+      statement: 文机の引き出しに、数ヶ月前の日付の後継者指定の控えがある。早坂美月を月見荘の後継者・遺産の受取人に指定すると記されている。
     # 後継者指定を知ってから読むと意味が変わる草案。順序を作るために前提を置く。
     - id: heir-draft
-      statement: 硯箱の下に、書き直しかけの遺言書の草案が伏せてある。後継者の項に線が引かれ、余白に書き込みがある。
+      statement: 硯箱の下に、書き直しかけの遺言書の草案が伏せてある。美月を指定した後継者の項に取り消し線が引かれ、余白には「指定を再検討」と書き込まれている。
       requires:
         evidences:
           - will-record
@@ -68,6 +72,8 @@ places:
     findings:
       - id: garden-unlocked
         statement: 薬草園に囲いも鍵も無い。母屋の誰でも、断らずに出入りできる。
+      - id: garden-register
+        statement: 栽培台帳に、管理者が桐生涼であることと、薬草園が研究用であることが記されている。出入りした人物や持ち出した人物の記録はない。
       - id: disturbed-plot
         statement: 畝の一角だけ土が新しく返されていて、株を掘り返した跡が残っている。
   - id: phone
@@ -77,7 +83,7 @@ places:
     situation: 扉が半分開いたままになっている
     findings:
       - id: phone-slip-marked
-        statement: 受話器のわきに度数を書き留める紙が挟まれていて、19時台の欄にだけ印が続いている。
+        statement: 受話器のわきの利用票に、深川の名、利用開始19時15分、終了19時45分が記されている。通話相手の記載はない。
       - id: phone-out-of-sight
         statement: 電話ボックスは母屋から離れていて、ここからは離れの様子がまったく見えない。
 briefing: |-
@@ -247,6 +253,15 @@ floorPlan:
 # 事件世界で真偽が固定された事実。文脈なしで意味が通る一文にする。
 # ここが人物の証言・timeline・証拠の supports から参照される唯一の原本になる。
 facts:
+  - id: phone-log-records-fukagawa
+    statement: 電話ボックスの利用票には、深川の利用開始が19時15分、終了が19時45分と記されている。通話相手の記載はない
+    kind: physical
+  - id: garden-register-names-kiryu
+    statement: 薬草園の栽培台帳には研究用の管理者として桐生涼の名があり、出入りや持ち出しをした人物の記録はない
+    kind: physical
+  - id: study-bottle-and-glass
+    statement: 発見時、書斎の文机には瓶とグラスが一つずつ置かれていた
+    kind: observation
   - id: fukagawa-is-accountant
     statement: 深川誠也は「月見荘」の経理を長年任されている税理士である
     kind: other
@@ -334,7 +349,6 @@ timeline:
       - kiryu
     facts:
       - fukagawa-left-1915
-      - fukagawa-at-phone-booth
     description: 深川が電話のため一時的に席を外す。桐生が廊下でこれを見ている。
   - id: ryoko-to-study
     at: 19:20
@@ -344,6 +358,17 @@ timeline:
     facts:
       - ryoko-moved-to-study-1920
     description: 涼子が書斎に移動し、一人で仕事を始める。
+  - id: fukagawa-phone-call
+    at: 19:30
+    location: 電話ボックス
+    room: phone
+    participants:
+      - fukagawa
+    facts:
+      - phone-log-records-fukagawa
+      - fukagawa-at-phone-booth
+    record: 利用票
+    description: 深川は外の電話ボックスにいる。利用票には19時15分から19時45分までの利用が記されている。
   - id: kiryu-argument
     at: 19:35
     location: 書斎
@@ -371,6 +396,7 @@ timeline:
     room: corridor
     participants:
       - kiryu
+      - mizuki
     facts:
       - kiryu-passed-mizuki-1950
     description: 桐生が廊下で、書斎へ向かう手ぶらの美月とすれ違う。
@@ -480,7 +506,7 @@ characters:
         disclosure: pressured
     lies:
       - id: mizuki-single-visit
-        about: mizuki-poisoned-brandy-1950
+        about: kiryu-passed-mizuki-1950
         claim: 書斎に行ったのは20時に一度きり。19時50分に廊下で見たというなら、人違いじゃないですか
         strategy: maintain
     memories:
@@ -501,6 +527,8 @@ characters:
     knowledge:
       - kiryu-is-doctor
       - kiryu-grows-aconite
+      - garden-register-names-kiryu
+      - phone-log-records-fukagawa
       - dinner-started-1900
       - fukagawa-left-1915
       - fukagawa-returned-1945
@@ -515,6 +543,8 @@ characters:
         claim: 夕食会の19時からずっと食堂か廊下にいて、書斎には近づいていない
         strategy: maintain-until-contradicted
     memories:
+      - id: checked-phone-log
+        detail: 発見後、電話ボックスの利用票を確認した。深川の名と19時15分から19時45分までの利用が記されていたが、通話相手は分からない。
       - id: long-devotion
         detail: 若い頃からずっと涼子を支えてきた。
       - id: the-quiet-shock
@@ -539,10 +569,10 @@ revelations:
     sources:
       - type: character
         id: mizuki
-        revealCondition: 美月に月見荘の後継者や遺産について尋ね、美月自身が後継者・受取人に指定されていたと認めた。
-        requires:
-          revelations: []
-          evidences: []
+        revealCondition: 美月自身が、月見荘の後継者・遺産の受取人に指定されていたと返答で認めた。
+      - type: victim
+        id: victim
+        revealCondition: 検分の返答で、後継者指定の控えに美月を後継者・遺産の受取人に指定すると記されていることを確認した。
     relatedFacts:
       - mizuki-named-heir
   - id: heir-anxiety
@@ -555,12 +585,13 @@ revelations:
     sources:
       - type: character
         id: mizuki
-        revealCondition: 後継者指定が見直される可能性や、美月がそれをどう受け止めたかを追及し、美月の焦りが明確に伝わった。
+        revealCondition: 美月自身が、後継者指定を見直すと涼子から聞かされ、指定が覆ることを恐れていたと返答で認めた。動揺や沈黙だけでは成立しない。
         requires:
           revelations:
             - mizuki-is-heir
           evidences:
             - will-record
+            - will-draft
     relatedFacts:
       - ryoko-reconsidering-heir
 # reveal.condition は Judge のルーブリックへ 1件1行で並ぶ
@@ -572,19 +603,17 @@ revelations:
 # プレイヤーは最後まで刻限を知らないまま告発することになる。
 evidences:
   - id: phone-record
-    label: 深川の携帯電話の発着信履歴
-    description: 19時15分から19時45分の間、旅館の外から愛人へ発信した記録が残っている。
+    label: 電話ボックスの利用記録
+    description: 利用票に深川の名と19時15分から19時45分までの利用が記されている。通話相手までは分からない。
     reveal:
-      condition: プレイヤーが深川に「19時30分、本当に書斎で涼子さんと会ったのか」のように問い詰め、深川が動揺して言い訳を始めたら開示する。または桐生に「19時15分から19時45分の間、深川さんはどこにいたか」と尋ね、桐生が「廊下の電話ボックスにいた深川を見た」と答えたら開示する。または電話ボックスを調べ、19時台に使われた跡を確かめたら開示する。
+      condition: 電話ボックスの検分、または利用票を確認した桐生の返答で、深川の名と利用開始19時15分・終了19時45分の記載が実際に確認された場合に開示する。席を外したという話や動揺だけでは開示しない。
     sources:
-      - type: character
-        id: fukagawa
       - type: character
         id: kiryu
       - type: location
         id: phone
     supports:
-      - fukagawa-at-phone-booth
+      - phone-log-records-fukagawa
     contradicts:
       - lie:fukagawa-study-alibi
   - id: corridor-sighting
@@ -595,36 +624,33 @@ evidences:
     sources:
       - type: character
         id: kiryu
-      - type: location
-        id: corridor
     supports:
       - kiryu-passed-mizuki-1950
     contradicts:
       - lie:mizuki-single-visit
   - id: garden-record
-    label: 旅館裏庭の薬草園とトリカブトの管理記録
-    description: 研究用に栽培されていた株の記録。持ち出しの管理は緩い。
+    label: 薬草園の栽培台帳
+    description: 台帳は、薬草園が研究用で管理者が桐生であることを示している。出入りや持ち出しをした人物は特定できない。
     reveal:
-      condition: プレイヤーが桐生に薬草園やトリカブトの栽培について尋ね、桐生が研究用に育てていたことを認めたら開示する。または美月に毒の入手経路について尋ね、美月が薬草園の存在を口にしたら開示する。または薬草園を調べ、掘り返された株の跡に行き当たったら開示する。
+      condition: 桐生の返答または薬草園の検分で、栽培台帳に研究用の管理者として桐生の名が記されていることを確認した場合に開示する。土が掘り返されていることや薬草園の存在に触れただけでは開示しない。
     sources:
       - type: character
         id: kiryu
-      - type: character
-        id: mizuki
       - type: location
         id: garden
     supports:
-      - kiryu-grows-aconite
-      - mizuki-took-aconite
+      - garden-register-names-kiryu
     contradicts: []
   - id: will-record
-    label: 涼子の遺言書に記された後継者指定
-    description: 数ヶ月前の日付で、美月を後継者・遺産の受取人に指定している。
+    label: 美月への後継者指定
+    description: 数ヶ月前、涼子は美月を月見荘の後継者・遺産の受取人に指定していた。
     reveal:
-      condition: プレイヤーが美月に「月見荘の跡継ぎについて涼子さんと何か話していたか」と尋ね、美月が後継者に指定されていたことを認めたら開示する。
+      condition: 美月の返答で後継者・遺産の受取人に指定されていたことが認められた場合、または検分の返答で後継者指定の控えに同じ記載が確認された場合に開示する。跡継ぎについて質問しただけでは開示しない。
     sources:
       - type: character
         id: mizuki
+      - type: victim
+        id: victim
     supports:
       - mizuki-named-heir
     contradicts: []
@@ -633,7 +659,7 @@ evidences:
     label: 書き直しかけの遺言書の草案
     description: 後継者の項に線が引かれ、余白に書き込みがある。日付はごく最近。
     reveal:
-      condition: プレイヤーが遺体または書斎の文机まわりを調べ、探偵が硯箱の下の草案に触れたら開示する。
+      condition: 検分の返答で、硯箱の下の草案にある後継者欄の取り消し線と「指定を再検討」の書き込みを実際に確認した場合に開示する。草案の名前に触れただけでは開示しない。
     sources:
       - type: victim
         id: victim
@@ -670,38 +696,31 @@ evidences:
     # 拠りどころを盤面が持てるようになってからの仕事（docs/design/deadline-window.md）。
     revealsDeathTime: true
   - id: brandy-bottle
-    label: 書斎に残されたブランデーの瓶とグラス
-    description: 瓶とグラスの双方から毒物の反応が出ている。
+    label: 書斎に残された瓶とグラス
+    description: 文机に瓶とグラスが一つずつ残されている。これは置かれていた物の確認であり、中身の分析結果を示すものではない。
     reveal:
-      condition: プレイヤーが美月に「20時に書斎へ運んだブランデーの様子」を尋ねるか、桐生に「涼子さんが倒れていた時、手元に何があったか」を尋ねたら開示する。
+      condition: 検分の返答で、書斎の文机に瓶とグラスが一つずつ残されていることを実際に確認した場合に開示する。中身について質問しただけの場合や、確認できないと返答された場合には開示しない。
     sources:
-      - type: character
-        id: mizuki
-      - type: character
-        id: kiryu
-      - type: location
-        id: study
+      - type: victim
+        id: victim
     supports:
-      - ryoko-drank-at-2015
-      - brandy-was-poisoned
+      - study-bottle-and-glass
     contradicts: []
   - id: argument-memory
     label: 涼子と桐生が交わした口論の記憶
     description: 19時35分ごろ、書斎で経営方針を巡って交わされた短い口論。
     reveal:
-      condition: プレイヤーが桐生に「事件前に涼子さんと何か揉め事はなかったか」と繰り返し尋ね、桐生が根負けして19時35分の口論を認めたら開示する。
+      condition: 桐生自身が、19時35分ごろに書斎で涼子と経営方針を巡って口論したと返答で認めた場合に開示する。質問の反復や動揺だけでは開示しない。
     sources:
       - type: character
         id: kiryu
-      - type: location
-        id: study
     supports:
       - kiryu-argued-with-ryoko-1935
     contradicts:
       - lie:kiryu-never-entered-study
 solution:
   culprit: mizuki
-  summary: 犯人は早坂美月。月見荘と遺産の後継者指定が覆るかもしれないという焦りから、19時50分ごろ書斎に忍び込み、旅館裏庭の薬草園にあったトリカブトの粉末をブランデーの瓶に混入した。20時に何食わぬ顔でそのブランデーを涼子に届け、20時15分ごろ涼子が口にして中毒死した。美月は「書斎に行ったのは20時の一度きり」と嘘をついているが、19時50分に廊下で桐生とすれ違っており、この目撃証言と美月自身の証言の間に矛盾が生まれる。もう一つ、深川は「19時30分に書斎で涼子と話した」と嘘の証言をしているが、桐生は19時15分から19時45分まで深川が電話ボックスにいたのを見ており、こちらも証言同士が食い違う。
+  summary: 犯人は早坂美月。月見荘と遺産の後継者指定が覆るかもしれないという焦りから、19時50分ごろ書斎に忍び込み、旅館裏庭の薬草園にあったトリカブトの粉末をブランデーの瓶に混入した。20時に何食わぬ顔でそのブランデーを涼子に届け、20時15分ごろ涼子が口にして中毒死した。美月は「書斎に行ったのは20時の一度きり」と嘘をついているが、19時50分に廊下で桐生とすれ違っており、この目撃証言と美月自身の証言の間に矛盾が生まれる。もう一つ、深川は「19時30分に書斎で涼子と話した」と嘘の証言をしているが、電話ボックスの利用票には19時15分から19時45分までの深川の利用が記されており、こちらは記録と証言が食い違う。桐生は発見後にその利用票を確認している。
   method: 旅館裏庭の薬草園にあったトリカブトの粉末をブランデーの瓶に混入し、それを本人に届けて飲ませた毒殺
   motive: 後継者指定が覆ることへの焦り
   # ここに登場人物名や「トリカブト」のような単語をそのまま入れてはいけない。
