@@ -50,9 +50,11 @@ const validateIds = createMiddleware<{
 
 voiceRoutes.get('/api/sessions/:id/messages/:messageId/voice', validateIds, withEnv, async (c) => {
   const ids = c.get('ids')
-  const baseUrl = c.get('env').TTS_URL
+  const env = c.get('env')
+  const baseUrl = env.OPENAI_URL
+  const model = env.TTS_MODEL
 
-  if (baseUrl === undefined) {
+  if (baseUrl === undefined || model === undefined) {
     return c.json({ error: 'voice is not configured' }, 503)
   }
 
@@ -96,9 +98,26 @@ voiceRoutes.get('/api/sessions/:id/messages/:messageId/voice', validateIds, with
     return c.json({ error: 'character has no voice' }, 404)
   }
 
-  const upstream = await synthesize(baseUrl, text, { speakerId })
+  const upstream = await synthesize(
+    baseUrl,
+    text,
+    { speakerId },
+    {
+      model,
+      apiKey: env.OPENAI_API_KEY,
+      signal: c.req.raw.signal,
+    },
+  ).catch(() => undefined)
 
-  if (!upstream.ok) {
+  if (upstream === undefined || !upstream.ok || upstream.body === null) {
+    await upstream?.body?.cancel().catch(() => undefined)
+    return c.json({ error: 'synthesis failed' }, 502)
+  }
+
+  // 互換サーバのJSONエラーを音声と偽って返さない。上流の本文やヘッダーは公開しない。
+  const contentType = upstream.headers.get('Content-Type')
+  if (contentType === null || !contentType.toLowerCase().startsWith('audio/')) {
+    await upstream.body.cancel().catch(() => undefined)
     return c.json({ error: 'synthesis failed' }, 502)
   }
 
@@ -108,7 +127,7 @@ voiceRoutes.get('/api/sessions/:id/messages/:messageId/voice', validateIds, with
   */
   return new Response(upstream.body, {
     headers: {
-      'Content-Type': 'audio/wav',
+      'Content-Type': contentType,
       'Cache-Control': 'private, max-age=86400',
     },
   })
