@@ -100,10 +100,14 @@ const schema = z.object({
   RETENTION_DAYS: z.coerce.number().int().positive().default(90),
 
   /**
-   * 読み上げサーバ。未設定なら誰も喋らない（画面は今までどおり文字だけで進む）。
-   * 末尾のスラッシュは有っても無くてもよい。
+   * 読み上げに使うモデルID。宛先と鍵は LLM と同じ `OPENAI_URL` / `OPENAI_API_KEY` で、
+   * 読み上げだけ別のサーバに置いてはいない——どちらも同じOpenAI互換サーバの口
+   * （`/chat/completions` と `/audio/speech`）を叩くため。
+   *
+   * モデルIDだけは互換サーバごとに違うので推測せず、ここに明示する。
+   * 未設定なら画面は今までどおり文字だけで進む。
    */
-  TTS_URL: optionalString,
+  TTS_MODEL: optionalString,
 })
 
 export type Env = z.infer<typeof schema>

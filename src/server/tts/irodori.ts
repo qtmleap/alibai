@@ -1,12 +1,12 @@
 /**
  * Irodori-TTS へ台詞を投げて音声を受け取る。
  *
- * 仕様の正典は各デプロイの `/openapi.json`。この実装は `POST /synth` を持つ形に合わせてある。
- *
- * 声の指定は `speaker_id`（登録済み話者）と `caption`（自由記述）の排他。
+ * OpenAI互換の `POST /audio/speech` を使う。baseUrl は `/v1` まで含める。
+ * 宛先はLLMと同じ互換サーバで、読み上げ専用の接続先は持たない（`OPENAI_URL`）。
+ * 登録済み話者のIDは `voice` に載せ、モデルは上流で有効なIDを呼び出し側が指定する。
  *
  * 【外に出す前に必ず外すこと】
- * いま使っているのは speaker_id のほう。登録話者は既存作品の登場人物で、しかも一体ずつに
+ * いま使っているのは登録話者のほう。登録話者は既存作品の登場人物で、しかも一体ずつに
  * 実在の声優名が紐づいている。開発中に声の付いた画を確かめるための仮配線であって、
  * このまま公開すると、本人の同意なく複製された声を配ることになる。
  * 公開に向かうときは caption 側（`voiceCaption` / `voiceSeed` の列）へ戻す。
@@ -105,15 +105,50 @@ export const assignSpeakers = <T extends Speaker>(
 export type Voice = { speakerId: string }
 
 /**
+ * 呼び出しごとの設定。認証情報をDBの話者データやクライアントへ混ぜない。
+ * `/audio/speech` は今のところ鍵を要らないが、有れば載せる——LLMと同じサーバなので
+ * 後から認証が入ったときに、ここだけ 401 で黙ることにならない。
+ */
+export type SpeechOptions = {
+  model: string
+  apiKey?: string
+  signal?: AbortSignal
+}
+
+/**
  * 上流の応答をそのまま返す。本文を isolate に溜めないのは、48kHz の wav が
  * 短い台詞でも数百KBあり、同時に喋る人数だけ積み上がるため。
  *
- * 失敗しても throw しない。声が出ないことでプレイを止めたくないので、
- * 呼び出し側が「音は無し」として畳めるように応答をそのまま渡す。
+ * HTTPエラーは応答のまま返す。通信例外とキャンセルはrejectするので、
+ * 呼び出し側で音声だけの失敗に変換する。本文や認証情報をエラーとして公開しない。
  */
-export const synthesize = async (baseUrl: string, text: string, voice: Voice): Promise<Response> =>
-  fetch(`${baseUrl.replace(/\/+$/, '')}/synth`, {
+export const synthesize = async (
+  baseUrl: string,
+  text: string,
+  voice: Voice,
+  options: SpeechOptions,
+): Promise<Response> =>
+  fetch(`${baseUrl.replace(/\/+$/, '')}/audio/speech`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Accept: 'audio/wav' },
-    body: JSON.stringify({ text, speaker_id: voice.speakerId }),
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'audio/wav',
+      ...(options.apiKey === undefined || options.apiKey === ''
+        ? {}
+        : { Authorization: `Bearer ${options.apiKey}` }),
+    },
+    body: JSON.stringify({
+      model: options.model,
+      input: text,
+      voice: voice.speakerId,
+      response_format: 'wav',
+    }),
+    signal: options.signal,
+    /*
+      鍵を載せたまま転送先を追わない。`error` ではなく `manual` なのは、workerd の
+      fetch が `error` を受け取ると即座に投げるため——呼び出し側から見ると通信断と
+      区別が付かず、502 に畳まれて原因が見えなくなる。`manual` なら 3xx がそのまま
+      応答として返り、`ok` が false になって同じ扱いに落ちる。
+    */
+    redirect: 'manual',
   })
