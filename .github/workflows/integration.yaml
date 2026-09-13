@@ -30,11 +30,14 @@ jobs:
           bun install conventional-changelog-conventionalcommits
           bun install @commitlint/config-conventional@latest
           bun install commitlint@latest
+      # 起点は base の SHA。`head~<commits>` だと ~ が第一親だけを遡るので、
+      # マージコミットを含む PR（develop→master のリリースなど）では本筋の外まで
+      # 戻り、この PR が持ち込んでいない過去のコミットまで検査対象に入る。
       - name: Validate PR commits
         if: github.event_name == 'pull_request'
         run: |
           bunx commitlint \
-            --from ${{ github.event.pull_request.head.sha }}~${{ github.event.pull_request.commits }} \
+            --from ${{ github.event.pull_request.base.sha }} \
             --to ${{ github.event.pull_request.head.sha }} \
             --verbose
       - name: Validate last commit
