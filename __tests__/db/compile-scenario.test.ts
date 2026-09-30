@@ -57,13 +57,12 @@ const makeMinimal = (): ScenarioDefinitionInput => ({
     category: 'テスト',
     difficulty: 1,
     estimatedMinutes: 5,
-    tags: [],
   },
   briefing: '何かが起きたらしい。',
   floorPlan: null,
   facts: [
     { id: 'fact-open', statement: '誰でも知っている事実', kind: 'observation' },
-    { id: 'fact-never', statement: '決して認めない事実', kind: 'truth', secret: true },
+    { id: 'fact-never', statement: '決して認めない事実', kind: 'truth' },
     { id: 'fact-pressured', statement: '追及されれば認める事実', kind: 'testimony' },
     { id: 'fact-voluntary', statement: '自分から話してよい事実', kind: 'other' },
   ],
@@ -108,7 +107,7 @@ const makeMinimal = (): ScenarioDefinitionInput => ({
           strategy: 'evasive',
         },
       ],
-      memories: [{ id: 'memory-alpha', about: 'fact-open', detail: 'その日は雨だった。' }],
+      memories: [{ id: 'memory-alpha', detail: 'その日は雨だった。' }],
       relationships: [{ character: 'beta', relation: '同僚', attitude: '距離を置いている' }],
     },
     {
@@ -131,10 +130,8 @@ const makeMinimal = (): ScenarioDefinitionInput => ({
     summary: 'アルファがやった。',
     method: '鈍器で殴った。',
     motive: '金銭トラブル。',
-    requiredFacts: ['fact-never'],
     secretKeywords: ['アルファがやった'],
   },
-  quality: { redHerrings: [] },
 })
 
 describe('compileScenario: 月見荘のコンパイル', () => {
@@ -249,9 +246,17 @@ describe('compileScenario: プロンプトを壊さない不変条件', () => {
     expect(characterIds.has(first.subjectId)).toBe(true)
     expect(firstSource.requires).toEqual({ revelations: [], evidences: [] })
 
-    // 後継者への焦りは、後継者指定の revelation と遺言書の証拠が揃って初めて解禁される。
+    // 後継者への焦りは、指定の revelation・指定の控え・見直し草案が揃って初めて解禁される。
     expect(secondSource.requires.revelations).toEqual([first.id])
-    expect(secondSource.requires.evidences).toHaveLength(1)
+    const designation = compiled.evidences.find(
+      (evidence) => evidence.label === '美月への後継者指定',
+    )
+    const draft = compiled.evidences.find(
+      (evidence) => evidence.label === '書き直しかけの遺言書の草案',
+    )
+    if (designation === undefined || draft === undefined)
+      throw new Error('後継者の証拠が足りません')
+    expect(secondSource.requires.evidences).toEqual([designation.id, draft.id])
 
     for (const evidenceId of secondSource.requires.evidences) {
       expect(evidenceIds.has(evidenceId)).toBe(true)
@@ -268,10 +273,15 @@ describe('compileScenario: プロンプトを壊さない不変条件', () => {
     const timeline = compiled.truth.timeline
 
     expect(Array.isArray(timeline)).toBe(true)
-    expect(timeline).toHaveLength(10)
+    expect(timeline).toHaveLength(11)
     expect(timeline).toEqual(
       expect.arrayContaining([
         { time: '19:00', event: '夕食会が始まる。涼子・深川・美月・桐生の4人が同席。' },
+        {
+          time: '19:30',
+          event:
+            '深川は外の電話ボックスにいる。利用票には19時15分から19時45分までの利用が記されている。',
+        },
       ]),
     )
 
@@ -523,7 +533,7 @@ describe('compileScenario: 失敗経路', () => {
           {
             id: 'ghost-evidence',
             label: 'どこにも無い部屋の証拠',
-            reveal: { mode: 'conversation', condition: '尋ねる' },
+            reveal: { condition: '尋ねる' },
             sources: [{ type: 'location', id: 'nowhere' }],
             supports: [],
             contradicts: [],
