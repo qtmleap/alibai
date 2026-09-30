@@ -268,3 +268,6 @@ vite.config.*.timestamp-*
 
 # Storybook の静的ビルド。成果物なので追跡しない。
 /storybook-static/
+
+# Local Codex configuration, credentials, and session state.
+/.codex/
