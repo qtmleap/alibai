@@ -13,6 +13,7 @@
     }
   },
   "remoteEnv": {
+    "CLAUDE_CODE_AUTO_MODE_SERVER": "0",
     "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}",
     "ANTHROPIC_BASE_URL": "${localEnv:ANTHROPIC_BASE_URL}",
     "ANTHROPIC_AUTH_TOKEN": "${localEnv:ANTHROPIC_AUTH_TOKEN}",
