@@ -1,4 +1,5 @@
-import { z } from 'zod'
+import type { z } from 'zod'
+import { discoveryPrerequisitesSchema, scenarioFindingBaseSchema } from './scenario-fields'
 
 /**
  * 遺体と現場から分かること、を焼いた形。
@@ -7,13 +8,8 @@ import { z } from 'zod'
  * 同じ形をそのまま持つ。潰さないのは、解禁の前提を実行時に評価する必要があるため
  * ——文章に均してしまうと「まだ見せてはいけない所見」を選り分けられなくなる。
  */
-export const victimFindingSchema = z.object({
-  id: z.string().nonempty(),
-  statement: z.string().nonempty(),
-  requires: z.object({
-    revelations: z.array(z.string().nonempty()),
-    evidences: z.array(z.string().nonempty()),
-  }),
+export const victimFindingSchema = scenarioFindingBaseSchema.extend({
+  requires: discoveryPrerequisitesSchema,
 })
 
 export type VictimFinding = z.infer<typeof victimFindingSchema>

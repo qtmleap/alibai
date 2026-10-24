@@ -1,20 +1,21 @@
 import { z } from 'zod'
-import { floorPlanSchema } from './floor-plan'
 import { ageGroupSchema, genderSchema } from './person'
+import {
+  authoringPrerequisitesSchema,
+  CLOCK_TIME_RE,
+  ISO_DATETIME_RE,
+  localIdSchema,
+  nonemptyTextSchema,
+  revealConditionSchema,
+  scenarioFindingBaseSchema,
+  scenarioSourceRefSchema,
+  timelineAtSchema,
+} from './scenario-fields'
+import { authoringFloorPlanSchema as floorPlanSchema } from './scenario-floor-plan'
 
 const scenarioIdSchema = z.string().regex(/^[a-z0-9][a-z0-9-]{2,63}$/)
-const localIdSchema = z.string().nonempty().max(100)
-const nonemptyTextSchema = z.string().trim().nonempty()
-const CLOCK_TIME_RE = /^(?:[01]\d|2[0-3]):[0-5]\d$/
-const ISO_DATETIME_RE =
-  /^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d{1,9})?)?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)?$/
-const timelineAtSchema = z
-  .string()
-  .refine((value) => [CLOCK_TIME_RE, ISO_DATETIME_RE].some((pattern) => pattern.test(value)), {
-    message: 'at は HH:mm または ISO 8601 日時で指定してください。',
-  })
 
-export const scenarioMetaSchema = z.object({
+export const scenarioMetaSchema = z.strictObject({
   title: nonemptyTextSchema.max(100),
   synopsis: nonemptyTextSchema.max(500),
   category: nonemptyTextSchema.max(50),
@@ -41,16 +42,9 @@ export const VICTIM_ID = 'victim'
  * 調べられる場所（`scenarioPlaceSchema`）の所見も同じ形を使う。段階的に見せる仕組みまで
  * 含めて同じものなので、別に定義すると片方だけ直された日に食い違う。
  */
-export const scenarioVictimFindingSchema = z.object({
-  id: localIdSchema,
-  statement: nonemptyTextSchema,
-  /** 段階的に見せたいときだけ。形は revelation の解禁前提と同じ。 */
-  requires: z
-    .object({
-      revelations: z.array(localIdSchema).default([]),
-      evidences: z.array(localIdSchema).default([]),
-    })
-    .default({ revelations: [], evidences: [] }),
+export const scenarioVictimFindingSchema = scenarioFindingBaseSchema.extend({
+  /** 所見と Revelation は同じ前提条件を評価する。省略の補完は作者入力だけ。 */
+  requires: authoringPrerequisitesSchema,
 })
 
 /**
@@ -87,7 +81,7 @@ export const placeIdSchema = localIdSchema
  *
  * 顔料も、アリバイ表の列も持たない。場所は動かないので、時刻軸に引く線がない。
  */
-export const scenarioPlaceSchema = z.object({
+export const scenarioPlaceSchema = z.strictObject({
   id: placeIdSchema,
   name: nonemptyTextSchema.max(20),
   /** 名札や記録の見出しに使う短い名前。「帳場」「奥の間」。 */
@@ -108,7 +102,7 @@ export const scenarioPlaceSchema = z.object({
   findings: z.array(scenarioVictimFindingSchema).min(1),
 })
 
-export const scenarioVictimSchema = z.object({
+export const scenarioVictimSchema = z.strictObject({
   name: nonemptyTextSchema.max(50),
   /** 肩書きひとつぶんの短い紹介。「青雨堂店主」のように、役割が分かれば足りる。 */
   introduction: nonemptyTextSchema.max(60),
@@ -132,13 +126,13 @@ export const scenarioVictimSchema = z.object({
   findings: z.array(scenarioVictimFindingSchema).default([]),
 })
 
-export const scenarioFactSchema = z.object({
+export const scenarioFactSchema = z.strictObject({
   id: localIdSchema,
   statement: nonemptyTextSchema,
   kind: z.enum(['observation', 'physical', 'testimony', 'motive', 'truth', 'other']).optional(),
 })
 
-export const scenarioTimelineEventSchema = z.object({
+export const scenarioTimelineEventSchema = z.strictObject({
   id: localIdSchema,
   at: timelineAtSchema,
   /**
@@ -160,7 +154,10 @@ export const scenarioTimelineEventSchema = z.object({
    * 見ていた側はここへ置き、その人自身の居場所は別の出来事として書く。
    */
   witnesses: z.array(localIdSchema).default([]),
-  facts: z.array(localIdSchema).min(1),
+  facts: z
+    .array(localIdSchema)
+    .min(1)
+    .describe('この出来事を構成する facts[].id。別の時刻や場所の事実を混ぜない。'),
   /**
    * その時刻を留めた記録の名前。「受付」「忘れ傘」「通報」。
    * アリバイ表の目盛りに `19:08　受付` の形で添う。裏付けのある出来事にだけ書く。
@@ -169,30 +166,32 @@ export const scenarioTimelineEventSchema = z.object({
   description: nonemptyTextSchema.optional(),
 })
 
-export const scenarioSecretSchema = z.object({
-  fact: localIdSchema,
+export const scenarioSecretSchema = z.strictObject({
+  fact: localIdSchema.describe('秘密にする facts[].id。knowledge に重ねて書かない。'),
   disclosure: z.enum(['never', 'pressured', 'voluntary']),
 })
 
-export const scenarioLieSchema = z.object({
+export const scenarioLieSchema = z.strictObject({
   id: localIdSchema,
-  about: localIdSchema,
+  about: localIdSchema.describe(
+    'この嘘が否定・偽装する facts[].id。未知の真相ではなく主張の対象を指す。',
+  ),
   claim: nonemptyTextSchema,
   strategy: z.enum(['maintain', 'maintain-until-contradicted', 'evasive']),
 })
 
-export const scenarioMemorySchema = z.object({
+export const scenarioMemorySchema = z.strictObject({
   id: localIdSchema,
   detail: nonemptyTextSchema,
 })
 
-export const scenarioRelationshipSchema = z.object({
+export const scenarioRelationshipSchema = z.strictObject({
   character: localIdSchema,
   relation: nonemptyTextSchema,
   attitude: nonemptyTextSchema.optional(),
 })
 
-export const scenarioCharacterSchema = z.object({
+export const scenarioCharacterSchema = z.strictObject({
   id: localIdSchema,
   name: nonemptyTextSchema.max(100),
   /**
@@ -228,27 +227,21 @@ export const scenarioCharacterSchema = z.object({
   publicIntroduction: nonemptyTextSchema.max(300),
   personality: nonemptyTextSchema,
   goals: z.array(nonemptyTextSchema),
-  knowledge: z.array(localIdSchema),
+  knowledge: z
+    .array(localIdSchema)
+    .describe('この人物が会話で開示してよい facts[].id。秘密にする事実は secrets にだけ置く。'),
   secrets: z.array(scenarioSecretSchema),
   lies: z.array(scenarioLieSchema),
   memories: z.array(scenarioMemorySchema),
   relationships: z.array(scenarioRelationshipSchema).default([]),
 })
 
-export const scenarioRevelationSourceSchema = z.object({
-  // victim のとき id は VICTIM_ID 固定。指す先が一人しか居ないので照合先の一覧を持たない。
-  type: z.enum(['character', 'location', 'victim']),
-  id: localIdSchema,
-  revealCondition: nonemptyTextSchema,
-  requires: z
-    .object({
-      revelations: z.array(localIdSchema).default([]),
-      evidences: z.array(localIdSchema).default([]),
-    })
-    .default({ revelations: [], evidences: [] }),
+export const scenarioRevelationSourceSchema = scenarioSourceRefSchema.extend({
+  revealCondition: revealConditionSchema,
+  requires: authoringPrerequisitesSchema,
 })
 
-export const scenarioRevelationSchema = z.object({
+export const scenarioRevelationSchema = z.strictObject({
   id: localIdSchema,
   title: nonemptyTextSchema.max(100),
   text: nonemptyTextSchema,
@@ -261,12 +254,15 @@ export const scenarioRevelationSchema = z.object({
     'background',
     'other',
   ]),
-  subject: z.object({
+  subject: z.strictObject({
     type: z.enum(['character', 'location', 'event']),
     id: localIdSchema,
   }),
   sources: z.array(scenarioRevelationSourceSchema).min(1),
-  relatedFacts: z.array(localIdSchema).default([]),
+  relatedFacts: z
+    .array(localIdSchema)
+    .default([])
+    .describe('関連する facts[].id。関連付けと、事実の裏付けは区別する。'),
 })
 
 /**
@@ -276,23 +272,28 @@ export const scenarioRevelationSchema = z.object({
  * `reveal.condition` が既に条件文の役を果たしているので、ここは「どこに紐づくか」だけ。
  * 難易度モードの「この人にあと N 件」を数えるのに使う。
  */
-export const scenarioEvidenceSourceSchema = z.object({
-  type: z.enum(['character', 'location', 'victim']),
-  id: localIdSchema,
-})
+export const scenarioEvidenceSourceSchema = scenarioSourceRefSchema
 
-export const scenarioEvidenceSchema = z.object({
+export const scenarioEvidenceSchema = z.strictObject({
   id: localIdSchema,
   label: nonemptyTextSchema.max(100),
   description: nonemptyTextSchema.optional(),
-  reveal: z.object({ condition: nonemptyTextSchema }),
+  reveal: z.strictObject({ condition: revealConditionSchema }),
   /**
    * 空でも通す。場所にも人物にも紐づかない証拠は、残り件数の内訳には出ないが
    * 総数には数えられる。
    */
   sources: z.array(scenarioEvidenceSourceSchema).default([]),
-  supports: z.array(localIdSchema).default([]),
-  contradicts: z.array(nonemptyTextSchema).default([]),
+  supports: z
+    .array(localIdSchema)
+    .default([])
+    .describe(
+      'この証拠だけで裏付けられる facts[].id。まだ確認できない人物の行動や真相を含めない。',
+    ),
+  contradicts: z
+    .array(nonemptyTextSchema)
+    .default([])
+    .describe('反証する嘘を lie:<lies[].id> で指定する。自由文ではなく実在する嘘の参照。'),
   /**
    * この証拠を掴んだら、死亡推定時刻（`victim.estimatedDeathAt`）を盤面に出すか。
    *
@@ -308,7 +309,7 @@ export const scenarioEvidenceSchema = z.object({
   revealsDeathTime: z.boolean().default(false),
 })
 
-export const scenarioSolutionSchema = z.object({
+export const scenarioSolutionSchema = z.strictObject({
   culprit: localIdSchema,
   summary: nonemptyTextSchema,
   /**
@@ -346,7 +347,7 @@ const duplicateIndexes = (ids: string[]): number[] => {
  * 手書きの定義を読むときは常に ScenarioDefinitionSchema を使うこと。
  * こちらを直接使うと、参照が壊れたシナリオが素通りする。
  */
-export const scenarioDefinitionShapeSchema = z.object({
+export const scenarioDefinitionShapeSchema = z.strictObject({
   schemaVersion: z.literal(1),
   id: scenarioIdSchema,
   meta: scenarioMetaSchema,
